@@ -127,6 +127,8 @@ Fix the test failure and re-verify:
 
 ## Next Steps
 
+First fix the issues, then re-verify:
 ```
-/kanban:in-progress-verify-task {id}
+/kanban:planned-implement-task {id}  # Fix issues
+/kanban:in-progress-verify-task {id}  # Then verify
 ```

@@ -1,7 +1,7 @@
 ---
 name: backlog-refine-task
 description: Refine vague task through Socratic Q&A and commit
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status), Grep
+allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status), Grep, AskUserQuestion
 argument-hint: "[task id]"
 ---
 

@@ -1,6 +1,8 @@
 name: My Project
 
 commands:
+  "kanban:init":
+    skills: []
   "kanban:define-task":
     skills: []
   "kanban:backlog-refine-task":
@@ -37,4 +39,3 @@ settings:
   idPrefix: ""
   idPadding: 3
   archiveOnComplete: false
-  productDocsPath: ".kanban/product"

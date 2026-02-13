@@ -1,7 +1,7 @@
 ---
 name: kanban-define-task
 description: Create a new task in the kanban board and commit. Use when the user wants to add a task, ticket, bug, or feature to track.
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status)
+allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status), Grep
 ---
 
 # Create Kanban Task

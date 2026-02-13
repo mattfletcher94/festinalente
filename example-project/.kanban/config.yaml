@@ -1,6 +1,8 @@
 name: My Project
 
 commands:
+  "kanban:init":
+    skills: []
   "kanban:define-task":
     skills: []
   "kanban:backlog-refine-task":
@@ -27,6 +29,10 @@ commands:
   "kanban:review-fail-task":
     skills: []
   "kanban:update-docs-complete-task":
+    skills: []
+  "kanban:map-product":
+    skills: []
+  "kanban:define-product":
     skills: []
 
 settings:

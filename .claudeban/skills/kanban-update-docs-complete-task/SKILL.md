@@ -1,7 +1,7 @@
 ---
 name: kanban-update-docs-complete-task
 description: Update product documentation, commit, and move task to Done. Final step in the workflow.
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status)
+allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status), Grep
 ---
 
 # Update Kanban Task Documentation

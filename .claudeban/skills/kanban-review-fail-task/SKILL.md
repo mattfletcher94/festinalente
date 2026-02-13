@@ -137,9 +137,8 @@ Fix the issues and re-verify:
 
 ## Next Steps
 
-To fix the issues and re-verify:
+First fix the issues, then re-verify:
 ```
-/kanban:in-progress-verify-task {id}
+/kanban:planned-implement-task {id}  # Fix issues (see plan's Iterations for checkboxes)
+/kanban:in-progress-verify-task {id}  # Then verify
 ```
-
-The plan's Iterations section contains the issues as checkboxes to address.

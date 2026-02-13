@@ -2,6 +2,53 @@
 
 A file-based kanban board for AI-assisted development. Task and planning data lives with your code - transparent, versionable, and accessible to both humans and AI.
 
+## Quick Start
+
+### 1. Initialize
+
+```bash
+/kanban:init
+```
+
+This creates the `.kanban/` directory structure in your project:
+
+```
+.kanban/
+├── config.yaml    # Your board configuration
+├── tasks/         # Task files
+├── specs/         # Functional specifications
+├── plans/         # Implementation plans
+├── product/       # Product documentation
+└── skills/        # Your verification checks
+```
+
+### 2. Create Your First Task
+
+```bash
+/kanban:define-task "Add user authentication"
+```
+
+This creates a task file, assigns it an ID (e.g., `001`), and commits it to git.
+
+### 3. Work Through the Workflow
+
+Each task progresses through columns. Run one command, review the result, then run the next:
+
+```bash
+/kanban:backlog-refine-task 001      # Clarify requirements via Q&A
+/kanban:refined-scope-task 001       # Research codebase, create spec
+/kanban:scoped-plan-task 001         # Create implementation plan
+/kanban:planned-implement-task 001   # Write the code
+/kanban:in-progress-verify-task 001  # Run automated checks
+/kanban:verify-pass-task 001         # Move to human review
+/kanban:review-pass-task 001         # Approve and commit code
+/kanban:update-docs-complete-task 001 # Update docs, mark done
+```
+
+That's it. Your git history now tells the story of your task.
+
+---
+
 ## The Workflow
 
 ```
@@ -55,138 +102,303 @@ A file-based kanban board for AI-assisted development. Task and planning data li
 │   └──────┘         └────────────┘                               └──────▶ In Progress ◀┘   │
 │       ▲                   ▲                                                               │
 │       │                   │                                                               │
-│   (auto)              update-docs                                                         │
-│                       + commit                                                            │
+│   update-docs-        update-docs                                                         │
+│   complete-task       + commit                                                            │
 │                                                                                           │
 └───────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-Each command is a stopping point. Run a command, review the result, then run the next command. **Commits happen at each phase** - your git history tells the story of your task lifecycle.
+**Key principle:** Each command is a stopping point. You run a command, review the result, then decide to continue. Commits happen at most phases, so your git history tells the complete story.
 
-## Columns
+---
 
-The workflow defines a fixed set of columns. See `.claudeban/workflow.yaml` for the canonical schema.
+## Complete Workflow Example
 
-| Column | Status ID | Purpose |
-|--------|-----------|---------|
-| **Backlog** | `backlog` | New tasks awaiting refinement |
-| **Refined** | `refined` | Tasks refined with problem, value, and acceptance criteria |
-| **Scoped** | `scoped` | Tasks with functional specification ready for planning |
-| **Planned** | `planned` | Tasks with a plan ready for implementation |
-| **In Progress** | `in-progress` | Tasks currently being implemented (code uncommitted) |
-| **Verify** | `verify` | Implementation complete, running automated checks |
-| **Review** | `review` | Checks passed, awaiting human code review |
-| **Update Docs** | `update-docs` | Review passed, code committed, documentation needs updating |
-| **Done** | `done` | Docs committed, task complete |
+Here's a full task lifecycle from start to finish:
 
-## Commands
+```bash
+# 0. Initialize (first time only)
+/kanban:init
+# → Creates .kanban/ directory structure
 
-Commands are named with their **source column prefix** so you always know where the task must be to use the command.
+# 1. Create task
+/kanban:define-task "Add dark mode support"
+# → Creates .kanban/tasks/001-add-dark-mode-support.md
+# → Commits: docs(001): define - Add dark mode support
 
-| Command | Source | Destination | Commit |
-|---------|--------|-------------|--------|
-| `kanban:define-task "title"` | (new) | Backlog | `docs({id}): define - {title}` |
-| `kanban:backlog-refine-task [id]` | Backlog | Refined | `docs({id}): refine - {title}` |
-| `kanban:refined-scope-task [id]` | Refined | Scoped | `docs({id}): scope - {title}` |
-| `kanban:scoped-plan-task [id]` | Scoped | Planned | `docs({id}): plan - {title}` |
-| `kanban:planned-implement-task [id]` | Planned | In Progress | None (code uncommitted) |
-| `kanban:in-progress-wip-commit [id]` | In Progress | In Progress | `wip({id}): {progress summary}` |
-| `kanban:in-progress-verify-task [id]` | In Progress | Verify | None (on failure: `docs({id}): verify-fail - {title}`) |
-| `kanban:verify-pass-task [id]` | Verify | Review | None |
-| `kanban:verify-fail-task [id]` | Verify | In Progress | `docs({id}): verify-fail - {title}` |
-| `kanban:review-pass-task [id]` | Review | Update Docs | `feat/fix({id}): {title}` |
-| `kanban:review-fail-task [id]` | Review | In Progress | `docs({id}): review-fail - {title}` |
-| `kanban:update-docs-complete-task [id]` | Update Docs | Done | `docs({id}): product - {message}` |
-| `kanban:map-product` | N/A | N/A | `docs: map-product - {features}` |
-| `kanban:define-product` | N/A | N/A | `docs: define-product - {description}` |
+# 2. Refine (Socratic Q&A)
+/kanban:backlog-refine-task 001
+# → AI asks: "What problem are you trying to solve?"
+# → AI asks: "What value would it provide?"
+# → AI asks: "What does 'done' look like?"
+# → Fills acceptance criteria in Gherkin format
+# → Commits: docs(001): refine - Add dark mode support
 
-### Command Naming Convention
+# 3. Scope (research and spec)
+/kanban:refined-scope-task 001
+# → AI searches codebase for existing patterns
+# → Creates .kanban/specs/001.spec.md with:
+#   - Functional requirements
+#   - Affected files
+#   - Technical constraints
+# → Commits: docs(001): scope - Add dark mode support
 
-The prefix tells you which column the task must be in:
-- `backlog-*` commands require task in Backlog
-- `refined-*` commands require task in Refined
-- `scoped-*` commands require task in Scoped
-- `planned-*` commands require task in Planned
-- `in-progress-*` commands require task in In Progress
-- `verify-*` commands require task in Verify
-- `review-*` commands require task in Review
-- `update-docs-*` commands require task in Update Docs
+# 4. Plan (implementation steps)
+/kanban:scoped-plan-task 001
+# → Creates .kanban/plans/001.plan.md with checkboxes
+# → Commits: docs(001): plan - Add dark mode support
 
-This prevents running the wrong command on a task.
+# 5. Implement
+/kanban:planned-implement-task 001
+# → AI executes each checkbox in the plan
+# → Writes actual code
+# → NO COMMIT - code stays uncommitted for review
 
-## Product Discovery Commands
+# 5b. (Optional) Save progress if interrupted
+/kanban:in-progress-wip-commit 001
+# → Commits: wip(001): completed theme context and toggle
 
-Two commands help initialize product documentation for your project:
+# 6. Verify
+/kanban:in-progress-verify-task 001
+# → Runs your configured checks (tests, typecheck, lint)
+# → If pass: moves to Verify column
+# → If fail: stays in In Progress, commits failure notes
 
-### `kanban:map-product`
+# 7. Pass verification
+/kanban:verify-pass-task 001
+# → Moves to Review column for human approval
 
-For **existing codebases** that have real features but lack product documentation.
+# 8a. Review passes
+/kanban:review-pass-task 001
+# → Commits code: feat(001): Add dark mode support
+# → Moves to Update Docs
 
-**What it does:**
-1. Deep analysis of your codebase (features, architecture, integrations)
-2. Presents a summary of findings
-3. Socratic Q&A to validate and expand understanding (one question at a time)
-4. Generates product docs incrementally during the conversation
-5. Commits all docs with: `docs: map-product - {features}`
+# 8b. Review fails (alternative)
+/kanban:review-fail-task 001
+# → Documents issues in plan
+# → Returns to In Progress for fixes
+# → Commits: docs(001): review-fail - Add dark mode support
 
-**When to use:**
-- You have working code but no product documentation
-- You want LLM-ready docs for future task work
-- You're onboarding Claude to an existing project
+# 9. Complete
+/kanban:update-docs-complete-task 001
+# → Updates product documentation
+# → Commits: docs(001): product - add dark mode guide
+# → Task is Done!
+```
 
-### `kanban:define-product`
+Your git log now shows the full story:
+```
+docs(001): define - Add dark mode support
+docs(001): refine - Add dark mode support
+docs(001): scope - Add dark mode support
+docs(001): plan - Add dark mode support
+feat(001): Add dark mode support
+docs(001): product - add dark mode guide
+```
 
-For **new projects** where you want to define the product before coding.
+---
 
-**What it does:**
-1. Socratic Q&A starting with "What problem are you trying to solve?"
-2. Explores users, features, constraints through dialogue
-3. Generates product docs incrementally during the conversation
-4. Commits all docs with: `docs: define-product - {description}`
+## Commands Reference
 
-**When to use:**
-- Starting a new project from scratch
-- Want to document product vision before coding
-- Need LLM-ready docs for task planning
+Commands are named with their **source column prefix** so you always know where the task must be:
 
-### Key Behaviors
+| Command | From | To | Commits |
+|---------|------|-----|---------|
+| `kanban:init` | — | — | No |
+| `kanban:define-task "title"` | (new) | Backlog | Yes |
+| `kanban:backlog-refine-task [id]` | Backlog | Refined | Yes |
+| `kanban:refined-scope-task [id]` | Refined | Scoped | Yes |
+| `kanban:scoped-plan-task [id]` | Scoped | Planned | Yes |
+| `kanban:planned-implement-task [id]` | Planned | In Progress | No |
+| `kanban:in-progress-wip-commit [id]` | In Progress | In Progress | Yes |
+| `kanban:in-progress-verify-task [id]` | In Progress | Verify | On fail |
+| `kanban:verify-pass-task [id]` | Verify | Review | No |
+| `kanban:verify-fail-task [id]` | Verify | In Progress | Yes |
+| `kanban:review-pass-task [id]` | Review | Update Docs | Yes |
+| `kanban:review-fail-task [id]` | Review | In Progress | Yes |
+| `kanban:update-docs-complete-task [id]` | Update Docs | Done | Yes |
 
-Both commands:
-- **Ask one question at a time** - More Socratic, less overwhelming
-- **Write docs incrementally** - Prevents context loss in long sessions
-- **Exit when user confirms** - LLM asks "Is there anything else?" to end Q&A
-- **Require `.kanban/` to exist** - Run `kanban:init` first if needed
-- **Handle existing docs** - Ask how to proceed if product docs already exist
+**Product discovery commands** (not part of task workflow):
+
+| Command | Purpose |
+|---------|---------|
+| `kanban:map-product` | Analyze existing codebase and create product docs |
+| `kanban:define-product` | Define a new product through Q&A before coding |
+
+---
+
+## Custom Skills
+
+Skills are markdown files that provide guidance to the AI during specific commands. There are two main uses:
+
+1. **Verification checks** - Run during `verify-task` to validate implementation
+2. **Guidance skills** - Provide coding standards, architecture rules, or other instructions
+
+### Configuring Skills
+
+Edit `.kanban/config.yaml` to attach skills to commands:
+
+```yaml
+commands:
+  "kanban:planned-implement-task":
+    skills:
+      - .claude/skills/coding-standards.md
+      - .claude/skills/architecture.md
+
+  "kanban:in-progress-verify-task":
+    skills:
+      - .kanban/skills/check-typescript.md
+      - .kanban/skills/check-tests.md
+      - .kanban/skills/check-lint.md
+
+  "kanban:review-pass-task":
+    skills:
+      - .claude/skills/code-review-checklist.md
+```
+
+When a command runs, the AI reads and follows all configured skills as mandatory guidance.
+
+### Creating Verification Checks
+
+Verification checks run during `verify-task`. Create them in `.kanban/skills/`:
+
+**`.kanban/skills/check-typescript.md`**
+```markdown
+# Check: TypeScript
+
+Run `pnpm typecheck`
+
+### Pass criteria
+Exit code 0, no errors in output.
+
+### Common failures
+- "Cannot find module X" — missing dependency, run `pnpm install`
+- "Type X is not assignable to Y" — type mismatch, fix the code
+```
+
+**`.kanban/skills/check-tests.md`**
+```markdown
+# Check: Tests
+
+Run `pnpm test`
+
+### Pass criteria
+Exit code 0, all tests pass.
+
+### Common failures
+- "Test suite failed" — review failing test output
+- "Cannot find module" — missing test dependency
+```
+
+**`.kanban/skills/check-lint.md`**
+```markdown
+# Check: Lint
+
+Run `pnpm lint`
+
+### Pass criteria
+Exit code 0, no lint errors.
+
+### Common failures
+- "Unexpected console statement" — remove console.log or add eslint-disable
+- "Missing return type" — add TypeScript return type annotation
+```
+
+The AI runs each check in order. On first failure, it stops, records the error in the plan's Iterations section, and commits the failure. Fix the issue and re-run verify.
+
+### Creating Guidance Skills
+
+Guidance skills provide instructions the AI follows during implementation or other phases:
+
+**`.claude/skills/coding-standards.md`**
+```markdown
+# Coding Standards
+
+## TypeScript
+- Use strict mode
+- Prefer interfaces over types for object shapes
+- Use named exports, not default exports
+
+## React
+- Functional components only
+- Use hooks for state management
+- Colocate styles with components
+
+## Testing
+- Write tests for all new functions
+- Use describe/it blocks
+- Mock external dependencies
+```
+
+**`.claude/skills/architecture.md`**
+```markdown
+# Architecture
+
+## Directory Structure
+- `/src/components` - React components
+- `/src/hooks` - Custom hooks
+- `/src/services` - API and business logic
+- `/src/types` - TypeScript types
+
+## Patterns
+- Use repository pattern for data access
+- Use React Query for server state
+- Use Zustand for client state
+```
+
+### Skill Loading Order
+
+1. Command starts (e.g., `implement-task`)
+2. AI reads `.kanban/config.yaml`
+3. AI loads all skills listed for that command
+4. AI follows skill instructions as mandatory guidance
+5. AI proceeds with the command's normal steps
+
+---
+
+## Product Discovery
+
+Before creating tasks, you may want to document your product. Two commands help:
+
+### For Existing Codebases
+
+```bash
+/kanban:map-product
+```
+
+The AI will:
+1. Analyze your codebase (features, architecture, integrations)
+2. Present findings and ask clarifying questions one at a time
+3. Write product docs incrementally to `.kanban/product/`
+4. Commit all docs when done
+
+Use this when you have working code but no product documentation.
+
+### For New Projects
+
+```bash
+/kanban:define-product
+```
+
+The AI will:
+1. Ask "What problem are you trying to solve?"
+2. Explore users, features, constraints through dialogue
+3. Write product docs incrementally as you discuss
+4. Commit all docs when done
+
+Use this when starting fresh and want to document vision before coding.
+
+Both commands write to `.kanban/product/` and create docs that help the AI understand context during future task work.
+
+---
 
 ## Git History
 
-A complete task lifecycle creates this commit history:
-
-```
-docs(001): define - Add user authentication
-docs(001): refine - Add user authentication
-docs(001): scope - Add user authentication
-docs(001): plan - Add user authentication
-wip(001): completed auth routes and middleware      # optional, if interrupted
-docs(001): verify-fail - Add user authentication    # optional, if verify fails
-docs(001): review-fail - Add user authentication    # optional, if review fails
-feat(001): Add user authentication                  # when review passes
-docs(001): product - add authentication guide       # final step
-```
-
-### Searching Git History
-
-The commit format `{type}({id}): {action} - {description}` makes it easy to search:
+The commit format makes your git history searchable:
 
 ```bash
 # All commits for task 001
 git log --grep="(001)"
-
-# All define phase commits
-git log --grep="define -"
-
-# All scope phase commits
-git log --grep="scope -"
 
 # All feature commits
 git log --grep="^feat"
@@ -194,40 +406,29 @@ git log --grep="^feat"
 # All verification failures
 git log --grep="verify-fail"
 
-# All review failures
-git log --grep="review-fail"
+# All commits in the define phase
+git log --grep="define -"
 ```
 
-## Templates
-
-Templates are centralized markdown files that define the structure for tasks, specs, and plans. Skills reference these templates instead of embedding format inline.
-
-**Location:** `.claudeban/templates/`
-
-| Template | Purpose |
-|----------|---------|
-| `task.md` | Master template for kanban task files |
-| `spec.md` | Functional specification template |
-| `plan.md` | Implementation plan template |
-| `product-doc.md` | Product documentation template |
-
-### How Templates Work
-
-Each skill references the appropriate template and specifies which sections to fill for that phase:
-
-```markdown
-Create task file at `.kanban/tasks/{id}-{slug}.md`:
-- Follow template at `.claudeban/templates/task.md`
-- Fill sections for this phase:
-  - Frontmatter: `id`, `title`, `status`, `created`
-  - Body: `## Description`
+Complete task lifecycle in git:
+```
+docs(001): define - Add user authentication
+docs(001): refine - Add user authentication
+docs(001): scope - Add user authentication
+docs(001): plan - Add user authentication
+wip(001): completed auth routes              # optional
+docs(001): verify-fail - Add user authentication  # optional
+feat(001): Add user authentication           # when review passes
+docs(001): product - add authentication guide
 ```
 
-This ensures consistent structure across all documents while allowing skills to focus on workflow logic.
+---
 
-## Task File Format
+## File Formats
 
-Tasks are stored as markdown files in `.kanban/tasks/`:
+### Task Files
+
+Location: `.kanban/tasks/{id}-{slug}.md`
 
 ```markdown
 ---
@@ -266,270 +467,63 @@ And their session is established
 Use JWT for session tokens. Follow existing auth patterns.
 ```
 
-### Task Frontmatter Fields
+### Functional Specifications
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `id` | Yes | Unique identifier (e.g., "001") |
-| `title` | Yes | Short task title |
-| `status` | Yes | Current column status |
-| `priority` | No | Priority (high/medium/low) |
-| `labels` | No | Array of label IDs |
-| `created` | Yes | Creation date (YYYY-MM-DD) |
-| `updated` | No | Last update date |
-| `completed` | No | Completion date |
-| `spec` | No | Path to functional specification |
-| `plan` | No | Path to plan file |
-| `product-docs` | No | IDs of related product documentation |
+Location: `.kanban/specs/{id}.spec.md`
 
-### Acceptance Criteria (Gherkin Format)
+Created during `scope-task`. Contains:
+- Context and scope boundaries
+- Functional requirements (FR1, FR2, etc.)
+- Affected files
+- Existing patterns found in codebase
+- Technical constraints
+- Risks and mitigations
 
-Acceptance criteria use the Given/When/Then format:
+### Implementation Plans
 
-```gherkin
-Given a user is logged in
-And they are on the dashboard page
-When they click the logout button
-Then they are redirected to the login page
-And their session is invalidated
-And a success message is displayed
-```
+Location: `.kanban/plans/{id}.plan.md`
 
-**Keywords:**
-- `Given` - preconditions/context
-- `When` - action/trigger
-- `Then` - expected outcome
-- `And` - additional conditions/outcomes
-- `But` - negative conditions (optional)
+Created during `plan-task`. Contains:
+- Implementation steps as checkboxes
+- References to functional requirements
+- Iteration history (failures and fixes)
+- WIP notes for resuming work
 
-## Functional Specification
+### Product Documentation
 
-Specs are created during the `scope-task` phase and stored in `.kanban/specs/`:
+Location: `.kanban/product/{feature}.md`
 
-**Location:** `.kanban/specs/{id}.spec.md`
+Describes features for humans and AI context:
+- Overview and how it works
+- Key concepts
+- Configuration options
+- Limitations
 
-```markdown
----
-task: "001"
-created: 2026-02-13
-updated: 2026-02-13
 ---
 
-# Functional Specification: Add user authentication
+## Labels and Commit Types
 
-## Context
-Users need to securely log in to access their data.
+Labels on tasks determine commit type when review passes:
 
-## Scope
-### In Scope
-- Email/password authentication
-- Session management
+| Label | Commit Type |
+|-------|-------------|
+| `feature` | `feat(id): title` |
+| `bug` | `fix(id): title` |
+| `refactor` | `refactor(id): title` |
+| `docs` | `docs(id): title` |
 
-### Out of Scope
-- OAuth providers
-- Password reset (separate task)
-
-## Functional Requirements
-- FR1: The system shall validate email format
-- FR2: The system shall hash passwords with bcrypt
-- FR3: The system shall issue JWT tokens on login
-
-## Affected Files
-- `src/routes/auth.ts` (create) - Auth endpoints
-- `src/middleware/jwt.ts` (create) - Token middleware
-
-## Existing Patterns
-- **Pattern:** Route handlers
-  - Reference: `src/routes/users.ts:15`
-
-## Technical Constraints
-- Must use existing Express setup
-- JWT tokens expire in 24 hours
-
-## Dependencies
-### External
-- bcrypt, jsonwebtoken
-
-### Internal
-- User model must exist
-
-## Risks & Mitigations
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Token theft | high | Use httpOnly cookies |
-
-## Open Questions
-- [ ] Should we add rate limiting?
-```
-
-## Product Documentation
-
-Product docs describe features for non-technical stakeholders (PMs, customer success) and provide context for the LLM during task work.
-
-**Location:** `.kanban/product/`
-
-### Product Doc Format
-
-```markdown
 ---
-id: authentication
-title: User Authentication
-summary: Email/password and OAuth login with JWT sessions
-keywords: [auth, login, logout, oauth, jwt, session]
-related: [user-management]
-uses: []
-extends: []
-updated: 2026-02-13
----
-
-# User Authentication
-
-## Overview
-Secure user authentication supporting email/password and OAuth providers.
-
-## How It Works
-Users can sign in via email/password or OAuth providers (Google, GitHub).
-
-## Key Concepts
-- **Session**: A JWT token stored in an httpOnly cookie
-- **OAuth**: Third-party authentication delegation
-
-## Configuration
-OAuth providers configured in Settings > Integrations.
-
-## Interactions
-Works with [User Management](user-management.md) for account creation.
-
-## Limitations
-- Maximum 3 active sessions per user
-```
-
-### Product Doc Frontmatter Fields
-
-| Field | Required | Description |
-|-------|----------|-------------|
-| `id` | Yes | Unique identifier (matches filename) |
-| `title` | Yes | Human-readable feature name |
-| `summary` | Yes | One sentence description |
-| `keywords` | Yes | Searchable terms for discovery |
-| `related` | No | Related feature IDs ("see also") |
-| `uses` | No | Features this depends on |
-| `extends` | No | Features this builds upon |
-| `updated` | Yes | Last update date |
-
-### Task Linkage
-
-Tasks reference product docs via the `product-docs` frontmatter field:
-
-```yaml
----
-id: "015"
-title: "Add OAuth login"
-product-docs: [authentication]
----
-```
-
-The LLM populates this field during define/refine phases when connections are apparent.
-
-### When Product Docs Are Updated
-
-During the `update-docs-complete-task` phase:
-1. LLM identifies relevant product docs from task's `product-docs` field
-2. Updates existing docs or creates new ones as needed
-3. Docs reflect current state (no changelog - git history provides that)
-
-## Labels
-
-Labels determine commit types. See `.claudeban/workflow.yaml` for the canonical schema.
-
-| Label | Purpose | Commit Type |
-|-------|---------|-------------|
-| **bug** | Bug fixes | `fix` |
-| **feature** | New functionality | `feat` |
-| **docs** | Documentation only | `docs` |
-| **refactor** | Code restructuring | `refactor` |
-
-## Priorities
-
-See `.claudeban/workflow.yaml` for the canonical schema.
-
-| Priority |
-|----------|
-| **high** |
-| **medium** |
-| **low** |
-
-## Custom Skills
-
-Skills are markdown files with instructions the AI follows. Configure them per-command in `config.yaml`:
-
-```yaml
-commands:
-  "kanban:define-task":
-    skills:
-      - .claude/skills/task-template.md
-
-  "kanban:scoped-plan-task":
-    skills:
-      - .claude/skills/coding-standards.md
-      - .claude/skills/architecture.md
-
-  "kanban:planned-implement-task":
-    skills:
-      - .claude/skills/coding-standards.md
-
-  "kanban:in-progress-verify-task":
-    skills:
-      - .kanban/skills/check-typescript.md
-      - .kanban/skills/check-tests.md
-      - .kanban/skills/check-lint.md
-
-  "kanban:review-pass-task":
-    skills:
-      - .claude/skills/code-review-checklist.md
-
-  "kanban:update-docs-complete-task":
-    skills:
-      - .claude/skills/documentation-standards.md
-```
-
-When a command runs, it loads and follows all configured skills as mandatory guidance.
-
-### Example: Verification Check Skill
-
-Create `.kanban/skills/check-typescript.md`:
-
-```markdown
-# Check: TypeScript
-
-Run `pnpm typecheck`
-
-### Pass criteria
-Exit code 0, no errors in output.
-
-### Common failures
-- "Cannot find module X" — missing dependency, run `pnpm install`
-- "Type X is not assignable to Y" — type mismatch, fix the code
-```
-
-## Workflow Schema
-
-The `.claudeban/workflow.yaml` file defines the fixed workflow elements:
-- **Columns** - task lifecycle stages and valid transitions
-- **Labels** - task types and their commit message prefixes
-- **Priorities** - task priority levels
-- **Commits** - commit message formats for each phase
-
-This schema is referenced by skills, commands, and templates. It is not user-configurable.
 
 ## Board Configuration
 
-The `.kanban/config.yaml` file configures project-specific settings.
+Your project's `.kanban/config.yaml`:
 
 ```yaml
 name: My Project
 
 commands:
+  "kanban:init":
+    skills: []
   "kanban:define-task":
     skills: []
   "kanban:backlog-refine-task":
@@ -554,6 +548,10 @@ commands:
     skills: []
   "kanban:update-docs-complete-task":
     skills: []
+  "kanban:map-product":
+    skills: []
+  "kanban:define-product":
+    skills: []
 
 settings:
   version: "2.0"
@@ -562,110 +560,45 @@ settings:
   archiveOnComplete: false
 ```
 
-## Typical Workflow Example
-
-```bash
-# 1. Create a new task
-/kanban:define-task "Add dark mode support"
-# → Creates task 001 in Backlog
-# → Commits: docs(001): define - Add dark mode support
-
-# 2. Refine the task (Q&A to clarify requirements)
-/kanban:backlog-refine-task 001
-# → AI asks clarifying questions
-# → Fills problem, value, acceptance criteria (Gherkin)
-# → Commits: docs(001): refine - Add dark mode support
-
-# 3. Scope the task (research and create spec)
-/kanban:refined-scope-task 001
-# → AI searches codebase for patterns
-# → Creates .kanban/specs/001.spec.md
-# → Commits: docs(001): scope - Add dark mode support
-
-# 4. Create implementation plan
-/kanban:scoped-plan-task 001
-# → Creates .kanban/plans/001.plan.md
-# → Moves task to Planned
-# → Commits: docs(001): plan - Add dark mode support
-
-# 5. Implement the plan
-/kanban:planned-implement-task 001
-# → AI writes code following the plan
-# → Moves task to In Progress
-# → NO COMMIT - code stays uncommitted
-
-# 5b. (Optional) Save partial progress if interrupted
-/kanban:in-progress-wip-commit 001
-# → Commits: wip(001): completed theme context and toggle
-
-# 6. Run verification checks
-/kanban:in-progress-verify-task 001
-# → Runs configured check skills
-# → If pass: moves to Verify
-# → If fail: commits docs(001): verify-fail - ...
-
-# 7. Move to review
-/kanban:verify-pass-task 001
-# → Moves task to Review
-
-# 8a. If review passes
-/kanban:review-pass-task 001
-# → Commits code: feat(001): Add dark mode support
-# → Moves task to Update Docs
-
-# 8b. If review fails
-/kanban:review-fail-task 001
-# → Commits notes: docs(001): review-fail - Add dark mode support
-# → Moves task back to In Progress for fixes
-
-# 9. Update documentation
-/kanban:update-docs-complete-task 001
-# → Updates relevant docs (README, etc.)
-# → Commits: docs(001): product - add dark mode documentation
-# → Moves task to Done
-```
-
-## Philosophy
-
-- **Commit at each phase.** Your git history tells the story of your task lifecycle.
-- **Each command is a stopping point.** You review, then continue.
-- **Skills are mandatory guidance.** When configured, the AI must follow them.
-- **Data lives with code.** Tasks are markdown files in your repo.
-- **Human in the loop.** You control when to proceed to each step.
-- **Command names tell you where you are.** The source column prefix shows which column the task must be in.
-- **Transparency over magic.** All task state is visible in plain text files.
-- **No auto-push.** You push to remote when you're ready.
-- **Templates ensure consistency.** All documents follow the same structure.
+---
 
 ## Project Structure
 
 ```
-project/
-├── .kanban/
-│   ├── config.yaml              # Board configuration
+your-project/
+├── .kanban/                        # Your board data
+│   ├── config.yaml                 # Board configuration
 │   ├── tasks/
-│   │   ├── 001-add-feature.md  # Task file
-│   │   └── 002-fix-bug.md      # Another task
+│   │   ├── 001-add-feature.md
+│   │   └── 002-fix-bug.md
 │   ├── specs/
-│   │   └── 001.spec.md         # Functional specification
+│   │   └── 001.spec.md
 │   ├── plans/
-│   │   └── 001.plan.md         # Implementation plan
-│   ├── product/                 # Product documentation
-│   │   └── authentication.md   # Feature documentation
-│   └── skills/
-│       ├── check-typescript.md # Verification check
-│       └── check-tests.md      # Another check
-├── .claudeban/                  # (or .claude/)
-│   ├── workflow.yaml           # Fixed workflow schema (columns, labels, priorities)
-│   ├── templates/
-│   │   ├── config.yaml          # Board initialization template
-│   │   ├── task.md             # Task file template
-│   │   ├── spec.md             # Functional specification template
-│   │   ├── plan.md             # Implementation plan template
-│   │   └── product-doc.md      # Product documentation template
-│   ├── commands/
-│   │   └── kanban/             # Kanban commands
-│   └── skills/
-│       └── kanban-*/           # Built-in kanban skills
+│   │   └── 001.plan.md
+│   ├── product/
+│   │   └── authentication.md
+│   └── skills/                     # Your verification checks
+│       ├── check-typescript.md
+│       ├── check-tests.md
+│       └── check-lint.md
+│
+├── .claudeban/                     # System files (don't edit)
+│   ├── workflow.yaml               # Workflow schema
+│   ├── templates/                  # Document templates
+│   ├── commands/kanban/            # Command definitions
+│   └── skills/kanban-*/            # Built-in skills
+│
 └── ... your code ...
 ```
+
+---
+
+## Philosophy
+
+- **Commit at each phase.** Git history tells your task's story.
+- **Each command is a stopping point.** Review, then continue.
+- **Skills are mandatory guidance.** The AI must follow them.
+- **Data lives with code.** Tasks are markdown in your repo.
+- **Human in the loop.** You decide when to proceed.
+- **Transparency over magic.** All state is in plain text files.
+- **No auto-push.** You push when ready.

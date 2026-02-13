@@ -1,3 +1,9 @@
+---
+name: kanban-define-product
+description: Define a new product through Socratic Q&A and generate product documentation
+allowed-tools: Read, Write, Bash(git add *, git commit *, git status), AskUserQuestion
+---
+
 # Skill: Define Product
 
 Define a new product through Socratic Q&A and generate product documentation.

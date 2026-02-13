@@ -1,7 +1,7 @@
 ---
 name: kanban-backlog-refine-task
 description: Refine vague tasks through Socratic Q&A to add clarity and acceptance criteria, then commit
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status)
+allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status), Grep, AskUserQuestion
 ---
 
 # Refine Kanban Task

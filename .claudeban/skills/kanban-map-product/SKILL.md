@@ -1,3 +1,9 @@
+---
+name: kanban-map-product
+description: Analyze existing codebase and create product documentation through Socratic Q&A
+allowed-tools: Read, Write, Glob, Grep, Bash(git add *, git commit *, git status), AskUserQuestion
+---
+
 # Skill: Map Product
 
 Analyze existing codebase and create product documentation through Socratic Q&A.
