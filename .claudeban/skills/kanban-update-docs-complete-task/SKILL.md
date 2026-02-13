@@ -86,6 +86,16 @@ The description summarizes what documentation was updated (e.g., "add authentica
    ```
 
 8. **If user confirms (Y)**:
+   - **SCOPE RESTRICTION:** Only update docs to reflect what THIS task implemented
+   - **Do NOT:**
+     - Add "Planned" or "Not yet implemented" markers for unrelated features
+     - Modify documentation for features not touched by this task
+     - Document the entire product state - only this task's contribution
+     - Strike through or annotate features that weren't part of this task
+   - **Do:**
+     - Add/update docs for the specific feature this task built
+     - Mark this task's feature as implemented if appropriate
+     - Add any new documentation files needed for this task's feature
    - Help identify which docs to update:
      - For `feature`: suggest feature documentation
      - For `api`: suggest API documentation
@@ -184,6 +194,9 @@ What documentation needs to be updated?
 Creating docs/auth.md...
 Updating README.md with auth section...
 
+Note: Only documenting what THIS task implemented.
+NOT modifying docs for unrelated features.
+
 Staging documentation:
 - docs/auth.md
 - README.md
@@ -204,6 +217,15 @@ Next:
 
 Or if PR needs changes: /kanban:awaiting-merge-fail-task 001
 ```
+
+**WRONG behavior (do NOT do this):**
+- Marking unrelated features as "Planned" or "Not yet implemented"
+- Adding strikethroughs to features not touched by this task
+- Updating the entire product doc to reflect current state
+
+**CORRECT behavior:**
+- Only add/update documentation for the feature this task implemented
+- Leave other sections unchanged
 
 ## Example: Documentation Skipped
 

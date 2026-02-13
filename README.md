@@ -2,6 +2,25 @@
 
 A file-based kanban board for AI-assisted development. Task and planning data lives with your code - transparent, versionable, and accessible to both humans and AI.
 
+## Installation
+
+```bash
+# Install to current project
+npx claude-kanban@latest
+
+# Or install globally (shared across projects)
+npx claude-kanban@latest --global
+```
+
+This installs the kanban commands and skills to your `.claude/` directory.
+
+**To update:**
+```bash
+npx claude-kanban@latest
+```
+
+The installer detects existing installations and backs up any files you've modified before updating.
+
 ## Quick Start
 
 ### 1. Initialize

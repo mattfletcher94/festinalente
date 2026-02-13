@@ -1,0 +1,29 @@
+{
+  "name": "claude-kanban",
+  "version": "1.0.0",
+  "description": "A kanban-style task management system for Claude Code with spec-driven development workflow",
+  "bin": {
+    "claude-kanban": "bin/install.js"
+  },
+  "files": [
+    "bin",
+    ".claudeban"
+  ],
+  "keywords": [
+    "claude",
+    "claude-code",
+    "kanban",
+    "task-management",
+    "ai-workflow",
+    "spec-driven-development"
+  ],
+  "author": "Matt Fletcher",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mattfletcher94/claude-kanban"
+  },
+  "engines": {
+    "node": ">=16.7.0"
+  }
+}
