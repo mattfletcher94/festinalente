@@ -100,7 +100,7 @@ Use AskUserQuestion tool for **one question at a time**.
 5. Context: Ask "Who primarily uses this feature? What problem does it solve?"
 6. **IMMEDIATELY write the product doc:**
    - Create `.kanban/product/{feature-id}.md`
-   - Use template structure from `.claudeban/templates/product-doc.md`
+   - Use template structure from `.claudeban/kanban-templates/product-doc.md`
    - Fill with all information gathered so far
    - This preserves context even if session is long
 
@@ -184,3 +184,10 @@ I found User Authentication that appears to handle JWT-based login. Is this accu
 - Present findings as hypotheses: "I found X - is this accurate?"
 - Ask about edge cases, limitations, and known issues
 - Probe for undocumented features or tribal knowledge
+
+## Next Steps
+
+```
+/clear
+/kanban:define-task "Your task title"
+```

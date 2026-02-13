@@ -58,7 +58,7 @@ Uses `commits.define` format from `.claudeban/workflow.yaml`.
    - If unclear, ask user to confirm or skip
 
 8. **Create task file** at `.kanban/tasks/{id}-{slug}.md`:
-   - Follow template at `.claudeban/templates/task.md`
+   - Follow template at `.claudeban/kanban-templates/task.md`
    - Fill sections for this phase:
      - Frontmatter: `id`, `title`, `status: backlog`, `priority`, `labels`, `created`
      - Body: `## Description`, `## Notes`
@@ -112,5 +112,6 @@ Commit: a1b2c3d docs(002): define - Fix login redirect bug
 ## Next Steps
 
 ```
+/clear
 /kanban:backlog-refine-task {id}
 ```

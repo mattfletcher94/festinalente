@@ -58,7 +58,7 @@ Uses `commits.scope` format from `.claudeban/workflow.yaml`.
    - Search for integration points: "What connects to this?"
 
 6. **Create functional specification file** at `.kanban/specs/{id}.spec.md`:
-   - Follow template at `.claudeban/templates/spec.md`
+   - Follow template at `.claudeban/kanban-templates/spec.md`
    - Fill ALL sections:
 
    ```markdown
@@ -183,5 +183,6 @@ Commit: d4e5f6g docs(001): scope - Add OAuth Login
 ## Next Steps
 
 ```
+/clear
 /kanban:scoped-plan-task {id}
 ```

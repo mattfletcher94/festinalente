@@ -22,7 +22,23 @@ This creates the `.kanban/` directory structure in your project:
 └── skills/        # Your verification checks
 ```
 
-### 2. Create Your First Task
+### 2. Document Your Product (Optional but Recommended)
+
+For **existing codebases** with features but no documentation:
+```bash
+/kanban:map-product
+```
+The AI analyzes your code, asks clarifying questions, and generates product docs.
+
+For **new projects** where you want to define vision first:
+```bash
+/kanban:define-product
+```
+The AI asks "What problem are you trying to solve?" and guides you through defining features.
+
+Both create docs in `.kanban/product/` that give the AI context for future task work.
+
+### 3. Create Your First Task
 
 ```bash
 /kanban:define-task "Add user authentication"
@@ -30,18 +46,33 @@ This creates the `.kanban/` directory structure in your project:
 
 This creates a task file, assigns it an ID (e.g., `001`), and commits it to git.
 
-### 3. Work Through the Workflow
+### 4. Work Through the Workflow
 
-Each task progresses through columns. Run one command, review the result, then run the next:
+Each task progresses through columns. Run `/clear` before each command to reset context:
 
 ```bash
+/clear
 /kanban:backlog-refine-task 001      # Clarify requirements via Q&A
+
+/clear
 /kanban:refined-scope-task 001       # Research codebase, create spec
+
+/clear
 /kanban:scoped-plan-task 001         # Create implementation plan
+
+/clear
 /kanban:planned-implement-task 001   # Write the code
+
+/clear
 /kanban:in-progress-verify-task 001  # Run automated checks
+
+/clear
 /kanban:verify-pass-task 001         # Move to human review
+
+/clear
 /kanban:review-pass-task 001         # Approve and commit code
+
+/clear
 /kanban:update-docs-complete-task 001 # Update docs, mark done
 ```
 
@@ -120,6 +151,13 @@ Here's a full task lifecycle from start to finish:
 # 0. Initialize (first time only)
 /kanban:init
 # → Creates .kanban/ directory structure
+
+# 0b. Document your product (recommended, first time only)
+/kanban:map-product    # For existing codebases
+# OR
+/kanban:define-product # For new projects
+# → Creates product docs in .kanban/product/
+# → Gives AI context for future task work
 
 # 1. Create task
 /kanban:define-task "Add dark mode support"
@@ -205,6 +243,7 @@ Commands are named with their **source column prefix** so you always know where 
 | Command | From | To | Commits |
 |---------|------|-----|---------|
 | `kanban:init` | — | — | No |
+| `kanban:status [id]` | — | — | No |
 | `kanban:define-task "title"` | (new) | Backlog | Yes |
 | `kanban:backlog-refine-task [id]` | Backlog | Refined | Yes |
 | `kanban:refined-scope-task [id]` | Refined | Scoped | Yes |
@@ -218,12 +257,58 @@ Commands are named with their **source column prefix** so you always know where 
 | `kanban:review-fail-task [id]` | Review | In Progress | Yes |
 | `kanban:update-docs-complete-task [id]` | Update Docs | Done | Yes |
 
-**Product discovery commands** (not part of task workflow):
+**Utility commands:**
+
+| Command | Purpose |
+|---------|---------|
+| `kanban:status` | Show board status and suggest next command |
+| `kanban:status [id]` | Show detailed status for a specific task |
+
+**Product discovery commands:**
 
 | Command | Purpose |
 |---------|---------|
 | `kanban:map-product` | Analyze existing codebase and create product docs |
 | `kanban:define-product` | Define a new product through Q&A before coding |
+
+---
+
+## Resuming Work
+
+Lost context mid-task? Use the status command to see where you are:
+
+```bash
+/kanban:status
+```
+
+This shows all tasks grouped by column and suggests what to run next:
+
+```
+## Board Status
+
+**In Progress (1)**
+- 001: Add dark mode support — 3/7 steps
+
+**Review (1)**
+- 002: Fix login redirect bug
+
+**Suggested next command:**
+
+/clear
+/kanban:planned-implement-task 001
+
+Task 001 is in progress with 4 steps remaining. Resume implementation to continue.
+```
+
+For detailed status on a specific task:
+
+```bash
+/kanban:status 001
+```
+
+This shows plan progress, WIP notes, and any previous failures — everything you need to pick up where you left off.
+
+**Tip:** Before stopping work mid-implementation, run `/kanban:in-progress-wip-commit` to save progress with continuation hints.
 
 ---
 
@@ -524,6 +609,8 @@ name: My Project
 commands:
   "kanban:init":
     skills: []
+  "kanban:status":
+    skills: []
   "kanban:define-task":
     skills: []
   "kanban:backlog-refine-task":
@@ -584,7 +671,7 @@ your-project/
 │
 ├── .claudeban/                     # System files (don't edit)
 │   ├── workflow.yaml               # Workflow schema
-│   ├── templates/                  # Document templates
+│   ├── kanban-templates/           # Document templates
 │   ├── commands/kanban/            # Command definitions
 │   └── skills/kanban-*/            # Built-in skills
 │

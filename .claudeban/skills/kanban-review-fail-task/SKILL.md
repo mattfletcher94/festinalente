@@ -54,7 +54,7 @@ Uses `commits.review-fail` format from `.claudeban/workflow.yaml`.
    - Collect detailed description of problems
    - Parse into individual issues if multiple provided
 
-7. **Update plan file with iteration** (following template at `.claudeban/templates/plan.md`):
+7. **Update plan file with iteration** (following template at `.claudeban/kanban-templates/plan.md`):
    - Increment `iteration` in frontmatter
    - Add to `## Iterations` section (create if doesn't exist):
      ```markdown
@@ -137,8 +137,14 @@ Fix the issues and re-verify:
 
 ## Next Steps
 
-First fix the issues, then re-verify:
+Fix the issues (see plan's Iterations for checkboxes):
 ```
-/kanban:planned-implement-task {id}  # Fix issues (see plan's Iterations for checkboxes)
-/kanban:in-progress-verify-task {id}  # Then verify
+/clear
+/kanban:planned-implement-task {id}
+```
+
+Then re-verify:
+```
+/clear
+/kanban:in-progress-verify-task {id}
 ```

@@ -3,6 +3,8 @@ name: My Project
 commands:
   "kanban:init":
     skills: []
+  "kanban:status":
+    skills: []
   "kanban:define-task":
     skills: []
   "kanban:backlog-refine-task":

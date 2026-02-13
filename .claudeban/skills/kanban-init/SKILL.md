@@ -30,7 +30,7 @@ Create the `.kanban/` directory structure for a new project.
    ```
 
 4. **Create config.yaml**:
-   - Read template from `.claudeban/templates/config.yaml`
+   - Read template from `.claudeban/kanban-templates/config.yaml`
    - Write to `.kanban/config.yaml`
    - If template not found, create minimal config:
      ```yaml
@@ -124,15 +124,18 @@ Next steps:
 
 For new projects:
 ```
+/clear
 /kanban:define-product
 ```
 
 For existing codebases:
 ```
+/clear
 /kanban:map-product
 ```
 
-To create a task:
+Or skip product discovery and create a task:
 ```
+/clear
 /kanban:define-task "Task title"
 ```

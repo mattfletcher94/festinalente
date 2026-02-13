@@ -172,5 +172,6 @@ Task 002 moved to Update Docs
 ## Next Steps
 
 ```
+/clear
 /kanban:update-docs-complete-task {id}
 ```

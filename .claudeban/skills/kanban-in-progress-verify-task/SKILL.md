@@ -71,7 +71,7 @@ On failure, uses `commits.verify-fail` format from `.claudeban/workflow.yaml`.
 7. **Handle failure** (if any check failed):
    - Read plan file
    - Increment `iteration` in frontmatter
-   - Add failure to `## Iterations` section (following template at `.claudeban/templates/plan.md`):
+   - Add failure to `## Iterations` section (following template at `.claudeban/kanban-templates/plan.md`):
      ```markdown
      ## Iterations
 
@@ -193,8 +193,9 @@ Verification failed. Fix the failing test and re-run:
 /kanban:in-progress-verify-task 001
 ```
 
-## Next Steps (on success)
+## Next Steps
 
 ```
+/clear
 /kanban:verify-pass-task {id}
 ```

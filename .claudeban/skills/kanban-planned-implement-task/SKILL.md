@@ -186,10 +186,12 @@ Next: Run /kanban:in-progress-verify-task 002 to run automated checks.
 
 If interrupted:
 ```
+/clear
 /kanban:in-progress-wip-commit {id}
 ```
 
-When complete:
+When implementation complete:
 ```
+/clear
 /kanban:in-progress-verify-task {id}
 ```

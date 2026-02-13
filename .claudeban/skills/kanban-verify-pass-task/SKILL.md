@@ -82,6 +82,12 @@ Awaiting human review.
 ## Next Steps
 
 ```
-/kanban:review-pass-task {id}  # if approved
-/kanban:review-fail-task {id}  # if changes needed
+/clear
+/kanban:review-pass-task {id}
+```
+
+Or if changes needed:
+```
+/clear
+/kanban:review-fail-task {id}
 ```

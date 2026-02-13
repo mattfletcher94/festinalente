@@ -192,8 +192,8 @@ docs(001): product - add authentication guide      # final step
 
 ## Next Steps
 
-Task workflow complete! To start a new task:
-
+Task complete! To start a new task:
 ```
-/kanban:define-task {description}
+/clear
+/kanban:define-task "Task title"
 ```

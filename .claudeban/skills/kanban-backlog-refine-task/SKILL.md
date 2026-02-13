@@ -75,7 +75,7 @@ Uses `commits.refine` format from `.claudeban/workflow.yaml`.
       - Convert user's answer to Gherkin format
 
 7. **Update task file**:
-   - Follow template at `.claudeban/templates/task.md`
+   - Follow template at `.claudeban/kanban-templates/task.md`
    - Fill sections for this phase:
      - `## What problem are you trying to solve?`
      - `## What value would it provide if solved?`
@@ -175,5 +175,6 @@ Task is now ready for scoping.
 ## Next Steps
 
 ```
+/clear
 /kanban:refined-scope-task {id}
 ```

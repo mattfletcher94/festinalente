@@ -45,7 +45,7 @@ Uses `commits.verify-fail` format from `.claudeban/workflow.yaml`.
    - Parse frontmatter to get current iteration
    - Error if plan not found
 
-6. **Update plan file** (following template at `.claudeban/templates/plan.md`):
+6. **Update plan file** (following template at `.claudeban/kanban-templates/plan.md`):
    - Increment `iteration` in frontmatter
    - Add failure entry to `## Iterations` section (create section if doesn't exist):
 
@@ -127,8 +127,14 @@ Fix the test failure and re-verify:
 
 ## Next Steps
 
-First fix the issues, then re-verify:
+Fix the issues:
 ```
-/kanban:planned-implement-task {id}  # Fix issues
-/kanban:in-progress-verify-task {id}  # Then verify
+/clear
+/kanban:planned-implement-task {id}
+```
+
+Then re-verify:
+```
+/clear
+/kanban:in-progress-verify-task {id}
 ```

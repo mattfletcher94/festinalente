@@ -58,7 +58,7 @@ Uses `commits.plan` format from `.claudeban/workflow.yaml`.
      - Follow their instructions as mandatory guidance
 
 7. **Create plan file** at `.kanban/plans/{id}.plan.md`:
-   - Follow template at `.claudeban/templates/plan.md`
+   - Follow template at `.claudeban/kanban-templates/plan.md`
    - Link to spec in frontmatter
    - Create implementation steps based on spec
 
@@ -175,5 +175,6 @@ Commit: g7h8i9j docs(001): plan - Add OAuth Login
 ## Next Steps
 
 ```
+/clear
 /kanban:planned-implement-task {id}
 ```

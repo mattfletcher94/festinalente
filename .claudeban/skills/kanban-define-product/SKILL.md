@@ -57,7 +57,7 @@ Ask: "What are the main capabilities or features you want to build?"
 4. Ask "Does this relate to any other features?"
 5. **IMMEDIATELY write the product doc:**
    - Create `.kanban/product/{feature-id}.md`
-   - Use template structure from `.claudeban/templates/product-doc.md`
+   - Use template structure from `.claudeban/kanban-templates/product-doc.md`
    - Fill with all information gathered so far
    - This preserves context even if session is long
 
@@ -146,3 +146,10 @@ How should Task Tracking work from the user's perspective?
 - Use "Jobs-To-Be-Done" framing: "What job does this solve for users?"
 - Explore user journeys and workflows
 - Ask about constraints, priorities, and trade-offs
+
+## Next Steps
+
+```
+/clear
+/kanban:define-task "Your task title"
+```

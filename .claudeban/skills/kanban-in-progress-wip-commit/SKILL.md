@@ -65,7 +65,7 @@ Uses `commits.wip` format from `.claudeban/workflow.yaml`.
 
 8. **Add WIP notes to plan**:
    - If plan exists, add or update `## WIP Notes` section:
-     - Follow template at `.claudeban/templates/plan.md`
+     - Follow template at `.claudeban/kanban-templates/plan.md`
      ```markdown
      ## WIP Notes
 
@@ -170,5 +170,6 @@ Resume with: /kanban:planned-implement-task 002
 
 To resume implementation:
 ```
+/clear
 /kanban:planned-implement-task {id}
 ```

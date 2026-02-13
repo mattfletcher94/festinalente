@@ -24,7 +24,7 @@ Update product documentation, commit, and move to Done.
 
 3. **For each relevant product doc:**
    - If file exists: Read it, update affected sections to reflect current state
-   - If no relevant doc exists and feature is new: Create new doc following template at `.claudeban/templates/product-doc.md`
+   - If no relevant doc exists and feature is new: Create new doc following template at `.claudeban/kanban-templates/product-doc.md`
 
 4. **Update frontmatter:**
    - Set `updated: {today's date}` in each modified product doc
@@ -35,7 +35,7 @@ Update product documentation, commit, and move to Done.
 
 ## Template Reference
 
-New product docs follow: `.claudeban/templates/product-doc.md`
+New product docs follow: `.claudeban/kanban-templates/product-doc.md`
 
 ## Product Doc Location
 
