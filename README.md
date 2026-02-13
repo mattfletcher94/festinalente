@@ -95,6 +95,8 @@ Commands are named with their **source column prefix** so you always know where 
 | `kanban:review-pass-task [id]` | Review | Update Docs | `feat/fix({id}): {title}` |
 | `kanban:review-fail-task [id]` | Review | In Progress | `docs({id}): review-fail - {title}` |
 | `kanban:update-docs-complete-task [id]` | Update Docs | Done | `docs({id}): product - {message}` |
+| `kanban:map-product` | N/A | N/A | `docs: map-product - {features}` |
+| `kanban:define-product` | N/A | N/A | `docs: define-product - {description}` |
 
 ### Command Naming Convention
 
@@ -109,6 +111,50 @@ The prefix tells you which column the task must be in:
 - `update-docs-*` commands require task in Update Docs
 
 This prevents running the wrong command on a task.
+
+## Product Discovery Commands
+
+Two commands help initialize product documentation for your project:
+
+### `kanban:map-product`
+
+For **existing codebases** that have real features but lack product documentation.
+
+**What it does:**
+1. Deep analysis of your codebase (features, architecture, integrations)
+2. Presents a summary of findings
+3. Socratic Q&A to validate and expand understanding (one question at a time)
+4. Generates product docs incrementally during the conversation
+5. Commits all docs with: `docs: map-product - {features}`
+
+**When to use:**
+- You have working code but no product documentation
+- You want LLM-ready docs for future task work
+- You're onboarding Claude to an existing project
+
+### `kanban:define-product`
+
+For **new projects** where you want to define the product before coding.
+
+**What it does:**
+1. Socratic Q&A starting with "What problem are you trying to solve?"
+2. Explores users, features, constraints through dialogue
+3. Generates product docs incrementally during the conversation
+4. Commits all docs with: `docs: define-product - {description}`
+
+**When to use:**
+- Starting a new project from scratch
+- Want to document product vision before coding
+- Need LLM-ready docs for task planning
+
+### Key Behaviors
+
+Both commands:
+- **Ask one question at a time** - More Socratic, less overwhelming
+- **Write docs incrementally** - Prevents context loss in long sessions
+- **Exit when user confirms** - LLM asks "Is there anything else?" to end Q&A
+- **Require `.kanban/` to exist** - Run `kanban:init` first if needed
+- **Handle existing docs** - Ask how to proceed if product docs already exist
 
 ## Git History
 

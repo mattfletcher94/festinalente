@@ -71,6 +71,12 @@ commands:
   "kanban:update-docs-complete-task":
     skills: []
 
+  "kanban:map-product":
+    skills: []
+
+  "kanban:define-product":
+    skills: []
+
 settings:
   version: "2.0"
   idPrefix: ""
