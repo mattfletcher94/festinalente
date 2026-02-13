@@ -42,9 +42,11 @@ See `.claude/kanban-workflow.yaml` for column definitions.
 4. **Check for command skills**:
    - Load `.kanban/config.yaml`
    - Find `commands."kanban:define-task".skills` array
-   - If skills array is non-empty:
-     - Read each skill file at the listed paths
-     - Follow their instructions as mandatory guidance for this command
+   - If skills array is non-empty, for each skill path:
+     - **Skill file location:** `{path}/SKILL.md`
+     - Example: config lists `.kanban/skills/define` → read `.kanban/skills/define/SKILL.md`
+     - **IMPORTANT:** The filename is always `SKILL.md`, NOT `instructions.md`
+     - Read the skill file and follow its instructions as mandatory guidance
 
 5. **Determine next ID**:
    - List files in `.kanban/tasks/`
@@ -92,12 +94,13 @@ See `.claude/kanban-workflow.yaml` for column definitions.
    - Print the created file path and task ID
    - Print commit hash
    - If `needs-refinement` label was added, note this
-   - Print recommended next steps in this format:
+   - **REQUIRED OUTPUT** - Print next steps EXACTLY like this:
      ```
      Next:
      /clear
      /kanban:backlog-refine-task {id}
      ```
+   - Do NOT skip this output. The user needs these commands to continue.
 
 ## Arguments
 

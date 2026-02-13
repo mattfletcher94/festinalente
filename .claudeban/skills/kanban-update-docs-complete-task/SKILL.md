@@ -58,9 +58,11 @@ The description summarizes what documentation was updated (e.g., "add authentica
 5. **Check for command skills**:
    - Load `.kanban/config.yaml`
    - Find `commands."kanban:update-docs-complete-task".skills` array
-   - If skills array is non-empty:
-     - Read each skill file at the listed paths
-     - Follow their instructions as mandatory guidance for this command
+   - If skills array is non-empty, for each skill path:
+     - **Skill file location:** `{path}/SKILL.md`
+     - Example: config lists `.kanban/skills/docs` → read `.kanban/skills/docs/SKILL.md`
+     - **IMPORTANT:** The filename is always `SKILL.md`, NOT `instructions.md`
+     - Read the skill file and follow its instructions as mandatory guidance
 
 6. **Analyze documentation needs**:
    - Check task labels:
@@ -139,12 +141,13 @@ The description summarizes what documentation was updated (e.g., "add authentica
     - Print commit hash (if docs were committed)
     - Print PR URL
     - Print: "Task {id} ready for merge!"
-    - Print recommended next steps in this format:
+    - **REQUIRED OUTPUT** - Print next steps EXACTLY like this:
       ```
       Next:
       /clear
       /kanban:awaiting-merge-merge-task {id}
       ```
+    - Do NOT skip this output. The user needs these commands to continue.
     - Also mention: "Or if PR needs changes: /kanban:awaiting-merge-fail-task {id}"
 
 ## Validation

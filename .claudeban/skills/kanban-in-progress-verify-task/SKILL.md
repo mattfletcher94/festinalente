@@ -116,12 +116,13 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 
 10. **If user confirms**:
    - Print: "Task {id} moved to Verify."
-   - Print recommended next steps in this format:
+   - **REQUIRED OUTPUT** - Print next steps EXACTLY like this:
      ```
      Next:
      /clear
      /kanban:verify-pass-task {id}
      ```
+   - Do NOT skip this output. The user needs these commands to continue.
 
 ## Validation
 

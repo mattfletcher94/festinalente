@@ -51,9 +51,11 @@ None.
 5. **Check for command skills**:
    - Load `.kanban/config.yaml`
    - Find `commands."kanban:verify-pass-task".skills` array
-   - If skills array is non-empty:
-     - Read each skill file at the listed paths
-     - Follow their instructions as mandatory guidance
+   - If skills array is non-empty, for each skill path:
+     - **Skill file location:** `{path}/SKILL.md`
+     - Example: config lists `.kanban/skills/verify` → read `.kanban/skills/verify/SKILL.md`
+     - **IMPORTANT:** The filename is always `SKILL.md`, NOT `instructions.md`
+     - Read the skill file and follow its instructions as mandatory guidance
 
 6. **Update task frontmatter**:
    - Change `status: verify` to `status: review`
@@ -64,12 +66,13 @@ None.
 8. **Confirm transition**:
    - Print: "Task {id} moved to Review"
    - Print: "Awaiting human review."
-   - Print recommended next steps in this format:
+   - **REQUIRED OUTPUT** - Print next steps EXACTLY like this:
      ```
      Next:
      /clear
      /kanban:review-pass-task {id}
      ```
+   - Do NOT skip this output. The user needs these commands to continue.
    - Also mention: "Or if changes needed: /kanban:review-fail-task {id}"
 
 ## Validation

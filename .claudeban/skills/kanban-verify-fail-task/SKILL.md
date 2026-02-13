@@ -98,12 +98,13 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    - Print: "Task {id} returned to In Progress"
    - Print iteration number
    - Print commit hash
-   - Print recommended next steps in this format:
+   - **REQUIRED OUTPUT** - Print next steps EXACTLY like this:
      ```
      Next:
      /clear
      /kanban:planned-implement-task {id}
      ```
+   - Do NOT skip this output. The user needs these commands to continue.
    - Also mention: "Then re-verify with /kanban:in-progress-verify-task {id}"
 
 ## Validation

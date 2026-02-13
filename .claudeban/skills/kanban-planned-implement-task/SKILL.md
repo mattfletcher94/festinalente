@@ -72,9 +72,11 @@ None - code stays uncommitted until review passes. Use `/kanban:in-progress-wip-
 8. **Check for command skills**:
    - Load `.kanban/config.yaml`
    - Find `commands."kanban:planned-implement-task".skills` array
-   - If skills array is non-empty:
-     - Read each skill file at the listed paths
-     - Follow their instructions as mandatory guidance for this command
+   - If skills array is non-empty, for each skill path:
+     - **Skill file location:** `{path}/SKILL.md`
+     - Example: config lists `.kanban/skills/implement` → read `.kanban/skills/implement/SKILL.md`
+     - **IMPORTANT:** The filename is always `SKILL.md`, NOT `instructions.md`
+     - Read the skill file and follow its instructions as mandatory guidance
 
 9. **Parse plan checkboxes**:
    - Find all unchecked items: `- [ ]` pattern
@@ -109,12 +111,13 @@ None - code stays uncommitted until review passes. Use `/kanban:in-progress-wip-
     - Display implementation summary
     - Show files modified (uncommitted)
     - Show status
-    - Print recommended next steps in this format:
+    - **REQUIRED OUTPUT** - Print next steps EXACTLY like this:
       ```
       Next:
       /clear
       /kanban:in-progress-verify-task {id}
       ```
+    - Do NOT skip this output. The user needs these commands to continue.
 
 ## Validation
 

@@ -54,9 +54,11 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 5. **Check for command skills**:
    - Load `.kanban/config.yaml`
    - Find `commands."kanban:backlog-refine-task".skills` array
-   - If skills array is non-empty:
-     - Read each skill file at the listed paths
-     - Follow their instructions as mandatory guidance for this command
+   - If skills array is non-empty, for each skill path:
+     - **Skill file location:** `{path}/SKILL.md`
+     - Example: config lists `.kanban/skills/refine` → read `.kanban/skills/refine/SKILL.md`
+     - **IMPORTANT:** The filename is always `SKILL.md`, NOT `instructions.md`
+     - Read the skill file and follow its instructions as mandatory guidance
 
 6. **Analyze vagueness indicators**:
    - Check title for clarity issues:
@@ -145,6 +147,7 @@ All must pass. If any fail, fix and retry.
 - [ ] Frontmatter contains `status: refined`
 - [ ] Task file contains `## Acceptance Criteria` section with Gherkin format
 - [ ] Git log shows `docs({id}): refine -`
+- [ ] User was shown "Next:" output with the next command
 
 ## Arguments
 
