@@ -672,9 +672,6 @@ settings:
 project/
 ├── .kanban/
 │   ├── board.yaml              # Board configuration
-│   ├── config/
-│   │   ├── schema.task.json    # Task frontmatter schema
-│   │   └── schema.plan.json    # Plan frontmatter schema
 │   ├── tasks/
 │   │   ├── 001-add-feature.md  # Task file
 │   │   └── 002-fix-bug.md      # Another task
