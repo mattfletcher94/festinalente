@@ -129,12 +129,13 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
     - Print summary of changes made
     - Show updated acceptance criteria
     - Print commit hash
-    - Print recommended next steps in this format:
+    - **REQUIRED OUTPUT** - Print recommended next steps EXACTLY like this:
       ```
       Next:
       /clear
       /kanban:refined-scope-task {id}
       ```
+    - Do NOT skip this output. The user needs these commands to continue.
 
 ## Validation
 

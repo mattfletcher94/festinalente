@@ -21,7 +21,7 @@ Approve implementation, commit code, and move to Update Docs.
 
 ## Commit
 
-Uses `commits.review-pass` format from `.claudeban/kanban-workflow.yaml`. Commit type determined by task label.
+Uses `commits.review-pass` format from `.claude/kanban-workflow.yaml`. Commit type determined by task label.
 
 ## Example
 

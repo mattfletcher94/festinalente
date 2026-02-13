@@ -24,7 +24,7 @@ Research codebase and create functional specification for a refined task.
 
 ## Commit
 
-Uses `commits.scope` format from `.claudeban/kanban-workflow.yaml`.
+Uses `commits.scope` format from `.claude/kanban-workflow.yaml`.
 
 ## Example
 

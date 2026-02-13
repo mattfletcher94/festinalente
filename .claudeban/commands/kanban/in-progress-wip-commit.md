@@ -21,7 +21,7 @@ Save partial implementation progress when interrupted. Task stays in In Progress
 
 ## Commit
 
-Uses `commits.wip` format from `.claudeban/kanban-workflow.yaml`.
+Uses `commits.wip` format from `.claude/kanban-workflow.yaml`.
 
 ## Example
 

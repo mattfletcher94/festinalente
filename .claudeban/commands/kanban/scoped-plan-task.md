@@ -21,7 +21,7 @@ Create a plan document linked to a scoped task and commit.
 
 ## Commit
 
-Uses `commits.plan` format from `.claudeban/kanban-workflow.yaml`.
+Uses `commits.plan` format from `.claude/kanban-workflow.yaml`.
 
 ## Example
 

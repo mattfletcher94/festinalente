@@ -769,7 +769,7 @@ your-project/
 │       ├── check-tests.md
 │       └── check-lint.md
 │
-├── .claudeban/                     # System files (don't edit)
+├── .claude/                     # System files (don't edit)
 │   ├── kanban-workflow.yaml        # Workflow schema
 │   ├── kanban-templates/           # Document templates
 │   ├── commands/kanban/            # Command definitions

@@ -28,12 +28,12 @@ Update product documentation, commit, create a pull request, and move to Awaitin
 
 4. **For each relevant product doc:**
    - If file exists: Read it, update affected sections to reflect current state
-   - If no relevant doc exists and feature is new: Create new doc following template at `.claudeban/kanban-templates/product-doc.md`
+   - If no relevant doc exists and feature is new: Create new doc following template at `.claude/kanban-templates/product-doc.md`
 
 5. **Update frontmatter:**
    - Set `updated: {today's date}` in each modified product doc
 
-6. **Commit:** Uses `commits.update-docs` format from `.claudeban/kanban-workflow.yaml`.
+6. **Commit:** Uses `commits.update-docs` format from `.claude/kanban-workflow.yaml`.
 
 7. **Create Pull Request** with task summary, changes, and acceptance criteria
 
@@ -41,7 +41,7 @@ Update product documentation, commit, create a pull request, and move to Awaitin
 
 ## Template Reference
 
-New product docs follow: `.claudeban/kanban-templates/product-doc.md`
+New product docs follow: `.claude/kanban-templates/product-doc.md`
 
 ## Product Doc Location
 

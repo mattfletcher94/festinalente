@@ -32,7 +32,7 @@ This linking is opportunistic - only add obvious connections.
 
 ## Commit
 
-Uses `commits.define` format from `.claudeban/kanban-workflow.yaml`.
+Uses `commits.define` format from `.claude/kanban-workflow.yaml`.
 
 ## Example
 

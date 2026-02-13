@@ -26,7 +26,7 @@ Define a new product's features through Socratic dialogue.
 
 ## Commit
 
-Uses `commits.define-product` format from `.claudeban/kanban-workflow.yaml`.
+Uses `commits.define-product` format from `.claude/kanban-workflow.yaml`.
 
 ## Example
 
