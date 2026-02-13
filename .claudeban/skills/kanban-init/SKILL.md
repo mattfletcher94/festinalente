@@ -71,7 +71,6 @@ Create the `.kanban/` directory structure for a new project.
        idPrefix: ""
        idPadding: 3
        archiveOnComplete: false
-       productDocsPath: ".kanban/product"
      ```
 
 5. **Confirm initialization**:
