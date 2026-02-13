@@ -31,7 +31,7 @@ None - code stays uncommitted until review passes. Use `/kanban:in-progress-wip-
    - Verify current status:
      - If `planned`: Move to `in-progress` first (step 3)
      - If `in-progress`: Resume implementation (skip step 3)
-     - If `backlog`: Suggest `/kanban:backlog-refine-task {id}` first, exit
+     - If `backlog` or `refined`: Suggest `/kanban:backlog-refine-task {id}` or `/kanban:refined-scope-task {id}` first, exit
      - If `review` or later: Warn task is past implementation
    - Error if task not found
 
@@ -46,23 +46,27 @@ None - code stays uncommitted until review passes. Use `/kanban:in-progress-wip-
    - If plan found: Read plan content
    - If NO plan found:
      - Warn: "No plan found for task {id}"
-     - Suggest: "Create plan with /kanban:backlog-plan-task first"
+     - Suggest: "Create plan with /kanban:scoped-plan-task first"
      - Exit
 
-5. **Check for command skills**:
+5. **Read functional specification** (for context):
+   - Get `spec` path from plan frontmatter
+   - Read spec file for full context on requirements and patterns
+
+6. **Check for command skills**:
    - Load `.kanban/board.yaml`
    - Find `commands."kanban:planned-implement-task".skills` array
    - If skills array is non-empty:
      - Read each skill file at the listed paths
      - Follow their instructions as mandatory guidance for this command
 
-6. **Parse plan checkboxes**:
+7. **Parse plan checkboxes**:
    - Find all unchecked items: `- [ ]` pattern
    - Find all checked items: `- [x]` pattern
    - Calculate: total items, completed items, remaining items
    - Display progress overview
 
-7. **Execute plan checkboxes**:
+8. **Execute plan checkboxes**:
    - For each unchecked item (`- [ ]`) in order:
      a. Display: "[{n}/{total}] {checkbox description}"
      b. Execute the implementation step described
@@ -75,7 +79,7 @@ None - code stays uncommitted until review passes. Use `/kanban:in-progress-wip-
      - Progress is saved (can resume later with same command)
      - Suggest: "Use /kanban:in-progress-wip-commit to save progress"
 
-8. **On completion**:
+9. **On completion**:
    - After ALL checkboxes complete:
      - Keep status as `in-progress` (verification will move it)
      - Update `updated: {YYYY-MM-DD}`
@@ -85,11 +89,11 @@ None - code stays uncommitted until review passes. Use `/kanban:in-progress-wip-
      - Report: "Partial progress: {completed}/{total} items"
      - Suggest: "Use /kanban:in-progress-wip-commit to save progress"
 
-9. **Report completion**:
-   - Display implementation summary
-   - Show files modified (uncommitted)
-   - Show status
-   - Remind: "Code is uncommitted. Run /kanban:in-progress-verify-task {id} to run automated checks."
+10. **Report completion**:
+    - Display implementation summary
+    - Show files modified (uncommitted)
+    - Show status
+    - Remind: "Code is uncommitted. Run /kanban:in-progress-verify-task {id} to run automated checks."
 
 ## Validation
 
@@ -113,18 +117,19 @@ Implementing task 001 "Add user auth"...
 
 Task 001 moved to In Progress
 
-Plan: .kanban/plans/001.plan.md
+Reading spec: .kanban/specs/001.spec.md
+Reading plan: .kanban/plans/001.plan.md
 Progress: 0/3 items
 
-[1/3] Create auth routes file
+[1/3] Create auth routes file `src/routes/auth.ts` (FR1)
   Creating src/routes/auth.ts...
   Done
 
-[2/3] Add login endpoint
+[2/3] Add login endpoint `src/routes/auth.ts` (FR1)
   Adding POST /login handler...
   Done
 
-[3/3] Add logout endpoint
+[3/3] Add logout endpoint `src/routes/auth.ts` (FR2)
   Adding POST /logout handler...
   Done
 
@@ -147,18 +152,19 @@ Implementing task 002 "Setup database"...
 
 Column: in-progress (resuming)
 
-Plan: .kanban/plans/002.plan.md
+Reading spec: .kanban/specs/002.spec.md
+Reading plan: .kanban/plans/002.plan.md
 Progress: 2/5 items (resuming from item 3)
 
-[3/5] Create migration script
+[3/5] Create migration script `db/migrations/001_initial.sql` (FR2)
   Creating db/migrations/001_initial.sql...
   Done
 
-[4/5] Add seed data
+[4/5] Add seed data `db/seeds/dev.sql` (FR3)
   Creating db/seeds/dev.sql...
   Done
 
-[5/5] Update README with DB setup
+[5/5] Update README with DB setup (FR4)
   Adding database section to README.md...
   Done
 

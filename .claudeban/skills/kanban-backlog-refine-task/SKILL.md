@@ -6,7 +6,7 @@ allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status)
 
 # Refine Kanban Task
 
-Refine vague tasks through Socratic Q&A dialogue to add clarity, acceptance criteria, and implementation hints. Task stays in **Backlog** but becomes ready for planning. Commits the refinement.
+Refine vague tasks through Socratic Q&A dialogue to add clarity, acceptance criteria, and implementation hints. Task moves from **Backlog** to **Refined**. Commits the refinement.
 
 ## Column Transition
 
@@ -17,7 +17,7 @@ Backlog → Refined
 ## Commit
 
 ```
-docs(task): refine {id} {title}
+docs({id}): refine - {title}
 ```
 
 ## Steps
@@ -51,47 +51,62 @@ docs(task): refine {id} {title}
    - Check description for completeness
    - Check acceptance criteria for specificity
 
-5. **Conduct Socratic Q&A dialogue**:
-   - Based on vagueness analysis, prepare 1-4 focused questions
-   - Ask questions ONE AT A TIME using AskUserQuestion tool
-   - After each answer, determine if more clarification needed
+5. **Conduct Q&A dialogue for each section**:
+   Using AskUserQuestion tool, ask about each section ONE AT A TIME.
+   For each question, allow the user to:
+   - Provide an answer
+   - Skip (user says "skip")
+   - Have LLM fill it in (user says "you fill it in")
 
-   **Question selection guide:**
+   **Questions to ask:**
 
-   | Vagueness Type | Question to Ask |
-   |----------------|-----------------|
-   | Unclear purpose | "What specific problem does this task solve?" |
-   | No acceptance criteria | "What does 'done' look like for this task?" |
-   | Missing constraints | "Are there specific patterns or libraries to follow?" |
-   | Unknown scope | "What files or areas of the codebase are involved?" |
+   a. **Problem section**: "What problem are you trying to solve with this task?"
+      - If user skips: Try to infer from title/description, or leave placeholder
+      - If user says "you fill it in": Generate from available context
 
-6. **Update task based on answers**:
-   - Enhance title if needed (make more specific and action-oriented)
-   - Update description with gathered context
-   - Add/improve acceptance criteria (each must be testable)
-   - Add implementation hints if technical context was provided
+   b. **Value section**: "What value would it provide if solved?"
+      - If user skips: Try to infer from problem statement, or leave placeholder
+      - If user says "you fill it in": Generate from available context
 
-7. **Update task frontmatter**:
-   - Change `status: backlog` to `status: refined`
-   - Update `updated: {YYYY-MM-DD}`
+   c. **Acceptance Criteria**: "What does 'done' look like for this task? (will be formatted as Given/When/Then)"
+      - Always fill this - generate from context if user skips
+      - Convert user's answer to Gherkin format
 
-8. **Write updated task file**:
-   - Update frontmatter with new status
-   - Add "## Refinement Notes" section:
-     ```markdown
-     ## Refinement Notes
+6. **Update task file**:
+   - Follow template at `.claudeban/templates/task.md`
+   - Fill sections for this phase:
+     - `## What problem are you trying to solve?`
+     - `## What value would it provide if solved?`
+     - `## Acceptance Criteria` (in Gherkin format)
+   - Update frontmatter:
+     - Change `status: backlog` to `status: refined`
+     - Add `updated: {YYYY-MM-DD}`
+     - Remove `needs-refinement` from labels if present
 
-     **Refined:** {YYYY-MM-DD}
+7. **Format acceptance criteria in Gherkin**:
+   ```gherkin
+   Given {precondition}
+   And {additional precondition if needed}
+   When {action}
+   Then {expected outcome}
+   And {additional outcome if needed}
+   ```
 
-     **Clarifications:**
-     - [Key clarification 1 from Q&A]
-     - [Key clarification 2 from Q&A]
-     ```
+   Example:
+   ```gherkin
+   Given a user is on the login page
+   And they have entered valid credentials
+   When they click the login button
+   Then they are redirected to the dashboard
+   And their session is established
+   ```
+
+8. **Write updated task file**
 
 9. **Commit the refinement**:
    ```bash
    git add .kanban/tasks/{id}-*.md
-   git commit -m "docs(task): refine {id} {title}"
+   git commit -m "docs({id}): refine - {title}"
    ```
 
 10. **Confirm refinement complete**:
@@ -105,8 +120,8 @@ All must pass. If any fail, fix and retry.
 
 - [ ] Task file exists at `.kanban/tasks/{id}-*.md`
 - [ ] Frontmatter contains `status: refined`
-- [ ] Task file contains `## Acceptance Criteria` section
-- [ ] Git log shows `docs(task): refine {id}`
+- [ ] Task file contains `## Acceptance Criteria` section with Gherkin format
+- [ ] Git log shows `docs({id}): refine -`
 
 ## Arguments
 
@@ -124,21 +139,34 @@ Vagueness indicators found:
 - Description is placeholder text
 - Acceptance criteria are unmeasurable
 
-Q1: What specific problem does this task solve?
+Q1: What problem are you trying to solve with this task?
 > The login form doesn't validate email format before submission.
 
-Q2: What does 'done' look like for this task?
+Q2: What value would it provide if solved?
+> skip
+
+(Generating value statement from context...)
+
+Q3: What does 'done' look like for this task?
 > Email validated client-side with inline error message.
+
+Converting to Gherkin format...
 
 Refinement complete!
 
 Task 003 updated:
 - Title: "Fix login form email validation"
-- Labels: [refined, bug]
-- 4 acceptance criteria added
-Commit: b2c3d4e docs(refine-task): 003 Fix login form email validation
+- Status: refined
+- Acceptance Criteria:
+  Given a user is on the login form
+  And they have entered an invalid email format
+  When they attempt to submit
+  Then an inline error message is displayed
+  And form submission is prevented
 
-Task is now ready for planning.
+Commit: b2c3d4e docs(003): refine - Fix login form email validation
+
+Task is now ready for scoping.
 ```
 
 ## Next Steps

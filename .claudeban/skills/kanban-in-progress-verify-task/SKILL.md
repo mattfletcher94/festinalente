@@ -53,9 +53,9 @@ In Progress → In Progress (if any fail)
    - Print: "Running check: {check name}..."
    - Execute the check command from the skill
    - Evaluate pass criteria
-   - If PASS: Print "✓ {check name} passed" and continue
+   - If PASS: Print "PASS: {check name}" and continue
    - If FAIL:
-     - Print "✗ {check name} failed"
+     - Print "FAIL: {check name}"
      - Print error output
      - Stop immediately (don't run remaining checks)
      - Go to step 6 (Handle failure)
@@ -63,7 +63,7 @@ In Progress → In Progress (if any fail)
 6. **Handle failure** (if any check failed):
    - Read plan file
    - Increment `iteration` in frontmatter
-   - Add failure to `## Iterations` section:
+   - Add failure to `## Iterations` section (following template at `.claudeban/templates/plan.md`):
      ```markdown
      ## Iterations
 
@@ -81,7 +81,7 @@ In Progress → In Progress (if any fail)
      ---
      ```
    - Write updated plan file
-   - Commit: `git add .kanban/plans/{id}.plan.md && git commit -m "docs(verify): fail {id} {title}"`
+   - Commit: `git add .kanban/plans/{id}.plan.md && git commit -m "docs({id}): verify-fail - {title}"`
    - Print: "Verification failed. Fix issues and re-run /kanban:in-progress-verify-task {id}"
    - Exit
 
@@ -167,19 +167,19 @@ Loading verification checks from board.yaml...
 - check-lint.md
 
 Running check: TypeScript...
-✓ TypeScript passed
+PASS: TypeScript
 
 Running check: Tests...
-✗ Tests failed
+FAIL: Tests
 
 Error output:
   FAIL src/auth/oauth.test.ts
-  ● OAuth callback › should set session token
+  - OAuth callback > should set session token
     Expected: token defined
     Received: undefined
 
 Updating plan with failure...
-Commit: e5f6g7h docs(verify): fail 001 Add OAuth Login
+Commit: e5f6g7h docs(001): verify-fail - Add OAuth Login
 
 Verification failed. Fix the failing test and re-run:
 /kanban:in-progress-verify-task 001

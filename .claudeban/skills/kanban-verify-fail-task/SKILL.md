@@ -17,7 +17,7 @@ Verify → In Progress
 ## Commit
 
 ```
-docs(verify): fail {id} {title}
+docs({id}): verify-fail - {title}
 ```
 
 ## Steps
@@ -43,7 +43,7 @@ docs(verify): fail {id} {title}
    - Parse frontmatter to get current iteration
    - Error if plan not found
 
-5. **Update plan file**:
+5. **Update plan file** (following template at `.claudeban/templates/plan.md`):
    - Increment `iteration` in frontmatter
    - Add failure entry to `## Iterations` section (create section if doesn't exist):
 
@@ -75,7 +75,7 @@ docs(verify): fail {id} {title}
 8. **Commit the failure record**:
    ```bash
    git add .kanban/plans/{id}.plan.md .kanban/tasks/{id}-*.md
-   git commit -m "docs(verify): fail {id} {title}"
+   git commit -m "docs({id}): verify-fail - {title}"
    ```
 
 9. **Confirm**:
@@ -92,7 +92,7 @@ All must pass. If any fail, fix and retry.
 - [ ] Plan file exists at `.kanban/plans/{id}.plan.md`
 - [ ] Task frontmatter contains `status: in-progress`
 - [ ] Plan contains `## Iterations` section with failure entry
-- [ ] Git log shows `docs(verify): fail {id}`
+- [ ] Git log shows `docs({id}): verify-fail -`
 
 ## Arguments
 
@@ -117,7 +117,7 @@ Updating plan iterations...
 Task 001 returned to In Progress
 - Iteration: 2
 - Status: in-progress
-Commit: f6g7h8i docs(verify): fail 001 Add OAuth Login
+Commit: f6g7h8i docs(001): verify-fail - Add OAuth Login
 
 Fix the test failure and re-verify:
 /kanban:in-progress-verify-task 001

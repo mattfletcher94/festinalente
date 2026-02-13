@@ -17,7 +17,7 @@ Create a new task file in `.kanban/tasks/` in the **Backlog** column and commit.
 ## Commit
 
 ```
-docs(task): add {id} {title}
+docs({id}): define - {title}
 ```
 
 ## Steps
@@ -39,14 +39,14 @@ docs(task): add {id} {title}
 4. **Get task details**:
    - Title: Use $ARGUMENTS if provided, otherwise ask user
    - Ensure title follows best practices (suggest improvements if needed)
-   - Generate initial acceptance criteria based on title
+   - Generate initial description based on title
    - Status: `backlog`
    - Priority: Ask user (high/medium/low), default to medium if not specified
 
 5. **Detect vague tasks**:
    - Check if task was created with ONLY a title (no $ARGUMENTS body/description provided)
    - Check if title is very short (<5 words) without clear action verb
-   - Check if no acceptance criteria could be generated (title too ambiguous)
+   - Check if no description could be generated (title too ambiguous)
    - If ANY vagueness indicator detected:
      - Add `needs-refinement` to labels array
      - Note to user: "Task marked as needs-refinement. Run `/kanban:backlog-refine-task {id}` to clarify before planning."
@@ -59,38 +59,20 @@ docs(task): add {id} {title}
    - If unclear, ask user to confirm or skip
 
 7. **Create task file** at `.kanban/tasks/{id}-{slug}.md`:
-
-```yaml
----
-id: "{id}"
-title: "{title}"
-status: backlog
-priority: {priority}
-labels: [{label}]
-created: {YYYY-MM-DD}
----
-
-# {title}
-
-## Description
-
-[Description based on title and context]
-
-## Acceptance Criteria
-
-- [ ] [Generated criterion 1]
-- [ ] [Generated criterion 2]
-- [ ] [Generated criterion 3]
-
-## Notes
-
-[Technical notes, constraints]
-```
+   - Follow template at `.claudeban/templates/task.md`
+   - Fill sections for this phase:
+     - Frontmatter: `id`, `title`, `status: backlog`, `priority`, `labels`, `created`
+     - Body: `## Description`, `## Notes`
+   - Leave empty (filled in later phases):
+     - `## What problem are you trying to solve?`
+     - `## What value would it provide if solved?`
+     - `## Acceptance Criteria`
+     - Frontmatter: `spec`, `plan`, `updated`, `completed`
 
 8. **Commit the task file**:
    ```bash
    git add .kanban/tasks/{id}-{slug}.md
-   git commit -m "docs(task): add {id} {title}"
+   git commit -m "docs({id}): define - {title}"
    ```
 
 9. **Confirm creation**:
@@ -111,7 +93,7 @@ All must pass. If any fail, fix and retry.
 - [ ] Frontmatter contains `status: backlog`
 - [ ] Frontmatter contains `title: "{title}"`
 - [ ] Task file contains `## Description` section
-- [ ] Git log shows `docs(task): add {id}`
+- [ ] Git log shows `docs({id}): define -`
 
 ## Example
 
@@ -124,7 +106,7 @@ Task 002 created in Backlog
 Title: Fix login redirect bug
 Labels: [bug]
 File: .kanban/tasks/002-fix-login-redirect-bug.md
-Commit: a1b2c3d docs(task): add 002 Fix login redirect bug
+Commit: a1b2c3d docs(002): define - Fix login redirect bug
 ```
 
 ## Next Steps

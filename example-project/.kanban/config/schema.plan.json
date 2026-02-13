@@ -46,6 +46,10 @@
       "minimum": 1,
       "default": 1,
       "description": "Current attempt/iteration number for tracking retries after verify/review failures"
+    },
+    "spec": {
+      "type": "string",
+      "description": "Path to linked functional specification file"
     }
   }
 }

@@ -50,6 +50,10 @@
     "plan": {
       "type": "string",
       "description": "Path to linked plan file"
+    },
+    "spec": {
+      "type": "string",
+      "description": "Path to linked functional specification file"
     }
   }
 }

@@ -17,7 +17,7 @@ Update Docs → Done
 ## Commit
 
 ```
-docs(product): {description}
+docs({id}): product - {description}
 ```
 
 The description summarizes what documentation was updated (e.g., "add authentication guide", "update API reference").
@@ -79,12 +79,12 @@ The description summarizes what documentation was updated (e.g., "add authentica
    - Log: "Documentation update skipped"
    - Ask for reason (optional)
    - Still proceed to move status
-   - Use generic commit message: "docs(product-docs): no updates needed for {title}"
+   - Use generic commit message: "docs({id}): product - no updates needed for {title}"
 
 8. **Commit documentation changes** (if any):
    ```bash
    git add {doc files}
-   git commit -m "docs(product-docs): {description of doc changes}"
+   git commit -m "docs({id}): product - {description of doc changes}"
    ```
 
 9. **Move to Done**:
@@ -137,7 +137,7 @@ Staging documentation:
 - docs/auth.md
 - README.md
 
-Commit: h8i9j0k docs(product): add authentication guide
+Commit: h8i9j0k docs(001): product - add authentication guide
 
 Task 001 completed!
 - Status: done
@@ -178,15 +178,15 @@ Congratulations! Task complete.
 
 Complete task lifecycle commits:
 ```
-docs(task): add 001 Add user authentication
-docs(task): refine 001 Add user authentication
-docs(task): scope 001 Add user authentication
-docs(plan): 001 Add user authentication
+docs(001): define - Add user authentication
+docs(001): refine - Add user authentication
+docs(001): scope - Add user authentication
+docs(001): plan - Add user authentication
 wip(001): completed auth routes                    # optional, if interrupted
-docs(verify): fail 001 Add user authentication     # optional, if verify failed
-docs(review): fail 001 Add user authentication     # optional, if review failed
+docs(001): verify-fail - Add user authentication   # optional, if verify failed
+docs(001): review-fail - Add user authentication   # optional, if review failed
 feat(001): Add user authentication                 # when review passes
-docs(product): add authentication guide            # final step
+docs(001): product - add authentication guide      # final step
 ```
 
 ## Next Steps

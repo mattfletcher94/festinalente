@@ -17,7 +17,7 @@ Review → In Progress
 ## Commit
 
 ```
-docs(review): fail {id} {title}
+docs({id}): review-fail - {title}
 ```
 
 ## Steps
@@ -52,7 +52,7 @@ docs(review): fail {id} {title}
    - Collect detailed description of problems
    - Parse into individual issues if multiple provided
 
-6. **Update plan file with iteration** (if plan exists):
+6. **Update plan file with iteration** (following template at `.claudeban/templates/plan.md`):
    - Increment `iteration` in frontmatter
    - Add to `## Iterations` section (create if doesn't exist):
      ```markdown
@@ -81,7 +81,7 @@ docs(review): fail {id} {title}
    ```bash
    git add .kanban/tasks/{id}-*.md
    git add .kanban/plans/{id}.plan.md  # if exists
-   git commit -m "docs(review): fail {id} {title}"
+   git commit -m "docs({id}): review-fail - {title}"
    ```
 
 9. **Confirm**:
@@ -98,7 +98,7 @@ All must pass. If any fail, fix and retry.
 - [ ] Plan file exists at `.kanban/plans/{id}.plan.md`
 - [ ] Task frontmatter contains `status: in-progress`
 - [ ] Plan contains `## Iterations` section with review failure entry
-- [ ] Git log shows `docs(review): fail {id}`
+- [ ] Git log shows `docs({id}): review-fail -`
 
 ## Arguments
 
@@ -121,7 +121,7 @@ What issues were found during review?
 
 Updating plan with iteration...
 
-Commit: g7h8i9j docs(review): fail 001 Add user authentication
+Commit: g7h8i9j docs(001): review-fail - Add user authentication
 
 Review failed.
 Task 001 moved back to In Progress

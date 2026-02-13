@@ -17,11 +17,11 @@ Review → Update Docs
 ## Commit
 
 Based on task labels:
-- `bug` label → `fix(<id>): <title>`
-- `feature` label → `feat(<id>): <title>`
-- `refactor` label → `refactor(<id>): <title>`
-- `docs` label → `docs(<id>): <title>`
-- Default → `feat(<id>): <title>`
+- `bug` label → `fix({id}): {title}`
+- `feature` label → `feat({id}): {title}`
+- `refactor` label → `refactor({id}): {title}`
+- `docs` label → `docs({id}): {title}`
+- Default → `feat({id}): {title}`
 
 ## Steps
 
@@ -112,9 +112,9 @@ Reviewing task 001 "Add user authentication"...
 Task: 001 - Add user authentication
 Labels: [feature]
 Acceptance Criteria:
-- [x] Users can register with email/password
-- [x] Users can log in
-- [x] Users can log out
+  Given a user enters valid credentials
+  When they click login
+  Then they are authenticated and redirected to dashboard
 
 Have you reviewed the implementation and verified it meets acceptance criteria? [Y/n]
 > Y
@@ -144,8 +144,9 @@ Reviewing task 002 "Fix login redirect loop"...
 Task: 002 - Fix login redirect loop
 Labels: [bug]
 Acceptance Criteria:
-- [x] Login redirects to dashboard correctly
-- [x] No infinite redirect loop
+  Given a user completes login
+  When the server redirects
+  Then the redirect goes to dashboard without loop
 
 Have you reviewed the implementation and verified it meets acceptance criteria? [Y/n]
 > Y

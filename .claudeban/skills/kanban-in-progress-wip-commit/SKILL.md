@@ -17,7 +17,7 @@ In Progress → In Progress (no change)
 ## Commit
 
 ```
-wip(<id>): <progress summary>
+wip({id}): {progress summary}
 ```
 
 ## Steps
@@ -62,7 +62,8 @@ wip(<id>): <progress summary>
    - Create a brief summary (e.g., "completed auth routes and middleware")
 
 7. **Add WIP notes to plan**:
-   - If plan exists, add or update "## WIP Notes" section:
+   - If plan exists, add or update `## WIP Notes` section:
+     - Follow template at `.claudeban/templates/plan.md`
      ```markdown
      ## WIP Notes
 
