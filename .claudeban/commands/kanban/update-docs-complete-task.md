@@ -21,7 +21,7 @@ Update product documentation, commit, and move to Done.
 
 ## Commit
 
-On success: `docs(product-docs): <message>`
+On success: `docs(product): {description}`
 
 ## Example
 

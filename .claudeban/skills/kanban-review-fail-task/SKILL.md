@@ -17,20 +17,20 @@ Review → In Progress
 ## Commit
 
 ```
-docs(review-fail): <id> <title>
+docs(review): fail {id} {title}
 ```
 
 ## Steps
 
 1. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
-   - List tasks in `review` column from `.kanban/tasks/`
+   - List tasks in `review` status from `.kanban/tasks/`
    - Show task IDs and titles
    - Ask user which task failed review
 
 2. **Read task file**:
    - Find file matching `.kanban/tasks/{id}-*.md`
    - Parse YAML frontmatter
-   - Verify current column is `review`:
+   - Verify current status is `review`:
      - If not `review`, warn user and confirm they want to proceed
    - Note current title and acceptance criteria
    - Error if task not found
@@ -52,51 +52,53 @@ docs(review-fail): <id> <title>
    - Collect detailed description of problems
    - Parse into individual issues if multiple provided
 
-6. **Update task file with issues**:
-   - Add or append to "## Review Issues" section:
+6. **Update plan file with iteration** (if plan exists):
+   - Increment `iteration` in frontmatter
+   - Add to `## Iterations` section (create if doesn't exist):
      ```markdown
-     ## Review Issues
+     ## Iterations
 
-     ### Review {date}
+     ### Attempt {n} — Review Failed ({YYYY-MM-DD})
+     **Phase:** review
+     **Result:** failed
 
-     **Status:** Failed
+     **Issues:**
+     - [ ] {issue 1}
+     - [ ] {issue 2}
+     - [ ] {issue 3}
 
-     **Issues found:**
-     - {issue 1}
-     - {issue 2}
-     - {issue 3}
+     **Action:** Address issues above, then re-verify
+
+     ---
      ```
 
-7. **Update plan file with bug fixes** (if plan exists):
-   - Add "## Bug Fixes Needed" section:
-     ```markdown
-     ## Bug Fixes Needed
-
-     **From review {date}:**
-
-     - [ ] Fix: {issue 1}
-     - [ ] Fix: {issue 2}
-     - [ ] Fix: {issue 3}
-     ```
-   - These become new checkboxes to complete during implementation
-
-8. **Move to In Progress**:
-   - Change `column: review` to `column: in-progress`
+7. **Move to In Progress**:
+   - Change `status: review` to `status: in-progress`
    - Add `updated: {YYYY-MM-DD}`
    - Write updated task file
 
-9. **Commit the review notes**:
+8. **Commit the review notes**:
    ```bash
    git add .kanban/tasks/{id}-*.md
    git add .kanban/plans/{id}.plan.md  # if exists
-   git commit -m "docs(review-fail): {id} {title}"
+   git commit -m "docs(review): fail {id} {title}"
    ```
 
-10. **Confirm**:
+9. **Confirm**:
     - Print commit hash
     - Print: "Review failed. Task {id} moved back to In Progress"
-    - Print: "Issues logged on task and plan"
-    - Print number of bug fix items added
+    - Print iteration number
+    - Print number of issues to address
+
+## Validation
+
+All must pass. If any fail, fix and retry.
+
+- [ ] Task file exists at `.kanban/tasks/{id}-*.md`
+- [ ] Plan file exists at `.kanban/plans/{id}.plan.md`
+- [ ] Task frontmatter contains `status: in-progress`
+- [ ] Plan contains `## Iterations` section with review failure entry
+- [ ] Git log shows `docs(review): fail {id}`
 
 ## Arguments
 
@@ -117,29 +119,25 @@ What issues were found during review?
 > 2. JWT token expiry is not being checked
 > 3. Error messages expose internal details
 
-Updating task with review issues...
+Updating plan with iteration...
 
-Adding bug fixes to plan...
-- [ ] Fix: Password validation missing minimum length check
-- [ ] Fix: JWT token expiry not being checked
-- [ ] Fix: Error messages expose internal details
-
-Commit: g7h8i9j docs(review-fail): 001 Add user authentication
+Commit: g7h8i9j docs(review): fail 001 Add user authentication
 
 Review failed.
 Task 001 moved back to In Progress
-- Column: in-progress
-- Issues logged: 3
-- Bug fixes added to plan: 3
+- Iteration: 2
+- Status: in-progress
+- Issues to address: 3
 
-Resume fixes with: /kanban:planned-implement-task 001
+Fix the issues and re-verify:
+/kanban:in-progress-verify-task 001
 ```
 
 ## Next Steps
 
-To fix the issues:
+To fix the issues and re-verify:
 ```
-/kanban:planned-implement-task {id}
+/kanban:in-progress-verify-task {id}
 ```
 
-The plan now contains bug fix checkboxes that need to be completed before the next review.
+The plan's Iterations section contains the issues as checkboxes to address.

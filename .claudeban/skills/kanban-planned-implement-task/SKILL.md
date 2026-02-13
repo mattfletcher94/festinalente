@@ -6,12 +6,12 @@ allowed-tools: Read, Write, Edit, Bash(*)
 
 # Implement Kanban Task
 
-Move task from **Planned** to **In Progress**, execute the plan, then move to **Review** when complete. Code remains uncommitted.
+Move task from **Planned** to **In Progress** and execute the plan. Code remains uncommitted until verification passes.
 
 ## Column Transition
 
 ```
-Planned → In Progress → Review
+Planned → In Progress
 ```
 
 ## Commit
@@ -21,22 +21,22 @@ None - code stays uncommitted until review passes. Use `/kanban:in-progress-wip-
 ## Steps
 
 1. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
-   - List tasks in `planned` or `in-progress` column from `.kanban/tasks/`
+   - List tasks in `planned` or `in-progress` status from `.kanban/tasks/`
    - Show task IDs and titles
    - Ask user which task to implement
 
 2. **Read task file**:
    - Find file matching `.kanban/tasks/{id}-*.md`
    - Parse YAML frontmatter
-   - Verify current column:
+   - Verify current status:
      - If `planned`: Move to `in-progress` first (step 3)
      - If `in-progress`: Resume implementation (skip step 3)
-     - If `backlog`: Suggest `/kanban:backlog-plan-task {id}` first, exit
+     - If `backlog`: Suggest `/kanban:backlog-refine-task {id}` first, exit
      - If `review` or later: Warn task is past implementation
    - Error if task not found
 
-3. **Move to In Progress** (if column was `planned`):
-   - Change `column: planned` to `column: in-progress`
+3. **Move to In Progress** (if status was `planned`):
+   - Change `status: planned` to `status: in-progress`
    - Add `updated: {YYYY-MM-DD}`
    - Write updated task file
    - Print: "Task {id} moved to In Progress"
@@ -75,21 +75,30 @@ None - code stays uncommitted until review passes. Use `/kanban:in-progress-wip-
      - Progress is saved (can resume later with same command)
      - Suggest: "Use /kanban:in-progress-wip-commit to save progress"
 
-8. **On completion - Move to Review**:
+8. **On completion**:
    - After ALL checkboxes complete:
-     - Change `column: in-progress` to `column: review`
-     - Add `updated: {YYYY-MM-DD}`
+     - Keep status as `in-progress` (verification will move it)
+     - Update `updated: {YYYY-MM-DD}`
      - Write updated task file
    - If some checkboxes remain:
-     - Keep column as `in-progress`
+     - Keep status as `in-progress`
      - Report: "Partial progress: {completed}/{total} items"
      - Suggest: "Use /kanban:in-progress-wip-commit to save progress"
 
 9. **Report completion**:
    - Display implementation summary
    - Show files modified (uncommitted)
-   - Show column status
-   - Remind: "Code is uncommitted. Run /kanban:review-pass-task {id} after review to commit."
+   - Show status
+   - Remind: "Code is uncommitted. Run /kanban:in-progress-verify-task {id} to run automated checks."
+
+## Validation
+
+All must pass. If any fail, fix and retry.
+
+- [ ] Task file exists at `.kanban/tasks/{id}-*.md`
+- [ ] Task frontmatter contains `status: in-progress`
+- [ ] Plan file exists at `.kanban/plans/{id}.plan.md`
+- [ ] All plan checkboxes are marked complete (`- [x]`)
 
 ## Arguments
 
@@ -122,11 +131,11 @@ Progress: 0/3 items
 Implementation complete!
 All 3 plan items executed.
 
-Task 001 moved to Review
-- Column: review
+Task 001 ready for verification
+- Status: in-progress
 - Files modified: 3 (uncommitted)
 
-Next: Run /kanban:review-pass-task 001 after reviewing the code.
+Next: Run /kanban:in-progress-verify-task 001 to run automated checks.
 ```
 
 ## Example: Resume Partial Implementation
@@ -156,11 +165,11 @@ Progress: 2/5 items (resuming from item 3)
 Implementation complete!
 All 5 plan items executed (3 this session).
 
-Task 002 moved to Review
-- Column: review
+Task 002 ready for verification
+- Status: in-progress
 - Files modified: 5 (uncommitted)
 
-Next: Run /kanban:review-pass-task 002 after reviewing the code.
+Next: Run /kanban:in-progress-verify-task 002 to run automated checks.
 ```
 
 ## Next Steps
@@ -172,5 +181,5 @@ If interrupted:
 
 When complete:
 ```
-/kanban:review-pass-task {id}
+/kanban:in-progress-verify-task {id}
 ```

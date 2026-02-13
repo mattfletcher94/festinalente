@@ -19,7 +19,7 @@
     },
     "status": {
       "type": "string",
-      "enum": ["backlog", "planned", "in-progress", "review", "done"],
+      "enum": ["backlog", "refined", "scoped", "planned", "in-progress", "verify", "review", "update-docs", "done"],
       "description": "Current column status"
     },
     "priority": {

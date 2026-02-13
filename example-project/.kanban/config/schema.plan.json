@@ -40,6 +40,12 @@
       "minimum": 1,
       "default": 1,
       "description": "Plan revision number"
+    },
+    "iteration": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1,
+      "description": "Current attempt/iteration number for tracking retries after verify/review failures"
     }
   }
 }

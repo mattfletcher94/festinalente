@@ -21,7 +21,7 @@ Refine vague tasks through interactive Q&A dialogue to add clarity and acceptanc
 
 ## Commit
 
-On success: `docs(refine-task): <id> <title>`
+On success: `docs(task): refine {id} {title}`
 
 ## Example
 

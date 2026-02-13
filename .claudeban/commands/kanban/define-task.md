@@ -21,7 +21,7 @@ Create a new task in `.kanban/tasks/` and commit.
 
 ## Commit
 
-On success: `docs(add-task): <id> <title>`
+On success: `docs(task): add {id} {title}`
 
 ## Example
 

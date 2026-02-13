@@ -11,13 +11,13 @@ Refine vague tasks through Socratic Q&A dialogue to add clarity, acceptance crit
 ## Column Transition
 
 ```
-Backlog (needs-refinement) → Backlog (refined)
+Backlog → Refined
 ```
 
 ## Commit
 
 ```
-docs(refine-task): <id> <title>
+docs(task): refine {id} {title}
 ```
 
 ## Steps
@@ -71,12 +71,12 @@ docs(refine-task): <id> <title>
    - Add/improve acceptance criteria (each must be testable)
    - Add implementation hints if technical context was provided
 
-7. **Update labels**:
-   - Remove `needs-refinement` from labels array
-   - Add `refined` to labels array
+7. **Update task frontmatter**:
+   - Change `status: backlog` to `status: refined`
+   - Update `updated: {YYYY-MM-DD}`
 
 8. **Write updated task file**:
-   - Update frontmatter with new labels
+   - Update frontmatter with new status
    - Add "## Refinement Notes" section:
      ```markdown
      ## Refinement Notes
@@ -91,13 +91,22 @@ docs(refine-task): <id> <title>
 9. **Commit the refinement**:
    ```bash
    git add .kanban/tasks/{id}-*.md
-   git commit -m "docs(refine-task): {id} {title}"
+   git commit -m "docs(task): refine {id} {title}"
    ```
 
 10. **Confirm refinement complete**:
     - Print summary of changes made
     - Show updated acceptance criteria
     - Print commit hash
+
+## Validation
+
+All must pass. If any fail, fix and retry.
+
+- [ ] Task file exists at `.kanban/tasks/{id}-*.md`
+- [ ] Frontmatter contains `status: refined`
+- [ ] Task file contains `## Acceptance Criteria` section
+- [ ] Git log shows `docs(task): refine {id}`
 
 ## Arguments
 
@@ -135,5 +144,5 @@ Task is now ready for planning.
 ## Next Steps
 
 ```
-/kanban:backlog-plan-task {id}
+/kanban:refined-scope-task {id}
 ```

@@ -26,14 +26,14 @@ Based on task labels:
 ## Steps
 
 1. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
-   - List tasks in `review` column from `.kanban/tasks/`
+   - List tasks in `review` status from `.kanban/tasks/`
    - Show task IDs and titles
    - Ask user which task to approve
 
 2. **Read task file**:
    - Find file matching `.kanban/tasks/{id}-*.md`
    - Parse YAML frontmatter
-   - Verify current column is `review`:
+   - Verify current status is `review`:
      - If `in-progress`: Suggest completing implementation first
      - If `backlog` or `planned`: Suggest earlier commands
      - If `update-docs` or later: Warn task already past review
@@ -60,7 +60,7 @@ Based on task labels:
    - Display files that will be committed
    - If no changes found:
      - Warn: "No uncommitted changes to commit. Was the implementation already committed?"
-     - Ask if user wants to proceed anyway (just move column)
+     - Ask if user wants to proceed anyway (just move status)
 
 6. **Determine commit type from labels**:
    - Check task labels array:
@@ -81,7 +81,7 @@ Based on task labels:
      ```
 
 8. **Move to Update Docs**:
-   - Change `column: review` to `column: update-docs`
+   - Change `status: review` to `status: update-docs`
    - Add `updated: {YYYY-MM-DD}`
    - Write updated task file
 
@@ -89,6 +89,14 @@ Based on task labels:
    - Print commit hash and message
    - Print: "Task {id} moved to Update Docs"
    - Print: "Review passed! Code committed."
+
+## Validation
+
+All must pass. If any fail, fix and retry.
+
+- [ ] Task file exists at `.kanban/tasks/{id}-*.md`
+- [ ] Task frontmatter contains `status: update-docs`
+- [ ] Git log shows appropriate commit type (`feat`, `fix`, `refactor`, or `docs`) with `({id}):`
 
 ## Arguments
 

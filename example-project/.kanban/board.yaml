@@ -1,17 +1,25 @@
 name: My Project
+
 columns:
   - id: backlog
     name: Backlog
+  - id: refined
+    name: Refined
+  - id: scoped
+    name: Scoped
   - id: planned
     name: Planned
   - id: in-progress
     name: In Progress
+  - id: verify
+    name: Verify
   - id: review
     name: Review
   - id: update-docs
     name: Update Docs
   - id: done
     name: Done
+
 labels:
   - id: bug
     name: Bug
@@ -25,12 +33,7 @@ labels:
   - id: refactor
     name: Refactor
     color: "#6b7280"
-  - id: needs-refinement
-    name: Needs Refinement
-    color: "#f97316"
-  - id: refined
-    name: Refined
-    color: "#06b6d4"
+
 priorities:
   - id: high
     name: High
@@ -41,16 +44,28 @@ priorities:
   - id: low
     name: Low
     color: "#22c55e"
+
 commands:
   "kanban:define-task":
     skills: []
   "kanban:backlog-refine-task":
     skills: []
-  "kanban:backlog-plan-task":
+  "kanban:refined-scope-task":
+    skills: []
+  "kanban:scoped-plan-task":
     skills: []
   "kanban:planned-implement-task":
     skills: []
   "kanban:in-progress-wip-commit":
+    skills: []
+  "kanban:in-progress-verify-task":
+    skills:
+      - .kanban/skills/check-typescript.md
+      - .kanban/skills/check-tests.md
+      - .kanban/skills/check-lint.md
+  "kanban:verify-pass-task":
+    skills: []
+  "kanban:verify-fail-task":
     skills: []
   "kanban:review-pass-task":
     skills: []
@@ -58,8 +73,9 @@ commands:
     skills: []
   "kanban:update-docs-complete-task":
     skills: []
+
 settings:
-  version: "1.0"
+  version: "2.0"
   idPrefix: ""
   idPadding: 3
   archiveOnComplete: false

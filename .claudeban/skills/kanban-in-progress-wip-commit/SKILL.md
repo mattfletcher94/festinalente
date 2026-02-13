@@ -23,14 +23,14 @@ wip(<id>): <progress summary>
 ## Steps
 
 1. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
-   - List tasks in `in-progress` column from `.kanban/tasks/`
+   - List tasks in `in-progress` status from `.kanban/tasks/`
    - Show task IDs and titles
    - Ask user which task to commit WIP for
 
 2. **Read task file**:
    - Find file matching `.kanban/tasks/{id}-*.md`
    - Parse YAML frontmatter
-   - Verify current column is `in-progress`:
+   - Verify current status is `in-progress`:
      - If not `in-progress`, warn user: "Task is not in progress. WIP commit only works for tasks being implemented."
      - Exit
    - Error if task not found
@@ -98,6 +98,14 @@ wip(<id>): <progress summary>
     - Print progress: "{completed}/{total} plan items complete"
     - Print continuation hint
     - Remind: "Resume with /kanban:planned-implement-task {id}"
+
+## Validation
+
+All must pass. If any fail, fix and retry.
+
+- [ ] Task file exists at `.kanban/tasks/{id}-*.md`
+- [ ] Task frontmatter contains `status: in-progress`
+- [ ] If changes existed: git log shows `wip({id}):`
 
 ## Arguments
 

@@ -17,7 +17,7 @@ Create a new task file in `.kanban/tasks/` in the **Backlog** column and commit.
 ## Commit
 
 ```
-docs(add-task): <id> <title>
+docs(task): add {id} {title}
 ```
 
 ## Steps
@@ -40,7 +40,7 @@ docs(add-task): <id> <title>
    - Title: Use $ARGUMENTS if provided, otherwise ask user
    - Ensure title follows best practices (suggest improvements if needed)
    - Generate initial acceptance criteria based on title
-   - Column: `backlog`
+   - Status: `backlog`
    - Priority: Ask user (high/medium/low), default to medium if not specified
 
 5. **Detect vague tasks**:
@@ -64,7 +64,7 @@ docs(add-task): <id> <title>
 ---
 id: "{id}"
 title: "{title}"
-column: backlog
+status: backlog
 priority: {priority}
 labels: [{label}]
 created: {YYYY-MM-DD}
@@ -90,7 +90,7 @@ created: {YYYY-MM-DD}
 8. **Commit the task file**:
    ```bash
    git add .kanban/tasks/{id}-{slug}.md
-   git commit -m "docs(add-task): {id} {title}"
+   git commit -m "docs(task): add {id} {title}"
    ```
 
 9. **Confirm creation**:
@@ -101,6 +101,17 @@ created: {YYYY-MM-DD}
 ## Arguments
 
 - `$ARGUMENTS` - Task title and optional description
+
+## Validation
+
+All must pass. If any fail, fix and retry.
+
+- [ ] Task file exists at `.kanban/tasks/{id}-*.md`
+- [ ] Frontmatter contains `id: "{id}"`
+- [ ] Frontmatter contains `status: backlog`
+- [ ] Frontmatter contains `title: "{title}"`
+- [ ] Task file contains `## Description` section
+- [ ] Git log shows `docs(task): add {id}`
 
 ## Example
 
@@ -113,17 +124,11 @@ Task 002 created in Backlog
 Title: Fix login redirect bug
 Labels: [bug]
 File: .kanban/tasks/002-fix-login-redirect-bug.md
-Commit: a1b2c3d docs(add-task): 002 Fix login redirect bug
+Commit: a1b2c3d docs(task): add 002 Fix login redirect bug
 ```
 
 ## Next Steps
 
-If task has `needs-refinement` label:
 ```
 /kanban:backlog-refine-task {id}
-```
-
-If task is clear and ready for planning:
-```
-/kanban:backlog-plan-task {id}
 ```

@@ -17,11 +17,11 @@ Execute plan checkboxes. Code remains uncommitted until review passes.
 
 1. Invoke the **kanban-planned-implement-task** skill
 2. Pass `$ARGUMENTS` as the task ID (if provided)
-3. Skill handles checkbox execution and moves task to Review when complete
+3. Skill handles checkbox execution and keeps task in In Progress when complete
 
 ## Commit
 
-None - code stays uncommitted. Use `/kanban:in-progress-wip-commit` to save partial progress, or `/kanban:review-pass-task` to commit after review.
+None - code stays uncommitted. Use `/kanban:in-progress-wip-commit` to save partial progress, or `/kanban:in-progress-verify-task` to run checks after implementation.
 
 ## Example
 

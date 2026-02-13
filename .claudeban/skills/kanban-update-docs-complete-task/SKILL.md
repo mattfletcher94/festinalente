@@ -17,24 +17,24 @@ Update Docs → Done
 ## Commit
 
 ```
-docs(product-docs): <message>
+docs(product): {description}
 ```
 
-The message describes what documentation was updated (e.g., "add authentication guide", "update API reference").
+The description summarizes what documentation was updated (e.g., "add authentication guide", "update API reference").
 
 ## Steps
 
 1. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
-   - List tasks in `update-docs` column from `.kanban/tasks/`
+   - List tasks in `update-docs` status from `.kanban/tasks/`
    - Show task IDs and titles
    - Ask user which task needs documentation
 
 2. **Read task file**:
    - Find file matching `.kanban/tasks/{id}-*.md`
    - Parse YAML frontmatter
-   - Verify current column is `update-docs`:
+   - Verify current status is `update-docs`:
      - If `review`: Suggest `/kanban:review-pass-task {id}` first
-     - If earlier column: Suggest appropriate command
+     - If earlier status: Suggest appropriate command
    - Note title, labels, description for documentation context
    - Error if task not found
 
@@ -78,7 +78,7 @@ The message describes what documentation was updated (e.g., "add authentication 
 7. **If user declines (n)**:
    - Log: "Documentation update skipped"
    - Ask for reason (optional)
-   - Still proceed to move column
+   - Still proceed to move status
    - Use generic commit message: "docs(product-docs): no updates needed for {title}"
 
 8. **Commit documentation changes** (if any):
@@ -88,7 +88,7 @@ The message describes what documentation was updated (e.g., "add authentication 
    ```
 
 9. **Move to Done**:
-   - Change `column: update-docs` to `column: done`
+   - Change `status: update-docs` to `status: done`
    - Add `updated: {YYYY-MM-DD}`
    - Add `completed: {YYYY-MM-DD}`
    - Write updated task file
@@ -98,6 +98,14 @@ The message describes what documentation was updated (e.g., "add authentication 
     - Print commit hash (if docs were committed)
     - Print: "Task {id} completed!"
     - Congratulate user
+
+## Validation
+
+All must pass. If any fail, fix and retry.
+
+- [ ] Task file exists at `.kanban/tasks/{id}-*.md`
+- [ ] Task frontmatter contains `status: done`
+- [ ] Task frontmatter contains `completed:` date
 
 ## Arguments
 
@@ -129,10 +137,10 @@ Staging documentation:
 - docs/auth.md
 - README.md
 
-Commit: h8i9j0k docs(product-docs): add authentication guide and update README
+Commit: h8i9j0k docs(product): add authentication guide
 
 Task 001 completed!
-- Column: done
+- Status: done
 - Docs commit: h8i9j0k
 
 Congratulations! Task complete.
@@ -160,7 +168,7 @@ Reason (optional):
 Documentation skipped: Internal optimization
 
 Task 002 completed!
-- Column: done
+- Status: done
 - No docs commit needed
 
 Congratulations! Task complete.
@@ -170,13 +178,15 @@ Congratulations! Task complete.
 
 Complete task lifecycle commits:
 ```
-docs(add-task): 001 Add user authentication
-docs(refine-task): 001 Add user authentication
-docs(plan-task): 001 Add user authentication
+docs(task): add 001 Add user authentication
+docs(task): refine 001 Add user authentication
+docs(task): scope 001 Add user authentication
+docs(plan): 001 Add user authentication
 wip(001): completed auth routes                    # optional, if interrupted
-docs(review-fail): 001 Add user authentication     # optional, if review failed
+docs(verify): fail 001 Add user authentication     # optional, if verify failed
+docs(review): fail 001 Add user authentication     # optional, if review failed
 feat(001): Add user authentication                 # when review passes
-docs(product-docs): add authentication guide       # final step
+docs(product): add authentication guide            # final step
 ```
 
 ## Next Steps
