@@ -123,6 +123,12 @@ Uses `commits.refine` format from `.claudeban/kanban-workflow.yaml`.
     - Print summary of changes made
     - Show updated acceptance criteria
     - Print commit hash
+    - Print recommended next steps in this format:
+      ```
+      Next:
+      /clear
+      /kanban:refined-scope-task {id}
+      ```
 
 ## Validation
 
@@ -176,7 +182,9 @@ Task 003 updated:
 
 Commit: b2c3d4e docs(003): refine - Fix login form email validation
 
-Task is now ready for scoping.
+Next:
+/clear
+/kanban:refined-scope-task 003
 ```
 
 ## Next Steps

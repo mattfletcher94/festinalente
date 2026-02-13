@@ -650,7 +650,7 @@ Use JWT for session tokens. Follow existing auth patterns.
 
 ### Functional Specifications
 
-Location: `.kanban/specs/{id}.spec.md`
+Location: `.kanban/specs/{id}-{slug}.spec.md`
 
 Created during `scope-task`. Contains:
 - Context and scope boundaries
@@ -662,7 +662,7 @@ Created during `scope-task`. Contains:
 
 ### Implementation Plans
 
-Location: `.kanban/plans/{id}.plan.md`
+Location: `.kanban/plans/{id}-{slug}.plan.md`
 
 Created during `plan-task`. Contains:
 - Implementation steps as checkboxes

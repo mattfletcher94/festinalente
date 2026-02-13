@@ -6,7 +6,7 @@ allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git 
 
 # Scope Kanban Task
 
-Create a functional specification file at `.kanban/specs/{id}.spec.md` and move task from **Refined** to **Scoped**. Commits the scoping.
+Create a functional specification file at `.kanban/specs/{id}-{slug}.spec.md` and move task from **Refined** to **Scoped**. Commits the scoping.
 
 ## Column Transition
 
@@ -64,7 +64,7 @@ Uses `commits.scope` format from `.claudeban/kanban-workflow.yaml`.
    - Search for related types/interfaces: "What types are involved?"
    - Search for integration points: "What connects to this?"
 
-7. **Create functional specification file** at `.kanban/specs/{id}.spec.md`:
+7. **Create functional specification file** at `.kanban/specs/{id}-{slug}.spec.md` (derive slug from task title, same as task file):
    - Follow template at `.claudeban/kanban-templates/spec.md`
    - Fill ALL sections:
 
@@ -120,11 +120,11 @@ Uses `commits.scope` format from `.claudeban/kanban-workflow.yaml`.
 
 8. **Update task frontmatter**:
    - Change `status: refined` to `status: scoped`
-   - Add `spec: "specs/{id}.spec.md"` to frontmatter
+   - Add `spec: "specs/{id}-{slug}.spec.md"` to frontmatter
    - Update `updated: {YYYY-MM-DD}`
 
 9. **Write both files**:
-   - Write spec file at `.kanban/specs/{id}.spec.md`
+   - Write spec file at `.kanban/specs/{id}-{slug}.spec.md`
    - Write updated task file
 
 10. **Create and switch to task branch**:
@@ -133,7 +133,7 @@ Uses `commits.scope` format from `.claudeban/kanban-workflow.yaml`.
 
 11. **Commit the scoping**:
     ```bash
-    git add .kanban/specs/{id}.spec.md .kanban/tasks/{id}-*.md
+    git add .kanban/specs/{id}-{slug}.spec.md .kanban/tasks/{id}-*.md
     git commit -m "docs({id}): scope - {title}"
     ```
 
@@ -142,15 +142,21 @@ Uses `commits.scope` format from `.claudeban/kanban-workflow.yaml`.
    - Print existing patterns found
    - Print any open questions
    - Print commit hash
+   - Print recommended next steps in this format:
+     ```
+     Next:
+     /clear
+     /kanban:scoped-plan-task {id}
+     ```
 
 ## Validation
 
 All must pass. If any fail, fix and retry.
 
 - [ ] Task file exists at `.kanban/tasks/{id}-*.md`
-- [ ] Spec file exists at `.kanban/specs/{id}.spec.md`
+- [ ] Spec file exists at `.kanban/specs/{id}-{slug}.spec.md`
 - [ ] Task frontmatter contains `status: scoped`
-- [ ] Task frontmatter contains `spec: "specs/{id}.spec.md"`
+- [ ] Task frontmatter contains `spec: "specs/{id}-{slug}.spec.md"`
 - [ ] Spec file contains `## Functional Requirements` section
 - [ ] Spec file contains `## Affected Files` section
 - [ ] Spec file contains `## Existing Patterns` section
@@ -180,7 +186,7 @@ Searching codebase for patterns...
 
 Creating functional specification...
 
-Spec created: .kanban/specs/001.spec.md
+Spec created: .kanban/specs/001-add-oauth-login.spec.md
 - 4 functional requirements
 - 3 files to modify, 1 new file
 - 2 existing patterns referenced
@@ -188,8 +194,12 @@ Spec created: .kanban/specs/001.spec.md
 
 Task 001 scoped.
 - Status: scoped
-- Spec: specs/001.spec.md
+- Spec: specs/001-add-oauth-login.spec.md
 Commit: d4e5f6g docs(001): scope - Add OAuth Login
+
+Next:
+/clear
+/kanban:scoped-plan-task 001
 ```
 
 ## Next Steps

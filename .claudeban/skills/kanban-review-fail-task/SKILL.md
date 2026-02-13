@@ -46,7 +46,7 @@ Uses `commits.review-fail` format from `.claudeban/kanban-workflow.yaml`.
      - Exit
 
 5. **Find and read plan file**:
-   - Check for `.kanban/plans/{id}.plan.md`
+   - Check for `.kanban/plans/{id}-{slug}.plan.md`
    - If plan found: Read plan content
    - Plan will be updated with bug fixes needed
 
@@ -90,7 +90,7 @@ Uses `commits.review-fail` format from `.claudeban/kanban-workflow.yaml`.
 10. **Commit the review notes**:
     ```bash
     git add .kanban/tasks/{id}-*.md
-    git add .kanban/plans/{id}.plan.md  # if exists
+    git add .kanban/plans/{id}-{slug}.plan.md  # if exists
     git commit -m "docs({id}): review-fail - {title}"
     ```
 
@@ -99,13 +99,20 @@ Uses `commits.review-fail` format from `.claudeban/kanban-workflow.yaml`.
     - Print: "Review failed. Task {id} moved back to In Progress"
     - Print iteration number
     - Print number of issues to address
+    - Print recommended next steps in this format:
+      ```
+      Next:
+      /clear
+      /kanban:planned-implement-task {id}
+      ```
+    - Also mention: "Then re-verify with /kanban:in-progress-verify-task {id}"
 
 ## Validation
 
 All must pass. If any fail, fix and retry.
 
 - [ ] Task file exists at `.kanban/tasks/{id}-*.md`
-- [ ] Plan file exists at `.kanban/plans/{id}.plan.md`
+- [ ] Plan file exists at `.kanban/plans/{id}-{slug}.plan.md`
 - [ ] Task frontmatter contains `status: in-progress`
 - [ ] Plan contains `## Iterations` section with review failure entry
 - [ ] Git log shows `docs({id}): review-fail -`
@@ -139,8 +146,11 @@ Task 001 moved back to In Progress
 - Status: in-progress
 - Issues to address: 3
 
-Fix the issues and re-verify:
-/kanban:in-progress-verify-task 001
+Next:
+/clear
+/kanban:planned-implement-task 001
+
+Then re-verify: /kanban:in-progress-verify-task 001
 ```
 
 ## Next Steps

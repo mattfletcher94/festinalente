@@ -1,6 +1,6 @@
 ---
 task: "{id}"
-spec: "specs/{id}.spec.md"
+spec: "specs/{id}-{slug}.spec.md"
 status: draft|approved|in-progress|completed
 created: YYYY-MM-DD
 updated: YYYY-MM-DD

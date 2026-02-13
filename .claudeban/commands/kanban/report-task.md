@@ -18,8 +18,8 @@ Query a specific task's history and current state using natural language.
 1. Parse `$ARGUMENTS` to extract task ID (first argument) and optional question (remaining text)
 2. Gather all data for the task:
    - Task file: `.kanban/tasks/{id}-*.md`
-   - Spec file (if exists): `.kanban/specs/{id}.spec.md`
-   - Plan file (if exists): `.kanban/plans/{id}.plan.md`
+   - Spec file (if exists): `.kanban/specs/{id}-{slug}.spec.md`
+   - Plan file (if exists): `.kanban/plans/{id}-{slug}.plan.md`
    - Git commits: `git log --oneline --all --grep="({id})"`
 3. If no question provided, ask the user what they want to know about the task
 4. If question provided, answer conversationally using the gathered data
@@ -29,8 +29,8 @@ Query a specific task's history and current state using natural language.
 | Source | Location | Contains |
 |--------|----------|----------|
 | Task file | `.kanban/tasks/{id}-*.md` | Status, priority, labels, description |
-| Spec file | `.kanban/specs/{id}.spec.md` | Requirements, acceptance criteria |
-| Plan file | `.kanban/plans/{id}.plan.md` | Implementation steps, checkboxes |
+| Spec file | `.kanban/specs/{id}-{slug}.spec.md` | Requirements, acceptance criteria |
+| Plan file | `.kanban/plans/{id}-{slug}.plan.md` | Implementation steps, checkboxes |
 | Git history | `git log --grep="({id})"` | Timeline, commits, state transitions |
 
 ## Example Questions

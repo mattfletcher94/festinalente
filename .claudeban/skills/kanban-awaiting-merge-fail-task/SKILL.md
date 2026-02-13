@@ -56,7 +56,7 @@ Uses `commits.merge-fail` format from `.claudeban/kanban-workflow.yaml`.
 
 7. **Document rejection reason**:
    - Ask user: "What issues caused the PR rejection?"
-   - Read plan file at `.kanban/plans/{id}.plan.md`
+   - Read plan file at `.kanban/plans/{id}-{slug}.plan.md`
    - Add to `## Iterations` section:
      ```markdown
      ### Iteration N: Merge Rejected ({YYYY-MM-DD})
@@ -75,7 +75,7 @@ Uses `commits.merge-fail` format from `.claudeban/kanban-workflow.yaml`.
 
 9. **Commit the changes**:
    ```bash
-   git add .kanban/plans/{id}.plan.md .kanban/tasks/{id}-*.md
+   git add .kanban/plans/{id}-{slug}.plan.md .kanban/tasks/{id}-*.md
    git commit -m "docs({id}): merge-fail - {title}"
    ```
 
@@ -83,7 +83,13 @@ Uses `commits.merge-fail` format from `.claudeban/kanban-workflow.yaml`.
     - Print: "PR closed"
     - Print: "Issues documented in plan"
     - Print: "Task {id} returned to In Progress"
-    - Print: "Fix issues, then go through verify/review again"
+    - Print recommended next steps in this format:
+      ```
+      Next:
+      /clear
+      /kanban:planned-implement-task {id}
+      ```
+    - Also mention: "Then re-verify with /kanban:in-progress-verify-task {id}"
 
 ## Validation
 
@@ -125,7 +131,12 @@ Commit: j9k0l1m docs(001): merge-fail - Add user authentication
 Task 001 returned to In Progress.
 - Status: in-progress
 - Branch: task/001 (still active)
-- Fix issues, then: /kanban:in-progress-verify-task 001
+
+Next:
+/clear
+/kanban:planned-implement-task 001
+
+Then re-verify: /kanban:in-progress-verify-task 001
 ```
 
 ## Next Steps

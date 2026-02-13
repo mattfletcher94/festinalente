@@ -90,6 +90,13 @@ See `.claudeban/kanban-workflow.yaml` for column definitions and valid transitio
     - Print: "Branch task/{id} deleted"
     - Print: "Task {id} completed!"
     - Print current branch (should be main)
+    - Print: "Congratulations! Task complete."
+    - Print recommended next steps in this format:
+      ```
+      Next:
+      /clear
+      /kanban:define-task "Your next task"
+      ```
 
 ## Validation
 
@@ -131,6 +138,10 @@ Task 001 completed!
 - Current branch: main
 
 Congratulations! Task complete.
+
+Next:
+/clear
+/kanban:define-task "Your next task"
 ```
 
 ## Next Steps

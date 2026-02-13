@@ -46,7 +46,7 @@ Uses `commits.plan` format from `.claudeban/kanban-workflow.yaml`.
      - Exit
 
 5. **Read functional specification**:
-   - Read spec file at `.kanban/specs/{id}.spec.md`
+   - Read spec file at `.kanban/specs/{id}-{slug}.spec.md`
    - If spec not found, BLOCK planning with message:
      ```
      Task {id} needs scoping before planning.
@@ -55,7 +55,7 @@ Uses `commits.plan` format from `.claudeban/kanban-workflow.yaml`.
    - Extract functional requirements, affected files, and existing patterns
 
 6. **Check for existing plan**:
-   - Check if `.kanban/plans/{id}.plan.md` exists
+   - Check if `.kanban/plans/{id}-{slug}.plan.md` exists
    - If exists, ask if user wants to overwrite or view existing
 
 7. **Check for command skills**:
@@ -65,7 +65,7 @@ Uses `commits.plan` format from `.claudeban/kanban-workflow.yaml`.
      - Read each skill file at the listed paths
      - Follow their instructions as mandatory guidance
 
-8. **Create plan file** at `.kanban/plans/{id}.plan.md`:
+8. **Create plan file** at `.kanban/plans/{id}-{slug}.plan.md`:
    - Follow template at `.claudeban/kanban-templates/plan.md`
    - Link to spec in frontmatter
    - Create implementation steps based on spec
@@ -73,7 +73,7 @@ Uses `commits.plan` format from `.claudeban/kanban-workflow.yaml`.
    ```yaml
    ---
    task: "{id}"
-   spec: "specs/{id}.spec.md"
+   spec: "specs/{id}-{slug}.spec.md"
    status: approved
    created: {YYYY-MM-DD}
    generated_by: claude
@@ -87,7 +87,7 @@ Uses `commits.plan` format from `.claudeban/kanban-workflow.yaml`.
    ## Overview
 
    {Brief summary referencing functional spec}
-   See full specification: specs/{id}.spec.md
+   See full specification: specs/{id}-{slug}.spec.md
 
    ## Implementation Steps
 
@@ -115,7 +115,7 @@ Uses `commits.plan` format from `.claudeban/kanban-workflow.yaml`.
 
 9. **Update task file**:
    - Change `status: scoped` to `status: planned`
-   - Add `plan: "plans/{id}.plan.md"` to frontmatter
+   - Add `plan: "plans/{id}-{slug}.plan.md"` to frontmatter
    - Add `updated: {YYYY-MM-DD}`
 
 10. **Write updated files**:
@@ -124,7 +124,7 @@ Uses `commits.plan` format from `.claudeban/kanban-workflow.yaml`.
 
 11. **Commit the plan and task update**:
     ```bash
-    git add .kanban/plans/{id}.plan.md .kanban/tasks/{id}-*.md
+    git add .kanban/plans/{id}-{slug}.plan.md .kanban/tasks/{id}-*.md
     git commit -m "docs({id}): plan - {title}"
     ```
 
@@ -133,6 +133,12 @@ Uses `commits.plan` format from `.claudeban/kanban-workflow.yaml`.
     - Print plan file path
     - Print number of implementation steps created
     - Print commit hash
+    - Print recommended next steps in this format:
+      ```
+      Next:
+      /clear
+      /kanban:planned-implement-task {id}
+      ```
 
 ## Validation
 
@@ -140,10 +146,10 @@ All must pass. If any fail, fix and retry.
 
 - [ ] Task file exists at `.kanban/tasks/{id}-*.md`
 - [ ] Task frontmatter contains `status: planned`
-- [ ] Task frontmatter contains `plan: "plans/{id}.plan.md"`
-- [ ] Plan file exists at `.kanban/plans/{id}.plan.md`
+- [ ] Task frontmatter contains `plan: "plans/{id}-{slug}.plan.md"`
+- [ ] Plan file exists at `.kanban/plans/{id}-{slug}.plan.md`
 - [ ] Plan frontmatter contains `task: "{id}"`
-- [ ] Plan frontmatter contains `spec: "specs/{id}.spec.md"`
+- [ ] Plan frontmatter contains `spec: "specs/{id}-{slug}.spec.md"`
 - [ ] Plan frontmatter contains `status: approved`
 - [ ] Plan frontmatter contains `iteration: 1`
 - [ ] Plan contains `## Implementation Steps` section with checkboxes
@@ -178,6 +184,10 @@ Task 001 moved to Planned
 - Spec: specs/001.spec.md
 - Plan: plans/001.plan.md
 Commit: g7h8i9j docs(001): plan - Add OAuth Login
+
+Next:
+/clear
+/kanban:planned-implement-task 001
 ```
 
 ## Next Steps

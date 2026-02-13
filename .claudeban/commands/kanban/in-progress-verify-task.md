@@ -21,7 +21,9 @@ Run automated verification checks (tests, typecheck, linting) on completed imple
 
 ## Check Configuration
 
-Checks are defined as skill files in `.kanban/skills/` and referenced in `config.yaml`:
+Checks are defined as skill files in `.kanban/skills/{name}.md` and referenced in `config.yaml`.
+
+**To find existing checks:** `glob .kanban/skills/*.md`
 
 ```yaml
 commands:

@@ -102,6 +102,12 @@ Commit type is determined by matching task labels to `labels[].commit-type` in k
    - Print commit hash and message
    - Print: "Task {id} moved to Update Docs"
    - Print: "Review passed! Code committed."
+   - Print recommended next steps in this format:
+     ```
+     Next:
+     /clear
+     /kanban:update-docs-complete-task {id}
+     ```
 
 ## Validation
 
@@ -145,6 +151,10 @@ Review passed!
 Task 001 moved to Update Docs
 - Column: update-docs
 - Commit: e5f6g7h
+
+Next:
+/clear
+/kanban:update-docs-complete-task 001
 ```
 
 ## Example: Bug Fix Review Passed
@@ -175,6 +185,10 @@ Review passed!
 Task 002 moved to Update Docs
 - Column: update-docs
 - Commit: f6g7h8i
+
+Next:
+/clear
+/kanban:update-docs-complete-task 002
 ```
 
 ## Next Steps

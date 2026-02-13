@@ -1,3 +1,9 @@
+# Kanban Config Schema
+# ---------------------
+# This file has exactly THREE top-level keys: name, commands, settings
+# DO NOT add any other top-level keys (no 'verification', 'hooks', 'checks', etc.)
+# The schema is fixed - only modify values within the existing structure.
+
 name: My Project
 
 commands:

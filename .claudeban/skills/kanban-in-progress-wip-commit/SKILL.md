@@ -46,7 +46,7 @@ Uses `commits.wip` format from `.claudeban/kanban-workflow.yaml`.
      - Exit
 
 5. **Find and read plan file**:
-   - Check for `.kanban/plans/{id}.plan.md`
+   - Check for `.kanban/plans/{id}-{slug}.plan.md`
    - If plan found: Read plan content
    - If NO plan found:
      - Warn: "No plan found for task {id}"
@@ -97,7 +97,7 @@ Uses `commits.wip` format from `.claudeban/kanban-workflow.yaml`.
     - Stage all relevant files (code + plan):
       ```bash
       git add {changed files}
-      git add .kanban/plans/{id}.plan.md  # if exists
+      git add .kanban/plans/{id}-{slug}.plan.md  # if exists
       ```
     - Commit with WIP message:
       ```bash

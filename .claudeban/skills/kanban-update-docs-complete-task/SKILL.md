@@ -106,8 +106,8 @@ The description summarizes what documentation was updated (e.g., "add authentica
       {Task description}
 
       ## Changes
-      - Functional spec: `.kanban/specs/{id}.spec.md`
-      - Implementation plan: `.kanban/plans/{id}.plan.md`
+      - Functional spec: `.kanban/specs/{id}-{slug}.spec.md`
+      - Implementation plan: `.kanban/plans/{id}-{slug}.plan.md`
       - Code changes: {list implementation files from review-pass commit}
       - Product docs: {list doc files if updated}
 
@@ -131,7 +131,13 @@ The description summarizes what documentation was updated (e.g., "add authentica
     - Print commit hash (if docs were committed)
     - Print PR URL
     - Print: "Task {id} ready for merge!"
-    - Print: "Review and merge the PR, then run /kanban:awaiting-merge-merge-task {id}"
+    - Print recommended next steps in this format:
+      ```
+      Next:
+      /clear
+      /kanban:awaiting-merge-merge-task {id}
+      ```
+    - Also mention: "Or if PR needs changes: /kanban:awaiting-merge-fail-task {id}"
 
 ## Validation
 
@@ -181,8 +187,11 @@ Task 001 ready for merge!
 - Docs commit: h8i9j0k
 - PR: https://github.com/user/repo/pull/42
 
-Review and merge the PR, then run:
+Next:
+/clear
 /kanban:awaiting-merge-merge-task 001
+
+Or if PR needs changes: /kanban:awaiting-merge-fail-task 001
 ```
 
 ## Example: Documentation Skipped
@@ -213,8 +222,11 @@ Task 002 ready for merge!
 - Status: awaiting-merge
 - PR: https://github.com/user/repo/pull/43
 
-Review and merge the PR, then run:
+Next:
+/clear
 /kanban:awaiting-merge-merge-task 002
+
+Or if PR needs changes: /kanban:awaiting-merge-fail-task 002
 ```
 
 ## Git History Example

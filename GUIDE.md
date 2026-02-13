@@ -30,12 +30,14 @@ This creates the `.kanban/` directory:
 ```
 .kanban/
 ├── config.yaml    # Your board configuration
-├── tasks/         # Task files
-├── specs/         # Functional specifications
-├── plans/         # Implementation plans
-├── product/       # Product documentation
-└── skills/        # Your verification checks
+├── tasks/         # Task files ({id}-{slug}.md)
+├── specs/         # Functional specifications ({id}-{slug}.spec.md)
+├── plans/         # Implementation plans ({id}-{slug}.plan.md)
+├── product/       # Product documentation ({feature}.md)
+└── skills/        # Your verification checks ({name}.md)
 ```
+
+**File naming:** All kanban files use dashes (not dots) for readability. User-defined skills in `.kanban/skills/` are simple `.md` files (not directories).
 
 ### Document Your Product (Recommended)
 
@@ -184,7 +186,7 @@ Searching codebase for patterns...
 - Found auth patterns in src/auth/
 - Found email service in src/services/email.ts
 
-Creating spec: .kanban/specs/001.spec.md
+Creating spec: .kanban/specs/001-add-password-reset-functionality.spec.md
 - 5 functional requirements
 - 4 files to modify
 
@@ -215,7 +217,7 @@ Commit: docs(001): scope - Add password reset functionality
 
 **Example output:**
 ```
-Creating plan: .kanban/plans/001.plan.md
+Creating plan: .kanban/plans/001-add-password-reset-functionality.plan.md
 
 Implementation Steps:
 - [ ] Create password reset token model (FR1)

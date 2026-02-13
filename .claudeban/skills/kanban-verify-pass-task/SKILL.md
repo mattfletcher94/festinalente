@@ -59,7 +59,14 @@ None.
 
 8. **Confirm transition**:
    - Print: "Task {id} moved to Review"
-   - Print: "Awaiting human review. Run /kanban:review-pass-task {id} or /kanban:review-fail-task {id}"
+   - Print: "Awaiting human review."
+   - Print recommended next steps in this format:
+     ```
+     Next:
+     /clear
+     /kanban:review-pass-task {id}
+     ```
+   - Also mention: "Or if changes needed: /kanban:review-fail-task {id}"
 
 ## Validation
 
@@ -83,8 +90,12 @@ Task 001 moved to Review
 - Status: review
 
 Awaiting human review.
-- To approve: /kanban:review-pass-task 001
-- To reject: /kanban:review-fail-task 001
+
+Next:
+/clear
+/kanban:review-pass-task 001
+
+Or if changes needed: /kanban:review-fail-task 001
 ```
 
 ## Next Steps

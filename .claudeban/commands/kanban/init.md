@@ -27,7 +27,7 @@ Create the `.kanban/` directory structure for a new project.
 ├── specs/         # Functional specifications
 ├── plans/         # Implementation plans
 ├── product/       # Product documentation
-└── skills/        # Project-specific verification checks
+└── skills/        # Project-specific verification checks (files named {name}.md)
 ```
 
 ## Example

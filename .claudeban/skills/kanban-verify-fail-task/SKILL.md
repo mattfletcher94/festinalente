@@ -49,7 +49,7 @@ Uses `commits.verify-fail` format from `.claudeban/kanban-workflow.yaml`.
    - Ask user: "What was the error output?" (or they can paste it)
 
 6. **Read plan file**:
-   - Find plan at `.kanban/plans/{id}.plan.md`
+   - Find plan at `.kanban/plans/{id}-{slug}.plan.md`
    - Parse frontmatter to get current iteration
    - Error if plan not found
 
@@ -84,22 +84,28 @@ Uses `commits.verify-fail` format from `.claudeban/kanban-workflow.yaml`.
 
 10. **Commit the failure record**:
     ```bash
-    git add .kanban/plans/{id}.plan.md .kanban/tasks/{id}-*.md
+    git add .kanban/plans/{id}-{slug}.plan.md .kanban/tasks/{id}-*.md
     git commit -m "docs({id}): verify-fail - {title}"
     ```
 
 11. **Confirm**:
    - Print: "Task {id} returned to In Progress"
    - Print iteration number
-   - Print: "Fix issues and re-verify with /kanban:in-progress-verify-task {id}"
    - Print commit hash
+   - Print recommended next steps in this format:
+     ```
+     Next:
+     /clear
+     /kanban:planned-implement-task {id}
+     ```
+   - Also mention: "Then re-verify with /kanban:in-progress-verify-task {id}"
 
 ## Validation
 
 All must pass. If any fail, fix and retry.
 
 - [ ] Task file exists at `.kanban/tasks/{id}-*.md`
-- [ ] Plan file exists at `.kanban/plans/{id}.plan.md`
+- [ ] Plan file exists at `.kanban/plans/{id}-{slug}.plan.md`
 - [ ] Task frontmatter contains `status: in-progress`
 - [ ] Plan contains `## Iterations` section with failure entry
 - [ ] Git log shows `docs({id}): verify-fail -`
@@ -129,8 +135,11 @@ Task 001 returned to In Progress
 - Status: in-progress
 Commit: f6g7h8i docs(001): verify-fail - Add OAuth Login
 
-Fix the test failure and re-verify:
-/kanban:in-progress-verify-task 001
+Next:
+/clear
+/kanban:planned-implement-task 001
+
+Then re-verify: /kanban:in-progress-verify-task 001
 ```
 
 ## Next Steps

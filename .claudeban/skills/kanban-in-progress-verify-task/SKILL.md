@@ -50,7 +50,7 @@ On failure, uses `commits.verify-fail` format from `.claudeban/kanban-workflow.y
      - Exit
 
 5. **Read plan file**:
-   - Find plan at `.kanban/plans/{id}.plan.md`
+   - Find plan at `.kanban/plans/{id}-{slug}.plan.md`
    - Verify all implementation checkboxes are marked complete
    - If any unchecked, warn: "Plan has incomplete items. Verify anyway? (y/n)"
 
@@ -97,7 +97,7 @@ On failure, uses `commits.verify-fail` format from `.claudeban/kanban-workflow.y
      ---
      ```
    - Write updated plan file
-   - Commit: `git add .kanban/plans/{id}.plan.md && git commit -m "docs({id}): verify-fail - {title}"`
+   - Commit: `git add .kanban/plans/{id}-{slug}.plan.md && git commit -m "docs({id}): verify-fail - {title}"`
    - Print: "Verification failed. Fix issues and re-run /kanban:in-progress-verify-task {id}"
    - Exit
 
@@ -109,20 +109,30 @@ On failure, uses `commits.verify-fail` format from `.claudeban/kanban-workflow.y
    - Ask user: "All checks passed. Continue to Review? (y/n)"
 
 10. **If user confirms**:
-   - Print: "Task {id} moved to Verify. Run /kanban:verify-pass-task {id} to proceed to Review."
+   - Print: "Task {id} moved to Verify."
+   - Print recommended next steps in this format:
+     ```
+     Next:
+     /clear
+     /kanban:verify-pass-task {id}
+     ```
 
 ## Validation
 
 All must pass. If any fail, fix and retry.
 
 - [ ] Task exists at `.kanban/tasks/{id}-*.md`
-- [ ] Plan exists at `.kanban/plans/{id}.plan.md`
+- [ ] Plan exists at `.kanban/plans/{id}-{slug}.plan.md`
 - [ ] If checks passed: task status is `verify`
 - [ ] If checks failed: plan has updated Iterations section
 
 ## Check Skill Format
 
-Each check skill in `.kanban/skills/` should follow this format:
+**File naming:** `.kanban/skills/{name}.md` (e.g., `check-typescript.md`, `check-tests.md`)
+
+**IMPORTANT:** Before creating or reading skills, always glob `.kanban/skills/*.md` first to see existing files and naming conventions.
+
+Each check skill should follow this format:
 
 ```markdown
 # Check: {Name}

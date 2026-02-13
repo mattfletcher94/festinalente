@@ -54,7 +54,7 @@ None - code stays uncommitted until review passes. Use `/kanban:in-progress-wip-
    - Print: "Task {id} moved to In Progress"
 
 6. **Find and read plan file**:
-   - Check for `.kanban/plans/{id}.plan.md`
+   - Check for `.kanban/plans/{id}-{slug}.plan.md`
    - If plan found: Read plan content
    - If NO plan found:
      - Warn: "No plan found for task {id}"
@@ -105,7 +105,12 @@ None - code stays uncommitted until review passes. Use `/kanban:in-progress-wip-
     - Display implementation summary
     - Show files modified (uncommitted)
     - Show status
-    - Remind: "Code is uncommitted. Run /kanban:in-progress-verify-task {id} to run automated checks."
+    - Print recommended next steps in this format:
+      ```
+      Next:
+      /clear
+      /kanban:in-progress-verify-task {id}
+      ```
 
 ## Validation
 
@@ -113,7 +118,7 @@ All must pass. If any fail, fix and retry.
 
 - [ ] Task file exists at `.kanban/tasks/{id}-*.md`
 - [ ] Task frontmatter contains `status: in-progress`
-- [ ] Plan file exists at `.kanban/plans/{id}.plan.md`
+- [ ] Plan file exists at `.kanban/plans/{id}-{slug}.plan.md`
 - [ ] All plan checkboxes are marked complete (`- [x]`)
 
 ## Arguments
@@ -152,7 +157,9 @@ Task 001 ready for verification
 - Status: in-progress
 - Files modified: 3 (uncommitted)
 
-Next: Run /kanban:in-progress-verify-task 001 to run automated checks.
+Next:
+/clear
+/kanban:in-progress-verify-task 001
 ```
 
 ## Example: Resume Partial Implementation
@@ -187,7 +194,9 @@ Task 002 ready for verification
 - Status: in-progress
 - Files modified: 5 (uncommitted)
 
-Next: Run /kanban:in-progress-verify-task 002 to run automated checks.
+Next:
+/clear
+/kanban:in-progress-verify-task 002
 ```
 
 ## Next Steps

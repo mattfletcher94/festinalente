@@ -46,7 +46,7 @@ Ask the user:
 ### 5. For tasks with plans, get progress
 
 For tasks with status `planned`, `in-progress`, `verify`, or `review`:
-- Read `.kanban/plans/{id}.plan.md` if it exists
+- Read `.kanban/plans/{id}-{slug}.plan.md` if it exists
 - Count checkboxes: `- [ ]` (incomplete) and `- [x]` (complete)
 - Calculate progress as `{complete}/{total}`
 

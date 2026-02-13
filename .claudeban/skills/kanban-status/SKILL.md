@@ -22,7 +22,7 @@ Show the current state of the board and suggest what command to run next. Helps 
    - Created/updated dates
 
 3. **If task has a plan** (status is `planned`, `in-progress`, `verify`, or `review`):
-   - Read `.kanban/plans/{id}.plan.md`
+   - Read `.kanban/plans/{id}-{slug}.plan.md`
    - Count checkboxes: total, completed, remaining
    - Check for WIP Notes section
    - Check for Iterations section (previous failures)

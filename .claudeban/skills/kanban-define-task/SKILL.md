@@ -86,6 +86,12 @@ Uses `commits.define` format from `.claudeban/kanban-workflow.yaml`.
    - Print the created file path and task ID
    - Print commit hash
    - If `needs-refinement` label was added, note this
+   - Print recommended next steps in this format:
+     ```
+     Next:
+     /clear
+     /kanban:backlog-refine-task {id}
+     ```
 
 ## Arguments
 
@@ -114,6 +120,10 @@ Title: Fix login redirect bug
 Labels: [bug]
 File: .kanban/tasks/002-fix-login-redirect-bug.md
 Commit: a1b2c3d docs(002): define - Fix login redirect bug
+
+Next:
+/clear
+/kanban:backlog-refine-task 002
 ```
 
 ## Next Steps

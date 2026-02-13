@@ -38,8 +38,8 @@ From `.claudeban/kanban-workflow.yaml`:
 | Source | Location | Contains |
 |--------|----------|----------|
 | Task files | `.kanban/tasks/*.md` | Status, priority, labels, description |
-| Spec files | `.kanban/specs/{id}.spec.md` | Requirements for scoped tasks |
-| Plan files | `.kanban/plans/{id}.plan.md` | Implementation plans |
+| Spec files | `.kanban/specs/{id}-{slug}.spec.md` | Requirements for scoped tasks |
+| Plan files | `.kanban/plans/{id}-{slug}.plan.md` | Implementation plans |
 
 ## Example Questions
 

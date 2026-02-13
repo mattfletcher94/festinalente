@@ -31,8 +31,12 @@ Create the `.kanban/` directory structure for a new project.
 
 4. **Create config.yaml**:
    - Read template from `.claudeban/kanban-templates/config.yaml`
-   - Write to `.kanban/config.yaml`
-   - If template not found, create minimal config:
+   - Write to `.kanban/config.yaml` **exactly as-is** (do not modify or add properties)
+   - If template not found, create minimal config **exactly as shown below**:
+
+   **CRITICAL: Do NOT add, invent, or improvise any properties not shown in the template.**
+   The config.yaml schema has exactly three top-level keys: `name`, `commands`, `settings`.
+   Do NOT add keys like `verification`, `checks`, `hooks`, or anything else.
      ```yaml
      name: My Project
 
@@ -78,6 +82,20 @@ Create the `.kanban/` directory structure for a new project.
    - Print config location
    - Suggest next steps
 
+## File Naming Conventions
+
+**IMPORTANT:** When working with kanban files, always glob/search first to discover existing naming conventions rather than guessing.
+
+| Directory | File Pattern | Example |
+|-----------|-------------|---------|
+| `.kanban/tasks/` | `{id}-{slug}.md` | `001-add-login.md` |
+| `.kanban/specs/` | `{id}-{slug}.spec.md` | `001-add-login.spec.md` |
+| `.kanban/plans/` | `{id}-{slug}.plan.md` | `001-add-login.plan.md` |
+| `.kanban/product/` | `{feature}.md` | `authentication.md` |
+| `.kanban/skills/` | `{name}.md` | `check-typescript.md` |
+
+User-defined skills in `.kanban/skills/` are simple `.md` files (NOT directories with `SKILL.md` inside).
+
 ## Validation
 
 All must pass. If any fail, fix and retry.
@@ -89,6 +107,7 @@ All must pass. If any fail, fix and retry.
 - [ ] `.kanban/product/` directory exists
 - [ ] `.kanban/skills/` directory exists
 - [ ] `.kanban/config.yaml` exists
+- [ ] `.kanban/config.yaml` has ONLY these top-level keys: `name`, `commands`, `settings` (no extra keys)
 
 ## Arguments
 
