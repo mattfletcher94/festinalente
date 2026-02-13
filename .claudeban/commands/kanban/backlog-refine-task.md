@@ -1,7 +1,7 @@
 ---
 name: backlog-refine-task
 description: Refine vague task through Socratic Q&A and commit
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status)
+allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status), Grep
 argument-hint: "[task id]"
 ---
 
@@ -18,6 +18,12 @@ Refine vague tasks through interactive Q&A dialogue to add clarity and acceptanc
 1. Invoke the **kanban-backlog-refine-task** skill
 2. Pass `$ARGUMENTS` as the task ID (if provided)
 3. Skill handles Socratic Q&A, task refinement, and commit
+
+## Product Doc Discovery
+
+As requirements are clarified, identify additional product docs that may be relevant:
+- Search: `grep -l "keywords:.*{relevant-term}" .kanban/product/*.md`
+- Update the task's `product-docs` field if new connections are discovered
 
 ## Commit
 

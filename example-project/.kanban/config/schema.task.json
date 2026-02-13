@@ -54,6 +54,11 @@
     "spec": {
       "type": "string",
       "description": "Path to linked functional specification file"
+    },
+    "product-docs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "IDs of related product documentation files"
     }
   }
 }

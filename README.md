@@ -161,6 +161,7 @@ Templates are centralized markdown files that define the structure for tasks, sp
 | `task.md` | Master template for kanban task files |
 | `spec.md` | Functional specification template |
 | `plan.md` | Implementation plan template |
+| `product-doc.md` | Product documentation template |
 
 ### How Templates Work
 
@@ -191,6 +192,7 @@ created: 2026-02-13
 updated: 2026-02-13
 spec: "specs/001.spec.md"
 plan: "plans/001.plan.md"
+product-docs: [authentication]
 ---
 
 # Add user authentication
@@ -230,6 +232,7 @@ Use JWT for session tokens. Follow existing auth patterns.
 | `completed` | No | Completion date |
 | `spec` | No | Path to functional specification |
 | `plan` | No | Path to plan file |
+| `product-docs` | No | IDs of related product documentation |
 
 ### Acceptance Criteria (Gherkin Format)
 
@@ -310,6 +313,82 @@ Users need to securely log in to access their data.
 ## Open Questions
 - [ ] Should we add rate limiting?
 ```
+
+## Product Documentation
+
+Product docs describe features for non-technical stakeholders (PMs, customer success) and provide context for the LLM during task work.
+
+**Location:** `.kanban/product/`
+
+### Product Doc Format
+
+```markdown
+---
+id: authentication
+title: User Authentication
+summary: Email/password and OAuth login with JWT sessions
+keywords: [auth, login, logout, oauth, jwt, session]
+related: [user-management]
+uses: []
+extends: []
+updated: 2026-02-13
+---
+
+# User Authentication
+
+## Overview
+Secure user authentication supporting email/password and OAuth providers.
+
+## How It Works
+Users can sign in via email/password or OAuth providers (Google, GitHub).
+
+## Key Concepts
+- **Session**: A JWT token stored in an httpOnly cookie
+- **OAuth**: Third-party authentication delegation
+
+## Configuration
+OAuth providers configured in Settings > Integrations.
+
+## Interactions
+Works with [User Management](user-management.md) for account creation.
+
+## Limitations
+- Maximum 3 active sessions per user
+```
+
+### Product Doc Frontmatter Fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `id` | Yes | Unique identifier (matches filename) |
+| `title` | Yes | Human-readable feature name |
+| `summary` | Yes | One sentence description |
+| `keywords` | Yes | Searchable terms for discovery |
+| `related` | No | Related feature IDs ("see also") |
+| `uses` | No | Features this depends on |
+| `extends` | No | Features this builds upon |
+| `updated` | Yes | Last update date |
+
+### Task Linkage
+
+Tasks reference product docs via the `product-docs` frontmatter field:
+
+```yaml
+---
+id: "015"
+title: "Add OAuth login"
+product-docs: [authentication]
+---
+```
+
+The LLM populates this field during define/refine phases when connections are apparent.
+
+### When Product Docs Are Updated
+
+During the `update-docs-complete-task` phase:
+1. LLM identifies relevant product docs from task's `product-docs` field
+2. Updates existing docs or creates new ones as needed
+3. Docs reflect current state (no changelog - git history provides that)
 
 ## Labels
 
@@ -557,6 +636,8 @@ project/
 │   │   └── 001.spec.md         # Functional specification
 │   ├── plans/
 │   │   └── 001.plan.md         # Implementation plan
+│   ├── product/                 # Product documentation
+│   │   └── authentication.md   # Feature documentation
 │   └── skills/
 │       ├── check-typescript.md # Verification check
 │       └── check-tests.md      # Another check
@@ -565,7 +646,8 @@ project/
 │   │   ├── board.yaml          # Board initialization template
 │   │   ├── task.md             # Task file template
 │   │   ├── spec.md             # Functional specification template
-│   │   └── plan.md             # Implementation plan template
+│   │   ├── plan.md             # Implementation plan template
+│   │   └── product-doc.md      # Product documentation template
 │   ├── commands/
 │   │   └── kanban/             # Kanban commands
 │   └── skills/
