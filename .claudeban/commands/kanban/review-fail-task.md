@@ -21,7 +21,7 @@ Document issues found during review, commit notes, and return to In Progress.
 
 ## Commit
 
-On success: `docs(review): fail {id} {title}`
+Uses `commits.review-fail` format from `.claudeban/workflow.yaml`.
 
 ## Example
 

@@ -11,20 +11,21 @@ Update product documentation, commit the changes, and move task from **Update Do
 ## Column Transition
 
 ```
-Update Docs → Done
+update-docs → done
 ```
+
+See `.claudeban/workflow.yaml` for column definitions and valid transitions.
 
 ## Commit
 
-```
-docs({id}): product - {description}
-```
-
+Uses `commits.update-docs` format from `.claudeban/workflow.yaml`.
 The description summarizes what documentation was updated (e.g., "add authentication guide", "update API reference").
 
 ## Steps
 
-1. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
+1. **Load workflow schema**: Read `.claudeban/workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+
+2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `update-docs` status from `.kanban/tasks/`
    - Show task IDs and titles
    - Ask user which task needs documentation
@@ -39,7 +40,7 @@ The description summarizes what documentation was updated (e.g., "add authentica
    - Error if task not found
 
 3. **Check for command skills**:
-   - Load `.kanban/board.yaml`
+   - Load `.kanban/config.yaml`
    - Find `commands."kanban:update-docs-complete-task".skills` array
    - If skills array is non-empty:
      - Read each skill file at the listed paths

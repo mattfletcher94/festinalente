@@ -11,18 +11,20 @@ Create a plan file in `.kanban/plans/` and move task from **Scoped** to **Planne
 ## Column Transition
 
 ```
-Scoped → Planned
+scoped → planned
 ```
+
+See `.claudeban/workflow.yaml` for column definitions and valid transitions.
 
 ## Commit
 
-```
-docs({id}): plan - {title}
-```
+Uses `commits.plan` format from `.claudeban/workflow.yaml`.
 
 ## Steps
 
-1. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
+1. **Load workflow schema**: Read `.claudeban/workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+
+2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `scoped` status from `.kanban/tasks/`
    - Show task IDs and titles
    - Ask user which task to plan
@@ -49,7 +51,7 @@ docs({id}): plan - {title}
    - If exists, ask if user wants to overwrite or view existing
 
 5. **Check for command skills**:
-   - Load `.kanban/board.yaml`
+   - Load `.kanban/config.yaml`
    - Find `commands."kanban:scoped-plan-task".skills` array
    - If skills array is non-empty:
      - Read each skill file at the listed paths

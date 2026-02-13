@@ -11,18 +11,20 @@ Return a task from **Verify** back to **In Progress** after failed automated che
 ## Column Transition
 
 ```
-Verify → In Progress
+verify → in-progress
 ```
+
+See `.claudeban/workflow.yaml` for column definitions and valid transitions.
 
 ## Commit
 
-```
-docs({id}): verify-fail - {title}
-```
+Uses `commits.verify-fail` format from `.claudeban/workflow.yaml`.
 
 ## Steps
 
-1. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
+1. **Load workflow schema**: Read `.claudeban/workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+
+2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `verify` status from `.kanban/tasks/`
    - Show task IDs and titles
    - Ask user which task failed verification

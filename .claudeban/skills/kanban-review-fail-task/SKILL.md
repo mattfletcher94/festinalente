@@ -11,18 +11,20 @@ Document issues found during review, commit the notes, and move task from **Revi
 ## Column Transition
 
 ```
-Review → In Progress
+review → in-progress
 ```
+
+See `.claudeban/workflow.yaml` for column definitions and valid transitions.
 
 ## Commit
 
-```
-docs({id}): review-fail - {title}
-```
+Uses `commits.review-fail` format from `.claudeban/workflow.yaml`.
 
 ## Steps
 
-1. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
+1. **Load workflow schema**: Read `.claudeban/workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+
+2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `review` status from `.kanban/tasks/`
    - Show task IDs and titles
    - Ask user which task failed review
@@ -41,7 +43,7 @@ docs({id}): review-fail - {title}
    - Plan will be updated with bug fixes needed
 
 4. **Check for command skills**:
-   - Load `.kanban/board.yaml`
+   - Load `.kanban/config.yaml`
    - Find `commands."kanban:review-fail-task".skills` array
    - If skills array is non-empty:
      - Read each skill file at the listed paths

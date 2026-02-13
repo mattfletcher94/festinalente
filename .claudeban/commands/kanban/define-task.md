@@ -29,7 +29,7 @@ This linking is opportunistic - only add obvious connections.
 
 ## Commit
 
-On success: `docs(task): add {id} {title}`
+Uses `commits.define` format from `.claudeban/workflow.yaml`.
 
 ## Example
 

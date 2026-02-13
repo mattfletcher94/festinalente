@@ -11,18 +11,20 @@ Save partial implementation progress when interrupted. Task stays in **In Progre
 ## Column Transition
 
 ```
-In Progress → In Progress (no change)
+in-progress → in-progress (no change)
 ```
+
+See `.claudeban/workflow.yaml` for column definitions.
 
 ## Commit
 
-```
-wip({id}): {progress summary}
-```
+Uses `commits.wip` format from `.claudeban/workflow.yaml`.
 
 ## Steps
 
-1. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
+1. **Load workflow schema**: Read `.claudeban/workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+
+2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `in-progress` status from `.kanban/tasks/`
    - Show task IDs and titles
    - Ask user which task to commit WIP for
@@ -43,7 +45,7 @@ wip({id}): {progress summary}
      - Still proceed with WIP commit (code can still be committed)
 
 4. **Check for command skills**:
-   - Load `.kanban/board.yaml`
+   - Load `.kanban/config.yaml`
    - Find `commands."kanban:in-progress-wip-commit".skills` array
    - If skills array is non-empty:
      - Read each skill file at the listed paths

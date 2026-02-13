@@ -21,7 +21,7 @@ Approve implementation, commit code, and move to Update Docs.
 
 ## Commit
 
-On success: `feat(<id>): <title>` or `fix(<id>): <title>` (based on labels)
+Uses `commits.review-pass` format from `.claudeban/workflow.yaml`. Commit type determined by task label.
 
 ## Example
 

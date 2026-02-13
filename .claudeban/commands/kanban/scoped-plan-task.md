@@ -21,7 +21,7 @@ Create a plan document linked to a scoped task and commit.
 
 ## Commit
 
-On success: `docs(plan): {id} {title}`
+Uses `commits.plan` format from `.claudeban/workflow.yaml`.
 
 ## Example
 

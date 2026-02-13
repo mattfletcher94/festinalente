@@ -1,8 +1,9 @@
 ---
+# Valid values defined in .claudeban/workflow.yaml
 id: "{id}"
 title: "{title}"
-status: backlog|refined|scoped|planned|in-progress|verify|review|update-docs|done
-priority: high|medium|low
+status: "{status}"
+priority: "{priority}"
 labels: []
 created: YYYY-MM-DD
 updated: YYYY-MM-DD

@@ -22,12 +22,14 @@ Return a task that failed automated checks back to implementation.
 ## Column Transition
 
 ```
-Verify → In Progress
+verify → in-progress
 ```
+
+See `.claudeban/workflow.yaml` for valid transitions.
 
 ## Commit
 
-On transition: `docs(verify): fail {id} {title}`
+Uses `commits.verify-fail` format from `.claudeban/workflow.yaml`.
 
 ## Example
 

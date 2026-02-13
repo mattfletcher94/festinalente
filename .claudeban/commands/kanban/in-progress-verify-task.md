@@ -21,7 +21,7 @@ Run automated verification checks (tests, typecheck, linting) on completed imple
 
 ## Check Configuration
 
-Checks are defined as skill files in `.kanban/skills/` and referenced in `board.yaml`:
+Checks are defined as skill files in `.kanban/skills/` and referenced in `config.yaml`:
 
 ```yaml
 commands:
@@ -31,10 +31,18 @@ commands:
       - .kanban/skills/check-tests.md
 ```
 
-## Outcomes
+## Column Transition
 
-- **All pass**: Prompts "Continue to Review? Y/N" → moves to Verify status
-- **Any fail**: Records failure in plan Iterations section → stays In Progress
+```
+in-progress → verify (if all pass)
+in-progress → in-progress (if any fail)
+```
+
+See `.claudeban/workflow.yaml` for valid transitions.
+
+## Commit
+
+On failure, uses `commits.verify-fail` format from `.claudeban/workflow.yaml`.
 
 ## Example
 

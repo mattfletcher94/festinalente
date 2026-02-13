@@ -27,7 +27,7 @@ As requirements are clarified, identify additional product docs that may be rele
 
 ## Commit
 
-On success: `docs(task): refine {id} {title}`
+Uses `commits.refine` format from `.claudeban/workflow.yaml`.
 
 ## Example
 

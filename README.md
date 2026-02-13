@@ -65,17 +65,19 @@ Each command is a stopping point. Run a command, review the result, then run the
 
 ## Columns
 
-| Column | Purpose |
-|--------|---------|
-| **Backlog** | New tasks awaiting refinement |
-| **Refined** | Tasks refined with problem, value, and acceptance criteria |
-| **Scoped** | Tasks with functional specification ready for planning |
-| **Planned** | Tasks with a plan ready for implementation |
-| **In Progress** | Tasks currently being implemented (code uncommitted) |
-| **Verify** | Implementation complete, running automated checks |
-| **Review** | Checks passed, awaiting human code review |
-| **Update Docs** | Review passed, code committed, documentation needs updating |
-| **Done** | Docs committed, task complete |
+The workflow defines a fixed set of columns. See `.claudeban/workflow.yaml` for the canonical schema.
+
+| Column | Status ID | Purpose |
+|--------|-----------|---------|
+| **Backlog** | `backlog` | New tasks awaiting refinement |
+| **Refined** | `refined` | Tasks refined with problem, value, and acceptance criteria |
+| **Scoped** | `scoped` | Tasks with functional specification ready for planning |
+| **Planned** | `planned` | Tasks with a plan ready for implementation |
+| **In Progress** | `in-progress` | Tasks currently being implemented (code uncommitted) |
+| **Verify** | `verify` | Implementation complete, running automated checks |
+| **Review** | `review` | Checks passed, awaiting human code review |
+| **Update Docs** | `update-docs` | Review passed, code committed, documentation needs updating |
+| **Done** | `done` | Docs committed, task complete |
 
 ## Commands
 
@@ -438,24 +440,28 @@ During the `update-docs-complete-task` phase:
 
 ## Labels
 
-| Label | Purpose | Color | Commit Type |
-|-------|---------|-------|-------------|
-| **Bug** | Bug fixes | Red | `fix` |
-| **Feature** | New functionality | Blue | `feat` |
-| **Docs** | Documentation only | Purple | `docs` |
-| **Refactor** | Code restructuring | Gray | `refactor` |
+Labels determine commit types. See `.claudeban/workflow.yaml` for the canonical schema.
+
+| Label | Purpose | Commit Type |
+|-------|---------|-------------|
+| **bug** | Bug fixes | `fix` |
+| **feature** | New functionality | `feat` |
+| **docs** | Documentation only | `docs` |
+| **refactor** | Code restructuring | `refactor` |
 
 ## Priorities
 
-| Priority | Color |
-|----------|-------|
-| **High** | Red |
-| **Medium** | Amber |
-| **Low** | Green |
+See `.claudeban/workflow.yaml` for the canonical schema.
+
+| Priority |
+|----------|
+| **high** |
+| **medium** |
+| **low** |
 
 ## Custom Skills
 
-Skills are markdown files with instructions the AI follows. Configure them per-command in `board.yaml`:
+Skills are markdown files with instructions the AI follows. Configure them per-command in `config.yaml`:
 
 ```yaml
 commands:
@@ -506,57 +512,22 @@ Exit code 0, no errors in output.
 - "Type X is not assignable to Y" — type mismatch, fix the code
 ```
 
+## Workflow Schema
+
+The `.claudeban/workflow.yaml` file defines the fixed workflow elements:
+- **Columns** - task lifecycle stages and valid transitions
+- **Labels** - task types and their commit message prefixes
+- **Priorities** - task priority levels
+- **Commits** - commit message formats for each phase
+
+This schema is referenced by skills, commands, and templates. It is not user-configurable.
+
 ## Board Configuration
 
-The `.kanban/board.yaml` file defines your board:
+The `.kanban/config.yaml` file configures project-specific settings.
 
 ```yaml
 name: My Project
-
-columns:
-  - id: backlog
-    name: Backlog
-  - id: refined
-    name: Refined
-  - id: scoped
-    name: Scoped
-  - id: planned
-    name: Planned
-  - id: in-progress
-    name: In Progress
-  - id: verify
-    name: Verify
-  - id: review
-    name: Review
-  - id: update-docs
-    name: Update Docs
-  - id: done
-    name: Done
-
-labels:
-  - id: bug
-    name: Bug
-    color: "#ef4444"
-  - id: feature
-    name: Feature
-    color: "#3b82f6"
-  - id: docs
-    name: Docs
-    color: "#8b5cf6"
-  - id: refactor
-    name: Refactor
-    color: "#6b7280"
-
-priorities:
-  - id: high
-    name: High
-    color: "#ef4444"
-  - id: medium
-    name: Medium
-    color: "#f59e0b"
-  - id: low
-    name: Low
-    color: "#22c55e"
 
 commands:
   "kanban:define-task":
@@ -671,7 +642,7 @@ settings:
 ```
 project/
 ├── .kanban/
-│   ├── board.yaml              # Board configuration
+│   ├── config.yaml              # Board configuration
 │   ├── tasks/
 │   │   ├── 001-add-feature.md  # Task file
 │   │   └── 002-fix-bug.md      # Another task
@@ -685,8 +656,9 @@ project/
 │       ├── check-typescript.md # Verification check
 │       └── check-tests.md      # Another check
 ├── .claudeban/                  # (or .claude/)
+│   ├── workflow.yaml           # Fixed workflow schema (columns, labels, priorities)
 │   ├── templates/
-│   │   ├── board.yaml          # Board initialization template
+│   │   ├── config.yaml          # Board initialization template
 │   │   ├── task.md             # Task file template
 │   │   ├── spec.md             # Functional specification template
 │   │   ├── plan.md             # Implementation plan template

@@ -24,9 +24,9 @@ Define a new product's features through Socratic dialogue.
 1. Invoke the **kanban-define-product** skill
 2. Skill handles Q&A, doc generation, and commit
 
-## Commit format
+## Commit
 
-`docs: define-product - {summary of product defined}`
+Uses `commits.define-product` format from `.claudeban/workflow.yaml`.
 
 ## Example
 

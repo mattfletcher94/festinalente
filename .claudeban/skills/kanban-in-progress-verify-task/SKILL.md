@@ -11,17 +11,25 @@ Run automated verification checks on completed implementation. Moves task from *
 ## Column Transition
 
 ```
-In Progress → Verify (if all pass)
-In Progress → In Progress (if any fail)
+in-progress → verify (if all pass)
+in-progress → in-progress (if any fail)
 ```
+
+See `.claudeban/workflow.yaml` for column definitions and valid transitions.
 
 ## Behavior
 
 **Stop on first failure** — fail fast, fix, retry.
 
+## Commit
+
+On failure, uses `commits.verify-fail` format from `.claudeban/workflow.yaml`.
+
 ## Steps
 
-1. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
+1. **Load workflow schema**: Read `.claudeban/workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+
+2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `in-progress` status from `.kanban/tasks/`
    - Show task IDs and titles
    - Ask user which task to verify
@@ -39,10 +47,10 @@ In Progress → In Progress (if any fail)
    - If any unchecked, warn: "Plan has incomplete items. Verify anyway? (y/n)"
 
 4. **Load verification checks**:
-   - Read `.kanban/board.yaml`
+   - Read `.kanban/config.yaml`
    - Find `commands."kanban:in-progress-verify-task".skills` array
    - If skills array is empty:
-     - Inform user: "No verification checks configured. Add check skills to board.yaml"
+     - Inform user: "No verification checks configured. Add check skills to config.yaml"
      - Ask: "Continue without checks? (y/n)"
    - For each skill path in the array:
      - Read the skill file
@@ -161,7 +169,7 @@ User: `/kanban:in-progress-verify-task 001`
 ```
 Verifying task 001 "Add OAuth Login"...
 
-Loading verification checks from board.yaml...
+Loading verification checks from config.yaml...
 - check-typescript.md
 - check-tests.md
 - check-lint.md

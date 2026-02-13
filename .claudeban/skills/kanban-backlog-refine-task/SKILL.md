@@ -11,47 +11,49 @@ Refine vague tasks through Socratic Q&A dialogue to add clarity, acceptance crit
 ## Column Transition
 
 ```
-Backlog → Refined
+backlog → refined
 ```
+
+See `.claudeban/workflow.yaml` for column definitions and valid transitions.
 
 ## Commit
 
-```
-docs({id}): refine - {title}
-```
+Uses `commits.refine` format from `.claudeban/workflow.yaml`.
 
 ## Steps
 
-1. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
+1. **Load workflow schema**: Read `.claudeban/workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+
+2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks with `needs-refinement` label from `.kanban/tasks/`
    - Show task IDs, titles, and current vagueness indicators
    - Ask user which task to refine
 
-2. **Read task file**:
+3. **Read task file**:
    - Find file matching `.kanban/tasks/{id}-*.md`
    - Parse YAML frontmatter
-   - Verify task has `needs-refinement` label:
+   - Verify task has `needs-refinement` label (from workflow.yaml):
      - If present, proceed with refinement
      - If not present, warn: "Task does not have needs-refinement label. Refine anyway? (y/n)"
    - Note current title, description, acceptance criteria (if any)
    - Error if task not found
 
-3. **Check for command skills**:
-   - Load `.kanban/board.yaml`
+4. **Check for command skills**:
+   - Load `.kanban/config.yaml`
    - Find `commands."kanban:backlog-refine-task".skills` array
    - If skills array is non-empty:
      - Read each skill file at the listed paths
      - Follow their instructions as mandatory guidance for this command
 
-4. **Analyze vagueness indicators**:
+5. **Analyze vagueness indicators**:
    - Check title for clarity issues:
      - Title too short (<5 words)?
-     - Missing action verb (add, fix, implement, create, etc.)?
+     - Missing action verb (use `detect-keywords` from workflow.yaml labels)?
      - Contains ambiguous terms ("fix stuff", "improve things")?
    - Check description for completeness
    - Check acceptance criteria for specificity
 
-5. **Conduct Q&A dialogue for each section**:
+6. **Conduct Q&A dialogue for each section**:
    Using AskUserQuestion tool, ask about each section ONE AT A TIME.
    For each question, allow the user to:
    - Provide an answer
@@ -72,18 +74,18 @@ docs({id}): refine - {title}
       - Always fill this - generate from context if user skips
       - Convert user's answer to Gherkin format
 
-6. **Update task file**:
+7. **Update task file**:
    - Follow template at `.claudeban/templates/task.md`
    - Fill sections for this phase:
      - `## What problem are you trying to solve?`
      - `## What value would it provide if solved?`
      - `## Acceptance Criteria` (in Gherkin format)
    - Update frontmatter:
-     - Change `status: backlog` to `status: refined`
+     - Change status per `transitions.backlog` in workflow.yaml (`backlog` → `refined`)
      - Add `updated: {YYYY-MM-DD}`
      - Remove `needs-refinement` from labels if present
 
-7. **Format acceptance criteria in Gherkin**:
+8. **Format acceptance criteria in Gherkin**:
    ```gherkin
    Given {precondition}
    And {additional precondition if needed}
@@ -101,15 +103,16 @@ docs({id}): refine - {title}
    And their session is established
    ```
 
-8. **Write updated task file**
+9. **Write updated task file**
 
-9. **Commit the refinement**:
-   ```bash
-   git add .kanban/tasks/{id}-*.md
-   git commit -m "docs({id}): refine - {title}"
-   ```
+10. **Commit the refinement**:
+    - Use `commits.refine` format from workflow.yaml
+    ```bash
+    git add .kanban/tasks/{id}-*.md
+    git commit -m "docs({id}): refine - {title}"
+    ```
 
-10. **Confirm refinement complete**:
+11. **Confirm refinement complete**:
     - Print summary of changes made
     - Show updated acceptance criteria
     - Print commit hash

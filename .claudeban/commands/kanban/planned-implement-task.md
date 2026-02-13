@@ -19,6 +19,14 @@ Execute plan checkboxes. Code remains uncommitted until review passes.
 2. Pass `$ARGUMENTS` as the task ID (if provided)
 3. Skill handles checkbox execution and keeps task in In Progress when complete
 
+## Column Transition
+
+```
+planned → in-progress
+```
+
+See `.claudeban/workflow.yaml` for valid transitions.
+
 ## Commit
 
 None - code stays uncommitted. Use `/kanban:in-progress-wip-commit` to save partial progress, or `/kanban:in-progress-verify-task` to run checks after implementation.

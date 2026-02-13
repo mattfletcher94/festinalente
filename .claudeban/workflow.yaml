@@ -1,0 +1,87 @@
+# Claude Kanban Workflow Schema
+# This file defines the fixed workflow elements. Not user-configurable.
+# Skills, commands, and templates reference these definitions.
+
+columns:
+  - id: backlog
+    name: Backlog
+    description: New tasks awaiting refinement
+  - id: refined
+    name: Refined
+    description: Tasks refined with problem, value, and acceptance criteria
+  - id: scoped
+    name: Scoped
+    description: Tasks with functional specification ready for planning
+  - id: planned
+    name: Planned
+    description: Tasks with a plan ready for implementation
+  - id: in-progress
+    name: In Progress
+    description: Tasks currently being implemented (code uncommitted)
+  - id: verify
+    name: Verify
+    description: Implementation complete, running automated checks
+  - id: review
+    name: Review
+    description: Checks passed, awaiting human code review
+  - id: update-docs
+    name: Update Docs
+    description: Review passed, code committed, documentation needs updating
+  - id: done
+    name: Done
+    description: Docs committed, task complete
+
+labels:
+  - id: bug
+    name: Bug
+    commit-type: fix
+    detect-keywords: [fix, bug, error, crash, broken]
+  - id: feature
+    name: Feature
+    commit-type: feat
+    detect-keywords: [add, implement, feature, new, create]
+  - id: docs
+    name: Docs
+    commit-type: docs
+    detect-keywords: [doc, readme, guide, "update docs"]
+  - id: refactor
+    name: Refactor
+    commit-type: refactor
+    detect-keywords: [refactor, restructure, reorganize, cleanup]
+  - id: needs-refinement
+    name: Needs Refinement
+    description: Task is vague and requires Q&A refinement before planning
+
+priorities:
+  - id: high
+    name: High
+  - id: medium
+    name: Medium
+  - id: low
+    name: Low
+
+transitions:
+  # Format: source -> [valid destinations]
+  backlog: [refined]
+  refined: [scoped]
+  scoped: [planned]
+  planned: [in-progress]
+  in-progress: [verify]
+  verify: [review, in-progress]  # verify-pass or verify-fail
+  review: [update-docs, in-progress]  # review-pass or review-fail
+  update-docs: [done]
+
+commits:
+  # Commit message formats by phase
+  define: "docs({id}): define - {title}"
+  refine: "docs({id}): refine - {title}"
+  scope: "docs({id}): scope - {title}"
+  plan: "docs({id}): plan - {title}"
+  wip: "wip({id}): {summary}"
+  verify-fail: "docs({id}): verify-fail - {title}"
+  review-pass: "{commit-type}({id}): {title}"  # commit-type from label
+  review-fail: "docs({id}): review-fail - {title}"
+  update-docs: "docs({id}): product - {message}"
+  # Product discovery commands (not part of task workflow)
+  map-product: "docs: map-product - {features}"
+  define-product: "docs: define-product - {description}"

@@ -21,7 +21,7 @@ Research codebase and create functional specification for a refined task.
 
 ## Commit
 
-On success: `docs(task): scope {id} {title}`
+Uses `commits.scope` format from `.claudeban/workflow.yaml`.
 
 ## Example
 

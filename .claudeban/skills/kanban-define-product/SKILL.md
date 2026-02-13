@@ -4,17 +4,17 @@ Define a new product through Socratic Q&A and generate product documentation.
 
 ## Column Transition
 
-```
-N/A - This is a product discovery command, not a task workflow command
-```
+N/A - This is a product discovery command, not a task workflow command.
 
 ## Commit
 
-```
-docs: define-product - {brief product description}
-```
+Uses `commits.define-product` format from `.claudeban/workflow.yaml`.
 
 ## Steps
+
+### 0. Load Workflow Schema
+
+Read `.claudeban/workflow.yaml` for commit formats.
 
 ### 1. Pre-flight Check
 

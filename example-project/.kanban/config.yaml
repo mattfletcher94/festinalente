@@ -1,50 +1,5 @@
 name: My Project
 
-columns:
-  - id: backlog
-    name: Backlog
-  - id: refined
-    name: Refined
-  - id: scoped
-    name: Scoped
-  - id: planned
-    name: Planned
-  - id: in-progress
-    name: In Progress
-  - id: verify
-    name: Verify
-  - id: review
-    name: Review
-  - id: update-docs
-    name: Update Docs
-  - id: done
-    name: Done
-
-labels:
-  - id: bug
-    name: Bug
-    color: "#ef4444"
-  - id: feature
-    name: Feature
-    color: "#3b82f6"
-  - id: docs
-    name: Docs
-    color: "#8b5cf6"
-  - id: refactor
-    name: Refactor
-    color: "#6b7280"
-
-priorities:
-  - id: high
-    name: High
-    color: "#ef4444"
-  - id: medium
-    name: Medium
-    color: "#f59e0b"
-  - id: low
-    name: Low
-    color: "#22c55e"
-
 commands:
   "kanban:define-task":
     skills: []

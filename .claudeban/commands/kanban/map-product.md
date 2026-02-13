@@ -24,9 +24,9 @@ Analyze an existing codebase and create initial product documentation through So
 1. Invoke the **kanban-map-product** skill
 2. Skill handles codebase analysis, Q&A, doc generation, and commit
 
-## Commit format
+## Commit
 
-`docs: map-product - {summary of features documented}`
+Uses `commits.map-product` format from `.claudeban/workflow.yaml`.
 
 ## Example
 

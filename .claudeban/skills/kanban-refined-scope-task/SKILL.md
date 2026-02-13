@@ -11,18 +11,20 @@ Create a functional specification file at `.kanban/specs/{id}.spec.md` and move 
 ## Column Transition
 
 ```
-Refined → Scoped
+refined → scoped
 ```
+
+See `.claudeban/workflow.yaml` for column definitions and valid transitions.
 
 ## Commit
 
-```
-docs({id}): scope - {title}
-```
+Uses `commits.scope` format from `.claudeban/workflow.yaml`.
 
 ## Steps
 
-1. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
+1. **Load workflow schema**: Read `.claudeban/workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+
+2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `refined` status from `.kanban/tasks/`
    - Show task IDs and titles
    - Ask user which task to scope
@@ -36,7 +38,7 @@ docs({id}): scope - {title}
    - Error if task not found
 
 3. **Check for command skills**:
-   - Load `.kanban/board.yaml`
+   - Load `.kanban/config.yaml`
    - Find `commands."kanban:refined-scope-task".skills` array
    - If skills array is non-empty:
      - Read each skill file at the listed paths

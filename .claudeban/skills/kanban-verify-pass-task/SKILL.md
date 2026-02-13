@@ -11,12 +11,20 @@ Move a task from **Verify** to **Review** for human approval.
 ## Column Transition
 
 ```
-Verify → Review
+verify → review
 ```
+
+See `.claudeban/workflow.yaml` for column definitions and valid transitions.
+
+## Commit
+
+None.
 
 ## Steps
 
-1. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
+1. **Load workflow schema**: Read `.claudeban/workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+
+2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `verify` status from `.kanban/tasks/`
    - Show task IDs and titles
    - Ask user which task to move to review
@@ -29,7 +37,7 @@ Verify → Review
    - Error if task not found
 
 3. **Check for command skills**:
-   - Load `.kanban/board.yaml`
+   - Load `.kanban/config.yaml`
    - Find `commands."kanban:verify-pass-task".skills` array
    - If skills array is non-empty:
      - Read each skill file at the listed paths
