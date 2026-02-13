@@ -8,6 +8,10 @@ allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git 
 
 Move a task from **Verify** to **Review** for human approval.
 
+## Directory Reference
+- **`.claude/`** — System config (workflow, templates, skills) — READ ONLY
+- **`.kanban/`** — Project data (tasks, specs, plans, product docs) — READ/WRITE
+
 ## Column Transition
 
 ```

@@ -8,6 +8,10 @@ allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git 
 
 Approve implementation, commit the code with appropriate conventional commit type, and move task from **Review** to **Update Docs**.
 
+## Directory Reference
+- **`.claude/`** — System config (workflow, templates, skills) — READ ONLY
+- **`.kanban/`** — Project data (tasks, specs, plans, product docs) — READ/WRITE
+
 ## Column Transition
 
 ```

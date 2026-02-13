@@ -8,6 +8,10 @@ allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git 
 
 Document issues found during review, commit the notes, and move task from **Review** back to **In Progress** for fixes.
 
+## Directory Reference
+- **`.claude/`** — System config (workflow, templates, skills) — READ ONLY
+- **`.kanban/`** — Project data (tasks, specs, plans, product docs) — READ/WRITE
+
 ## Column Transition
 
 ```

@@ -8,6 +8,10 @@ allowed-tools: Read, Write, Bash(ls *, mkdir *, git status)
 
 Create the `.kanban/` directory structure for a new project.
 
+## Directory Reference
+- **`.claude/`** — System config (workflow, templates, skills) — READ ONLY
+- **`.kanban/`** — Project data (tasks, specs, plans, product docs) — READ/WRITE
+
 ## Steps
 
 1. **Check if already initialized**:

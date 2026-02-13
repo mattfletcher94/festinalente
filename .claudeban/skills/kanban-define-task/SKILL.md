@@ -8,6 +8,10 @@ allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git 
 
 Create a new task file in `.kanban/tasks/` in the **Backlog** column and commit.
 
+## Directory Reference
+- **`.claude/`** — System config (workflow, templates, skills) — READ ONLY
+- **`.kanban/`** — Project data (tasks, specs, plans, product docs) — READ/WRITE
+
 ## Column Transition
 
 ```

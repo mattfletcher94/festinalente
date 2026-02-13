@@ -8,6 +8,10 @@ allowed-tools: Read, Write, Bash(ls *, git *, gh pr *)
 
 Merge the pull request, clean up the task branch, and move task to **Done**.
 
+## Directory Reference
+- **`.claude/`** — System config (workflow, templates, skills) — READ ONLY
+- **`.kanban/`** — Project data (tasks, specs, plans, product docs) — READ/WRITE
+
 ## Column Transition
 
 ```

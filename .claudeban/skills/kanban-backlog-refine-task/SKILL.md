@@ -8,6 +8,10 @@ allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git 
 
 Refine vague tasks through Socratic Q&A dialogue to add clarity, acceptance criteria, and implementation hints. Task moves from **Backlog** to **Refined**. Commits the refinement.
 
+## Directory Reference
+- **`.claude/`** — System config (workflow, templates, skills) — READ ONLY
+- **`.kanban/`** — Project data (tasks, specs, plans, product docs) — READ/WRITE
+
 ## Column Transition
 
 ```

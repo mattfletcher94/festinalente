@@ -8,6 +8,10 @@ allowed-tools: Read, Write, Edit, Bash(*)
 
 Move task from **Planned** to **In Progress** and execute the plan. Code remains uncommitted until verification passes.
 
+## Directory Reference
+- **`.claude/`** — System config (workflow, templates, skills) — READ ONLY
+- **`.kanban/`** — Project data (tasks, specs, plans, product docs) — READ/WRITE
+
 ## Column Transition
 
 ```

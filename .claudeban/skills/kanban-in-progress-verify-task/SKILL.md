@@ -8,6 +8,10 @@ allowed-tools: Read, Write, Bash(*)
 
 Run automated verification checks on completed implementation. Moves task from **In Progress** to **Verify** if all checks pass.
 
+## Directory Reference
+- **`.claude/`** — System config (workflow, templates, skills) — READ ONLY
+- **`.kanban/`** — Project data (tasks, specs, plans, product docs) — READ/WRITE
+
 ## Column Transition
 
 ```
