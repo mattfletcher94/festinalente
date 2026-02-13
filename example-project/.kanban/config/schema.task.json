@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema.task.json",
+  "title": "Task Frontmatter",
+  "description": "Schema for .kanban/tasks/*.md YAML frontmatter",
+  "type": "object",
+  "required": ["id", "title", "status", "created"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9]{3}$",
+      "description": "Auto-increment ID (001, 002, etc.)"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Task title"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["backlog", "planned", "in-progress", "review", "done"],
+      "description": "Current column status"
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["high", "medium", "low"],
+      "default": "medium",
+      "description": "Task priority level"
+    },
+    "assignee": {
+      "type": "string",
+      "description": "Assigned person or AI"
+    },
+    "labels": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Label IDs from board.yaml"
+    },
+    "created": {
+      "type": "string",
+      "format": "date",
+      "description": "Creation date (YYYY-MM-DD)"
+    },
+    "updated": {
+      "type": "string",
+      "format": "date",
+      "description": "Last update date"
+    },
+    "plan": {
+      "type": "string",
+      "description": "Path to linked plan file"
+    }
+  }
+}
