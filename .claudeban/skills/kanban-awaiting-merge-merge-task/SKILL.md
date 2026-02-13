@@ -18,11 +18,17 @@ Merge the pull request, clean up the task branch, and move task to **Done**.
 awaiting-merge → done
 ```
 
-See `.claudeban/kanban-workflow.yaml` for column definitions and valid transitions.
+See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
+
+## Commit
+
+**Format:** `docs({id}): done - {title}`
+
+**CRITICAL:** Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `docs`, not `kanban`.
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claudeban/kanban-workflow.yaml` for column definitions and commit formats.
+1. **Load workflow schema**: Read `.claude/kanban-workflow.yaml` for column definitions and commit formats.
 
 2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `awaiting-merge` status from `.kanban/tasks/`
@@ -30,7 +36,7 @@ See `.claudeban/kanban-workflow.yaml` for column definitions and valid transitio
    - Ask user which task to merge
 
 3. **Read task file**:
-   - Find file matching `.kanban/tasks/{id}-*.md`
+   - **NEVER guess filenames.** Glob for `.kanban/tasks/{id}-*.md` to find the exact filename
    - Parse YAML frontmatter
    - Verify current status is `awaiting-merge`:
      - If `update-docs`: Suggest `/kanban:update-docs-complete-task {id}` first

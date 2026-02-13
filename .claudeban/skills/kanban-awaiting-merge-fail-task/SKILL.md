@@ -18,15 +18,17 @@ Close the pull request, document issues, and return task to **In Progress** for 
 awaiting-merge → in-progress
 ```
 
-See `.claudeban/kanban-workflow.yaml` for column definitions and valid transitions.
+See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 
 ## Commit
 
-Uses `commits.merge-fail` format from `.claudeban/kanban-workflow.yaml`.
+**Format:** `docs({id}): merge-fail - {title}`
+
+**CRITICAL:** Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `docs`, not `kanban`.
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claudeban/kanban-workflow.yaml` for column definitions and commit formats.
+1. **Load workflow schema**: Read `.claude/kanban-workflow.yaml` for column definitions and commit formats.
 
 2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `awaiting-merge` status from `.kanban/tasks/`
@@ -34,7 +36,7 @@ Uses `commits.merge-fail` format from `.claudeban/kanban-workflow.yaml`.
    - Ask user which task's PR was rejected
 
 3. **Read task file**:
-   - Find file matching `.kanban/tasks/{id}-*.md`
+   - **NEVER guess filenames.** Glob for `.kanban/tasks/{id}-*.md` to find the exact filename
    - Parse YAML frontmatter
    - Verify current status is `awaiting-merge`
    - Error if task not found

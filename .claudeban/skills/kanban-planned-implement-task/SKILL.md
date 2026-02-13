@@ -18,7 +18,7 @@ Move task from **Planned** to **In Progress** and execute the plan. Code remains
 planned → in-progress
 ```
 
-See `.claudeban/kanban-workflow.yaml` for column definitions and valid transitions.
+See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 
 ## Commit
 
@@ -26,7 +26,7 @@ None - code stays uncommitted until review passes. Use `/kanban:in-progress-wip-
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claudeban/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+1. **Load workflow schema**: Read `.claude/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
 
 2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `planned` or `in-progress` status from `.kanban/tasks/`
@@ -34,7 +34,7 @@ None - code stays uncommitted until review passes. Use `/kanban:in-progress-wip-
    - Ask user which task to implement
 
 3. **Read task file**:
-   - Find file matching `.kanban/tasks/{id}-*.md`
+   - **NEVER guess filenames.** Glob for `.kanban/tasks/{id}-*.md` to find the exact filename
    - Parse YAML frontmatter
    - Verify current status:
      - If `planned`: Move to `in-progress` first (step 5)

@@ -18,15 +18,17 @@ Create a plan file in `.kanban/plans/` and move task from **Scoped** to **Planne
 scoped → planned
 ```
 
-See `.claudeban/kanban-workflow.yaml` for column definitions and valid transitions.
+See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 
 ## Commit
 
-Uses `commits.plan` format from `.claudeban/kanban-workflow.yaml`.
+**Format:** `docs({id}): plan - {title}`
+
+**CRITICAL:** Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `docs`, not `kanban`.
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claudeban/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+1. **Load workflow schema**: Read `.claude/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
 
 2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `scoped` status from `.kanban/tasks/`
@@ -34,7 +36,7 @@ Uses `commits.plan` format from `.claudeban/kanban-workflow.yaml`.
    - Ask user which task to plan
 
 3. **Read task file**:
-   - Find file matching `.kanban/tasks/{id}-*.md`
+   - **NEVER guess filenames.** Glob for `.kanban/tasks/{id}-*.md` to find the exact filename
    - Parse YAML frontmatter
    - Verify current status is `scoped`:
      - If not scoped, warn user and confirm they want to proceed
@@ -70,7 +72,7 @@ Uses `commits.plan` format from `.claudeban/kanban-workflow.yaml`.
      - Follow their instructions as mandatory guidance
 
 8. **Create plan file** at `.kanban/plans/{id}-{slug}.plan.md`:
-   - Follow template at `.claudeban/kanban-templates/plan.md`
+   - Follow template at `.claude/kanban-templates/plan.md`
    - Link to spec in frontmatter
    - Create implementation steps based on spec
 

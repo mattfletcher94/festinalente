@@ -18,15 +18,17 @@ Create a new task file in `.kanban/tasks/` in the **Backlog** column and commit.
 [New Task] → backlog
 ```
 
-See `.claudeban/kanban-workflow.yaml` for column definitions.
+See `.claude/kanban-workflow.yaml` for column definitions.
 
 ## Commit
 
-Uses `commits.define` format from `.claudeban/kanban-workflow.yaml`.
+**Format:** `docs({id}): define - {title}`
+
+**CRITICAL:** Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `docs`, not `kanban`.
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claudeban/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+1. **Load workflow schema**: Read `.claude/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
 
 2. **Verify on main branch**:
    - Run `git branch --show-current`
@@ -69,7 +71,7 @@ Uses `commits.define` format from `.claudeban/kanban-workflow.yaml`.
    - If unclear, ask user to confirm or skip
 
 9. **Create task file** at `.kanban/tasks/{id}-{slug}.md`:
-   - Follow template at `.claudeban/kanban-templates/task.md`
+   - Follow template at `.claude/kanban-templates/task.md`
    - Fill sections for this phase:
      - Frontmatter: `id`, `title`, `status: backlog`, `priority`, `labels`, `created`
      - Body: `## Description`, `## Notes`

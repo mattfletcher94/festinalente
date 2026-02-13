@@ -14,15 +14,17 @@ Save partial implementation progress when interrupted. Task stays in **In Progre
 in-progress → in-progress (no change)
 ```
 
-See `.claudeban/kanban-workflow.yaml` for column definitions.
+See `.claude/kanban-workflow.yaml` for column definitions.
 
 ## Commit
 
-Uses `commits.wip` format from `.claudeban/kanban-workflow.yaml`.
+**Format:** `wip({id}): {summary}`
+
+**CRITICAL:** Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `wip`, not `kanban`.
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claudeban/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+1. **Load workflow schema**: Read `.claude/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
 
 2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `in-progress` status from `.kanban/tasks/`
@@ -30,7 +32,7 @@ Uses `commits.wip` format from `.claudeban/kanban-workflow.yaml`.
    - Ask user which task to commit WIP for
 
 3. **Read task file**:
-   - Find file matching `.kanban/tasks/{id}-*.md`
+   - **NEVER guess filenames.** Glob for `.kanban/tasks/{id}-*.md` to find the exact filename
    - Parse YAML frontmatter
    - Verify current status is `in-progress`:
      - If not `in-progress`, warn user: "Task is not in progress. WIP commit only works for tasks being implemented."
@@ -73,7 +75,7 @@ Uses `commits.wip` format from `.claudeban/kanban-workflow.yaml`.
 
 9. **Add WIP notes to plan**:
    - If plan exists, add or update `## WIP Notes` section:
-     - Follow template at `.claudeban/kanban-templates/plan.md`
+     - Follow template at `.claude/kanban-templates/plan.md`
      ```markdown
      ## WIP Notes
 

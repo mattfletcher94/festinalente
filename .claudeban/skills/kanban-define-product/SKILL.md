@@ -14,13 +14,15 @@ N/A - This is a product discovery command, not a task workflow command.
 
 ## Commit
 
-Uses `commits.define-product` format from `.claudeban/kanban-workflow.yaml`.
+**Format:** `docs: define-product - {brief product description}`
+
+**CRITICAL:** Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `docs`, not `kanban`.
 
 ## Steps
 
 ### 0. Load Workflow Schema
 
-Read `.claudeban/kanban-workflow.yaml` for commit formats.
+Read `.claude/kanban-workflow.yaml` for commit formats.
 
 ### 1. Pre-flight Check
 
@@ -57,7 +59,7 @@ Ask: "What are the main capabilities or features you want to build?"
 4. Ask "Does this relate to any other features?"
 5. **IMMEDIATELY write the product doc:**
    - Create `.kanban/product/{feature-id}.md`
-   - Use template structure from `.claudeban/kanban-templates/product-doc.md`
+   - Use template structure from `.claude/kanban-templates/product-doc.md`
    - Fill with all information gathered so far
    - This preserves context even if session is long
 

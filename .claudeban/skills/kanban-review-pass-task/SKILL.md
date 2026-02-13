@@ -18,21 +18,22 @@ Approve implementation, commit the code with appropriate conventional commit typ
 review → update-docs
 ```
 
-See `.claudeban/kanban-workflow.yaml` for column definitions and valid transitions.
+See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 
 ## Commit
 
-Uses `commits.review-pass` format from `.claudeban/kanban-workflow.yaml`.
-Commit type is determined by matching task labels to `labels[].commit-type` in kanban-workflow.yaml:
+**Format:** `{type}({id}): {title}` where `{type}` comes from task label:
 - `bug` label → `fix({id}): {title}`
 - `feature` label → `feat({id}): {title}`
 - `refactor` label → `refactor({id}): {title}`
 - `docs` label → `docs({id}): {title}`
 - Default → `feat({id}): {title}`
 
+**CRITICAL:** Use EXACTLY these formats. Do NOT invent commit types like `kanban(...)`. Valid types are: `feat`, `fix`, `refactor`, `docs`.
+
 ## Steps
 
-1. **Load workflow schema**: Read `.claudeban/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+1. **Load workflow schema**: Read `.claude/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
 
 2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `review` status from `.kanban/tasks/`
@@ -40,7 +41,7 @@ Commit type is determined by matching task labels to `labels[].commit-type` in k
    - Ask user which task to approve
 
 3. **Read task file**:
-   - Find file matching `.kanban/tasks/{id}-*.md`
+   - **NEVER guess filenames.** Glob for `.kanban/tasks/{id}-*.md` to find the exact filename
    - Parse YAML frontmatter
    - Verify current status is `review`:
      - If `in-progress`: Suggest completing implementation first

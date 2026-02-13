@@ -18,16 +18,19 @@ Update product documentation, commit the changes, create a pull request, and mov
 update-docs → awaiting-merge
 ```
 
-See `.claudeban/kanban-workflow.yaml` for column definitions and valid transitions.
+See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 
 ## Commit
 
-Uses `commits.update-docs` format from `.claudeban/kanban-workflow.yaml`.
+**Format:** `docs({id}): product - {description}`
+
 The description summarizes what documentation was updated (e.g., "add authentication guide", "update API reference").
+
+**CRITICAL:** Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `docs`, not `kanban`.
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claudeban/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+1. **Load workflow schema**: Read `.claude/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
 
 2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `update-docs` status from `.kanban/tasks/`
@@ -35,7 +38,8 @@ The description summarizes what documentation was updated (e.g., "add authentica
    - Ask user which task needs documentation
 
 3. **Read task file**:
-   - Find file matching `.kanban/tasks/{id}-*.md`
+   - **NEVER guess filenames.** Task files are ALWAYS named `{id}-{slug}.md`, not `{id}.md`
+   - Glob for `.kanban/tasks/{id}-*.md` to find the exact filename
    - Parse YAML frontmatter
    - Verify current status is `update-docs`:
      - If `review`: Suggest `/kanban:review-pass-task {id}` first

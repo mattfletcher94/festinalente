@@ -19,7 +19,7 @@ in-progress → verify (if all pass)
 in-progress → in-progress (if any fail)
 ```
 
-See `.claudeban/kanban-workflow.yaml` for column definitions and valid transitions.
+See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 
 ## Behavior
 
@@ -27,11 +27,13 @@ See `.claudeban/kanban-workflow.yaml` for column definitions and valid transitio
 
 ## Commit
 
-On failure, uses `commits.verify-fail` format from `.claudeban/kanban-workflow.yaml`.
+**Format (on failure):** `docs({id}): verify-fail - {title}`
+
+**CRITICAL:** Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `docs`, not `kanban`.
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claudeban/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+1. **Load workflow schema**: Read `.claude/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
 
 2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `in-progress` status from `.kanban/tasks/`
@@ -39,7 +41,7 @@ On failure, uses `commits.verify-fail` format from `.claudeban/kanban-workflow.y
    - Ask user which task to verify
 
 3. **Read task file**:
-   - Find file matching `.kanban/tasks/{id}-*.md`
+   - **NEVER guess filenames.** Glob for `.kanban/tasks/{id}-*.md` to find the exact filename
    - Parse YAML frontmatter
    - Verify status is `in-progress`:
      - If not, warn: "Task is in {status} status. Expected: in-progress. Continue anyway? (y/n)"
@@ -83,7 +85,7 @@ On failure, uses `commits.verify-fail` format from `.claudeban/kanban-workflow.y
 8. **Handle failure** (if any check failed):
    - Read plan file
    - Increment `iteration` in frontmatter
-   - Add failure to `## Iterations` section (following template at `.claudeban/kanban-templates/plan.md`):
+   - Add failure to `## Iterations` section (following template at `.claude/kanban-templates/plan.md`):
      ```markdown
      ## Iterations
 

@@ -18,15 +18,17 @@ Refine vague tasks through Socratic Q&A dialogue to add clarity, acceptance crit
 backlog → refined
 ```
 
-See `.claudeban/kanban-workflow.yaml` for column definitions and valid transitions.
+See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 
 ## Commit
 
-Uses `commits.refine` format from `.claudeban/kanban-workflow.yaml`.
+**Format:** `docs({id}): refine - {title}`
+
+**CRITICAL:** Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `docs`, not `kanban`.
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claudeban/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+1. **Load workflow schema**: Read `.claude/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
 
 2. **Verify on main branch**:
    - Run `git branch --show-current`
@@ -41,7 +43,7 @@ Uses `commits.refine` format from `.claudeban/kanban-workflow.yaml`.
    - Ask user which task to refine
 
 4. **Read task file**:
-   - Find file matching `.kanban/tasks/{id}-*.md`
+   - **NEVER guess filenames.** Glob for `.kanban/tasks/{id}-*.md` to find the exact filename
    - Parse YAML frontmatter
    - Verify task has `needs-refinement` label (from kanban-workflow.yaml):
      - If present, proceed with refinement
@@ -86,7 +88,7 @@ Uses `commits.refine` format from `.claudeban/kanban-workflow.yaml`.
       - Convert user's answer to Gherkin format
 
 8. **Update task file**:
-   - Follow template at `.claudeban/kanban-templates/task.md`
+   - Follow template at `.claude/kanban-templates/task.md`
    - Fill sections for this phase:
      - `## What problem are you trying to solve?`
      - `## What value would it provide if solved?`

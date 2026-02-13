@@ -18,15 +18,17 @@ Document issues found during review, commit the notes, and move task from **Revi
 review → in-progress
 ```
 
-See `.claudeban/kanban-workflow.yaml` for column definitions and valid transitions.
+See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 
 ## Commit
 
-Uses `commits.review-fail` format from `.claudeban/kanban-workflow.yaml`.
+**Format:** `docs({id}): review-fail - {title}`
+
+**CRITICAL:** Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `docs`, not `kanban`.
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claudeban/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+1. **Load workflow schema**: Read `.claude/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
 
 2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `review` status from `.kanban/tasks/`
@@ -34,7 +36,7 @@ Uses `commits.review-fail` format from `.claudeban/kanban-workflow.yaml`.
    - Ask user which task failed review
 
 3. **Read task file**:
-   - Find file matching `.kanban/tasks/{id}-*.md`
+   - **NEVER guess filenames.** Glob for `.kanban/tasks/{id}-*.md` to find the exact filename
    - Parse YAML frontmatter
    - Verify current status is `review`:
      - If not `review`, warn user and confirm they want to proceed
@@ -66,7 +68,7 @@ Uses `commits.review-fail` format from `.claudeban/kanban-workflow.yaml`.
    - Collect detailed description of problems
    - Parse into individual issues if multiple provided
 
-8. **Update plan file with iteration** (following template at `.claudeban/kanban-templates/plan.md`):
+8. **Update plan file with iteration** (following template at `.claude/kanban-templates/plan.md`):
    - Increment `iteration` in frontmatter
    - Add to `## Iterations` section (create if doesn't exist):
      ```markdown

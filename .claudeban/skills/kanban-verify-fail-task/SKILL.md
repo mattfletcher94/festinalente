@@ -18,15 +18,17 @@ Return a task from **Verify** back to **In Progress** after failed automated che
 verify → in-progress
 ```
 
-See `.claudeban/kanban-workflow.yaml` for column definitions and valid transitions.
+See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 
 ## Commit
 
-Uses `commits.verify-fail` format from `.claudeban/kanban-workflow.yaml`.
+**Format:** `docs({id}): verify-fail - {title}`
+
+**CRITICAL:** Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `docs`, not `kanban`.
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claudeban/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+1. **Load workflow schema**: Read `.claude/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
 
 2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `verify` status from `.kanban/tasks/`
@@ -34,7 +36,7 @@ Uses `commits.verify-fail` format from `.claudeban/kanban-workflow.yaml`.
    - Ask user which task failed verification
 
 3. **Read task file**:
-   - Find file matching `.kanban/tasks/{id}-*.md`
+   - **NEVER guess filenames.** Glob for `.kanban/tasks/{id}-*.md` to find the exact filename
    - Parse YAML frontmatter
    - Verify status is `verify`:
      - If not, warn: "Task is in {status} status. Expected: verify. Continue anyway? (y/n)"
@@ -57,7 +59,7 @@ Uses `commits.verify-fail` format from `.claudeban/kanban-workflow.yaml`.
    - Parse frontmatter to get current iteration
    - Error if plan not found
 
-7. **Update plan file** (following template at `.claudeban/kanban-templates/plan.md`):
+7. **Update plan file** (following template at `.claude/kanban-templates/plan.md`):
    - Increment `iteration` in frontmatter
    - Add failure entry to `## Iterations` section (create section if doesn't exist):
 

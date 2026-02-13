@@ -13,7 +13,7 @@ Show the current state of the board and suggest what command to run next. Helps 
 ### If task ID provided ($ARGUMENTS is not empty):
 
 1. **Find and read the task file**:
-   - Find file matching `.kanban/tasks/{id}-*.md`
+   - **NEVER guess filenames.** Glob for `.kanban/tasks/{id}-*.md` to find the exact filename
    - Parse YAML frontmatter
    - Error if task not found
 

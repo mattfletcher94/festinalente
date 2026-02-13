@@ -18,15 +18,17 @@ Create a functional specification file at `.kanban/specs/{id}-{slug}.spec.md` an
 refined → scoped
 ```
 
-See `.claudeban/kanban-workflow.yaml` for column definitions and valid transitions.
+See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 
 ## Commit
 
-Uses `commits.scope` format from `.claudeban/kanban-workflow.yaml`.
+**Format:** `docs({id}): scope - {title}`
+
+**CRITICAL:** Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `docs`, not `kanban`.
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claudeban/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+1. **Load workflow schema**: Read `.claude/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
 
 2. **Verify on main branch**:
    - Run `git branch --show-current`
@@ -41,7 +43,7 @@ Uses `commits.scope` format from `.claudeban/kanban-workflow.yaml`.
    - Ask user which task to scope
 
 4. **Read task file**:
-   - Find file matching `.kanban/tasks/{id}-*.md`
+   - **NEVER guess filenames.** Glob for `.kanban/tasks/{id}-*.md` to find the exact filename
    - Parse YAML frontmatter
    - Verify status is `refined`:
      - If not refined, warn: "Task is in {status} status. Expected: refined. Continue anyway? (y/n)"
@@ -69,7 +71,7 @@ Uses `commits.scope` format from `.claudeban/kanban-workflow.yaml`.
    - Search for integration points: "What connects to this?"
 
 7. **Create functional specification file** at `.kanban/specs/{id}-{slug}.spec.md` (derive slug from task title, same as task file):
-   - Follow template at `.claudeban/kanban-templates/spec.md`
+   - Follow template at `.claude/kanban-templates/spec.md`
    - Fill ALL sections:
 
    ```markdown
