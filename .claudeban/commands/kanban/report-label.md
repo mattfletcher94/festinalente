@@ -26,7 +26,7 @@ Query tasks filtered by label using natural language.
 
 ## Valid Labels
 
-From `.claudeban/workflow.yaml`:
+From `.claudeban/kanban-workflow.yaml`:
 - `bug` - Bug fixes
 - `feature` - New features
 - `docs` - Documentation

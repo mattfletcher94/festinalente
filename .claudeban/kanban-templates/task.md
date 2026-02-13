@@ -1,5 +1,5 @@
 ---
-# Valid values defined in .claudeban/workflow.yaml
+# Valid values defined in .claudeban/kanban-workflow.yaml
 id: "{id}"
 title: "{title}"
 status: "{status}"

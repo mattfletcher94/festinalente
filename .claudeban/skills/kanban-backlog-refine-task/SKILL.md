@@ -14,15 +14,15 @@ Refine vague tasks through Socratic Q&A dialogue to add clarity, acceptance crit
 backlog → refined
 ```
 
-See `.claudeban/workflow.yaml` for column definitions and valid transitions.
+See `.claudeban/kanban-workflow.yaml` for column definitions and valid transitions.
 
 ## Commit
 
-Uses `commits.refine` format from `.claudeban/workflow.yaml`.
+Uses `commits.refine` format from `.claudeban/kanban-workflow.yaml`.
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claudeban/workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+1. **Load workflow schema**: Read `.claudeban/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
 
 2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks with `needs-refinement` label from `.kanban/tasks/`
@@ -32,7 +32,7 @@ Uses `commits.refine` format from `.claudeban/workflow.yaml`.
 3. **Read task file**:
    - Find file matching `.kanban/tasks/{id}-*.md`
    - Parse YAML frontmatter
-   - Verify task has `needs-refinement` label (from workflow.yaml):
+   - Verify task has `needs-refinement` label (from kanban-workflow.yaml):
      - If present, proceed with refinement
      - If not present, warn: "Task does not have needs-refinement label. Refine anyway? (y/n)"
    - Note current title, description, acceptance criteria (if any)
@@ -48,7 +48,7 @@ Uses `commits.refine` format from `.claudeban/workflow.yaml`.
 5. **Analyze vagueness indicators**:
    - Check title for clarity issues:
      - Title too short (<5 words)?
-     - Missing action verb (use `detect-keywords` from workflow.yaml labels)?
+     - Missing action verb (use `detect-keywords` from kanban-workflow.yaml labels)?
      - Contains ambiguous terms ("fix stuff", "improve things")?
    - Check description for completeness
    - Check acceptance criteria for specificity
@@ -81,7 +81,7 @@ Uses `commits.refine` format from `.claudeban/workflow.yaml`.
      - `## What value would it provide if solved?`
      - `## Acceptance Criteria` (in Gherkin format)
    - Update frontmatter:
-     - Change status per `transitions.backlog` in workflow.yaml (`backlog` → `refined`)
+     - Change status per `transitions.backlog` in kanban-workflow.yaml (`backlog` → `refined`)
      - Add `updated: {YYYY-MM-DD}`
      - Remove `needs-refinement` from labels if present
 
@@ -106,7 +106,7 @@ Uses `commits.refine` format from `.claudeban/workflow.yaml`.
 9. **Write updated task file**
 
 10. **Commit the refinement**:
-    - Use `commits.refine` format from workflow.yaml
+    - Use `commits.refine` format from kanban-workflow.yaml
     ```bash
     git add .kanban/tasks/{id}-*.md
     git commit -m "docs({id}): refine - {title}"

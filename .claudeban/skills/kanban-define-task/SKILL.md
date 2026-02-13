@@ -14,15 +14,15 @@ Create a new task file in `.kanban/tasks/` in the **Backlog** column and commit.
 [New Task] → backlog
 ```
 
-See `.claudeban/workflow.yaml` for column definitions.
+See `.claudeban/kanban-workflow.yaml` for column definitions.
 
 ## Commit
 
-Uses `commits.define` format from `.claudeban/workflow.yaml`.
+Uses `commits.define` format from `.claudeban/kanban-workflow.yaml`.
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claudeban/workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+1. **Load workflow schema**: Read `.claudeban/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
 
 2. **Verify .kanban/ exists**: Check that `.kanban/tasks/` directory exists. If not, inform user to run `npx claude-kanban init` first.
 
@@ -42,19 +42,19 @@ Uses `commits.define` format from `.claudeban/workflow.yaml`.
    - Title: Use $ARGUMENTS if provided, otherwise ask user
    - Ensure title follows best practices (suggest improvements if needed)
    - Generate initial description based on title
-   - Status: Use first column ID from workflow.yaml (`backlog`)
-   - Priority: Ask user (use priority IDs from workflow.yaml), default to `medium` if not specified
+   - Status: Use first column ID from kanban-workflow.yaml (`backlog`)
+   - Priority: Ask user (use priority IDs from kanban-workflow.yaml), default to `medium` if not specified
 
 6. **Detect vague tasks**:
    - Check if task was created with ONLY a title (no $ARGUMENTS body/description provided)
    - Check if title is very short (<5 words) without clear action verb
    - Check if no description could be generated (title too ambiguous)
    - If ANY vagueness indicator detected:
-     - Add `needs-refinement` to labels array (from workflow.yaml)
+     - Add `needs-refinement` to labels array (from kanban-workflow.yaml)
      - Note to user: "Task marked as needs-refinement. Run `/kanban:backlog-refine-task {id}` to clarify before planning."
 
 7. **Determine label**:
-   - Use `labels[].detect-keywords` from workflow.yaml to auto-detect label from title/context
+   - Use `labels[].detect-keywords` from kanban-workflow.yaml to auto-detect label from title/context
    - If unclear, ask user to confirm or skip
 
 8. **Create task file** at `.kanban/tasks/{id}-{slug}.md`:
@@ -69,7 +69,7 @@ Uses `commits.define` format from `.claudeban/workflow.yaml`.
      - Frontmatter: `spec`, `plan`, `updated`, `completed`
 
 9. **Commit the task file**:
-   - Use `commits.define` format from workflow.yaml
+   - Use `commits.define` format from kanban-workflow.yaml
    ```bash
    git add .kanban/tasks/{id}-{slug}.md
    git commit -m "docs({id}): define - {title}"

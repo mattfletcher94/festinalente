@@ -4,7 +4,8 @@
       "WebFetch(domain:github.com)",
       "Bash(dir /s \"C:\\\\Users\\\\MattF\\\\Documents\\\\Code\\\\claudeban\")",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(git mv:*)"
     ]
   }
 }

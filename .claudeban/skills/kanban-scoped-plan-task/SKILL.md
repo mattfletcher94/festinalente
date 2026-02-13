@@ -14,15 +14,15 @@ Create a plan file in `.kanban/plans/` and move task from **Scoped** to **Planne
 scoped → planned
 ```
 
-See `.claudeban/workflow.yaml` for column definitions and valid transitions.
+See `.claudeban/kanban-workflow.yaml` for column definitions and valid transitions.
 
 ## Commit
 
-Uses `commits.plan` format from `.claudeban/workflow.yaml`.
+Uses `commits.plan` format from `.claudeban/kanban-workflow.yaml`.
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claudeban/workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+1. **Load workflow schema**: Read `.claudeban/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
 
 2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `scoped` status from `.kanban/tasks/`

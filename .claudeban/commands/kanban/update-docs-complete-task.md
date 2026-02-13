@@ -29,9 +29,9 @@ Update product documentation, commit, and move to Done.
 4. **Update frontmatter:**
    - Set `updated: {today's date}` in each modified product doc
 
-5. **Commit:** Uses `commits.update-docs` format from `.claudeban/workflow.yaml`.
+5. **Commit:** Uses `commits.update-docs` format from `.claudeban/kanban-workflow.yaml`.
 
-6. **Update task status** to `done` (per `transitions.update-docs` in workflow.yaml)
+6. **Update task status** to `done` (per `transitions.update-docs` in kanban-workflow.yaml)
 
 ## Template Reference
 

@@ -14,16 +14,16 @@ Update product documentation, commit the changes, and move task from **Update Do
 update-docs → done
 ```
 
-See `.claudeban/workflow.yaml` for column definitions and valid transitions.
+See `.claudeban/kanban-workflow.yaml` for column definitions and valid transitions.
 
 ## Commit
 
-Uses `commits.update-docs` format from `.claudeban/workflow.yaml`.
+Uses `commits.update-docs` format from `.claudeban/kanban-workflow.yaml`.
 The description summarizes what documentation was updated (e.g., "add authentication guide", "update API reference").
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claudeban/workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+1. **Load workflow schema**: Read `.claudeban/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
 
 2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `update-docs` status from `.kanban/tasks/`

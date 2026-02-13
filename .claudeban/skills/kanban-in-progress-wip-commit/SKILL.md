@@ -14,15 +14,15 @@ Save partial implementation progress when interrupted. Task stays in **In Progre
 in-progress → in-progress (no change)
 ```
 
-See `.claudeban/workflow.yaml` for column definitions.
+See `.claudeban/kanban-workflow.yaml` for column definitions.
 
 ## Commit
 
-Uses `commits.wip` format from `.claudeban/workflow.yaml`.
+Uses `commits.wip` format from `.claudeban/kanban-workflow.yaml`.
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claudeban/workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+1. **Load workflow schema**: Read `.claudeban/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
 
 2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `in-progress` status from `.kanban/tasks/`

@@ -14,13 +14,13 @@ N/A - This is a product discovery command, not a task workflow command.
 
 ## Commit
 
-Uses `commits.map-product` format from `.claudeban/workflow.yaml`.
+Uses `commits.map-product` format from `.claudeban/kanban-workflow.yaml`.
 
 ## Steps
 
 ### 0. Load Workflow Schema
 
-Read `.claudeban/workflow.yaml` for commit formats.
+Read `.claudeban/kanban-workflow.yaml` for commit formats.
 
 ### 1. Pre-flight Check
 

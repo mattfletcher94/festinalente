@@ -38,11 +38,11 @@ in-progress → verify (if all pass)
 in-progress → in-progress (if any fail)
 ```
 
-See `.claudeban/workflow.yaml` for valid transitions.
+See `.claudeban/kanban-workflow.yaml` for valid transitions.
 
 ## Commit
 
-On failure, uses `commits.verify-fail` format from `.claudeban/workflow.yaml`.
+On failure, uses `commits.verify-fail` format from `.claudeban/kanban-workflow.yaml`.
 
 ## Example
 

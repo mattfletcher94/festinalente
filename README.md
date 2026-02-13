@@ -683,7 +683,7 @@ your-project/
 │       └── check-lint.md
 │
 ├── .claudeban/                     # System files (don't edit)
-│   ├── workflow.yaml               # Workflow schema
+│   ├── kanban-workflow.yaml        # Workflow schema
 │   ├── kanban-templates/           # Document templates
 │   ├── commands/kanban/            # Command definitions
 │   └── skills/kanban-*/            # Built-in skills

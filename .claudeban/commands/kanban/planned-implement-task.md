@@ -25,7 +25,7 @@ Execute plan checkboxes. Code remains uncommitted until review passes.
 planned → in-progress
 ```
 
-See `.claudeban/workflow.yaml` for valid transitions.
+See `.claudeban/kanban-workflow.yaml` for valid transitions.
 
 ## Commit
 

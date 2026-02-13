@@ -27,7 +27,7 @@ As requirements are clarified, identify additional product docs that may be rele
 
 ## Commit
 
-Uses `commits.refine` format from `.claudeban/workflow.yaml`.
+Uses `commits.refine` format from `.claudeban/kanban-workflow.yaml`.
 
 ## Example
 

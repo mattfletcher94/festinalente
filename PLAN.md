@@ -1,156 +1,110 @@
-# Implementation Plan: Reporting System
+# Branching Strategy Plan
 
-## Overview
+## Status: Discovery Phase
 
-Add 3 reporting commands to Claude Kanban that allow users to query task history and activity using natural language. These commands load relevant data from git history and task files, then answer user questions conversationally.
+## Problem Statement
+The Claude Kanban system currently operates on whatever branch the user is on. We need to introduce a branching strategy where work happens on `task/{id}` branches.
 
-## Background
+## Current Understanding
 
-Claude Kanban is a file-based kanban board in `.kanban/` with an immutable system in `.claudeban/`. Tasks move through columns (backlog → refined → scoped → planned → in-progress → verify → review → update-docs → done) and each transition creates a structured git commit.
+### Workflow Phases
+The system has 9 columns with these key transitions:
 
-**Commit message formats** (from `.claudeban/workflow.yaml`):
-- `docs({id}): define - {title}` - task created
-- `docs({id}): refine - {title}` - task refined
-- `docs({id}): scope - {title}` - spec created
-- `docs({id}): plan - {title}` - plan created
-- `wip({id}): {summary}` - work in progress
-- `docs({id}): verify-fail - {title}` - verification failed
-- `{type}({id}): {title}` - implementation committed (type = feat/fix/docs/refactor)
-- `docs({id}): product - {message}` - docs updated
-
-**Labels**: bug, feature, docs, refactor, needs-refinement
-**Priorities**: high, medium, low
-
-## Commands to Create
-
-Create 3 command files in `.claudeban/commands/kanban/`. No skill files needed (read-only queries).
-
----
-
-### 1. `report-task.md`
-
-**Purpose**: Query a specific task's history and current state.
-
-**Usage**: `/kanban:report-task {id} [question]`
-
-**Data to gather**:
-- Task file: `.kanban/tasks/{id}-*.md`
-- Spec file (if exists): `.kanban/specs/{id}.spec.md`
-- Plan file (if exists): `.kanban/plans/{id}.plan.md`
-- Git commits: `git log --oneline --all --grep="({id})"`
-
-**Behavior**:
-- If no question provided → ask user what they want to know about the task
-- If question provided → answer using the gathered data
-
-**Example questions users might ask**:
-- "What's the current status?"
-- "When was this started?"
-- "How many times did verification fail?"
-- "What files were changed?"
-
----
-
-### 2. `report-user.md`
-
-**Purpose**: Query what tasks a git user has worked on.
-
-**Usage**: `/kanban:report-user {name} [question]`
-
-**Data to gather**:
-1. Find task IDs touched by user: `git log --all --author="{name}" --format="%s" | grep -oP '\(\K\d+(?=\))' | sort -u`
-2. For each task ID found, read the task file: `.kanban/tasks/{id}-*.md`
-3. Get current board state (all task statuses)
-
-**Behavior**:
-- Focus on **tasks**, not raw commits (commits are just used to identify which tasks)
-- If no question provided → ask user what they want to know
-- If question provided → answer using the gathered data
-
-**Example questions users might ask**:
-- "How many tasks are they currently working on?"
-- "What have they completed?"
-- "What bugs have they fixed?"
-
----
-
-### 3. `report-label.md`
-
-**Purpose**: Query tasks filtered by label (bug, feature, docs, refactor).
-
-**Usage**: `/kanban:report-label {label} [question]`
-
-**Data to gather**:
-1. Find all task files with matching label in frontmatter: search `.kanban/tasks/*.md` for `labels:` containing the label
-2. For each matching task, read the task file
-3. Optionally read specs/plans for those tasks
-
-**Behavior**:
-- If no question provided → ask user what they want to know
-- If question provided → answer using the gathered data
-
-**Example questions users might ask**:
-- "How many bugs are open?"
-- "What features are in progress?"
-- "List all completed refactors"
-
----
-
-## Command File Format
-
-Each command file follows this structure (see existing commands for reference):
-
-```yaml
----
-name: report-{x}
-description: {description}
-allowed-tools: Read, Glob, Grep, Bash(git log *)
-argument-hint: "{hint}"
----
-
-# {Title}
-
-{Description of what this command does}
-
-## Usage
-
-`/kanban:report-{x} {args}`
-
-## Workflow
-
-1. Parse arguments to extract {id/name/label} and optional question
-2. Gather relevant data (files + git history)
-3. If no question provided → ask user what they want to know
-4. If question provided → answer conversationally using the data
-
-## Data Sources
-
-{List what data to gather and how}
-
-## Examples
-
-{Example invocations}
+```
+backlog → refined → scoped → planned → in-progress → verify → review → update-docs → done
 ```
 
+### Current Git Operations
+
+| Command | Commits? | What's Committed |
+|---------|----------|-----------------|
+| `define-task` | YES | Task file (docs) |
+| `backlog-refine-task` | YES | Refined task (docs) |
+| `refined-scope-task` | YES | Functional spec (docs) |
+| `scoped-plan-task` | YES | Implementation plan (docs) |
+| `planned-implement-task` | NO | Code written but uncommitted |
+| `in-progress-wip-commit` | YES | WIP progress (stays in-progress) |
+| `in-progress-verify-task` | On fail | Iteration notes (docs) |
+| `verify-pass-task` | NO | Just moves status |
+| `verify-fail-task` | YES | Failure notes (docs) |
+| `review-pass-task` | YES | **Implementation code** |
+| `review-fail-task` | YES | Review feedback (docs) |
+| `update-docs-complete-task` | YES | Product docs |
+
+### Key Observation
+- Documentation commits happen throughout the workflow
+- **Code is only committed once** at `review-pass-task`
+- Code remains uncommitted during: `planned-implement-task` → `verify` → `review`
+
 ---
 
-## Implementation Steps
+## Socratic Exploration
 
-1. [ ] Create `.claudeban/commands/kanban/report-task.md`
-2. [ ] Create `.claudeban/commands/kanban/report-user.md`
-3. [ ] Create `.claudeban/commands/kanban/report-label.md`
-4. [ ] Test each command with the example project
+### Question 1: What is the purpose of branching?
+
+*Exploring why we branch at all helps us understand when branching makes sense.*
+
+Possible purposes:
+- [ ] Isolate incomplete/experimental work from main
+- [ ] Enable parallel work on multiple tasks
+- [ ] Create a clean PR for code review
+- [ ] Keep main always deployable
+- [ ] Other: ___
+
+### Question 2: What should live on the branch?
+
+*Different content might warrant different branching strategies.*
+
+Options to consider:
+- [ ] Only implementation code
+- [ ] Planning docs + code
+- [ ] Everything from task creation onwards
+- [ ] Only what will be in the PR
+
+### Question 3: When should the branch be created?
+
+*Candidate moments in the workflow:*
+
+| When | Pros | Cons |
+|------|------|------|
+| `define-task` | Full history on branch | Many doc-only commits on branch |
+| `scoped-plan-task` | Plan + code together | Still doc commits before code |
+| `planned-implement-task` | Code isolation only | Plan not on branch |
+| Other | ? | ? |
+
+### Question 4: When should the branch be merged?
+
+*Candidate moments:*
+
+| When | Pros | Cons |
+|------|------|------|
+| `review-pass-task` | Code reviewed and ready | Docs update still pending |
+| `update-docs-complete-task` | Everything complete | PR includes doc update |
+| Other | ? | ? |
+
+### Question 5: What happens to doc commits on main?
+
+*If we branch late (e.g., at implementation), the earlier doc commits are on main.*
+
+Options:
+- [ ] That's fine - docs don't affect deployability
+- [ ] We should branch earlier
+- [ ] We need a different strategy entirely
 
 ---
 
-## Files Reference
+## Research Needed
+- [ ] Best practices for feature branch timing
+- [ ] How teams handle documentation in branching strategies
+- [ ] PR-based workflows with AI assistance
 
-**Existing command examples** (for format reference):
-- `.claudeban/commands/kanban/status.md`
-- `.claudeban/commands/kanban/define-task.md`
+---
 
-**Task file location**: `.kanban/tasks/{id}-{slug}.md`
-**Spec file location**: `.kanban/specs/{id}.spec.md`
-**Plan file location**: `.kanban/plans/{id}.plan.md`
+## Decision Log
+*(Will be updated as we reach conclusions)*
 
-**Task frontmatter fields**: id, title, status, priority, labels, created, updated, spec, plan
+| # | Question | Decision | Rationale |
+|---|----------|----------|-----------|
+| 1 | Purpose of branching | **Enable PR workflow** | User wants PRs for code review before merging to main |
+| 2 | What lives on branch | **Spec, plan, code, product docs** | Everything from scope onwards represents "committed work" |
+| 3 | When to create branch | **`refined-scope-task`** | Define/refine are exploration; scope beg

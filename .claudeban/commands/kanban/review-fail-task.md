@@ -21,7 +21,7 @@ Document issues found during review, commit notes, and return to In Progress.
 
 ## Commit
 
-Uses `commits.review-fail` format from `.claudeban/workflow.yaml`.
+Uses `commits.review-fail` format from `.claudeban/kanban-workflow.yaml`.
 
 ## Example
 

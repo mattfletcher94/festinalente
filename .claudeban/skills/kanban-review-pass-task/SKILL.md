@@ -14,12 +14,12 @@ Approve implementation, commit the code with appropriate conventional commit typ
 review → update-docs
 ```
 
-See `.claudeban/workflow.yaml` for column definitions and valid transitions.
+See `.claudeban/kanban-workflow.yaml` for column definitions and valid transitions.
 
 ## Commit
 
-Uses `commits.review-pass` format from `.claudeban/workflow.yaml`.
-Commit type is determined by matching task labels to `labels[].commit-type` in workflow.yaml:
+Uses `commits.review-pass` format from `.claudeban/kanban-workflow.yaml`.
+Commit type is determined by matching task labels to `labels[].commit-type` in kanban-workflow.yaml:
 - `bug` label → `fix({id}): {title}`
 - `feature` label → `feat({id}): {title}`
 - `refactor` label → `refactor({id}): {title}`
@@ -28,7 +28,7 @@ Commit type is determined by matching task labels to `labels[].commit-type` in w
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claudeban/workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+1. **Load workflow schema**: Read `.claudeban/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
 
 2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `review` status from `.kanban/tasks/`

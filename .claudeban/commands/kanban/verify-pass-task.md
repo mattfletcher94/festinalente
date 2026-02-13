@@ -25,7 +25,7 @@ Move a task that passed automated checks to human review.
 verify → review
 ```
 
-See `.claudeban/workflow.yaml` for valid transitions.
+See `.claudeban/kanban-workflow.yaml` for valid transitions.
 
 ## Example
 

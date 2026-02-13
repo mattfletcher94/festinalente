@@ -25,11 +25,11 @@ Return a task that failed automated checks back to implementation.
 verify → in-progress
 ```
 
-See `.claudeban/workflow.yaml` for valid transitions.
+See `.claudeban/kanban-workflow.yaml` for valid transitions.
 
 ## Commit
 
-Uses `commits.verify-fail` format from `.claudeban/workflow.yaml`.
+Uses `commits.verify-fail` format from `.claudeban/kanban-workflow.yaml`.
 
 ## Example
 

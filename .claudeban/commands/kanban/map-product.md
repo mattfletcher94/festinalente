@@ -26,7 +26,7 @@ Analyze an existing codebase and create initial product documentation through So
 
 ## Commit
 
-Uses `commits.map-product` format from `.claudeban/workflow.yaml`.
+Uses `commits.map-product` format from `.claudeban/kanban-workflow.yaml`.
 
 ## Example
 

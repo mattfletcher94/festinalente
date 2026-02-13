@@ -15,7 +15,7 @@ in-progress → verify (if all pass)
 in-progress → in-progress (if any fail)
 ```
 
-See `.claudeban/workflow.yaml` for column definitions and valid transitions.
+See `.claudeban/kanban-workflow.yaml` for column definitions and valid transitions.
 
 ## Behavior
 
@@ -23,11 +23,11 @@ See `.claudeban/workflow.yaml` for column definitions and valid transitions.
 
 ## Commit
 
-On failure, uses `commits.verify-fail` format from `.claudeban/workflow.yaml`.
+On failure, uses `commits.verify-fail` format from `.claudeban/kanban-workflow.yaml`.
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claudeban/workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+1. **Load workflow schema**: Read `.claudeban/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
 
 2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `in-progress` status from `.kanban/tasks/`
