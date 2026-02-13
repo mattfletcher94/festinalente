@@ -29,7 +29,7 @@ Uses `commits.plan` format from `.claudeban/workflow.yaml`.
    - Show task IDs and titles
    - Ask user which task to plan
 
-2. **Read task file**:
+3. **Read task file**:
    - Find file matching `.kanban/tasks/{id}-*.md`
    - Parse YAML frontmatter
    - Verify current status is `scoped`:
@@ -37,7 +37,7 @@ Uses `commits.plan` format from `.claudeban/workflow.yaml`.
    - Get `spec` path from frontmatter
    - Error if task not found
 
-3. **Read functional specification**:
+4. **Read functional specification**:
    - Read spec file at `.kanban/specs/{id}.spec.md`
    - If spec not found, BLOCK planning with message:
      ```
@@ -46,18 +46,18 @@ Uses `commits.plan` format from `.claudeban/workflow.yaml`.
      ```
    - Extract functional requirements, affected files, and existing patterns
 
-4. **Check for existing plan**:
+5. **Check for existing plan**:
    - Check if `.kanban/plans/{id}.plan.md` exists
    - If exists, ask if user wants to overwrite or view existing
 
-5. **Check for command skills**:
+6. **Check for command skills**:
    - Load `.kanban/config.yaml`
    - Find `commands."kanban:scoped-plan-task".skills` array
    - If skills array is non-empty:
      - Read each skill file at the listed paths
      - Follow their instructions as mandatory guidance
 
-6. **Create plan file** at `.kanban/plans/{id}.plan.md`:
+7. **Create plan file** at `.kanban/plans/{id}.plan.md`:
    - Follow template at `.claudeban/templates/plan.md`
    - Link to spec in frontmatter
    - Create implementation steps based on spec
@@ -105,22 +105,22 @@ Uses `commits.plan` format from `.claudeban/workflow.yaml`.
    - Order steps logically (dependencies first)
    - Don't mix refactoring with feature work
 
-7. **Update task file**:
+8. **Update task file**:
    - Change `status: scoped` to `status: planned`
    - Add `plan: "plans/{id}.plan.md"` to frontmatter
    - Add `updated: {YYYY-MM-DD}`
 
-8. **Write updated files**:
+9. **Write updated files**:
    - Write plan file
    - Write task file
 
-9. **Commit the plan and task update**:
+10. **Commit the plan and task update**:
    ```bash
    git add .kanban/plans/{id}.plan.md .kanban/tasks/{id}-*.md
    git commit -m "docs({id}): plan - {title}"
    ```
 
-10. **Confirm**:
+11. **Confirm**:
     - Print: "Task {id} moved to Planned"
     - Print plan file path
     - Print number of implementation steps created

@@ -34,19 +34,19 @@ On failure, uses `commits.verify-fail` format from `.claudeban/workflow.yaml`.
    - Show task IDs and titles
    - Ask user which task to verify
 
-2. **Read task file**:
+3. **Read task file**:
    - Find file matching `.kanban/tasks/{id}-*.md`
    - Parse YAML frontmatter
    - Verify status is `in-progress`:
      - If not, warn: "Task is in {status} status. Expected: in-progress. Continue anyway? (y/n)"
    - Error if task not found
 
-3. **Read plan file**:
+4. **Read plan file**:
    - Find plan at `.kanban/plans/{id}.plan.md`
    - Verify all implementation checkboxes are marked complete
    - If any unchecked, warn: "Plan has incomplete items. Verify anyway? (y/n)"
 
-4. **Load verification checks**:
+5. **Load verification checks**:
    - Read `.kanban/config.yaml`
    - Find `commands."kanban:in-progress-verify-task".skills` array
    - If skills array is empty:
@@ -56,7 +56,7 @@ On failure, uses `commits.verify-fail` format from `.claudeban/workflow.yaml`.
      - Read the skill file
      - Extract the check command and pass criteria
 
-5. **Run checks sequentially**:
+6. **Run checks sequentially**:
    For each check skill:
    - Print: "Running check: {check name}..."
    - Execute the check command from the skill
@@ -68,7 +68,7 @@ On failure, uses `commits.verify-fail` format from `.claudeban/workflow.yaml`.
      - Stop immediately (don't run remaining checks)
      - Go to step 6 (Handle failure)
 
-6. **Handle failure** (if any check failed):
+7. **Handle failure** (if any check failed):
    - Read plan file
    - Increment `iteration` in frontmatter
    - Add failure to `## Iterations` section (following template at `.claudeban/templates/plan.md`):
@@ -93,14 +93,14 @@ On failure, uses `commits.verify-fail` format from `.claudeban/workflow.yaml`.
    - Print: "Verification failed. Fix issues and re-run /kanban:in-progress-verify-task {id}"
    - Exit
 
-7. **Handle success** (all checks passed):
+8. **Handle success** (all checks passed):
    - Update task frontmatter: `status: verify`
    - Update `updated: {YYYY-MM-DD}`
    - Write task file
    - Print summary of all passed checks
    - Ask user: "All checks passed. Continue to Review? (y/n)"
 
-8. **If user confirms**:
+9. **If user confirms**:
    - Print: "Task {id} moved to Verify. Run /kanban:verify-pass-task {id} to proceed to Review."
 
 ## Validation

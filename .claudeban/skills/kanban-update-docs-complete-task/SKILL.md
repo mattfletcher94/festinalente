@@ -30,7 +30,7 @@ The description summarizes what documentation was updated (e.g., "add authentica
    - Show task IDs and titles
    - Ask user which task needs documentation
 
-2. **Read task file**:
+3. **Read task file**:
    - Find file matching `.kanban/tasks/{id}-*.md`
    - Parse YAML frontmatter
    - Verify current status is `update-docs`:
@@ -39,14 +39,14 @@ The description summarizes what documentation was updated (e.g., "add authentica
    - Note title, labels, description for documentation context
    - Error if task not found
 
-3. **Check for command skills**:
+4. **Check for command skills**:
    - Load `.kanban/config.yaml`
    - Find `commands."kanban:update-docs-complete-task".skills` array
    - If skills array is non-empty:
      - Read each skill file at the listed paths
      - Follow their instructions as mandatory guidance for this command
 
-4. **Analyze documentation needs**:
+5. **Analyze documentation needs**:
    - Check task labels:
      - `feature` -> likely needs feature docs
      - `breaking` -> MUST update changelog/migration docs
@@ -56,7 +56,7 @@ The description summarizes what documentation was updated (e.g., "add authentica
      - `bug` -> may need troubleshooting docs
    - Check task description for user-facing changes
 
-5. **Prompt for documentation updates**:
+6. **Prompt for documentation updates**:
    ```
    Task: {id} - {title}
    Labels: {labels}
@@ -67,7 +67,7 @@ The description summarizes what documentation was updated (e.g., "add authentica
    Update documentation? [Y/n]
    ```
 
-6. **If user confirms (Y)**:
+7. **If user confirms (Y)**:
    - Help identify which docs to update:
      - For `feature`: suggest feature documentation
      - For `api`: suggest API documentation
@@ -76,25 +76,25 @@ The description summarizes what documentation was updated (e.g., "add authentica
    - Make documentation changes
    - Generate commit message based on changes made
 
-7. **If user declines (n)**:
+8. **If user declines (n)**:
    - Log: "Documentation update skipped"
    - Ask for reason (optional)
    - Still proceed to move status
    - Use generic commit message: "docs({id}): product - no updates needed for {title}"
 
-8. **Commit documentation changes** (if any):
+9. **Commit documentation changes** (if any):
    ```bash
    git add {doc files}
    git commit -m "docs({id}): product - {description of doc changes}"
    ```
 
-9. **Move to Done**:
+10. **Move to Done**:
    - Change `status: update-docs` to `status: done`
    - Add `updated: {YYYY-MM-DD}`
    - Add `completed: {YYYY-MM-DD}`
    - Write updated task file
 
-10. **Confirm completion**:
+11. **Confirm completion**:
     - Print documentation status (updated/skipped)
     - Print commit hash (if docs were committed)
     - Print: "Task {id} completed!"

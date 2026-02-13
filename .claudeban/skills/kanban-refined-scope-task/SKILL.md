@@ -29,7 +29,7 @@ Uses `commits.scope` format from `.claudeban/workflow.yaml`.
    - Show task IDs and titles
    - Ask user which task to scope
 
-2. **Read task file**:
+3. **Read task file**:
    - Find file matching `.kanban/tasks/{id}-*.md`
    - Parse YAML frontmatter
    - Verify status is `refined`:
@@ -37,14 +37,14 @@ Uses `commits.scope` format from `.claudeban/workflow.yaml`.
    - Extract problem, value, and acceptance criteria for reference
    - Error if task not found
 
-3. **Check for command skills**:
+4. **Check for command skills**:
    - Load `.kanban/config.yaml`
    - Find `commands."kanban:refined-scope-task".skills` array
    - If skills array is non-empty:
      - Read each skill file at the listed paths
      - Follow their instructions as mandatory guidance
 
-4. **Actively search codebase for patterns**:
+5. **Actively search codebase for patterns**:
    Based on task description and acceptance criteria:
    - Use Glob to find potentially affected files
    - Use Grep to search for relevant patterns, functions, or components
@@ -57,7 +57,7 @@ Uses `commits.scope` format from `.claudeban/workflow.yaml`.
    - Search for related types/interfaces: "What types are involved?"
    - Search for integration points: "What connects to this?"
 
-5. **Create functional specification file** at `.kanban/specs/{id}.spec.md`:
+6. **Create functional specification file** at `.kanban/specs/{id}.spec.md`:
    - Follow template at `.claudeban/templates/spec.md`
    - Fill ALL sections:
 
@@ -111,22 +111,22 @@ Uses `commits.scope` format from `.claudeban/workflow.yaml`.
    - [ ] {Unresolved items}
    ```
 
-6. **Update task frontmatter**:
+7. **Update task frontmatter**:
    - Change `status: refined` to `status: scoped`
    - Add `spec: "specs/{id}.spec.md"` to frontmatter
    - Update `updated: {YYYY-MM-DD}`
 
-7. **Write both files**:
+8. **Write both files**:
    - Write spec file at `.kanban/specs/{id}.spec.md`
    - Write updated task file
 
-8. **Commit the scoping**:
+9. **Commit the scoping**:
    ```bash
    git add .kanban/specs/{id}.spec.md .kanban/tasks/{id}-*.md
    git commit -m "docs({id}): scope - {title}"
    ```
 
-9. **Confirm scoping complete**:
+10. **Confirm scoping complete**:
    - Print summary of affected files identified
    - Print existing patterns found
    - Print any open questions

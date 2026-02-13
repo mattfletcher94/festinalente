@@ -35,7 +35,7 @@ Commit type is determined by matching task labels to `labels[].commit-type` in w
    - Show task IDs and titles
    - Ask user which task to approve
 
-2. **Read task file**:
+3. **Read task file**:
    - Find file matching `.kanban/tasks/{id}-*.md`
    - Parse YAML frontmatter
    - Verify current status is `review`:
@@ -45,21 +45,21 @@ Commit type is determined by matching task labels to `labels[].commit-type` in w
    - Get title and labels for commit message
    - Error if task not found
 
-3. **Check for command skills**:
+4. **Check for command skills**:
    - Load `.kanban/config.yaml`
    - Find `commands."kanban:review-pass-task".skills` array
    - If skills array is non-empty:
      - Read each skill file at the listed paths
      - Follow their instructions as mandatory guidance for this command
 
-4. **Prompt for review confirmation**:
+5. **Prompt for review confirmation**:
    - Display task title and acceptance criteria
    - Ask: "Have you reviewed the implementation and verified it meets acceptance criteria? [Y/n]"
    - If user declines:
      - Suggest: "Use /kanban:review-fail-task {id} to document issues"
      - Exit
 
-5. **Check for uncommitted changes**:
+6. **Check for uncommitted changes**:
    - Run `git status` to find modified/new files
    - Run `git diff --name-only` to list changed files
    - Display files that will be committed
@@ -67,14 +67,14 @@ Commit type is determined by matching task labels to `labels[].commit-type` in w
      - Warn: "No uncommitted changes to commit. Was the implementation already committed?"
      - Ask if user wants to proceed anyway (just move status)
 
-6. **Determine commit type from labels**:
+7. **Determine commit type from labels**:
    - Check task labels array:
      - If contains `bug`: type = `fix`
      - If contains `refactor`: type = `refactor`
      - If contains `docs`: type = `docs`
      - If contains `feature` or default: type = `feat`
 
-7. **Stage and commit code**:
+8. **Stage and commit code**:
    - Stage implementation files:
      ```bash
      git add {implementation files}
@@ -85,12 +85,12 @@ Commit type is determined by matching task labels to `labels[].commit-type` in w
      git commit -m "{type}({id}): {title}"
      ```
 
-8. **Move to Update Docs**:
+9. **Move to Update Docs**:
    - Change `status: review` to `status: update-docs`
    - Add `updated: {YYYY-MM-DD}`
    - Write updated task file
 
-9. **Confirm**:
+10. **Confirm**:
    - Print commit hash and message
    - Print: "Task {id} moved to Update Docs"
    - Print: "Review passed! Code committed."

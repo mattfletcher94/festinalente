@@ -29,7 +29,7 @@ None - code stays uncommitted until review passes. Use `/kanban:in-progress-wip-
    - Show task IDs and titles
    - Ask user which task to implement
 
-2. **Read task file**:
+3. **Read task file**:
    - Find file matching `.kanban/tasks/{id}-*.md`
    - Parse YAML frontmatter
    - Verify current status:
@@ -39,13 +39,13 @@ None - code stays uncommitted until review passes. Use `/kanban:in-progress-wip-
      - If `review` or later: Warn task is past implementation
    - Error if task not found
 
-3. **Move to In Progress** (if status was `planned`):
+4. **Move to In Progress** (if status was `planned`):
    - Change `status: planned` to `status: in-progress`
    - Add `updated: {YYYY-MM-DD}`
    - Write updated task file
    - Print: "Task {id} moved to In Progress"
 
-4. **Find and read plan file**:
+5. **Find and read plan file**:
    - Check for `.kanban/plans/{id}.plan.md`
    - If plan found: Read plan content
    - If NO plan found:
@@ -53,24 +53,24 @@ None - code stays uncommitted until review passes. Use `/kanban:in-progress-wip-
      - Suggest: "Create plan with /kanban:scoped-plan-task first"
      - Exit
 
-5. **Read functional specification** (for context):
+6. **Read functional specification** (for context):
    - Get `spec` path from plan frontmatter
    - Read spec file for full context on requirements and patterns
 
-6. **Check for command skills**:
+7. **Check for command skills**:
    - Load `.kanban/config.yaml`
    - Find `commands."kanban:planned-implement-task".skills` array
    - If skills array is non-empty:
      - Read each skill file at the listed paths
      - Follow their instructions as mandatory guidance for this command
 
-7. **Parse plan checkboxes**:
+8. **Parse plan checkboxes**:
    - Find all unchecked items: `- [ ]` pattern
    - Find all checked items: `- [x]` pattern
    - Calculate: total items, completed items, remaining items
    - Display progress overview
 
-8. **Execute plan checkboxes**:
+9. **Execute plan checkboxes**:
    - For each unchecked item (`- [ ]`) in order:
      a. Display: "[{n}/{total}] {checkbox description}"
      b. Execute the implementation step described
@@ -83,7 +83,7 @@ None - code stays uncommitted until review passes. Use `/kanban:in-progress-wip-
      - Progress is saved (can resume later with same command)
      - Suggest: "Use /kanban:in-progress-wip-commit to save progress"
 
-9. **On completion**:
+10. **On completion**:
    - After ALL checkboxes complete:
      - Keep status as `in-progress` (verification will move it)
      - Update `updated: {YYYY-MM-DD}`
@@ -93,7 +93,7 @@ None - code stays uncommitted until review passes. Use `/kanban:in-progress-wip-
      - Report: "Partial progress: {completed}/{total} items"
      - Suggest: "Use /kanban:in-progress-wip-commit to save progress"
 
-10. **Report completion**:
+11. **Report completion**:
     - Display implementation summary
     - Show files modified (uncommitted)
     - Show status

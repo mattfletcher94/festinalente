@@ -29,7 +29,7 @@ Uses `commits.review-fail` format from `.claudeban/workflow.yaml`.
    - Show task IDs and titles
    - Ask user which task failed review
 
-2. **Read task file**:
+3. **Read task file**:
    - Find file matching `.kanban/tasks/{id}-*.md`
    - Parse YAML frontmatter
    - Verify current status is `review`:
@@ -37,24 +37,24 @@ Uses `commits.review-fail` format from `.claudeban/workflow.yaml`.
    - Note current title and acceptance criteria
    - Error if task not found
 
-3. **Find and read plan file**:
+4. **Find and read plan file**:
    - Check for `.kanban/plans/{id}.plan.md`
    - If plan found: Read plan content
    - Plan will be updated with bug fixes needed
 
-4. **Check for command skills**:
+5. **Check for command skills**:
    - Load `.kanban/config.yaml`
    - Find `commands."kanban:review-fail-task".skills` array
    - If skills array is non-empty:
      - Read each skill file at the listed paths
      - Follow their instructions as mandatory guidance for this command
 
-5. **Prompt for issues**:
+6. **Prompt for issues**:
    - Ask user: "What issues were found during review?"
    - Collect detailed description of problems
    - Parse into individual issues if multiple provided
 
-6. **Update plan file with iteration** (following template at `.claudeban/templates/plan.md`):
+7. **Update plan file with iteration** (following template at `.claudeban/templates/plan.md`):
    - Increment `iteration` in frontmatter
    - Add to `## Iterations` section (create if doesn't exist):
      ```markdown
@@ -74,19 +74,19 @@ Uses `commits.review-fail` format from `.claudeban/workflow.yaml`.
      ---
      ```
 
-7. **Move to In Progress**:
+8. **Move to In Progress**:
    - Change `status: review` to `status: in-progress`
    - Add `updated: {YYYY-MM-DD}`
    - Write updated task file
 
-8. **Commit the review notes**:
+9. **Commit the review notes**:
    ```bash
    git add .kanban/tasks/{id}-*.md
    git add .kanban/plans/{id}.plan.md  # if exists
    git commit -m "docs({id}): review-fail - {title}"
    ```
 
-9. **Confirm**:
+10. **Confirm**:
     - Print commit hash
     - Print: "Review failed. Task {id} moved back to In Progress"
     - Print iteration number

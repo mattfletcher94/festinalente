@@ -29,23 +29,23 @@ Uses `commits.verify-fail` format from `.claudeban/workflow.yaml`.
    - Show task IDs and titles
    - Ask user which task failed verification
 
-2. **Read task file**:
+3. **Read task file**:
    - Find file matching `.kanban/tasks/{id}-*.md`
    - Parse YAML frontmatter
    - Verify status is `verify`:
      - If not, warn: "Task is in {status} status. Expected: verify. Continue anyway? (y/n)"
    - Error if task not found
 
-3. **Gather failure details**:
+4. **Gather failure details**:
    - Ask user: "What verification check(s) failed?"
    - Ask user: "What was the error output?" (or they can paste it)
 
-4. **Read plan file**:
+5. **Read plan file**:
    - Find plan at `.kanban/plans/{id}.plan.md`
    - Parse frontmatter to get current iteration
    - Error if plan not found
 
-5. **Update plan file** (following template at `.claudeban/templates/plan.md`):
+6. **Update plan file** (following template at `.claudeban/templates/plan.md`):
    - Increment `iteration` in frontmatter
    - Add failure entry to `## Iterations` section (create section if doesn't exist):
 
@@ -66,21 +66,21 @@ Uses `commits.verify-fail` format from `.claudeban/workflow.yaml`.
    ---
    ```
 
-6. **Update task frontmatter**:
+7. **Update task frontmatter**:
    - Change `status: verify` to `status: in-progress`
    - Update `updated: {YYYY-MM-DD}`
 
-7. **Write updated files**:
+8. **Write updated files**:
    - Write plan file
    - Write task file
 
-8. **Commit the failure record**:
+9. **Commit the failure record**:
    ```bash
    git add .kanban/plans/{id}.plan.md .kanban/tasks/{id}-*.md
    git commit -m "docs({id}): verify-fail - {title}"
    ```
 
-9. **Confirm**:
+10. **Confirm**:
    - Print: "Task {id} returned to In Progress"
    - Print iteration number
    - Print: "Fix issues and re-verify with /kanban:in-progress-verify-task {id}"

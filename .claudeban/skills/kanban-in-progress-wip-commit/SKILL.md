@@ -29,7 +29,7 @@ Uses `commits.wip` format from `.claudeban/workflow.yaml`.
    - Show task IDs and titles
    - Ask user which task to commit WIP for
 
-2. **Read task file**:
+3. **Read task file**:
    - Find file matching `.kanban/tasks/{id}-*.md`
    - Parse YAML frontmatter
    - Verify current status is `in-progress`:
@@ -37,33 +37,33 @@ Uses `commits.wip` format from `.claudeban/workflow.yaml`.
      - Exit
    - Error if task not found
 
-3. **Find and read plan file**:
+4. **Find and read plan file**:
    - Check for `.kanban/plans/{id}.plan.md`
    - If plan found: Read plan content
    - If NO plan found:
      - Warn: "No plan found for task {id}"
      - Still proceed with WIP commit (code can still be committed)
 
-4. **Check for command skills**:
+5. **Check for command skills**:
    - Load `.kanban/config.yaml`
    - Find `commands."kanban:in-progress-wip-commit".skills` array
    - If skills array is non-empty:
      - Read each skill file at the listed paths
      - Follow their instructions as mandatory guidance for this command
 
-5. **Verify plan checkboxes match reality**:
+6. **Verify plan checkboxes match reality**:
    - If plan exists:
      - Parse all checkboxes in the plan
      - For each implementation step, verify if the work was actually done
      - Update any checkboxes that should be checked but aren't
      - Report any discrepancies found
 
-6. **Generate progress summary**:
+7. **Generate progress summary**:
    - Count completed vs total checkboxes
    - Identify which steps were completed
    - Create a brief summary (e.g., "completed auth routes and middleware")
 
-7. **Add WIP notes to plan**:
+8. **Add WIP notes to plan**:
    - If plan exists, add or update `## WIP Notes` section:
      - Follow template at `.claudeban/templates/plan.md`
      ```markdown
@@ -77,7 +77,7 @@ Uses `commits.wip` format from `.claudeban/workflow.yaml`.
      - Context: {any relevant context for resuming}
      ```
 
-8. **Check for uncommitted changes**:
+9. **Check for uncommitted changes**:
    - Run `git status` to find modified/new files
    - Run `git diff --name-only` to list changed files
    - If no changes found:
@@ -85,7 +85,7 @@ Uses `commits.wip` format from `.claudeban/workflow.yaml`.
      - Still update plan if checkboxes changed
      - Exit early if nothing to commit
 
-9. **Stage and commit**:
+10. **Stage and commit**:
    - Stage all relevant files (code + plan):
      ```bash
      git add {changed files}
@@ -96,7 +96,7 @@ Uses `commits.wip` format from `.claudeban/workflow.yaml`.
      git commit -m "wip({id}): {progress summary}"
      ```
 
-10. **Confirm WIP commit**:
+11. **Confirm WIP commit**:
     - Print commit hash
     - Print progress: "{completed}/{total} plan items complete"
     - Print continuation hint

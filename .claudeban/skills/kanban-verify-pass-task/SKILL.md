@@ -29,27 +29,27 @@ None.
    - Show task IDs and titles
    - Ask user which task to move to review
 
-2. **Read task file**:
+3. **Read task file**:
    - Find file matching `.kanban/tasks/{id}-*.md`
    - Parse YAML frontmatter
    - Verify status is `verify`:
      - If not, warn: "Task is in {status} status. Expected: verify. Continue anyway? (y/n)"
    - Error if task not found
 
-3. **Check for command skills**:
+4. **Check for command skills**:
    - Load `.kanban/config.yaml`
    - Find `commands."kanban:verify-pass-task".skills` array
    - If skills array is non-empty:
      - Read each skill file at the listed paths
      - Follow their instructions as mandatory guidance
 
-4. **Update task frontmatter**:
+5. **Update task frontmatter**:
    - Change `status: verify` to `status: review`
    - Update `updated: {YYYY-MM-DD}`
 
-5. **Write updated task file**
+6. **Write updated task file**
 
-6. **Confirm transition**:
+7. **Confirm transition**:
    - Print: "Task {id} moved to Review"
    - Print: "Awaiting human review. Run /kanban:review-pass-task {id} or /kanban:review-fail-task {id}"
 
