@@ -51,12 +51,15 @@ This creates a task file, assigns it an ID (e.g., `001`), and commits it to git.
 Each task progresses through columns. Run `/clear` before each command to reset context:
 
 ```bash
+# On main branch
 /clear
 /kanban:backlog-refine-task 001      # Clarify requirements via Q&A
 
 /clear
 /kanban:refined-scope-task 001       # Research codebase, create spec
+                                     # Creates task/001 branch automatically
 
+# Now on task/001 branch
 /clear
 /kanban:scoped-plan-task 001         # Create implementation plan
 
@@ -73,73 +76,126 @@ Each task progresses through columns. Run `/clear` before each command to reset 
 /kanban:review-pass-task 001         # Approve and commit code
 
 /clear
-/kanban:update-docs-complete-task 001 # Update docs, mark done
+/kanban:update-docs-complete-task 001 # Update docs, create PR
+
+/clear
+/kanban:awaiting-merge-merge-task 001 # Merge PR, delete branch, done!
+                                      # Returns to main branch
 ```
 
-That's it. Your git history now tells the story of your task.
+That's it. Your PR is merged and git history tells the story of your task.
 
 ---
 
 ## The Workflow
 
 ```
-┌───────────────────────────────────────────────────────────────────────────────────────────┐
-│                                                                                           │
-│   define-task         refine-task         scope-task          plan-task                   │
-│   + commit            + commit            + commit            + commit                    │
-│       │                   │                   │                   │                       │
-│       ▼                   ▼                   ▼                   ▼                       │
-│   ┌────────┐         ┌─────────┐         ┌────────┐         ┌─────────┐                   │
-│   │Backlog │────────▶│ Refined │────────▶│ Scoped │────────▶│ Planned │──────────┐       │
-│   │        │         │         │         │        │         │         │          │       │
-│   └────────┘         └─────────┘         └────────┘         └─────────┘          │       │
-│                                                                                   │       │
-│                                                                  implement-task   │       │
-│                                                                  (no commit)      │       │
-│                                                                                   ▼       │
-│                                                                            ┌───────────┐  │
-│                                                                            │In Progress│  │
-│                                                                            │           │  │
-│                                                                            └─────┬─────┘  │
-│                                                                                  │        │
-│                                                         ┌────────────────────────┤        │
-│                                                         │ wip-commit             │        │
-│                                                         │ + commit               │        │
-│                                                         ▼                        │        │
-│                                                         └────────────────────────┘        │
-│                                                                                   │       │
-│                                                                      verify-task  │       │
-│                                                                      (no commit)  ▼       │
-│                                                                            ┌─────────┐    │
-│                                                                            │ Verify  │    │
-│                                                                            │         │    │
-│                                                                            └────┬────┘    │
-│                                                                   ┌─────────────┴─────┐   │
-│                                                                   │                   │   │
-│                                                           verify-pass          verify-fail│
-│                                                           (no commit)          + commit   │
-│                                                                   │                   │   │
-│                                                                   ▼                   │   │
-│                                                              ┌─────────┐              │   │
-│                                                              │ Review  │              │   │
-│                                                              │         │              │   │
-│                                                              └────┬────┘              │   │
-│                                                                   │                   │   │
-│                                                     ┌─────────────┴─────┐             │   │
-│                                                     │                   │             │   │
-│   ┌──────┐         ┌────────────┐         review-pass          review-fail            │   │
-│   │ Done │◀────────│Update Docs │◀────────+ commit code        + commit docs          │   │
-│   │      │         │            │                               │                     │   │
-│   └──────┘         └────────────┘                               └──────▶ In Progress ◀┘   │
-│       ▲                   ▲                                                               │
-│       │                   │                                                               │
-│   update-docs-        update-docs                                                         │
-│   complete-task       + commit                                                            │
-│                                                                                           │
-└───────────────────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                                 │
+│  MAIN BRANCH                                                                                    │
+│  ═══════════                                                                                    │
+│   define-task         refine-task         scope-task                                            │
+│   + commit            + commit            + creates task/{id} branch                            │
+│       │                   │                   │                                                 │
+│       ▼                   ▼                   ▼                                                 │
+│   ┌────────┐         ┌─────────┐         ┌────────┐                                             │
+│   │Backlog │────────▶│ Refined │────────▶│ Scoped │─────────────────────────────────────────┐   │
+│   └────────┘         └─────────┘         └────────┘                                         │   │
+│                                                                                             │   │
+│  TASK BRANCH (task/{id})                                                                    │   │
+│  ═══════════════════════                                                                    │   │
+│                                               plan-task        implement-task               │   │
+│                                               + commit         (no commit)                  │   │
+│                                                   │                │                        │   │
+│                                                   ▼                ▼                        │   │
+│                                              ┌─────────┐    ┌───────────┐                   │   │
+│                                              │ Planned │───▶│In Progress│◀──────────┐      │   │
+│                                              └─────────┘    └─────┬─────┘           │      │   │
+│                                                                   │                 │      │   │
+│                                                          verify-task               │      │   │
+│                                                          (no commit)               │      │   │
+│                                                                   │                 │      │   │
+│                                                                   ▼                 │      │   │
+│                                                              ┌─────────┐            │      │   │
+│                                                              │ Verify  │            │      │   │
+│                                                              └────┬────┘            │      │   │
+│                                                    ┌──────────────┴──────┐          │      │   │
+│                                                    │                     │          │      │   │
+│                                            verify-pass            verify-fail       │      │   │
+│                                                    │              + commit ─────────┘      │   │
+│                                                    ▼                                       │   │
+│                                               ┌─────────┐                                  │   │
+│                                               │ Review  │                                  │   │
+│                                               └────┬────┘                                  │   │
+│                                     ┌──────────────┴──────┐                                │   │
+│                                     │                     │                                │   │
+│   ┌──────┐    ┌────────────────┐  review-pass      review-fail                             │   │
+│   │ Done │◀───│ Awaiting Merge │◀─+ commit code    + commit ───────────────────────────────┘   │
+│   └──────┘    └───────┬────────┘        │                                                      │
+│       ▲               │                 ▼                                                      │
+│       │               │          ┌────────────┐                                                │
+│       │               │          │Update Docs │                                                │
+│       │               │          └─────┬──────┘                                                │
+│       │               │                │                                                       │
+│       │               │         update-docs-complete                                           │
+│       │               │         + commit + creates PR                                          │
+│       │               │                │                                                       │
+│       │               └────────────────┘                                                       │
+│       │                                                                                        │
+│       │         merge-task (merges PR, deletes branch, returns to main)                        │
+│       └────────────────────────────────────────────────────────────────────────────────────────┘
+│
+└─────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Key principle:** Each command is a stopping point. You run a command, review the result, then decide to continue. Commits happen at most phases, so your git history tells the complete story.
+**Key principles:**
+- **Branch isolation:** Task work happens on `task/{id}` branches, keeping main clean
+- **PR-based review:** Code is merged via pull request for proper code review
+- **Each command is a stopping point:** You run a command, review the result, then decide to continue
+- **Commits happen at most phases:** Git history tells the complete story
+
+---
+
+## Branching Strategy
+
+Claude Kanban uses a `task/{id}` branching strategy for code isolation and PR-based review:
+
+### Branch Lifecycle
+
+1. **Define & Refine on main:** Task creation and refinement happen on main (no code changes yet)
+2. **Scope creates branch:** When you scope a task, a `task/{id}` branch is created automatically
+3. **All work on task branch:** Planning, implementation, verification, and review happen on the task branch
+4. **PR for merge:** When docs are complete, a PR is created from `task/{id}` to `main`
+5. **Merge completes task:** Merging the PR deletes the branch and returns you to main
+
+### Branch Requirements by Command
+
+| Phase | Commands | Required Branch |
+|-------|----------|-----------------|
+| **Early** | `define-task`, `backlog-refine-task` | `main` |
+| **Transition** | `refined-scope-task` | `main` → creates `task/{id}` |
+| **Work** | All other task commands | `task/{id}` |
+| **Complete** | `awaiting-merge-merge-task` | `task/{id}` → returns to `main` |
+
+### Switching Branches
+
+If you're on the wrong branch, commands will error with a helpful message:
+
+```
+Error: This command must be run on branch task/001. Current branch: main
+Suggestion: Switch to task branch with `git checkout task/001`
+```
+
+### PR Workflow
+
+When you run `update-docs-complete-task`, a PR is automatically created:
+- Title: `{type}(001): Add user authentication`
+- Body includes: Summary, changes, acceptance criteria, task reference
+- Task moves to "Awaiting Merge" column
+
+Then choose:
+- `awaiting-merge-merge-task 001` - Merge the PR, delete branch, complete task
+- `awaiting-merge-fail-task 001` - Close PR, return to In Progress for fixes
 
 ---
 
@@ -184,7 +240,10 @@ Here's a full task lifecycle from start to finish. Run `/clear` before each comm
 #   - Functional requirements
 #   - Affected files
 #   - Technical constraints
+# → Creates branch: task/001
 # → Commits: docs(001): scope - Add dark mode support
+
+# --- Now on task/001 branch ---
 
 # 4. Plan (implementation steps)
 /clear
@@ -229,22 +288,42 @@ Here's a full task lifecycle from start to finish. Run `/clear` before each comm
 # → Returns to In Progress for fixes
 # → Commits: docs(001): review-fail - Add dark mode support
 
-# 9. Complete
+# 9. Update docs and create PR
 /clear
 /kanban:update-docs-complete-task 001
 # → Updates product documentation
 # → Commits: docs(001): product - add dark mode guide
+# → Creates Pull Request to main
+# → Moves to Awaiting Merge
+
+# 10. Merge and complete
+/clear
+/kanban:awaiting-merge-merge-task 001
+# → Merges the PR
+# → Deletes task/001 branch
+# → Switches back to main
+# → Commits: docs(001): done - Add dark mode support
 # → Task is Done!
+
+# 10b. If PR needs changes (alternative)
+/clear
+/kanban:awaiting-merge-fail-task 001
+# → Closes the PR
+# → Documents issues in plan
+# → Returns to In Progress for fixes
+# → Commits: docs(001): merge-fail - Add dark mode support
 ```
 
 Your git log now shows the full story:
 ```
 docs(001): define - Add dark mode support
 docs(001): refine - Add dark mode support
-docs(001): scope - Add dark mode support
+docs(001): scope - Add dark mode support        # task/001 branch created here
 docs(001): plan - Add dark mode support
 feat(001): Add dark mode support
 docs(001): product - add dark mode guide
+# PR merged here
+docs(001): done - Add dark mode support         # back on main
 ```
 
 ---
@@ -253,22 +332,24 @@ docs(001): product - add dark mode guide
 
 Commands are named with their **source column prefix** so you always know where the task must be:
 
-| Command | From | To | Commits |
-|---------|------|-----|---------|
-| `kanban:init` | — | — | No |
-| `kanban:status [id]` | — | — | No |
-| `kanban:define-task "title"` | (new) | Backlog | Yes |
-| `kanban:backlog-refine-task [id]` | Backlog | Refined | Yes |
-| `kanban:refined-scope-task [id]` | Refined | Scoped | Yes |
-| `kanban:scoped-plan-task [id]` | Scoped | Planned | Yes |
-| `kanban:planned-implement-task [id]` | Planned | In Progress | No |
-| `kanban:in-progress-wip-commit [id]` | In Progress | In Progress | Yes |
-| `kanban:in-progress-verify-task [id]` | In Progress | Verify | On fail |
-| `kanban:verify-pass-task [id]` | Verify | Review | No |
-| `kanban:verify-fail-task [id]` | Verify | In Progress | Yes |
-| `kanban:review-pass-task [id]` | Review | Update Docs | Yes |
-| `kanban:review-fail-task [id]` | Review | In Progress | Yes |
-| `kanban:update-docs-complete-task [id]` | Update Docs | Done | Yes |
+| Command | From | To | Branch | Commits |
+|---------|------|-----|--------|---------|
+| `kanban:init` | — | — | any | No |
+| `kanban:status [id]` | — | — | any | No |
+| `kanban:define-task "title"` | (new) | Backlog | main | Yes |
+| `kanban:backlog-refine-task [id]` | Backlog | Refined | main | Yes |
+| `kanban:refined-scope-task [id]` | Refined | Scoped | main → task/{id} | Yes |
+| `kanban:scoped-plan-task [id]` | Scoped | Planned | task/{id} | Yes |
+| `kanban:planned-implement-task [id]` | Planned | In Progress | task/{id} | No |
+| `kanban:in-progress-wip-commit [id]` | In Progress | In Progress | task/{id} | Yes |
+| `kanban:in-progress-verify-task [id]` | In Progress | Verify | task/{id} | On fail |
+| `kanban:verify-pass-task [id]` | Verify | Review | task/{id} | No |
+| `kanban:verify-fail-task [id]` | Verify | In Progress | task/{id} | Yes |
+| `kanban:review-pass-task [id]` | Review | Update Docs | task/{id} | Yes |
+| `kanban:review-fail-task [id]` | Review | In Progress | task/{id} | Yes |
+| `kanban:update-docs-complete-task [id]` | Update Docs | Awaiting Merge | task/{id} | Yes + PR |
+| `kanban:awaiting-merge-merge-task [id]` | Awaiting Merge | Done | task/{id} → main | Yes |
+| `kanban:awaiting-merge-fail-task [id]` | Awaiting Merge | In Progress | task/{id} | Yes |
 
 **Utility commands:**
 
@@ -510,14 +591,16 @@ git log --grep="define -"
 
 Complete task lifecycle in git:
 ```
-docs(001): define - Add user authentication
-docs(001): refine - Add user authentication
-docs(001): scope - Add user authentication
-docs(001): plan - Add user authentication
-wip(001): completed auth routes              # optional
-docs(001): verify-fail - Add user authentication  # optional
-feat(001): Add user authentication           # when review passes
-docs(001): product - add authentication guide
+docs(001): define - Add user authentication     # on main
+docs(001): refine - Add user authentication     # on main
+docs(001): scope - Add user authentication      # creates task/001 branch
+docs(001): plan - Add user authentication       # on task/001
+wip(001): completed auth routes                 # optional, on task/001
+docs(001): verify-fail - Add user authentication  # optional, on task/001
+feat(001): Add user authentication              # when review passes, on task/001
+docs(001): product - add authentication guide   # on task/001, creates PR
+# PR merged to main
+docs(001): done - Add user authentication       # on main, task complete
 ```
 
 ---
@@ -648,6 +731,10 @@ commands:
     skills: []
   "kanban:update-docs-complete-task":
     skills: []
+  "kanban:awaiting-merge-merge-task":
+    skills: []
+  "kanban:awaiting-merge-fail-task":
+    skills: []
   "kanban:map-product":
     skills: []
   "kanban:define-product":
@@ -695,6 +782,8 @@ your-project/
 
 ## Philosophy
 
+- **Branch isolation.** Task work happens on `task/{id}` branches, keeping main clean.
+- **PR-based review.** Code merges via pull request for proper code review.
 - **Commit at each phase.** Git history tells your task's story.
 - **Each command is a stopping point.** Review, then continue.
 - **Skills are mandatory guidance.** The AI must follow them.

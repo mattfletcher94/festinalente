@@ -1,7 +1,7 @@
 ---
 name: define-task
 description: Create a new task in the kanban board and commit
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status), Grep
+allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *), Grep
 argument-hint: "[task title]"
 ---
 
@@ -9,15 +9,18 @@ argument-hint: "[task title]"
 
 Create a new task in `.kanban/tasks/` and commit.
 
+**Branch requirement:** Must be run on `main` branch.
+
 ## Usage
 
 `/kanban:define-task [title]`
 
 ## Workflow
 
-1. Invoke the **kanban-define-task** skill
-2. Pass `$ARGUMENTS` as the task title (if provided)
-3. Skill handles ID generation, file creation, commit, and confirmation
+1. Verify on `main` branch (error if not)
+2. Invoke the **kanban-define-task** skill
+3. Pass `$ARGUMENTS` as the task title (if provided)
+4. Skill handles ID generation, file creation, commit, and confirmation
 
 ## Product Doc Linking
 

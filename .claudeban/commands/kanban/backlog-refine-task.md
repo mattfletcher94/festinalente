@@ -1,7 +1,7 @@
 ---
 name: backlog-refine-task
 description: Refine vague task through Socratic Q&A and commit
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status), Grep, AskUserQuestion
+allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *), Grep, AskUserQuestion
 argument-hint: "[task id]"
 ---
 
@@ -9,15 +9,18 @@ argument-hint: "[task id]"
 
 Refine vague tasks through interactive Q&A dialogue to add clarity and acceptance criteria.
 
+**Branch requirement:** Must be run on `main` branch.
+
 ## Usage
 
 `/kanban:backlog-refine-task [task-id]`
 
 ## Workflow
 
-1. Invoke the **kanban-backlog-refine-task** skill
-2. Pass `$ARGUMENTS` as the task ID (if provided)
-3. Skill handles Socratic Q&A, task refinement, and commit
+1. Verify on `main` branch (error if not)
+2. Invoke the **kanban-backlog-refine-task** skill
+3. Pass `$ARGUMENTS` as the task ID (if provided)
+4. Skill handles Socratic Q&A, task refinement, and commit
 
 ## Product Doc Discovery
 

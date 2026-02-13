@@ -23,13 +23,13 @@ Ask the user:
 
 **"Which view?"**
 - **Quick** — Hide empty columns, Done as count only (recommended for daily use)
-- **Full** — Show all 9 columns, all tasks
+- **Full** — Show all 10 columns, all tasks
 - **Custom** — Choose your own settings
 
 ### 3. If Custom selected, ask follow-up questions
 
 **"Show empty columns?"**
-- Yes — Show all 9 columns even if empty
+- Yes — Show all 10 columns even if empty
 - No — Only show columns with tasks
 
 **"How to display Done tasks?"**
@@ -61,7 +61,8 @@ Use this column order (workflow order):
 6. `verify` → "VERIFY"
 7. `review` → "REVIEW"
 8. `update-docs` → "UPDATE DOCS"
-9. `done` → "DONE"
+9. `awaiting-merge` → "AWAITING MERGE"
+10. `done` → "DONE"
 
 **Box format:**
 ```
@@ -148,6 +149,9 @@ Done (2 tasks)
 │                                       │
 └───────────────────────────────────────┘
 ┌─ UPDATE DOCS (0) ─────────────────────┐
+│                                       │
+└───────────────────────────────────────┘
+┌─ AWAITING MERGE (0) ──────────────────┐
 │                                       │
 └───────────────────────────────────────┘
 ┌─ DONE (2) ────────────────────────────┐

@@ -1,7 +1,7 @@
 ---
 name: kanban-verify-fail-task
 description: Return a failed verification back to implementation. Records failure details in plan iterations.
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status)
+allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *)
 ---
 
 # Fail Verification
@@ -36,16 +36,24 @@ Uses `commits.verify-fail` format from `.claudeban/kanban-workflow.yaml`.
      - If not, warn: "Task is in {status} status. Expected: verify. Continue anyway? (y/n)"
    - Error if task not found
 
-4. **Gather failure details**:
+4. **Verify on task branch**:
+   - Run `git branch --show-current`
+   - Expected branch: `task/{id}` (where {id} is the task ID from step 2/3)
+   - If not on expected branch:
+     - Error: "This command must be run on branch task/{id}. Current branch: {branch}"
+     - Suggest: "Switch to task branch with `git checkout task/{id}`"
+     - Exit
+
+5. **Gather failure details**:
    - Ask user: "What verification check(s) failed?"
    - Ask user: "What was the error output?" (or they can paste it)
 
-5. **Read plan file**:
+6. **Read plan file**:
    - Find plan at `.kanban/plans/{id}.plan.md`
    - Parse frontmatter to get current iteration
    - Error if plan not found
 
-6. **Update plan file** (following template at `.claudeban/kanban-templates/plan.md`):
+7. **Update plan file** (following template at `.claudeban/kanban-templates/plan.md`):
    - Increment `iteration` in frontmatter
    - Add failure entry to `## Iterations` section (create section if doesn't exist):
 
@@ -66,21 +74,21 @@ Uses `commits.verify-fail` format from `.claudeban/kanban-workflow.yaml`.
    ---
    ```
 
-7. **Update task frontmatter**:
+8. **Update task frontmatter**:
    - Change `status: verify` to `status: in-progress`
    - Update `updated: {YYYY-MM-DD}`
 
-8. **Write updated files**:
+9. **Write updated files**:
    - Write plan file
    - Write task file
 
-9. **Commit the failure record**:
-   ```bash
-   git add .kanban/plans/{id}.plan.md .kanban/tasks/{id}-*.md
-   git commit -m "docs({id}): verify-fail - {title}"
-   ```
+10. **Commit the failure record**:
+    ```bash
+    git add .kanban/plans/{id}.plan.md .kanban/tasks/{id}-*.md
+    git commit -m "docs({id}): verify-fail - {title}"
+    ```
 
-10. **Confirm**:
+11. **Confirm**:
    - Print: "Task {id} returned to In Progress"
    - Print iteration number
    - Print: "Fix issues and re-verify with /kanban:in-progress-verify-task {id}"

@@ -1,7 +1,7 @@
 ---
 name: kanban-review-pass-task
 description: Approve implementation, commit code, and move to Update Docs. Use when code review passes.
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git diff *)
+allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git diff *, git branch *)
 ---
 
 # Review Pass Kanban Task
@@ -45,21 +45,29 @@ Commit type is determined by matching task labels to `labels[].commit-type` in k
    - Get title and labels for commit message
    - Error if task not found
 
-4. **Check for command skills**:
+4. **Verify on task branch**:
+   - Run `git branch --show-current`
+   - Expected branch: `task/{id}` (where {id} is the task ID from step 2/3)
+   - If not on expected branch:
+     - Error: "This command must be run on branch task/{id}. Current branch: {branch}"
+     - Suggest: "Switch to task branch with `git checkout task/{id}`"
+     - Exit
+
+5. **Check for command skills**:
    - Load `.kanban/config.yaml`
    - Find `commands."kanban:review-pass-task".skills` array
    - If skills array is non-empty:
      - Read each skill file at the listed paths
      - Follow their instructions as mandatory guidance for this command
 
-5. **Prompt for review confirmation**:
+6. **Prompt for review confirmation**:
    - Display task title and acceptance criteria
    - Ask: "Have you reviewed the implementation and verified it meets acceptance criteria? [Y/n]"
    - If user declines:
      - Suggest: "Use /kanban:review-fail-task {id} to document issues"
      - Exit
 
-6. **Check for uncommitted changes**:
+7. **Check for uncommitted changes**:
    - Run `git status` to find modified/new files
    - Run `git diff --name-only` to list changed files
    - Display files that will be committed
@@ -67,14 +75,14 @@ Commit type is determined by matching task labels to `labels[].commit-type` in k
      - Warn: "No uncommitted changes to commit. Was the implementation already committed?"
      - Ask if user wants to proceed anyway (just move status)
 
-7. **Determine commit type from labels**:
+8. **Determine commit type from labels**:
    - Check task labels array:
      - If contains `bug`: type = `fix`
      - If contains `refactor`: type = `refactor`
      - If contains `docs`: type = `docs`
      - If contains `feature` or default: type = `feat`
 
-8. **Stage and commit code**:
+9. **Stage and commit code**:
    - Stage implementation files:
      ```bash
      git add {implementation files}
@@ -85,12 +93,12 @@ Commit type is determined by matching task labels to `labels[].commit-type` in k
      git commit -m "{type}({id}): {title}"
      ```
 
-9. **Move to Update Docs**:
-   - Change `status: review` to `status: update-docs`
-   - Add `updated: {YYYY-MM-DD}`
-   - Write updated task file
+10. **Move to Update Docs**:
+    - Change `status: review` to `status: update-docs`
+    - Add `updated: {YYYY-MM-DD}`
+    - Write updated task file
 
-10. **Confirm**:
+11. **Confirm**:
    - Print commit hash and message
    - Print: "Task {id} moved to Update Docs"
    - Print: "Review passed! Code committed."

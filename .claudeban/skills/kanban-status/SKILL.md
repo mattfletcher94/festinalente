@@ -52,6 +52,7 @@ Show the current state of the board and suggest what command to run next. Helps 
    - `verify` → `/kanban:verify-pass-task {id}` or `/kanban:verify-fail-task {id}`
    - `review` → `/kanban:review-pass-task {id}` or `/kanban:review-fail-task {id}`
    - `update-docs` → `/kanban:update-docs-complete-task {id}`
+   - `awaiting-merge` → `/kanban:awaiting-merge-merge-task {id}` or `/kanban:awaiting-merge-fail-task {id}`
    - `done` → "Task complete. No action needed."
 
 6. **Format output**:
@@ -97,6 +98,12 @@ Show the current state of the board and suggest what command to run next. Helps 
    **Review ({count})**
    - {id}: {title}
 
+   **Update Docs ({count})**
+   - {id}: {title}
+
+   **Awaiting Merge ({count})**
+   - {id}: {title}
+
    **Planned ({count})**
    - {id}: {title}
 
@@ -120,6 +127,7 @@ Show the current state of the board and suggest what command to run next. Helps 
    - If tasks in `verify`: Suggest passing or failing verification
    - If tasks in `review`: Suggest passing or failing review
    - If tasks in `update-docs`: Suggest completing documentation
+   - If tasks in `awaiting-merge`: Suggest merging or rejecting the PR
    - If tasks in `planned` but none in progress: Suggest starting implementation
    - If only backlog/refined/scoped tasks: Suggest advancing the highest priority one
    - If no tasks: Suggest creating one

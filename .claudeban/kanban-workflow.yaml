@@ -27,9 +27,12 @@ columns:
   - id: update-docs
     name: Update Docs
     description: Review passed, code committed, documentation needs updating
+  - id: awaiting-merge
+    name: Awaiting Merge
+    description: PR created, awaiting merge to main
   - id: done
     name: Done
-    description: Docs committed, task complete
+    description: PR merged, task complete
 
 labels:
   - id: bug
@@ -69,7 +72,8 @@ transitions:
   in-progress: [verify]
   verify: [review, in-progress]  # verify-pass or verify-fail
   review: [update-docs, in-progress]  # review-pass or review-fail
-  update-docs: [done]
+  update-docs: [awaiting-merge]
+  awaiting-merge: [done, in-progress]  # merge or merge-fail
 
 commits:
   # Commit message formats by phase
@@ -82,6 +86,8 @@ commits:
   review-pass: "{commit-type}({id}): {title}"  # commit-type from label
   review-fail: "docs({id}): review-fail - {title}"
   update-docs: "docs({id}): product - {message}"
+  merge-fail: "docs({id}): merge-fail - {title}"
+  done: "docs({id}): done - {title}"
   # Product discovery commands (not part of task workflow)
   map-product: "docs: map-product - {features}"
   define-product: "docs: define-product - {description}"

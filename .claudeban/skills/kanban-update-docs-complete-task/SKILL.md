@@ -1,17 +1,17 @@
 ---
 name: kanban-update-docs-complete-task
-description: Update product documentation, commit, and move task to Done. Final step in the workflow.
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status), Grep
+description: Update product documentation, commit, create PR, and move task to Awaiting Merge.
+allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *, gh pr *), Grep
 ---
 
 # Update Kanban Task Documentation
 
-Update product documentation, commit the changes, and move task from **Update Docs** to **Done**.
+Update product documentation, commit the changes, create a pull request, and move task from **Update Docs** to **Awaiting Merge**.
 
 ## Column Transition
 
 ```
-update-docs → done
+update-docs → awaiting-merge
 ```
 
 See `.claudeban/kanban-workflow.yaml` for column definitions and valid transitions.
@@ -39,14 +39,22 @@ The description summarizes what documentation was updated (e.g., "add authentica
    - Note title, labels, description for documentation context
    - Error if task not found
 
-4. **Check for command skills**:
+4. **Verify on task branch**:
+   - Run `git branch --show-current`
+   - Expected branch: `task/{id}` (where {id} is the task ID from step 2/3)
+   - If not on expected branch:
+     - Error: "This command must be run on branch task/{id}. Current branch: {branch}"
+     - Suggest: "Switch to task branch with `git checkout task/{id}`"
+     - Exit
+
+5. **Check for command skills**:
    - Load `.kanban/config.yaml`
    - Find `commands."kanban:update-docs-complete-task".skills` array
    - If skills array is non-empty:
      - Read each skill file at the listed paths
      - Follow their instructions as mandatory guidance for this command
 
-5. **Analyze documentation needs**:
+6. **Analyze documentation needs**:
    - Check task labels:
      - `feature` -> likely needs feature docs
      - `breaking` -> MUST update changelog/migration docs
@@ -56,7 +64,7 @@ The description summarizes what documentation was updated (e.g., "add authentica
      - `bug` -> may need troubleshooting docs
    - Check task description for user-facing changes
 
-6. **Prompt for documentation updates**:
+7. **Prompt for documentation updates**:
    ```
    Task: {id} - {title}
    Labels: {labels}
@@ -67,7 +75,7 @@ The description summarizes what documentation was updated (e.g., "add authentica
    Update documentation? [Y/n]
    ```
 
-7. **If user confirms (Y)**:
+8. **If user confirms (Y)**:
    - Help identify which docs to update:
      - For `feature`: suggest feature documentation
      - For `api`: suggest API documentation
@@ -76,37 +84,62 @@ The description summarizes what documentation was updated (e.g., "add authentica
    - Make documentation changes
    - Generate commit message based on changes made
 
-8. **If user declines (n)**:
+9. **If user declines (n)**:
    - Log: "Documentation update skipped"
    - Ask for reason (optional)
    - Still proceed to move status
    - Use generic commit message: "docs({id}): product - no updates needed for {title}"
 
-9. **Commit documentation changes** (if any):
-   ```bash
-   git add {doc files}
-   git commit -m "docs({id}): product - {description of doc changes}"
-   ```
+10. **Commit documentation changes** (if any):
+    ```bash
+    git add {doc files}
+    git commit -m "docs({id}): product - {description of doc changes}"
+    ```
 
-10. **Move to Done**:
-   - Change `status: update-docs` to `status: done`
-   - Add `updated: {YYYY-MM-DD}`
-   - Add `completed: {YYYY-MM-DD}`
-   - Write updated task file
+11. **Create Pull Request**:
+    - Determine commit type from task labels (same logic as review-pass-task):
+      - `bug` → `fix`, `refactor` → `refactor`, `docs` → `docs`, default → `feat`
+    - Create PR:
+      ```bash
+      gh pr create --title "{type}({id}): {title}" --body "$(cat <<'EOF'
+      ## Summary
+      {Task description}
 
-11. **Confirm completion**:
+      ## Changes
+      - Functional spec: `.kanban/specs/{id}.spec.md`
+      - Implementation plan: `.kanban/plans/{id}.plan.md`
+      - Code changes: {list implementation files from review-pass commit}
+      - Product docs: {list doc files if updated}
+
+      ## Acceptance Criteria
+      {From task file}
+
+      ## Task Reference
+      Task: `.kanban/tasks/{id}-{slug}.md`
+      EOF
+      )"
+      ```
+    - Print PR URL
+
+12. **Move to Awaiting Merge**:
+    - Change `status: update-docs` to `status: awaiting-merge`
+    - Add `updated: {YYYY-MM-DD}`
+    - Write updated task file
+
+13. **Confirm completion**:
     - Print documentation status (updated/skipped)
     - Print commit hash (if docs were committed)
-    - Print: "Task {id} completed!"
-    - Congratulate user
+    - Print PR URL
+    - Print: "Task {id} ready for merge!"
+    - Print: "Review and merge the PR, then run /kanban:awaiting-merge-merge-task {id}"
 
 ## Validation
 
 All must pass. If any fail, fix and retry.
 
 - [ ] Task file exists at `.kanban/tasks/{id}-*.md`
-- [ ] Task frontmatter contains `status: done`
-- [ ] Task frontmatter contains `completed:` date
+- [ ] Task frontmatter contains `status: awaiting-merge`
+- [ ] PR exists for current branch (verify with `gh pr view`)
 
 ## Arguments
 
@@ -140,11 +173,16 @@ Staging documentation:
 
 Commit: h8i9j0k docs(001): product - add authentication guide
 
-Task 001 completed!
-- Status: done
-- Docs commit: h8i9j0k
+Creating Pull Request...
+PR: https://github.com/user/repo/pull/42
 
-Congratulations! Task complete.
+Task 001 ready for merge!
+- Status: awaiting-merge
+- Docs commit: h8i9j0k
+- PR: https://github.com/user/repo/pull/42
+
+Review and merge the PR, then run:
+/kanban:awaiting-merge-merge-task 001
 ```
 
 ## Example: Documentation Skipped
@@ -168,11 +206,15 @@ Reason (optional):
 
 Documentation skipped: Internal optimization
 
-Task 002 completed!
-- Status: done
-- No docs commit needed
+Creating Pull Request...
+PR: https://github.com/user/repo/pull/43
 
-Congratulations! Task complete.
+Task 002 ready for merge!
+- Status: awaiting-merge
+- PR: https://github.com/user/repo/pull/43
+
+Review and merge the PR, then run:
+/kanban:awaiting-merge-merge-task 002
 ```
 
 ## Git History Example
@@ -187,13 +229,21 @@ wip(001): completed auth routes                    # optional, if interrupted
 docs(001): verify-fail - Add user authentication   # optional, if verify failed
 docs(001): review-fail - Add user authentication   # optional, if review failed
 feat(001): Add user authentication                 # when review passes
-docs(001): product - add authentication guide      # final step
+docs(001): product - add authentication guide      # docs step
+# PR created and merged
+docs(001): done - Add user authentication          # after merge on main
 ```
 
 ## Next Steps
 
-Task complete! To start a new task:
+Merge the PR:
 ```
 /clear
-/kanban:define-task "Task title"
+/kanban:awaiting-merge-merge-task {id}
+```
+
+Or if the PR needs changes:
+```
+/clear
+/kanban:awaiting-merge-fail-task {id}
 ```

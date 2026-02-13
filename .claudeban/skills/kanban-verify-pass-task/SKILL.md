@@ -1,7 +1,7 @@
 ---
 name: kanban-verify-pass-task
 description: Move a verified task to human review. Used after all automated checks have passed.
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status)
+allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *)
 ---
 
 # Pass Verification
@@ -36,20 +36,28 @@ None.
      - If not, warn: "Task is in {status} status. Expected: verify. Continue anyway? (y/n)"
    - Error if task not found
 
-4. **Check for command skills**:
+4. **Verify on task branch**:
+   - Run `git branch --show-current`
+   - Expected branch: `task/{id}` (where {id} is the task ID from step 2/3)
+   - If not on expected branch:
+     - Error: "This command must be run on branch task/{id}. Current branch: {branch}"
+     - Suggest: "Switch to task branch with `git checkout task/{id}`"
+     - Exit
+
+5. **Check for command skills**:
    - Load `.kanban/config.yaml`
    - Find `commands."kanban:verify-pass-task".skills` array
    - If skills array is non-empty:
      - Read each skill file at the listed paths
      - Follow their instructions as mandatory guidance
 
-5. **Update task frontmatter**:
+6. **Update task frontmatter**:
    - Change `status: verify` to `status: review`
    - Update `updated: {YYYY-MM-DD}`
 
-6. **Write updated task file**
+7. **Write updated task file**
 
-7. **Confirm transition**:
+8. **Confirm transition**:
    - Print: "Task {id} moved to Review"
    - Print: "Awaiting human review. Run /kanban:review-pass-task {id} or /kanban:review-fail-task {id}"
 

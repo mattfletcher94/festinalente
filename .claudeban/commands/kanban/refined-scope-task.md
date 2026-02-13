@@ -1,7 +1,7 @@
 ---
 name: refined-scope-task
 description: Add functional specification with codebase research and technical approach
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status), Glob, Grep
+allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *, git checkout *), Glob, Grep
 argument-hint: "[task id]"
 ---
 
@@ -9,15 +9,18 @@ argument-hint: "[task id]"
 
 Research codebase and create functional specification for a refined task.
 
+**Branch requirement:** Must be run on `main` branch. Creates `task/{id}` branch.
+
 ## Usage
 
 `/kanban:refined-scope-task [task-id]`
 
 ## Workflow
 
-1. Invoke the **kanban-refined-scope-task** skill
-2. Pass `$ARGUMENTS` as the task ID (if provided)
-3. Skill handles codebase research, functional spec creation, and commit
+1. Verify on `main` branch (error if not)
+2. Invoke the **kanban-refined-scope-task** skill
+3. Pass `$ARGUMENTS` as the task ID (if provided)
+4. Skill creates `task/{id}` branch, handles codebase research, functional spec creation, and commit
 
 ## Commit
 

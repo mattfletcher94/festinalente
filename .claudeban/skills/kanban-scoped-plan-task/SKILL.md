@@ -1,7 +1,7 @@
 ---
 name: kanban-scoped-plan-task
 description: Create a plan document for a scoped task. Transforms functional specification into executable implementation checkboxes.
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status)
+allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *)
 ---
 
 # Plan Kanban Task
@@ -37,7 +37,15 @@ Uses `commits.plan` format from `.claudeban/kanban-workflow.yaml`.
    - Get `spec` path from frontmatter
    - Error if task not found
 
-4. **Read functional specification**:
+4. **Verify on task branch**:
+   - Run `git branch --show-current`
+   - Expected branch: `task/{id}` (where {id} is the task ID from step 2/3)
+   - If not on expected branch:
+     - Error: "This command must be run on branch task/{id}. Current branch: {branch}"
+     - Suggest: "Switch to task branch with `git checkout task/{id}`"
+     - Exit
+
+5. **Read functional specification**:
    - Read spec file at `.kanban/specs/{id}.spec.md`
    - If spec not found, BLOCK planning with message:
      ```
@@ -46,18 +54,18 @@ Uses `commits.plan` format from `.claudeban/kanban-workflow.yaml`.
      ```
    - Extract functional requirements, affected files, and existing patterns
 
-5. **Check for existing plan**:
+6. **Check for existing plan**:
    - Check if `.kanban/plans/{id}.plan.md` exists
    - If exists, ask if user wants to overwrite or view existing
 
-6. **Check for command skills**:
+7. **Check for command skills**:
    - Load `.kanban/config.yaml`
    - Find `commands."kanban:scoped-plan-task".skills` array
    - If skills array is non-empty:
      - Read each skill file at the listed paths
      - Follow their instructions as mandatory guidance
 
-7. **Create plan file** at `.kanban/plans/{id}.plan.md`:
+8. **Create plan file** at `.kanban/plans/{id}.plan.md`:
    - Follow template at `.claudeban/kanban-templates/plan.md`
    - Link to spec in frontmatter
    - Create implementation steps based on spec
@@ -105,22 +113,22 @@ Uses `commits.plan` format from `.claudeban/kanban-workflow.yaml`.
    - Order steps logically (dependencies first)
    - Don't mix refactoring with feature work
 
-8. **Update task file**:
+9. **Update task file**:
    - Change `status: scoped` to `status: planned`
    - Add `plan: "plans/{id}.plan.md"` to frontmatter
    - Add `updated: {YYYY-MM-DD}`
 
-9. **Write updated files**:
-   - Write plan file
-   - Write task file
+10. **Write updated files**:
+    - Write plan file
+    - Write task file
 
-10. **Commit the plan and task update**:
-   ```bash
-   git add .kanban/plans/{id}.plan.md .kanban/tasks/{id}-*.md
-   git commit -m "docs({id}): plan - {title}"
-   ```
+11. **Commit the plan and task update**:
+    ```bash
+    git add .kanban/plans/{id}.plan.md .kanban/tasks/{id}-*.md
+    git commit -m "docs({id}): plan - {title}"
+    ```
 
-11. **Confirm**:
+12. **Confirm**:
     - Print: "Task {id} moved to Planned"
     - Print plan file path
     - Print number of implementation steps created

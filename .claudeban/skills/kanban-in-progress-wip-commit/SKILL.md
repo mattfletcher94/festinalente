@@ -1,7 +1,7 @@
 ---
 name: kanban-in-progress-wip-commit
 description: Save partial implementation progress with WIP commit. Use when implementation is interrupted and you need to save work.
-allowed-tools: Read, Write, Edit, Bash(ls *, git add *, git commit *, git status, git diff *)
+allowed-tools: Read, Write, Edit, Bash(ls *, git add *, git commit *, git status, git diff *, git branch *)
 ---
 
 # WIP Commit Kanban Task
@@ -37,33 +37,41 @@ Uses `commits.wip` format from `.claudeban/kanban-workflow.yaml`.
      - Exit
    - Error if task not found
 
-4. **Find and read plan file**:
+4. **Verify on task branch**:
+   - Run `git branch --show-current`
+   - Expected branch: `task/{id}` (where {id} is the task ID from step 2/3)
+   - If not on expected branch:
+     - Error: "This command must be run on branch task/{id}. Current branch: {branch}"
+     - Suggest: "Switch to task branch with `git checkout task/{id}`"
+     - Exit
+
+5. **Find and read plan file**:
    - Check for `.kanban/plans/{id}.plan.md`
    - If plan found: Read plan content
    - If NO plan found:
      - Warn: "No plan found for task {id}"
      - Still proceed with WIP commit (code can still be committed)
 
-5. **Check for command skills**:
+6. **Check for command skills**:
    - Load `.kanban/config.yaml`
    - Find `commands."kanban:in-progress-wip-commit".skills` array
    - If skills array is non-empty:
      - Read each skill file at the listed paths
      - Follow their instructions as mandatory guidance for this command
 
-6. **Verify plan checkboxes match reality**:
+7. **Verify plan checkboxes match reality**:
    - If plan exists:
      - Parse all checkboxes in the plan
      - For each implementation step, verify if the work was actually done
      - Update any checkboxes that should be checked but aren't
      - Report any discrepancies found
 
-7. **Generate progress summary**:
+8. **Generate progress summary**:
    - Count completed vs total checkboxes
    - Identify which steps were completed
    - Create a brief summary (e.g., "completed auth routes and middleware")
 
-8. **Add WIP notes to plan**:
+9. **Add WIP notes to plan**:
    - If plan exists, add or update `## WIP Notes` section:
      - Follow template at `.claudeban/kanban-templates/plan.md`
      ```markdown
@@ -77,26 +85,26 @@ Uses `commits.wip` format from `.claudeban/kanban-workflow.yaml`.
      - Context: {any relevant context for resuming}
      ```
 
-9. **Check for uncommitted changes**:
-   - Run `git status` to find modified/new files
-   - Run `git diff --name-only` to list changed files
-   - If no changes found:
-     - Warn: "No uncommitted changes to commit"
-     - Still update plan if checkboxes changed
-     - Exit early if nothing to commit
+10. **Check for uncommitted changes**:
+    - Run `git status` to find modified/new files
+    - Run `git diff --name-only` to list changed files
+    - If no changes found:
+      - Warn: "No uncommitted changes to commit"
+      - Still update plan if checkboxes changed
+      - Exit early if nothing to commit
 
-10. **Stage and commit**:
-   - Stage all relevant files (code + plan):
-     ```bash
-     git add {changed files}
-     git add .kanban/plans/{id}.plan.md  # if exists
-     ```
-   - Commit with WIP message:
-     ```bash
-     git commit -m "wip({id}): {progress summary}"
-     ```
+11. **Stage and commit**:
+    - Stage all relevant files (code + plan):
+      ```bash
+      git add {changed files}
+      git add .kanban/plans/{id}.plan.md  # if exists
+      ```
+    - Commit with WIP message:
+      ```bash
+      git commit -m "wip({id}): {progress summary}"
+      ```
 
-11. **Confirm WIP commit**:
+12. **Confirm WIP commit**:
     - Print commit hash
     - Print progress: "{completed}/{total} plan items complete"
     - Print continuation hint

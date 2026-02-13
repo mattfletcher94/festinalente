@@ -1,7 +1,7 @@
 ---
 name: kanban-review-fail-task
 description: Document review issues, commit notes, and return task to In Progress. Use when code review finds issues.
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status)
+allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *)
 ---
 
 # Review Fail Kanban Task
@@ -37,24 +37,32 @@ Uses `commits.review-fail` format from `.claudeban/kanban-workflow.yaml`.
    - Note current title and acceptance criteria
    - Error if task not found
 
-4. **Find and read plan file**:
+4. **Verify on task branch**:
+   - Run `git branch --show-current`
+   - Expected branch: `task/{id}` (where {id} is the task ID from step 2/3)
+   - If not on expected branch:
+     - Error: "This command must be run on branch task/{id}. Current branch: {branch}"
+     - Suggest: "Switch to task branch with `git checkout task/{id}`"
+     - Exit
+
+5. **Find and read plan file**:
    - Check for `.kanban/plans/{id}.plan.md`
    - If plan found: Read plan content
    - Plan will be updated with bug fixes needed
 
-5. **Check for command skills**:
+6. **Check for command skills**:
    - Load `.kanban/config.yaml`
    - Find `commands."kanban:review-fail-task".skills` array
    - If skills array is non-empty:
      - Read each skill file at the listed paths
      - Follow their instructions as mandatory guidance for this command
 
-6. **Prompt for issues**:
+7. **Prompt for issues**:
    - Ask user: "What issues were found during review?"
    - Collect detailed description of problems
    - Parse into individual issues if multiple provided
 
-7. **Update plan file with iteration** (following template at `.claudeban/kanban-templates/plan.md`):
+8. **Update plan file with iteration** (following template at `.claudeban/kanban-templates/plan.md`):
    - Increment `iteration` in frontmatter
    - Add to `## Iterations` section (create if doesn't exist):
      ```markdown
@@ -74,19 +82,19 @@ Uses `commits.review-fail` format from `.claudeban/kanban-workflow.yaml`.
      ---
      ```
 
-8. **Move to In Progress**:
+9. **Move to In Progress**:
    - Change `status: review` to `status: in-progress`
    - Add `updated: {YYYY-MM-DD}`
    - Write updated task file
 
-9. **Commit the review notes**:
-   ```bash
-   git add .kanban/tasks/{id}-*.md
-   git add .kanban/plans/{id}.plan.md  # if exists
-   git commit -m "docs({id}): review-fail - {title}"
-   ```
+10. **Commit the review notes**:
+    ```bash
+    git add .kanban/tasks/{id}-*.md
+    git add .kanban/plans/{id}.plan.md  # if exists
+    git commit -m "docs({id}): review-fail - {title}"
+    ```
 
-10. **Confirm**:
+11. **Confirm**:
     - Print commit hash
     - Print: "Review failed. Task {id} moved back to In Progress"
     - Print iteration number

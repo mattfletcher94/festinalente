@@ -1,7 +1,7 @@
 ---
 name: kanban-refined-scope-task
 description: Research codebase and create functional specification for a refined task. Focuses on engineering analysis - HOW to build it technically.
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status), Glob, Grep
+allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *, git checkout *), Glob, Grep
 ---
 
 # Scope Kanban Task
@@ -24,12 +24,19 @@ Uses `commits.scope` format from `.claudeban/kanban-workflow.yaml`.
 
 1. **Load workflow schema**: Read `.claudeban/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
 
-2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
+2. **Verify on main branch**:
+   - Run `git branch --show-current`
+   - If not on `main` (or `master`):
+     - Error: "This command must be run on the main branch to create the task branch. Current branch: {branch}"
+     - Suggest: "Switch to main with `git checkout main`"
+     - Exit
+
+3. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `refined` status from `.kanban/tasks/`
    - Show task IDs and titles
    - Ask user which task to scope
 
-3. **Read task file**:
+4. **Read task file**:
    - Find file matching `.kanban/tasks/{id}-*.md`
    - Parse YAML frontmatter
    - Verify status is `refined`:
@@ -37,14 +44,14 @@ Uses `commits.scope` format from `.claudeban/kanban-workflow.yaml`.
    - Extract problem, value, and acceptance criteria for reference
    - Error if task not found
 
-4. **Check for command skills**:
+5. **Check for command skills**:
    - Load `.kanban/config.yaml`
    - Find `commands."kanban:refined-scope-task".skills` array
    - If skills array is non-empty:
      - Read each skill file at the listed paths
      - Follow their instructions as mandatory guidance
 
-5. **Actively search codebase for patterns**:
+6. **Actively search codebase for patterns**:
    Based on task description and acceptance criteria:
    - Use Glob to find potentially affected files
    - Use Grep to search for relevant patterns, functions, or components
@@ -57,7 +64,7 @@ Uses `commits.scope` format from `.claudeban/kanban-workflow.yaml`.
    - Search for related types/interfaces: "What types are involved?"
    - Search for integration points: "What connects to this?"
 
-6. **Create functional specification file** at `.kanban/specs/{id}.spec.md`:
+7. **Create functional specification file** at `.kanban/specs/{id}.spec.md`:
    - Follow template at `.claudeban/kanban-templates/spec.md`
    - Fill ALL sections:
 
@@ -111,22 +118,26 @@ Uses `commits.scope` format from `.claudeban/kanban-workflow.yaml`.
    - [ ] {Unresolved items}
    ```
 
-7. **Update task frontmatter**:
+8. **Update task frontmatter**:
    - Change `status: refined` to `status: scoped`
    - Add `spec: "specs/{id}.spec.md"` to frontmatter
    - Update `updated: {YYYY-MM-DD}`
 
-8. **Write both files**:
+9. **Write both files**:
    - Write spec file at `.kanban/specs/{id}.spec.md`
    - Write updated task file
 
-9. **Commit the scoping**:
-   ```bash
-   git add .kanban/specs/{id}.spec.md .kanban/tasks/{id}-*.md
-   git commit -m "docs({id}): scope - {title}"
-   ```
+10. **Create and switch to task branch**:
+    - Run `git checkout -b task/{id}`
+    - Confirm: "Created branch task/{id}"
 
-10. **Confirm scoping complete**:
+11. **Commit the scoping**:
+    ```bash
+    git add .kanban/specs/{id}.spec.md .kanban/tasks/{id}-*.md
+    git commit -m "docs({id}): scope - {title}"
+    ```
+
+12. **Confirm scoping complete**:
    - Print summary of affected files identified
    - Print existing patterns found
    - Print any open questions
@@ -144,6 +155,7 @@ All must pass. If any fail, fix and retry.
 - [ ] Spec file contains `## Affected Files` section
 - [ ] Spec file contains `## Existing Patterns` section
 - [ ] Git log shows `docs({id}): scope -`
+- [ ] Current branch is `task/{id}` after completion
 
 ## Arguments
 
