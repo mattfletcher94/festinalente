@@ -145,7 +145,7 @@ That's it. Your git history now tells the story of your task.
 
 ## Complete Workflow Example
 
-Here's a full task lifecycle from start to finish:
+Here's a full task lifecycle from start to finish. Run `/clear` before each command to reset context:
 
 ```bash
 # 0. Initialize (first time only)
@@ -153,18 +153,22 @@ Here's a full task lifecycle from start to finish:
 # → Creates .kanban/ directory structure
 
 # 0b. Document your product (recommended, first time only)
+/clear
 /kanban:map-product    # For existing codebases
 # OR
+/clear
 /kanban:define-product # For new projects
 # → Creates product docs in .kanban/product/
 # → Gives AI context for future task work
 
 # 1. Create task
+/clear
 /kanban:define-task "Add dark mode support"
 # → Creates .kanban/tasks/001-add-dark-mode-support.md
 # → Commits: docs(001): define - Add dark mode support
 
 # 2. Refine (Socratic Q&A)
+/clear
 /kanban:backlog-refine-task 001
 # → AI asks: "What problem are you trying to solve?"
 # → AI asks: "What value would it provide?"
@@ -173,6 +177,7 @@ Here's a full task lifecycle from start to finish:
 # → Commits: docs(001): refine - Add dark mode support
 
 # 3. Scope (research and spec)
+/clear
 /kanban:refined-scope-task 001
 # → AI searches codebase for existing patterns
 # → Creates .kanban/specs/001.spec.md with:
@@ -182,42 +187,50 @@ Here's a full task lifecycle from start to finish:
 # → Commits: docs(001): scope - Add dark mode support
 
 # 4. Plan (implementation steps)
+/clear
 /kanban:scoped-plan-task 001
 # → Creates .kanban/plans/001.plan.md with checkboxes
 # → Commits: docs(001): plan - Add dark mode support
 
 # 5. Implement
+/clear
 /kanban:planned-implement-task 001
 # → AI executes each checkbox in the plan
 # → Writes actual code
 # → NO COMMIT - code stays uncommitted for review
 
 # 5b. (Optional) Save progress if interrupted
+/clear
 /kanban:in-progress-wip-commit 001
 # → Commits: wip(001): completed theme context and toggle
 
 # 6. Verify
+/clear
 /kanban:in-progress-verify-task 001
 # → Runs your configured checks (tests, typecheck, lint)
 # → If pass: moves to Verify column
 # → If fail: stays in In Progress, commits failure notes
 
 # 7. Pass verification
+/clear
 /kanban:verify-pass-task 001
 # → Moves to Review column for human approval
 
 # 8a. Review passes
+/clear
 /kanban:review-pass-task 001
 # → Commits code: feat(001): Add dark mode support
 # → Moves to Update Docs
 
 # 8b. Review fails (alternative)
+/clear
 /kanban:review-fail-task 001
 # → Documents issues in plan
 # → Returns to In Progress for fixes
 # → Commits: docs(001): review-fail - Add dark mode support
 
 # 9. Complete
+/clear
 /kanban:update-docs-complete-task 001
 # → Updates product documentation
 # → Commits: docs(001): product - add dark mode guide
