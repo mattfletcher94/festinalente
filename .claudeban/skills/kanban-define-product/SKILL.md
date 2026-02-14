@@ -153,5 +153,5 @@ How should Task Tracking work from the user's perspective?
 
 ```
 /clear
-/kanban:define-task "Your task title"
+/kanban:create "Your task title"
 ```

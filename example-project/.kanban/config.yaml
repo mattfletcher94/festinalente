@@ -1,42 +1,44 @@
 # Kanban Config Schema
 # ---------------------
-# This file has exactly THREE top-level keys: name, commands, settings
-# DO NOT add any other top-level keys (no 'verification', 'hooks', 'checks', etc.)
+# This file has exactly THREE top-level keys: name, user-skills, settings
+# DO NOT add any other top-level keys (no 'verification', 'hooks', 'checks', 'commands', etc.)
 # The schema is fixed - only modify values within the existing structure.
+#
+# User Skills Resolution:
+# Each skill name in the skills array resolves to .claude/skills/{name}/SKILL.md
+# Example: "coding-standards" -> .claude/skills/coding-standards/SKILL.md
 
 name: My Project
 
-commands:
+user-skills:
   "kanban:init":
     skills: []
   "kanban:status":
     skills: []
-  "kanban:define-task":
+  "kanban:create":
     skills: []
-  "kanban:backlog-refine-task":
+  "kanban:refine":
     skills: []
-  "kanban:refined-scope-task":
+  "kanban:scope":
     skills: []
-  "kanban:scoped-plan-task":
+  "kanban:plan":
     skills: []
-  "kanban:planned-implement-task":
+  "kanban:implement":
     skills: []
-  "kanban:in-progress-wip-commit":
+  "kanban:save":
     skills: []
-  "kanban:in-progress-verify-task":
+  "kanban:verify":
     skills:
-      - .kanban/skills/check-typescript.md
-      - .kanban/skills/check-tests.md
-      - .kanban/skills/check-lint.md
-  "kanban:verify-pass-task":
+      - check-typescript    # Reads .claude/skills/check-typescript/SKILL.md
+      - check-tests         # Reads .claude/skills/check-tests/SKILL.md
+      - check-lint          # Reads .claude/skills/check-lint/SKILL.md
+  "kanban:approve":
     skills: []
-  "kanban:verify-fail-task":
+  "kanban:docs":
     skills: []
-  "kanban:review-pass-task":
+  "kanban:merge":
     skills: []
-  "kanban:review-fail-task":
-    skills: []
-  "kanban:update-docs-complete-task":
+  "kanban:rework":
     skills: []
   "kanban:map-product":
     skills: []

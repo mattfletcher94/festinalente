@@ -66,7 +66,7 @@ Both create docs in `.kanban/product/` that help the AI understand your project.
 Tasks flow through these columns:
 
 ```
-Backlog → Refined → Scoped → Planned → In Progress → Verify → Review → Update Docs → Awaiting Merge → Done
+Backlog → Refined → Scoped → Planned → In Progress → Checks → QA → Update Docs → PR → Done
 ```
 
 ### Branch Strategy
@@ -74,15 +74,15 @@ Backlog → Refined → Scoped → Planned → In Progress → Verify → Review
 Claude Kanban uses branch isolation to keep your main branch clean:
 
 ```
-main branch:     [define] → [refine] → [scope creates branch]
+main branch:     [create] → [refine] → [scope creates branch]
                                               ↓
-task/001 branch:                    [plan] → [implement] → [verify] → [review] → [docs] → [PR]
-                                                                                            ↓
-main branch:                                                                    [merge] ← [PR merged]
+task/001 branch:                    [plan] → [implement] → [verify] → [QA] → [docs] → [PR]
+                                                                                        ↓
+main branch:                                                                [merge] ← [PR merged]
 ```
 
 **Key points:**
-- Early work (define, refine) happens on `main`
+- Early work (create, refine) happens on `main`
 - Scoping creates a `task/{id}` branch automatically
 - All implementation work happens on the task branch
 - A PR is created when docs are complete
@@ -94,7 +94,7 @@ Always run `/clear` before each kanban command. This resets the AI's context so 
 
 ```bash
 /clear
-/kanban:backlog-refine-task 001
+/kanban:refine 001
 ```
 
 ---
@@ -106,7 +106,7 @@ Always run `/clear` before each kanban command. This resets the AI's context so 
 **Branch:** `main`
 
 ```bash
-/kanban:define-task "Add password reset functionality"
+/kanban:create "Add password reset functionality"
 ```
 
 **What happens:**
@@ -121,9 +121,9 @@ Task 001 created in Backlog
 - Labels: [feature]
 - File: .kanban/tasks/001-add-password-reset-functionality.md
 
-Commit: docs(001): define - Add password reset functionality
+Commit: docs(001): create - Add password reset functionality
 
-Next: /kanban:backlog-refine-task 001
+Next: /kanban:refine 001
 ```
 
 ---
@@ -134,7 +134,7 @@ Next: /kanban:backlog-refine-task 001
 
 ```bash
 /clear
-/kanban:backlog-refine-task 001
+/kanban:refine 001
 ```
 
 **What happens:**
@@ -171,7 +171,7 @@ Commit: docs(001): refine - Add password reset functionality
 
 ```bash
 /clear
-/kanban:refined-scope-task 001
+/kanban:scope 001
 ```
 
 **What happens:**
@@ -206,7 +206,7 @@ Commit: docs(001): scope - Add password reset functionality
 
 ```bash
 /clear
-/kanban:scoped-plan-task 001
+/kanban:plan 001
 ```
 
 **What happens:**
@@ -237,7 +237,7 @@ Commit: docs(001): plan - Add password reset functionality
 
 ```bash
 /clear
-/kanban:planned-implement-task 001
+/kanban:implement 001
 ```
 
 **What happens:**
@@ -250,33 +250,33 @@ Commit: docs(001): plan - Add password reset functionality
 ```
 [1/5] Create password reset token model (FR1)
   Creating src/models/resetToken.ts...
-  Done ✓
+  Done
 
 [2/5] Add /forgot-password endpoint (FR2)
   Creating src/routes/forgot-password.ts...
-  Done ✓
+  Done
 
 [3/5] Add /reset-password endpoint (FR3)
   Creating src/routes/reset-password.ts...
-  Done ✓
+  Done
 
 [4/5] Create email template (FR4)
   Creating src/templates/password-reset.html...
-  Done ✓
+  Done
 
 [5/5] Write tests (FR5)
   Creating src/__tests__/password-reset.test.ts...
-  Done ✓
+  Done
 
 Implementation complete!
 Files modified: 6 (uncommitted)
 
-Next: /kanban:in-progress-verify-task 001
+Next: /kanban:verify 001
 ```
 
 **Save progress if interrupted:**
 ```bash
-/kanban:in-progress-wip-commit 001
+/kanban:save 001
 ```
 This commits your work-in-progress so you don't lose it.
 
@@ -288,60 +288,55 @@ This commits your work-in-progress so you don't lose it.
 
 ```bash
 /clear
-/kanban:in-progress-verify-task 001
+/kanban:verify 001
 ```
 
 **What happens:**
 - Runs your configured verification checks (tests, typecheck, lint)
-- Stops on first failure
-- On success: moves to Verify column
-- On failure: records error, stays in In Progress
+- If checks fail: AI automatically fixes issues and retries (max 3 attempts)
+- On success: Auto-advances to QA column
 
 **Example output (success):**
 ```
-Running check: TypeScript... PASS ✓
-Running check: Tests... PASS ✓
-Running check: Lint... PASS ✓
+Running check: TypeScript... PASS
+Running check: Tests... PASS
+Running check: Lint... PASS
 
 All checks passed!
-Task 001 moved to Verify
+Moving to QA...
 
-Next: /kanban:verify-pass-task 001
+Task 001 moved to QA
+
+Next: /kanban:approve 001
+```
+
+**Example output (auto-retry):**
+```
+Attempt 1:
+Running check: Tests... FAIL
+
+Error: Expected token to be defined
+
+Attempting to fix...
+Fixed: Added session token assignment
+
+Attempt 2:
+Running check: Tests... PASS
+Running check: Lint... PASS
+
+All checks passed!
+Task 001 moved to QA
 ```
 
 ---
 
-### Step 7: Pass Verification
+### Step 7: Approve After Human QA
 
 **Branch:** `task/001`
 
 ```bash
 /clear
-/kanban:verify-pass-task 001
-```
-
-**What happens:**
-- Moves task to Review for human approval
-- No commit (just status change)
-
-**Example output:**
-```
-Task 001 moved to Review
-
-Awaiting human review.
-- To approve: /kanban:review-pass-task 001
-- To reject: /kanban:review-fail-task 001
-```
-
----
-
-### Step 8: Pass Review
-
-**Branch:** `task/001`
-
-```bash
-/clear
-/kanban:review-pass-task 001
+/kanban:approve 001
 ```
 
 **What happens:**
@@ -351,7 +346,7 @@ Awaiting human review.
 
 **Example output:**
 ```
-Have you reviewed the implementation? [Y/n]
+Have you tested the application? [Y/n]
 > Y
 
 Staging files:
@@ -368,21 +363,21 @@ Task 001 moved to Update Docs
 
 ---
 
-### Step 9: Update Docs & Create PR
+### Step 8: Update Docs
 
 **Branch:** `task/001`
 
 ```bash
 /clear
-/kanban:update-docs-complete-task 001
+/kanban:docs 001
 ```
 
 **What happens:**
 - Prompts for documentation updates
 - Updates product docs if needed
 - Commits documentation changes
-- **Creates a Pull Request to main**
-- Moves to Awaiting Merge
+- Pushes branch to remote
+- Moves to PR
 
 **Example output:**
 ```
@@ -396,22 +391,24 @@ Updating .kanban/product/authentication.md...
 
 Commit: docs(001): product - add password reset documentation
 
-Creating Pull Request...
-PR: https://github.com/user/repo/pull/42
+Pushing branch...
+Branch pushed to remote.
 
-Task 001 ready for merge!
-- Status: awaiting-merge
+Task 001 moved to PR.
+
+Create PR on GitHub, then run:
+/kanban:merge 001
 ```
 
 ---
 
-### Step 10: Merge the PR
+### Step 9: Merge the PR
 
 **Branch:** `task/001` → returns to `main`
 
 ```bash
 /clear
-/kanban:awaiting-merge-merge-task 001
+/kanban:merge 001
 ```
 
 **What happens:**
@@ -444,45 +441,32 @@ Congratulations! Task complete.
 
 ## Handling Failures
 
-### Verification Fails
+### Verify Auto-Retries
 
-If tests, typecheck, or lint fail during verification:
+If tests, typecheck, or lint fail during verification, the AI automatically:
+1. Analyzes the error
+2. Attempts to fix the issue
+3. Retries the checks (max 3 attempts)
 
+If all 3 attempts fail, you'll need to fix manually and re-run:
 ```bash
-# Failure is recorded, task stays in In Progress
-# Fix the issues, then re-verify:
 /clear
-/kanban:in-progress-verify-task 001
+/kanban:verify 001
 ```
 
-### Review Fails
+### QA or PR Rejected
 
-If the human reviewer finds issues:
+If human QA or PR review finds issues:
 
 ```bash
 /clear
-/kanban:review-fail-task 001
+/kanban:rework 001
 ```
 
 This:
 - Documents the issues in the plan
 - Returns task to In Progress
-- You fix the issues and go through verify/review again
-
-### PR Rejected
-
-If the PR needs changes before merging:
-
-```bash
-/clear
-/kanban:awaiting-merge-fail-task 001
-```
-
-This:
-- Closes the PR
-- Documents the feedback
-- Returns task to In Progress
-- You fix issues, then go through verify/review/docs again
+- You fix the issues and go through verify/QA again
 
 ---
 
@@ -514,7 +498,7 @@ If you stopped mid-implementation:
 
 ```bash
 /clear
-/kanban:planned-implement-task 001
+/kanban:implement 001
 ```
 
 The AI picks up where it left off (checkboxes track progress).
@@ -538,7 +522,7 @@ Run `/clear` before each kanban command. This resets context and prevents confus
 
 ```bash
 /clear
-/kanban:refined-scope-task 001
+/kanban:scope 001
 ```
 
 ### 2. One Task at a Time
@@ -550,7 +534,7 @@ Focus on completing one task before starting another. The branch strategy assume
 If you need to stop mid-implementation:
 
 ```bash
-/kanban:in-progress-wip-commit 001
+/kanban:save 001
 ```
 
 This saves your progress with notes on where to resume.
@@ -560,17 +544,17 @@ This saves your progress with notes on where to resume.
 Add your checks to `.kanban/config.yaml`:
 
 ```yaml
-commands:
-  "kanban:in-progress-verify-task":
+user-skills:
+  "kanban:verify":
     skills:
-      - .kanban/skills/check-typescript.md
-      - .kanban/skills/check-tests.md
-      - .kanban/skills/check-lint.md
+      - check-typescript    # Reads .claude/skills/check-typescript/SKILL.md
+      - check-tests         # Reads .claude/skills/check-tests/SKILL.md
+      - check-lint          # Reads .claude/skills/check-lint/SKILL.md
 ```
 
 ### 5. Use Labels for Commit Types
 
-Labels determine the commit type when review passes:
+Labels determine the commit type when QA passes:
 
 | Label | Commit |
 |-------|--------|
@@ -594,7 +578,7 @@ feat(001): Add password reset functionality
 docs(001): plan - Add password reset functionality
 docs(001): scope - Add password reset functionality
 docs(001): refine - Add password reset functionality
-docs(001): define - Add password reset functionality
+docs(001): create - Add password reset functionality
 ```
 
 ---
@@ -603,16 +587,16 @@ docs(001): define - Add password reset functionality
 
 | Step | Command | Branch |
 |------|---------|--------|
-| Create | `/kanban:define-task "title"` | main |
-| Refine | `/kanban:backlog-refine-task 001` | main |
-| Scope | `/kanban:refined-scope-task 001` | main → task/001 |
-| Plan | `/kanban:scoped-plan-task 001` | task/001 |
-| Implement | `/kanban:planned-implement-task 001` | task/001 |
-| Verify | `/kanban:in-progress-verify-task 001` | task/001 |
-| Pass Verify | `/kanban:verify-pass-task 001` | task/001 |
-| Pass Review | `/kanban:review-pass-task 001` | task/001 |
-| Docs + PR | `/kanban:update-docs-complete-task 001` | task/001 |
-| Merge | `/kanban:awaiting-merge-merge-task 001` | task/001 → main |
+| Create | `/kanban:create "title"` | main |
+| Refine | `/kanban:refine 001` | main |
+| Scope | `/kanban:scope 001` | main → task/001 |
+| Plan | `/kanban:plan 001` | task/001 |
+| Implement | `/kanban:implement 001` | task/001 |
+| Verify | `/kanban:verify 001` | task/001 |
+| Approve | `/kanban:approve 001` | task/001 |
+| Docs | `/kanban:docs 001` | task/001 |
+| Merge | `/kanban:merge 001` | task/001 → main |
+| Rework | `/kanban:rework 001` | task/001 |
 
 ---
 
@@ -622,7 +606,7 @@ You now know the complete workflow. Start with:
 
 ```bash
 /kanban:init
-/kanban:define-task "Your first task"
+/kanban:create "Your first task"
 ```
 
 And follow the flow from there. Each command tells you what to run next.

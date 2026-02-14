@@ -1,10 +1,14 @@
 ---
 name: view
 description: Visualize the Kanban board in the terminal with box-drawing characters
+skill: .claudeban/skills/kanban-view/SKILL.md
 allowed-tools: Read, Glob, Grep
 ---
 
 # Kanban Board View
+
+> **Skill Reference:** This command invokes `.claudeban/skills/kanban-view/SKILL.md`
+> You MUST read and follow the instructions in that skill file.
 
 Display the Kanban board as a visual terminal output with box-drawing characters.
 

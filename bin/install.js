@@ -67,7 +67,9 @@ function logError(message) {
 
 // Check if a path belongs to kanban (safety check)
 function isKanbanPath(relativePath) {
-  return KANBAN_PATHS.some(prefix => relativePath.startsWith(prefix));
+  // Normalize path separators for cross-platform compatibility
+  const normalized = relativePath.replace(/\\/g, '/');
+  return KANBAN_PATHS.some(prefix => normalized.startsWith(prefix));
 }
 
 // Get file hash for change detection
@@ -104,12 +106,18 @@ function getAllFiles(dirPath, arrayOfFiles = [], basePath = dirPath) {
 function cleanupOrphanedFiles(targetDir, existingManifest, newFiles) {
   const removed = [];
 
+  // Normalize new files for comparison
+  const normalizedNewFiles = newFiles.map(f => f.replace(/\\/g, '/'));
+
   for (const relativePath of Object.keys(existingManifest)) {
     // Skip metadata keys
     if (relativePath.startsWith('_')) continue;
 
+    // Normalize for comparison
+    const normalized = relativePath.replace(/\\/g, '/');
+
     // Skip if file is in the new version
-    if (newFiles.includes(relativePath)) continue;
+    if (normalizedNewFiles.includes(normalized)) continue;
 
     // Safety check: only remove kanban files
     if (!isKanbanPath(relativePath)) {
@@ -195,6 +203,14 @@ function copyDir(src, dest, manifest = {}, existingManifest = {}, backupDir = nu
     fs.copyFileSync(srcFile, destFile);
     manifest[relativePath] = srcHash;
     stats.copied++;
+
+    // Show what was copied
+    const normalized = relativePath.replace(/\\/g, '/');
+    if (destHash && destHash !== srcHash) {
+      logSuccess(`Updated: ${normalized}`);
+    } else if (!destHash) {
+      logSuccess(`Added: ${normalized}`);
+    }
   }
 
   return stats;

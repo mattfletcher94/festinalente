@@ -21,7 +21,7 @@ Show the current state of the board and suggest what command to run next. Helps 
    - Title, status, labels, priority
    - Created/updated dates
 
-3. **If task has a plan** (status is `planned`, `in-progress`, `verify`, or `review`):
+3. **If task has a plan** (status is `planned`, `in-progress`, `checks`, or `qa`):
    - Read `.kanban/plans/{id}-{slug}.plan.md`
    - Count checkboxes: total, completed, remaining
    - Check for WIP Notes section
@@ -44,15 +44,15 @@ Show the current state of the board and suggest what command to run next. Helps 
    ```
 
 5. **Suggest next command** based on status:
-   - `backlog` → `/kanban:backlog-refine-task {id}`
-   - `refined` → `/kanban:refined-scope-task {id}`
-   - `scoped` → `/kanban:scoped-plan-task {id}`
-   - `planned` → `/kanban:planned-implement-task {id}`
-   - `in-progress` → `/kanban:planned-implement-task {id}` (to resume) or `/kanban:in-progress-verify-task {id}` (if all checkboxes done)
-   - `verify` → `/kanban:verify-pass-task {id}` or `/kanban:verify-fail-task {id}`
-   - `review` → `/kanban:review-pass-task {id}` or `/kanban:review-fail-task {id}`
-   - `update-docs` → `/kanban:update-docs-complete-task {id}`
-   - `awaiting-merge` → `/kanban:awaiting-merge-merge-task {id}` or `/kanban:awaiting-merge-fail-task {id}`
+   - `backlog` → `/kanban:refine {id}`
+   - `refined` → `/kanban:scope {id}`
+   - `scoped` → `/kanban:plan {id}`
+   - `planned` → `/kanban:implement {id}`
+   - `in-progress` → `/kanban:implement {id}` (to resume) or `/kanban:verify {id}` (if all checkboxes done)
+   - `checks` → "Checks run automatically. Wait for auto-advance to QA."
+   - `qa` → `/kanban:approve {id}` or `/kanban:rework {id}`
+   - `update-docs` → `/kanban:docs {id}`
+   - `pr` → `/kanban:merge {id}` or `/kanban:rework {id}`
    - `done` → "Task complete. No action needed."
 
 6. **Format output**:
@@ -75,7 +75,7 @@ Show the current state of the board and suggest what command to run next. Helps 
 
 1. **Find all task files**:
    - Glob for `.kanban/tasks/*.md`
-   - If no tasks found, inform user and suggest `/kanban:define-task`
+   - If no tasks found, inform user and suggest `/kanban:create`
 
 2. **Parse each task**:
    - Read frontmatter to get id, title, status
@@ -92,16 +92,16 @@ Show the current state of the board and suggest what command to run next. Helps 
    **In Progress ({count})**
    - {id}: {title} — {completed}/{total} steps
 
-   **Verify ({count})**
+   **Checks ({count})**
    - {id}: {title}
 
-   **Review ({count})**
+   **QA ({count})**
    - {id}: {title}
 
    **Update Docs ({count})**
    - {id}: {title}
 
-   **Awaiting Merge ({count})**
+   **PR ({count})**
    - {id}: {title}
 
    **Planned ({count})**
@@ -124,10 +124,10 @@ Show the current state of the board and suggest what command to run next. Helps 
 
 5. **Suggest next action** based on board state:
    - If tasks in `in-progress`: Suggest resuming that task
-   - If tasks in `verify`: Suggest passing or failing verification
-   - If tasks in `review`: Suggest passing or failing review
+   - If tasks in `checks`: Checks run automatically - wait for completion
+   - If tasks in `qa`: Suggest approving or sending back for rework
    - If tasks in `update-docs`: Suggest completing documentation
-   - If tasks in `awaiting-merge`: Suggest merging or rejecting the PR
+   - If tasks in `pr`: Suggest merging or sending back for rework
    - If tasks in `planned` but none in progress: Suggest starting implementation
    - If only backlog/refined/scoped tasks: Suggest advancing the highest priority one
    - If no tasks: Suggest creating one
@@ -167,7 +167,7 @@ User: `/kanban:status`
 **In Progress (1)**
 - 001: Add dark mode support — 3/7 steps
 
-**Review (1)**
+**QA (1)**
 - 002: Fix login redirect bug
 
 **Backlog (2)**
@@ -180,7 +180,7 @@ User: `/kanban:status`
 **Next:**
 
 /clear
-/kanban:planned-implement-task 001
+/kanban:implement 001
 
 Task 001 is in progress with 4 steps remaining. Resume implementation to continue.
 ```
@@ -212,7 +212,7 @@ Next step is the toggle component. Theme context is already set up.
 **Next:**
 
 /clear
-/kanban:planned-implement-task 001
+/kanban:implement 001
 
 Resume implementation to complete remaining steps.
 ```
@@ -229,7 +229,7 @@ No tasks found.
 **Next:**
 
 /clear
-/kanban:define-task "Your task title"
+/kanban:create "Your task title"
 
 Create your first task to get started.
 ```

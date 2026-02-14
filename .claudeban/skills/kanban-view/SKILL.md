@@ -94,7 +94,7 @@ Use this column order (workflow order):
 No tasks on the board.
 
 **Next:**
-/kanban:define-task "Your first task"
+/kanban:create "Your first task"
 ```
 
 **Done count only (Quick preset):**

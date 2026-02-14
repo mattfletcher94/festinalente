@@ -18,18 +18,18 @@ columns:
   - id: in-progress
     name: In Progress
     description: Tasks currently being implemented (code uncommitted)
-  - id: verify
-    name: Verify
-    description: Implementation complete, running automated checks
-  - id: review
-    name: Review
-    description: Checks passed, awaiting human code review
+  - id: checks
+    name: Checks
+    description: AI code review using skills (style, lint, tests)
+  - id: qa
+    name: QA
+    description: Human tests the application works as expected
   - id: update-docs
     name: Update Docs
-    description: Review passed, code committed, documentation needs updating
-  - id: awaiting-merge
-    name: Awaiting Merge
-    description: PR created, awaiting merge to main
+    description: QA passed, code committed, documentation needs updating
+  - id: pr
+    name: PR
+    description: Awaiting GitHub PR review and merge
   - id: done
     name: Done
     description: PR merged, task complete
@@ -69,24 +69,23 @@ transitions:
   refined: [scoped]
   scoped: [planned]
   planned: [in-progress]
-  in-progress: [verify]
-  verify: [review, in-progress]  # verify-pass or verify-fail
-  review: [update-docs, in-progress]  # review-pass or review-fail
-  update-docs: [awaiting-merge]
-  awaiting-merge: [done, in-progress]  # merge or merge-fail
+  in-progress: [checks]
+  checks: [qa]  # Auto-advance only (no manual fail - AI retries automatically)
+  qa: [update-docs, in-progress]  # approve or rework
+  update-docs: [pr]
+  pr: [done, in-progress]  # merge or rework
 
 commits:
   # Commit message formats by phase
-  define: "docs({id}): define - {title}"
+  create: "docs({id}): create - {title}"
   refine: "docs({id}): refine - {title}"
   scope: "docs({id}): scope - {title}"
   plan: "docs({id}): plan - {title}"
-  wip: "wip({id}): {summary}"
-  verify-fail: "docs({id}): verify-fail - {title}"
-  review-pass: "{commit-type}({id}): {title}"  # commit-type from label
-  review-fail: "docs({id}): review-fail - {title}"
-  update-docs: "docs({id}): product - {message}"
-  merge-fail: "docs({id}): merge-fail - {title}"
+  save: "wip({id}): {summary}"
+  verify-retry: "docs({id}): verify-retry - {title}"  # When AI retries verify
+  approve: "{commit-type}({id}): {title}"  # commit-type from label
+  rework: "docs({id}): rework - {title}"  # Consolidated fail command
+  docs: "docs({id}): product - {message}"
   done: "docs({id}): done - {title}"
   # Product discovery commands (not part of task workflow)
   map-product: "docs: map-product - {features}"

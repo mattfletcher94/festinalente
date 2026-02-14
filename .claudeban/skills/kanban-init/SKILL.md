@@ -39,35 +39,33 @@ Create the `.kanban/` directory structure for a new project.
    - If template not found, create minimal config **exactly as shown below**:
 
    **CRITICAL: Do NOT add, invent, or improvise any properties not shown in the template.**
-   The config.yaml schema has exactly three top-level keys: `name`, `commands`, `settings`.
-   Do NOT add keys like `verification`, `checks`, `hooks`, or anything else.
+   The config.yaml schema has exactly three top-level keys: `name`, `user-skills`, `settings`.
+   Do NOT add keys like `verification`, `checks`, `hooks`, `commands`, or anything else.
      ```yaml
      name: My Project
 
-     commands:
-       "kanban:define-task":
+     user-skills:
+       "kanban:create":
+         skills: []    # Skill names that resolve to .claude/skills/{name}/SKILL.md
+       "kanban:refine":
          skills: []
-       "kanban:backlog-refine-task":
+       "kanban:scope":
          skills: []
-       "kanban:refined-scope-task":
+       "kanban:plan":
          skills: []
-       "kanban:scoped-plan-task":
+       "kanban:implement":
          skills: []
-       "kanban:planned-implement-task":
+       "kanban:save":
          skills: []
-       "kanban:in-progress-wip-commit":
+       "kanban:verify":
          skills: []
-       "kanban:in-progress-verify-task":
+       "kanban:approve":
          skills: []
-       "kanban:verify-pass-task":
+       "kanban:docs":
          skills: []
-       "kanban:verify-fail-task":
+       "kanban:merge":
          skills: []
-       "kanban:review-pass-task":
-         skills: []
-       "kanban:review-fail-task":
-         skills: []
-       "kanban:update-docs-complete-task":
+       "kanban:rework":
          skills: []
        "kanban:map-product":
          skills: []
@@ -111,7 +109,7 @@ All must pass. If any fail, fix and retry.
 - [ ] `.kanban/product/` directory exists
 - [ ] `.kanban/skills/` directory exists
 - [ ] `.kanban/config.yaml` exists
-- [ ] `.kanban/config.yaml` has ONLY these top-level keys: `name`, `commands`, `settings` (no extra keys)
+- [ ] `.kanban/config.yaml` has ONLY these top-level keys: `name`, `user-skills`, `settings` (no extra keys)
 
 ## Arguments
 
@@ -139,7 +137,7 @@ Kanban initialized!
 Next steps:
 - Define your product: /kanban:define-product
 - Or map existing code: /kanban:map-product
-- Or create a task: /kanban:define-task "Your first task"
+- Or create a task: /kanban:create "Your first task"
 ```
 
 ## Next Steps
@@ -159,5 +157,5 @@ For existing codebases:
 Or skip product discovery and create a task:
 ```
 /clear
-/kanban:define-task "Task title"
+/kanban:create "Task title"
 ```

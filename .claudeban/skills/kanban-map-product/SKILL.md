@@ -191,5 +191,5 @@ I found User Authentication that appears to handle JWT-based login. Is this accu
 
 ```
 /clear
-/kanban:define-task "Your task title"
+/kanban:create "Your task title"
 ```
