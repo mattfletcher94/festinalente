@@ -1,14 +1,14 @@
 ---
 name: create
 description: Create a new task in the kanban board and commit
-skill: .claudeban/skills/kanban-create/SKILL.md
+skill: .claude/skills/kanban-create/SKILL.md
 allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *), Grep
 argument-hint: "[task title]"
 ---
 
 # Create Kanban Task
 
-> **Skill Reference:** This command invokes `.claudeban/skills/kanban-create/SKILL.md`
+> **Skill Reference:** This command invokes `.claude/skills/kanban-create/SKILL.md`
 > You MUST read and follow the instructions in that skill file.
 
 Create a new task in `.kanban/tasks/` and commit.

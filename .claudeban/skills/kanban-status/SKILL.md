@@ -14,16 +14,16 @@ Use these scripts to reliably find files and list tasks:
 
 ```bash
 # List all tasks (returns JSON with count and tasks array)
-node .claude/scripts/list-tasks.js
+node .claude/scripts/list-tasks.cjs
 
 # List tasks filtered by status
-node .claude/scripts/list-tasks.js --status=in-progress
+node .claude/scripts/list-tasks.cjs --status=in-progress
 
 # Find task by ID (returns JSON with path and metadata)
-node .claude/scripts/find-task.js {id}
+node .claude/scripts/find-task.cjs {id}
 
 # Find plan by ID (returns JSON with path and metadata)
-node .claude/scripts/find-plan.js {id}
+node .claude/scripts/find-plan.cjs {id}
 ```
 
 ## Steps
@@ -31,7 +31,7 @@ node .claude/scripts/find-plan.js {id}
 ### If task ID provided ($ARGUMENTS is not empty):
 
 1. **Find and read the task file**:
-   - Run `node .claude/scripts/find-task.js {id}` to get exact path
+   - Run `node .claude/scripts/find-task.cjs {id}` to get exact path
    - Read the file at the `path` from JSON output
    - Parse YAML frontmatter
    - Error if task not found
@@ -93,7 +93,7 @@ node .claude/scripts/find-plan.js {id}
 ### If no task ID provided (show full board):
 
 1. **Find all task files**:
-   - Run `node .claude/scripts/list-tasks.js` to get all tasks
+   - Run `node .claude/scripts/list-tasks.cjs` to get all tasks
    - If count is 0, inform user and suggest `/kanban:create`
 
 2. **Parse each task**:

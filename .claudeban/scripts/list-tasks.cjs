@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // List all tasks with optional filtering
-// Usage: node list-tasks.js [--status=X] [--label=X] [--priority=X]
+// Usage: node list-tasks.cjs [--status=X] [--label=X] [--priority=X]
 // Returns JSON with array of tasks
 
 const fs = require('fs');

@@ -14,13 +14,13 @@ Use these scripts to reliably find files and list tasks:
 
 ```bash
 # List all tasks (returns JSON with count and tasks array)
-node .claude/scripts/list-tasks.js
+node .claude/scripts/list-tasks.cjs
 
 # Find task by ID (returns JSON with path and metadata)
-node .claude/scripts/find-task.js {id}
+node .claude/scripts/find-task.cjs {id}
 
 # Find plan by ID (returns JSON with path and metadata)
-node .claude/scripts/find-plan.js {id}
+node .claude/scripts/find-plan.cjs {id}
 ```
 
 ## Steps
@@ -54,7 +54,7 @@ Ask the user:
 
 ### 4. Read all task files
 
-- Run `node .claude/scripts/list-tasks.js` to get all tasks with metadata
+- Run `node .claude/scripts/list-tasks.cjs` to get all tasks with metadata
 - The JSON output includes `id`, `title`, `status`, `labels` for each task
 - Group tasks by `status`
 

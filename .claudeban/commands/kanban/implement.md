@@ -1,14 +1,14 @@
 ---
 name: implement
 description: Execute implementation plan, write code
-skill: .claudeban/skills/kanban-implement/SKILL.md
+skill: .claude/skills/kanban-implement/SKILL.md
 allowed-tools: Read, Write, Edit, Bash(*)
 argument-hint: "[task id]"
 ---
 
 # Implement Kanban Task
 
-> **Skill Reference:** This command invokes `.claudeban/skills/kanban-implement/SKILL.md`
+> **Skill Reference:** This command invokes `.claude/skills/kanban-implement/SKILL.md`
 > You MUST read and follow the instructions in that skill file.
 
 Execute the implementation plan and write code. Code stays uncommitted until QA passes.

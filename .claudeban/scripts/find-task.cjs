@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
-// Find plan file by task ID
-// Usage: node find-plan.js <id>
+// Find task file by ID
+// Usage: node find-task.cjs <id>
 // Returns JSON with path and metadata
 
 const fs = require('fs');
 const path = require('path');
 
-const PLANS_DIR = '.kanban/plans';
+const TASKS_DIR = '.kanban/tasks';
 
 function parseFrontmatter(content) {
   const match = content.match(/^---\n([\s\S]*?)\n---/);
@@ -21,10 +21,15 @@ function parseFrontmatter(content) {
     const kvMatch = line.match(/^(\w+):\s*(.*)$/);
     if (kvMatch) {
       let value = kvMatch[2].trim();
+      // Handle quoted strings
       if (value.startsWith('"') && value.endsWith('"')) {
         value = value.slice(1, -1);
       } else if (value.startsWith("'") && value.endsWith("'")) {
         value = value.slice(1, -1);
+      }
+      // Handle arrays like [item1, item2]
+      if (value.startsWith('[') && value.endsWith(']')) {
+        value = value.slice(1, -1).split(',').map(s => s.trim().replace(/^["']|["']$/g, ''));
       }
       result[kvMatch[1]] = value;
     }
@@ -48,28 +53,28 @@ function main() {
   const args = process.argv.slice(2);
 
   if (args.length === 0) {
-    console.log(JSON.stringify({ error: true, message: 'Usage: find-plan.js <id>' }));
+    console.log(JSON.stringify({ error: true, message: 'Usage: find-task.cjs <id>' }));
     process.exit(1);
   }
 
   const id = args[0];
 
-  if (!fs.existsSync(PLANS_DIR)) {
+  if (!fs.existsSync(TASKS_DIR)) {
     console.log(JSON.stringify({
       error: true,
-      message: `${PLANS_DIR}/ directory not found. Run /kanban:init first.`
+      message: `${TASKS_DIR}/ directory not found. Run /kanban:init first.`
     }));
     process.exit(1);
   }
 
-  // Find plan file matching the ID pattern
-  const pattern = `^${id}-.*\\.plan\\.md$`;
-  const matches = findFiles(PLANS_DIR, pattern);
+  // Find task file matching the ID pattern
+  const pattern = `^${id}-.*\\.md$`;
+  const matches = findFiles(TASKS_DIR, pattern);
 
   if (matches.length === 0) {
     console.log(JSON.stringify({
       error: true,
-      message: `Plan for task ${id} not found in ${PLANS_DIR}/`
+      message: `Task ${id} not found in ${TASKS_DIR}/`
     }));
     process.exit(1);
   }
@@ -82,10 +87,10 @@ function main() {
     id: id,
     filename: file.filename,
     path: file.path,
-    task: frontmatter.task || id,
-    spec: frontmatter.spec || '',
+    title: frontmatter.title || '',
     status: frontmatter.status || '',
-    iteration: parseInt(frontmatter.iteration, 10) || 1
+    priority: frontmatter.priority || '',
+    labels: Array.isArray(frontmatter.labels) ? frontmatter.labels : []
   };
 
   console.log(JSON.stringify(result, null, 2));

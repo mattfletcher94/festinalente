@@ -1,14 +1,14 @@
 ---
 name: define-product
 description: Define a new product through Socratic dialogue
-skill: .claudeban/skills/kanban-define-product/SKILL.md
+skill: .claude/skills/kanban-define-product/SKILL.md
 allowed-tools: Read, Write, Bash(git add *, git commit *, git status), AskUserQuestion
 argument-hint: (no arguments)
 ---
 
 # Define Product
 
-> **Skill Reference:** This command invokes `.claudeban/skills/kanban-define-product/SKILL.md`
+> **Skill Reference:** This command invokes `.claude/skills/kanban-define-product/SKILL.md`
 > You MUST read and follow the instructions in that skill file.
 
 Define a new product's features through Socratic dialogue.

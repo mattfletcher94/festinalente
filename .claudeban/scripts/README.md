@@ -12,12 +12,12 @@ npx claude-kanban@latest
 
 ## Scripts
 
-### find-task.js
+### find-task.cjs
 
 Find a task file by ID.
 
 ```bash
-node .claude/scripts/find-task.js 003
+node .claude/scripts/find-task.cjs 003
 ```
 
 **Success output:**
@@ -43,12 +43,12 @@ node .claude/scripts/find-task.js 003
 
 ---
 
-### find-spec.js
+### find-spec.cjs
 
 Find a spec file by task ID.
 
 ```bash
-node .claude/scripts/find-spec.js 003
+node .claude/scripts/find-spec.cjs 003
 ```
 
 **Success output:**
@@ -73,12 +73,12 @@ node .claude/scripts/find-spec.js 003
 
 ---
 
-### find-plan.js
+### find-plan.cjs
 
 Find a plan file by task ID.
 
 ```bash
-node .claude/scripts/find-plan.js 003
+node .claude/scripts/find-plan.cjs 003
 ```
 
 **Success output:**
@@ -104,25 +104,25 @@ node .claude/scripts/find-plan.js 003
 
 ---
 
-### list-tasks.js
+### list-tasks.cjs
 
 List all tasks with optional filtering.
 
 ```bash
 # List all tasks
-node .claude/scripts/list-tasks.js
+node .claude/scripts/list-tasks.cjs
 
 # Filter by status
-node .claude/scripts/list-tasks.js --status=planned
+node .claude/scripts/list-tasks.cjs --status=planned
 
 # Filter by label
-node .claude/scripts/list-tasks.js --label=bug
+node .claude/scripts/list-tasks.cjs --label=bug
 
 # Filter by priority
-node .claude/scripts/list-tasks.js --priority=high
+node .claude/scripts/list-tasks.cjs --priority=high
 
 # Combine filters
-node .claude/scripts/list-tasks.js --status=backlog --label=feature
+node .claude/scripts/list-tasks.cjs --status=backlog --label=feature
 ```
 
 **Success output:**
@@ -154,12 +154,12 @@ node .claude/scripts/list-tasks.js --status=backlog --label=feature
 
 ---
 
-### next-id.js
+### next-id.cjs
 
 Get the next available task ID.
 
 ```bash
-node .claude/scripts/next-id.js
+node .claude/scripts/next-id.cjs
 ```
 
 **Output:**
@@ -173,12 +173,12 @@ node .claude/scripts/next-id.js
 
 ---
 
-### get-date-time.js
+### get-date-time.cjs
 
 Get formatted date-time strings.
 
 ```bash
-node .claude/scripts/get-date-time.js
+node .claude/scripts/get-date-time.cjs
 ```
 
 **Output:**

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // Get formatted date-time strings
-// Usage: node get-date-time.js
+// Usage: node get-date-time.cjs
 // Returns JSON with iso and date formats
 
 function main() {

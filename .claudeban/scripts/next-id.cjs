@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // Get the next available task ID
-// Usage: node next-id.js
+// Usage: node next-id.cjs
 // Returns JSON with nextId, currentHighest, and padding
 
 const fs = require('fs');

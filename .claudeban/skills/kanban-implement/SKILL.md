@@ -18,13 +18,13 @@ Use these scripts to reliably find files:
 
 ```bash
 # Find task by ID (returns JSON with path and metadata)
-node .claude/scripts/find-task.js {id}
+node .claude/scripts/find-task.cjs {id}
 
 # Find plan by ID (returns JSON with path and metadata)
-node .claude/scripts/find-plan.js {id}
+node .claude/scripts/find-plan.cjs {id}
 
 # Get current date/time (returns JSON with iso and date formats)
-node .claude/scripts/get-date-time.js
+node .claude/scripts/get-date-time.cjs
 ```
 
 ## Column Transition
@@ -49,7 +49,7 @@ None - code stays uncommitted until QA passes. Use `/kanban:save` to save partia
    - Ask user which task to implement
 
 3. **Read task file**:
-   - Run `node .claude/scripts/find-task.js {id}` to get exact path
+   - Run `node .claude/scripts/find-task.cjs {id}` to get exact path
    - Read the file at the `path` from JSON output
    - Parse YAML frontmatter
    - Verify current status:
@@ -74,7 +74,7 @@ None - code stays uncommitted until QA passes. Use `/kanban:save` to save partia
    - Print: "Task {id} moved to In Progress"
 
 6. **Find and read plan file**:
-   - Run `node .claude/scripts/find-plan.js {id}` to get exact path
+   - Run `node .claude/scripts/find-plan.cjs {id}` to get exact path
    - If plan found: Read the plan at the `path` from JSON output
    - If NO plan found:
      - Warn: "No plan found for task {id}"

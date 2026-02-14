@@ -1,14 +1,14 @@
 ---
 name: rework
 description: Return task to In Progress for fixes. Works from QA or PR columns.
-skill: .claudeban/skills/kanban-rework/SKILL.md
+skill: .claude/skills/kanban-rework/SKILL.md
 allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *, gh pr *)
 argument-hint: "[task id]"
 ---
 
 # Rework Kanban Task
 
-> **Skill Reference:** This command invokes `.claudeban/skills/kanban-rework/SKILL.md`
+> **Skill Reference:** This command invokes `.claude/skills/kanban-rework/SKILL.md`
 > You MUST read and follow the instructions in that skill file.
 
 Return a task to In Progress when human review finds issues. Works from QA or PR columns.

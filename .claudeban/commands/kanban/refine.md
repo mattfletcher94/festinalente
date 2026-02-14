@@ -1,14 +1,14 @@
 ---
 name: refine
 description: Refine task through Q&A to add clarity and acceptance criteria
-skill: .claudeban/skills/kanban-refine/SKILL.md
+skill: .claude/skills/kanban-refine/SKILL.md
 allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *), Grep, AskUserQuestion
 argument-hint: "[task id]"
 ---
 
 # Refine Kanban Task
 
-> **Skill Reference:** This command invokes `.claudeban/skills/kanban-refine/SKILL.md`
+> **Skill Reference:** This command invokes `.claude/skills/kanban-refine/SKILL.md`
 > You MUST read and follow the instructions in that skill file.
 
 Refine a task through Socratic Q&A dialogue to add clarity and acceptance criteria.

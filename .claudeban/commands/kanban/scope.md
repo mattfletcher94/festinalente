@@ -1,14 +1,14 @@
 ---
 name: scope
 description: Research codebase and create functional specification
-skill: .claudeban/skills/kanban-scope/SKILL.md
+skill: .claude/skills/kanban-scope/SKILL.md
 allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *, git checkout *), Glob, Grep
 argument-hint: "[task id]"
 ---
 
 # Scope Kanban Task
 
-> **Skill Reference:** This command invokes `.claudeban/skills/kanban-scope/SKILL.md`
+> **Skill Reference:** This command invokes `.claude/skills/kanban-scope/SKILL.md`
 > You MUST read and follow the instructions in that skill file.
 
 Research the codebase and create a functional specification. Creates the task branch.

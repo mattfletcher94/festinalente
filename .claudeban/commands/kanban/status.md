@@ -1,14 +1,14 @@
 ---
 name: status
 description: Show board status and suggest next command to run
-skill: .claudeban/skills/kanban-status/SKILL.md
+skill: .claude/skills/kanban-status/SKILL.md
 allowed-tools: Read, Glob, Grep
 argument-hint: "[task id]"
 ---
 
 # Kanban Board Status
 
-> **Skill Reference:** This command invokes `.claudeban/skills/kanban-status/SKILL.md`
+> **Skill Reference:** This command invokes `.claude/skills/kanban-status/SKILL.md`
 > You MUST read and follow the instructions in that skill file.
 
 Show the current state of the board or a specific task, and suggest what command to run next.

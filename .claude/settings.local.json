@@ -10,7 +10,12 @@
       "Bash(git commit:*)",
       "Bash(grep:*)",
       "Bash(ls:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(for file in .claudeban/skills/kanban-create/SKILL.md .claudeban/skills/kanban-implement/SKILL.md .claudeban/skills/kanban-map-product/SKILL.md .claudeban/skills/kanban-plan/SKILL.md .claudeban/skills/kanban-refine/SKILL.md .claudeban/skills/kanban-scope/SKILL.md .claudeban/skills/kanban-status/SKILL.md .claudeban/skills/kanban-verify/SKILL.md .claudeban/skills/kanban-view/SKILL.md .claudeban/scripts/README.md)",
+      "Bash(do sed -i 's/next-id\\\\.js/next-id.cjs/g; s/get-date-time\\\\.js/get-date-time.cjs/g; s/find-task\\\\.js/find-task.cjs/g; s/find-spec\\\\.js/find-spec.cjs/g; s/find-plan\\\\.js/find-plan.cjs/g; s/list-tasks\\\\.js/list-tasks.cjs/g' \"$file\")",
+      "Bash(echo:*)",
+      "Bash(done)",
+      "Bash(for file in *.cjs)"
     ]
   }
 }

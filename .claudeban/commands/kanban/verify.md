@@ -1,14 +1,14 @@
 ---
 name: verify
 description: Run AI code review. Auto-retries on failure, auto-advances to QA on success.
-skill: .claudeban/skills/kanban-verify/SKILL.md
+skill: .claude/skills/kanban-verify/SKILL.md
 allowed-tools: Read, Write, Bash(*)
 argument-hint: "[task id]"
 ---
 
 # Verify Kanban Task
 
-> **Skill Reference:** This command invokes `.claudeban/skills/kanban-verify/SKILL.md`
+> **Skill Reference:** This command invokes `.claude/skills/kanban-verify/SKILL.md`
 > You MUST read and follow the instructions in that skill file.
 
 Run AI code review using configured skills. On failure, AI fixes issues and retries automatically (max 3 attempts). On success, auto-advances to QA.

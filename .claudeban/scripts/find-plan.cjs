@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
-// Find spec file by task ID
-// Usage: node find-spec.js <id>
+// Find plan file by task ID
+// Usage: node find-plan.cjs <id>
 // Returns JSON with path and metadata
 
 const fs = require('fs');
 const path = require('path');
 
-const SPECS_DIR = '.kanban/specs';
+const PLANS_DIR = '.kanban/plans';
 
 function parseFrontmatter(content) {
   const match = content.match(/^---\n([\s\S]*?)\n---/);
@@ -48,28 +48,28 @@ function main() {
   const args = process.argv.slice(2);
 
   if (args.length === 0) {
-    console.log(JSON.stringify({ error: true, message: 'Usage: find-spec.js <id>' }));
+    console.log(JSON.stringify({ error: true, message: 'Usage: find-plan.cjs <id>' }));
     process.exit(1);
   }
 
   const id = args[0];
 
-  if (!fs.existsSync(SPECS_DIR)) {
+  if (!fs.existsSync(PLANS_DIR)) {
     console.log(JSON.stringify({
       error: true,
-      message: `${SPECS_DIR}/ directory not found. Run /kanban:init first.`
+      message: `${PLANS_DIR}/ directory not found. Run /kanban:init first.`
     }));
     process.exit(1);
   }
 
-  // Find spec file matching the ID pattern
-  const pattern = `^${id}-.*\\.spec\\.md$`;
-  const matches = findFiles(SPECS_DIR, pattern);
+  // Find plan file matching the ID pattern
+  const pattern = `^${id}-.*\\.plan\\.md$`;
+  const matches = findFiles(PLANS_DIR, pattern);
 
   if (matches.length === 0) {
     console.log(JSON.stringify({
       error: true,
-      message: `Spec for task ${id} not found in ${SPECS_DIR}/`
+      message: `Plan for task ${id} not found in ${PLANS_DIR}/`
     }));
     process.exit(1);
   }
@@ -83,8 +83,9 @@ function main() {
     filename: file.filename,
     path: file.path,
     task: frontmatter.task || id,
-    created: frontmatter.created || '',
-    updated: frontmatter.updated || ''
+    spec: frontmatter.spec || '',
+    status: frontmatter.status || '',
+    iteration: parseInt(frontmatter.iteration, 10) || 1
   };
 
   console.log(JSON.stringify(result, null, 2));

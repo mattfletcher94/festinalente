@@ -1,14 +1,14 @@
 ---
 name: save
 description: Save work-in-progress with WIP commit
-skill: .claudeban/skills/kanban-save/SKILL.md
+skill: .claude/skills/kanban-save/SKILL.md
 allowed-tools: Read, Write, Edit, Bash(ls *, git add *, git commit *, git status, git diff *, git branch *)
 argument-hint: "[task id]"
 ---
 
 # Save Kanban Task Progress
 
-> **Skill Reference:** This command invokes `.claudeban/skills/kanban-save/SKILL.md`
+> **Skill Reference:** This command invokes `.claude/skills/kanban-save/SKILL.md`
 > You MUST read and follow the instructions in that skill file.
 
 Save partial implementation progress with a WIP commit. Use when implementation is interrupted.

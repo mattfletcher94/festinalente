@@ -18,13 +18,13 @@ Use these scripts to reliably find files:
 
 ```bash
 # Find task by ID (returns JSON with path and metadata)
-node .claude/scripts/find-task.js {id}
+node .claude/scripts/find-task.cjs {id}
 
 # Find spec by ID (returns JSON with path and metadata)
-node .claude/scripts/find-spec.js {id}
+node .claude/scripts/find-spec.cjs {id}
 
 # Get current date/time (returns JSON with iso and date formats)
-node .claude/scripts/get-date-time.js
+node .claude/scripts/get-date-time.cjs
 ```
 
 ## Column Transition
@@ -51,7 +51,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    - Ask user which task to plan
 
 3. **Read task file**:
-   - Run `node .claude/scripts/find-task.js {id}` to get exact path
+   - Run `node .claude/scripts/find-task.cjs {id}` to get exact path
    - Read the file at the `path` from JSON output
    - Parse YAML frontmatter
    - Verify current status is `scoped`:
@@ -68,7 +68,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
      - Exit
 
 5. **Read functional specification**:
-   - Run `node .claude/scripts/find-spec.js {id}` to get exact path
+   - Run `node .claude/scripts/find-spec.cjs {id}` to get exact path
    - Read the spec file at the `path` from JSON output
    - If spec not found, BLOCK planning with message:
      ```

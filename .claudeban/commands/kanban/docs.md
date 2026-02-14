@@ -1,14 +1,14 @@
 ---
 name: docs
 description: Update product documentation, commit, move to PR
-skill: .claudeban/skills/kanban-docs/SKILL.md
+skill: .claude/skills/kanban-docs/SKILL.md
 allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *, git push *), Grep
 argument-hint: "[task id]"
 ---
 
 # Update Kanban Task Documentation
 
-> **Skill Reference:** This command invokes `.claudeban/skills/kanban-docs/SKILL.md`
+> **Skill Reference:** This command invokes `.claude/skills/kanban-docs/SKILL.md`
 > You MUST read and follow the instructions in that skill file.
 
 Update product documentation, commit changes, push branch, and move task to PR column.

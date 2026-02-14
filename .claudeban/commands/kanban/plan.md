@@ -1,14 +1,14 @@
 ---
 name: plan
 description: Create implementation plan with checkboxes
-skill: .claudeban/skills/kanban-plan/SKILL.md
+skill: .claude/skills/kanban-plan/SKILL.md
 allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *)
 argument-hint: "[task id]"
 ---
 
 # Plan Kanban Task
 
-> **Skill Reference:** This command invokes `.claudeban/skills/kanban-plan/SKILL.md`
+> **Skill Reference:** This command invokes `.claude/skills/kanban-plan/SKILL.md`
 > You MUST read and follow the instructions in that skill file.
 
 Create an implementation plan with checkboxes from the functional specification.

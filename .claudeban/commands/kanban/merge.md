@@ -1,14 +1,14 @@
 ---
 name: merge
 description: Merge PR, delete task branch, complete task
-skill: .claudeban/skills/kanban-merge/SKILL.md
+skill: .claude/skills/kanban-merge/SKILL.md
 allowed-tools: Read, Write, Bash(ls *, git *, gh pr *)
 argument-hint: "[task id]"
 ---
 
 # Merge Kanban Task PR
 
-> **Skill Reference:** This command invokes `.claudeban/skills/kanban-merge/SKILL.md`
+> **Skill Reference:** This command invokes `.claude/skills/kanban-merge/SKILL.md`
 > You MUST read and follow the instructions in that skill file.
 
 Merge the pull request, clean up the task branch, and complete the task.

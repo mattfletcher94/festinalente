@@ -18,13 +18,13 @@ Use these scripts to reliably find files:
 
 ```bash
 # Find task by ID (returns JSON with path and metadata)
-node .claude/scripts/find-task.js {id}
+node .claude/scripts/find-task.cjs {id}
 
 # Find plan by ID (returns JSON with path and metadata)
-node .claude/scripts/find-plan.js {id}
+node .claude/scripts/find-plan.cjs {id}
 
 # Get current date/time (returns JSON with iso and date formats)
-node .claude/scripts/get-date-time.js
+node .claude/scripts/get-date-time.cjs
 ```
 
 ## Column Transition
@@ -56,7 +56,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    - Ask user which task to verify
 
 3. **Read task file**:
-   - Run `node .claude/scripts/find-task.js {id}` to get exact path
+   - Run `node .claude/scripts/find-task.cjs {id}` to get exact path
    - Read the file at the `path` from JSON output
    - Parse YAML frontmatter
    - Verify status is `in-progress`:
@@ -72,7 +72,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
      - Exit
 
 5. **Read plan file**:
-   - Run `node .claude/scripts/find-plan.js {id}` to get exact path
+   - Run `node .claude/scripts/find-plan.cjs {id}` to get exact path
    - Read the plan at the `path` from JSON output
    - Verify all implementation checkboxes are marked complete
    - If any unchecked, warn: "Plan has incomplete items. Verify anyway? (y/n)"

@@ -18,10 +18,10 @@ Use these scripts to reliably find files and get formatted values:
 
 ```bash
 # Get next task ID (returns JSON with nextId, currentHighest, padding)
-node .claude/scripts/next-id.js
+node .claude/scripts/next-id.cjs
 
 # Get current date/time (returns JSON with iso and date formats)
-node .claude/scripts/get-date-time.js
+node .claude/scripts/get-date-time.cjs
 ```
 
 ## Column Transition
@@ -74,7 +74,7 @@ See `.claude/kanban-workflow.yaml` for column definitions.
    ```
 
 5. **Determine next ID**:
-   - Run `node .claude/scripts/next-id.js`
+   - Run `node .claude/scripts/next-id.cjs`
    - Use `nextId` from JSON output
 
 6. **Get task details**:

@@ -18,10 +18,10 @@ Use these scripts to reliably find files:
 
 ```bash
 # Find task by ID (returns JSON with path and metadata)
-node .claude/scripts/find-task.js {id}
+node .claude/scripts/find-task.cjs {id}
 
 # Get current date/time (returns JSON with iso and date formats)
-node .claude/scripts/get-date-time.js
+node .claude/scripts/get-date-time.cjs
 ```
 
 ## Column Transition
@@ -55,7 +55,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    - Ask user which task to refine
 
 4. **Read task file**:
-   - Run `node .claude/scripts/find-task.js {id}` to get exact path
+   - Run `node .claude/scripts/find-task.cjs {id}` to get exact path
    - Read the file at the `path` from JSON output
    - Parse YAML frontmatter
    - Verify task has `needs-refinement` label (from kanban-workflow.yaml):

@@ -1,14 +1,14 @@
 ---
 name: init
 description: Initialize kanban board structure in current project
-skill: .claudeban/skills/kanban-init/SKILL.md
+skill: .claude/skills/kanban-init/SKILL.md
 allowed-tools: Read, Write, Bash(ls *, mkdir *, git status)
 argument-hint: (no arguments)
 ---
 
 # Initialize Kanban Board
 
-> **Skill Reference:** This command invokes `.claudeban/skills/kanban-init/SKILL.md`
+> **Skill Reference:** This command invokes `.claude/skills/kanban-init/SKILL.md`
 > You MUST read and follow the instructions in that skill file.
 
 Create the `.kanban/` directory structure for a new project.
