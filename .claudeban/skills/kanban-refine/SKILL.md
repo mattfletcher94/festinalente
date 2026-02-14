@@ -146,12 +146,17 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 
 10. **Write updated task file**
 
-11. **Commit the refinement**:
+11. **CRITICAL: Commit the refinement**:
+
+    **This step is MANDATORY. Do not proceed without committing.**
+
     - Use `commits.refine` format from kanban-workflow.yaml
     ```bash
     git add .kanban/tasks/{id}-*.md
     git commit -m "docs({id}): refine - {title}"
     ```
+
+    **DO NOT skip this step. If the commit fails, stop and report the error.**
 
 12. **Confirm refinement complete**:
     - Print summary of changes made
@@ -166,6 +171,8 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
     - Do NOT skip this output. The user needs these commands to continue.
 
 ## Validation
+
+**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
 
 All must pass. If any fail, fix and retry.
 

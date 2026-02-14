@@ -101,6 +101,8 @@ User-defined skills in `.kanban/skills/` are simple `.md` files (NOT directories
 
 ## Validation
 
+**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
+
 All must pass. If any fail, fix and retry.
 
 - [ ] `.kanban/` directory exists

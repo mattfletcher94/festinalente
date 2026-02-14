@@ -123,11 +123,16 @@ The description summarizes what documentation was updated (e.g., "add authentica
    - Still proceed to move status
    - Use generic commit message: "docs({id}): product - no updates needed for {title}"
 
-10. **Commit documentation changes** (if any):
+10. **CRITICAL: Commit documentation changes** (if any):
+
+    **This step is MANDATORY. Do not proceed without committing.**
+
     ```bash
     git add {doc files}
     git commit -m "docs({id}): product - {description of doc changes}"
     ```
+
+    **DO NOT skip this step. If the commit fails, stop and report the error.**
 
 11. **Push branch to remote**:
     ```bash
@@ -155,6 +160,8 @@ The description summarizes what documentation was updated (e.g., "add authentica
     - Also mention: "Or if PR needs changes: /kanban:rework {id}"
 
 ## Validation
+
+**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
 
 All must pass. If any fail, fix and retry.
 

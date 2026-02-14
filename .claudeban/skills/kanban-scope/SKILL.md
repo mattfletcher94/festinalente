@@ -165,11 +165,16 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
     - Run `git checkout -b task/{id}`
     - Confirm: "Created branch task/{id}"
 
-11. **Commit the scoping**:
+11. **CRITICAL: Commit the scoping**:
+
+    **This step is MANDATORY. Do not proceed without committing.**
+
     ```bash
     git add .kanban/specs/{id}-{slug}.spec.md .kanban/tasks/{id}-*.md
     git commit -m "docs({id}): scope - {title}"
     ```
+
+    **DO NOT skip this step. If the commit fails, stop and report the error.**
 
 12. **Confirm scoping complete**:
    - Print summary of affected files identified
@@ -185,6 +190,8 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    - Do NOT skip this output. The user needs these commands to continue.
 
 ## Validation
+
+**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
 
 All must pass. If any fail, fix and retry.
 

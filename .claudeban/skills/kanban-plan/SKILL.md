@@ -160,11 +160,16 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
     - Write plan file
     - Write task file
 
-11. **Commit the plan and task update**:
+11. **CRITICAL: Commit the plan and task update**:
+
+    **This step is MANDATORY. Do not proceed without committing.**
+
     ```bash
     git add .kanban/plans/{id}-{slug}.plan.md .kanban/tasks/{id}-*.md
     git commit -m "docs({id}): plan - {title}"
     ```
+
+    **DO NOT skip this step. If the commit fails, stop and report the error.**
 
 12. **Confirm**:
     - Print: "Task {id} moved to Planned"
@@ -180,6 +185,8 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
     - Do NOT skip this output. The user needs these commands to continue.
 
 ## Validation
+
+**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
 
 All must pass. If any fail, fix and retry.
 

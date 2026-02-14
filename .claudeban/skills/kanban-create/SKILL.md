@@ -107,12 +107,17 @@ See `.claude/kanban-workflow.yaml` for column definitions.
      - `## Acceptance Criteria`
      - Frontmatter: `spec`, `plan`, `updated`, `completed`
 
-10. **Commit the task file**:
+10. **CRITICAL: Commit the task file**:
+
+    **This step is MANDATORY. Do not proceed without committing.**
+
     - Use `commits.create` format from kanban-workflow.yaml
     ```bash
     git add .kanban/tasks/{id}-{slug}.md
     git commit -m "docs({id}): create - {title}"
     ```
+
+    **DO NOT skip this step. If the commit fails, stop and report the error.**
 
 11. **Confirm creation**:
    - Print the created file path and task ID
@@ -131,6 +136,8 @@ See `.claude/kanban-workflow.yaml` for column definitions.
 - `$ARGUMENTS` - Task title and optional description
 
 ## Validation
+
+**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
 
 All must pass. If any fail, fix and retry.
 

@@ -85,7 +85,9 @@ Ask: "What are the main capabilities or features you want to build?"
 3. Update any docs that need adjustments based on later Q&A context
 4. Verify all relationships (uses/related/extends) are accurate across docs
 
-### 4. Commit
+### 4. CRITICAL: Commit
+
+**This step is MANDATORY. Do not proceed without committing.**
 
 ```bash
 git add .kanban/product/
@@ -94,7 +96,11 @@ git commit -m "docs: define-product - {brief product description}"
 
 Example: `docs: define-product - task management app with projects, tasks, collaboration`
 
+**DO NOT skip this step. If the commit fails, stop and report the error.**
+
 ## Validation
+
+**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
 
 All must pass. If any fail, fix and retry.
 

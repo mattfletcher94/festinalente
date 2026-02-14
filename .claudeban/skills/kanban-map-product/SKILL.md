@@ -126,7 +126,9 @@ Use AskUserQuestion tool for **one question at a time**.
 3. Update any docs that need adjustments based on later Q&A context
 4. Verify all relationships (uses/related/extends) are accurate across docs
 
-### 6. Commit
+### 6. CRITICAL: Commit
+
+**This step is MANDATORY. Do not proceed without committing.**
 
 ```bash
 git add .kanban/product/
@@ -135,7 +137,11 @@ git commit -m "docs: map-product - {brief summary listing main features}"
 
 Example: `docs: map-product - authentication, user management, notifications, search`
 
+**DO NOT skip this step. If the commit fails, stop and report the error.**
+
 ## Validation
+
+**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
 
 All must pass. If any fail, fix and retry.
 

@@ -102,7 +102,10 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
      - If contains `docs`: type = `docs`
      - If contains `feature` or default: type = `feat`
 
-9. **Stage and commit code**:
+9. **CRITICAL: Stage and commit code**:
+
+   **This step is MANDATORY. Do not proceed without committing.**
+
    - Stage implementation files:
      ```bash
      git add {implementation files}
@@ -112,6 +115,8 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
      ```bash
      git commit -m "{type}({id}): {title}"
      ```
+
+   **DO NOT skip this step. If the commit fails, stop and report the error.**
 
 10. **Move to Update Docs**:
     - Change `status: qa` to `status: update-docs`
@@ -131,6 +136,8 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    - Do NOT skip this output. The user needs these commands to continue.
 
 ## Validation
+
+**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
 
 All must pass. If any fail, fix and retry.
 

@@ -168,6 +168,8 @@ node .claude/scripts/find-plan.js {id}
 
 ## Validation
 
+**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
+
 - [ ] Output shows task(s) with current status
 - [ ] Output includes a suggested next command
 - [ ] Suggested command is appropriate for the task's current status

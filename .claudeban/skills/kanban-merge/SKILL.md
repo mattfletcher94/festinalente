@@ -99,7 +99,10 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    git branch -d task/{id}
    ```
 
-10. **Move to Done**:
+10. **CRITICAL: Move to Done and commit**:
+
+    **This step is MANDATORY. Do not proceed without committing.**
+
     - Change `status: pr` to `status: done`
     - Add `updated: {YYYY-MM-DD}`
     - Add `completed: {YYYY-MM-DD}`
@@ -109,6 +112,8 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
       git add .kanban/tasks/{id}-*.md
       git commit -m "docs({id}): done - {title}"
       ```
+
+    **DO NOT skip this step. If the commit fails, stop and report the error.**
 
 11. **Confirm completion**:
     - Print: "PR merged successfully!"
@@ -125,6 +130,8 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
     - Do NOT skip this output. The user needs these commands to continue.
 
 ## Validation
+
+**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
 
 All must pass:
 

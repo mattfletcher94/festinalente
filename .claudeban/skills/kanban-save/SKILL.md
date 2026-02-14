@@ -110,7 +110,10 @@ See `.claude/kanban-workflow.yaml` for column definitions.
       - Still update plan if checkboxes changed
       - Exit early if nothing to commit
 
-11. **Stage and commit**:
+11. **CRITICAL: Stage and commit**:
+
+    **This step is MANDATORY. Do not proceed without committing.**
+
     - Stage all relevant files (code + plan):
       ```bash
       git add {changed files}
@@ -121,6 +124,8 @@ See `.claude/kanban-workflow.yaml` for column definitions.
       git commit -m "wip({id}): {progress summary}"
       ```
 
+    **DO NOT skip this step. If the commit fails, stop and report the error.**
+
 12. **Confirm WIP commit**:
     - Print commit hash
     - Print progress: "{completed}/{total} plan items complete"
@@ -128,6 +133,8 @@ See `.claude/kanban-workflow.yaml` for column definitions.
     - Remind: "Resume with /kanban:implement {id}"
 
 ## Validation
+
+**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
 
 All must pass. If any fail, fix and retry.
 

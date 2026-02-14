@@ -150,6 +150,8 @@ None - code stays uncommitted until QA passes. Use `/kanban:save` to save partia
 
 ## Validation
 
+**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
+
 All must pass. If any fail, fix and retry.
 
 - [ ] Task file exists at `.kanban/tasks/{id}-*.md`

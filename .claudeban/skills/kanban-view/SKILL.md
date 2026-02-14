@@ -185,6 +185,8 @@ Done (2 tasks)
 
 ## Validation
 
+**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
+
 - [ ] Asked user for view preset before rendering
 - [ ] Board shows tasks grouped by status column
 - [ ] Column order follows workflow (Backlog → Done)

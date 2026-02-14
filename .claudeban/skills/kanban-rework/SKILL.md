@@ -119,12 +119,17 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
     - Add `updated: {YYYY-MM-DD}`
     - Write updated task file
 
-11. **Commit the rework notes**:
+11. **CRITICAL: Commit the rework notes**:
+
+    **This step is MANDATORY. Do not proceed without committing.**
+
     ```bash
     git add .kanban/tasks/{id}-*.md
     git add .kanban/plans/{id}-{slug}.plan.md  # if exists
     git commit -m "docs({id}): rework - {title}"
     ```
+
+    **DO NOT skip this step. If the commit fails, stop and report the error.**
 
 12. **Confirm**:
     - Print commit hash
@@ -141,6 +146,8 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
     - Also mention: "Then re-verify with /kanban:verify {id}"
 
 ## Validation
+
+**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
 
 All must pass. If any fail, fix and retry.
 

@@ -1,5 +1,7 @@
 # Plan: Fix Skill Execution Issues
 
+**Status:** READY FOR IMPLEMENTATION
+
 ## Problem Summary
 
 Two issues were identified during the kanban workflow execution:

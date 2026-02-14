@@ -122,7 +122,12 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
                    Analyze the error output
                    Make code changes to fix the issue
                    Write updated plan file
+
+                   # CRITICAL: Commit the retry fix
+                   # This step is MANDATORY. Do not skip.
                    Commit: "docs({id}): verify-retry - {title}"
+                   # DO NOT skip this commit. If it fails, stop and report the error.
+
                    attempt += 1
                    break (restart all checks from beginning)
                else:
@@ -145,17 +150,11 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    - Add `updated: {YYYY-MM-DD}`
    - Write task file
 
-   - Log success to plan's ## Iterations section:
-     ```markdown
-     ### Attempt {n} — Verify Passed ({YYYY-MM-DD})
-     **Phase:** checks
-     **Result:** passed
-     **Attempts:** {number of attempts taken}
+   **IMPORTANT: Task file changes are ONLY:**
+   - `status: qa`
+   - `updated: {YYYY-MM-DD}`
 
-     All checks passed:
-     - {check 1}: PASS
-     - {check 2}: PASS
-     ```
+   **DO NOT add verification results, check names, pass/fail logs, or any other content to the task file.**
 
    - Print summary of all passed checks
    - Print: "Task {id} moved to QA."
@@ -168,6 +167,8 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    - Do NOT skip this output. The user needs these commands to continue.
 
 ## Validation
+
+**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
 
 All must pass. If any fail, fix and retry.
 
