@@ -42,35 +42,36 @@ Create the `.kanban/` directory structure for a new project.
    The config.yaml schema has exactly three top-level keys: `name`, `user-skills`, `settings`.
    Do NOT add keys like `verification`, `checks`, `hooks`, `commands`, or anything else.
      ```yaml
+     # Skill names resolve to .claude/skills/{name}/SKILL.md
      name: My Project
 
      user-skills:
        "kanban:create":
-         skills: []    # Skill names that resolve to .claude/skills/{name}/SKILL.md
+         skills:
        "kanban:refine":
-         skills: []
+         skills:
        "kanban:scope":
-         skills: []
+         skills:
        "kanban:plan":
-         skills: []
+         skills:
        "kanban:implement":
-         skills: []
+         skills:
        "kanban:save":
-         skills: []
+         skills:
        "kanban:verify":
-         skills: []
+         skills:
        "kanban:approve":
-         skills: []
+         skills:
        "kanban:docs":
-         skills: []
+         skills:
        "kanban:merge":
-         skills: []
+         skills:
        "kanban:rework":
-         skills: []
+         skills:
        "kanban:map-product":
-         skills: []
+         skills:
        "kanban:define-product":
-         skills: []
+         skills:
 
      settings:
        version: "2.0"

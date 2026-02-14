@@ -314,35 +314,35 @@ name: My Project
 # Skill names resolve to .claude/skills/{name}/SKILL.md
 user-skills:
   "kanban:init":
-    skills: []
+    skills:
   "kanban:status":
-    skills: []
+    skills:
   "kanban:create":
-    skills: []
+    skills:
   "kanban:refine":
-    skills: []
+    skills:
   "kanban:scope":
-    skills: []
+    skills:
   "kanban:plan":
-    skills: []
+    skills:
   "kanban:implement":
-    skills: []
+    skills:
   "kanban:save":
-    skills: []
+    skills:
   "kanban:verify":
-    skills: []
+    skills:
   "kanban:approve":
-    skills: []
+    skills:
   "kanban:docs":
-    skills: []
+    skills:
   "kanban:merge":
-    skills: []
+    skills:
   "kanban:rework":
-    skills: []
+    skills:
   "kanban:map-product":
-    skills: []
+    skills:
   "kanban:define-product":
-    skills: []
+    skills:
 
 settings:
   version: "2.0"

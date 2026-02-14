@@ -12,38 +12,38 @@ name: My Project
 
 user-skills:
   "kanban:init":
-    skills: []
+    skills:
   "kanban:status":
-    skills: []
+    skills:
   "kanban:create":
-    skills: []
+    skills:
   "kanban:refine":
-    skills: []
+    skills:
   "kanban:scope":
-    skills: []
+    skills:
   "kanban:plan":
-    skills: []
+    skills:
   "kanban:implement":
-    skills: []
+    skills:
   "kanban:save":
-    skills: []
+    skills:
   "kanban:verify":
     skills:
-      - check-typescript    # Reads .claude/skills/check-typescript/SKILL.md
-      - check-tests         # Reads .claude/skills/check-tests/SKILL.md
-      - check-lint          # Reads .claude/skills/check-lint/SKILL.md
+      - check-typescript
+      - check-tests
+      - check-lint
   "kanban:approve":
-    skills: []
+    skills:
   "kanban:docs":
-    skills: []
+    skills:
   "kanban:merge":
-    skills: []
+    skills:
   "kanban:rework":
-    skills: []
+    skills:
   "kanban:map-product":
-    skills: []
+    skills:
   "kanban:define-product":
-    skills: []
+    skills:
 
 settings:
   version: "2.0"
