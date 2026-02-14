@@ -102,26 +102,27 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
      - If contains `docs`: type = `docs`
      - If contains `feature` or default: type = `feat`
 
-9. **CRITICAL: Stage and commit code**:
+9. **Move to Update Docs** (before commit so status is included):
+    - Change `status: qa` to `status: update-docs`
+    - Add `updated: {YYYY-MM-DD}`
+    - Write updated task file
+
+10. **CRITICAL: Stage and commit code**:
 
    **This step is MANDATORY. Do not proceed without committing.**
 
-   - Stage implementation files:
+   - Stage implementation files AND .kanban files together:
      ```bash
      git add {implementation files}
+     git add .kanban/
      ```
-   - Do NOT stage .kanban files in this commit (those were committed during planning)
+   - `.kanban` files MUST be included — they accumulate status and plan changes from implement/verify that are not committed earlier
    - Create commit:
      ```bash
      git commit -m "{type}({id}): {title}"
      ```
 
    **DO NOT skip this step. If the commit fails, stop and report the error.**
-
-10. **Move to Update Docs**:
-    - Change `status: qa` to `status: update-docs`
-    - Add `updated: {YYYY-MM-DD}`
-    - Write updated task file
 
 11. **Confirm**:
    - Print commit hash and message
@@ -166,17 +167,20 @@ Acceptance Criteria:
 Have you tested the application and verified it meets acceptance criteria? [Y/n]
 > Y
 
-Staging implementation files:
+Task 001 moved to Update Docs
+
+Staging files:
 - src/routes/auth.ts
 - src/middleware/jwt.ts
 - src/types/auth.ts
+- .kanban/tasks/001-add-user-authentication.md
+- .kanban/plans/001-add-user-authentication.plan.md
 
 Commit type: feat (from feature label)
 
 Commit: e5f6g7h feat(001): Add user authentication
 
 QA passed!
-Task 001 moved to Update Docs
 - Column: update-docs
 - Commit: e5f6g7h
 
@@ -202,15 +206,18 @@ Acceptance Criteria:
 Have you tested the application and verified it meets acceptance criteria? [Y/n]
 > Y
 
-Staging implementation files:
+Task 002 moved to Update Docs
+
+Staging files:
 - src/routes/auth.ts
+- .kanban/tasks/002-fix-login-redirect-loop.md
+- .kanban/plans/002-fix-login-redirect-loop.plan.md
 
 Commit type: fix (from bug label)
 
 Commit: f6g7h8i fix(002): Fix login redirect loop
 
 QA passed!
-Task 002 moved to Update Docs
 - Column: update-docs
 - Commit: f6g7h8i
 

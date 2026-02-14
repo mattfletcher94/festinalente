@@ -1,12 +1,12 @@
 ---
 name: kanban-merge
-description: Merge PR, delete task branch, switch to main, and complete the task.
-allowed-tools: Read, Write, Bash(ls *, git *, gh pr *)
+description: Merge task branch to main, delete task branch, and complete the task.
+allowed-tools: Read, Write, Bash(ls *, git *)
 ---
 
-# Merge Task PR
+# Merge Task Branch
 
-Merge the pull request, clean up the task branch, and move task to **Done**.
+Merge the task branch into main, clean up the branch, and move task to **Done**.
 
 ## Directory Reference
 - **`.claude/`** — System config (workflow, templates, skills) — READ ONLY
@@ -72,30 +72,30 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
          - coding-standards   # Reads .claude/skills/coding-standards/SKILL.md
    ```
 
-6. **Verify PR exists and is ready**:
-   - Run `gh pr view --json state,mergeable`
-   - If no PR exists: Error "No PR found for branch task/{id}"
-   - If PR is not mergeable: Show status and blockers, exit
+6. **Verify branch is ready to merge**:
+   - Run `git status` to ensure working tree is clean
+   - Run `git log main..HEAD --oneline` to show commits to be merged
+   - If working tree is dirty: Error "Please commit or stash changes first"
 
 7. **Prompt for merge confirmation**:
    ```
    Task: {id} - {title}
-   PR: {pr url}
+   Branch: task/{id}
+   Commits to merge: {list from step 6}
 
-   Ready to merge this PR? [Y/n]
+   Ready to merge this branch into main? [Y/n]
    ```
    - If user declines, exit
 
-8. **Merge the PR**:
-   ```bash
-   gh pr merge --merge
-   ```
-   - Use `--merge` (regular merge, preserves history)
-
-9. **Switch to main and clean up**:
+8. **Merge the branch into main**:
    ```bash
    git checkout main
-   git pull
+   git merge task/{id} --no-ff -m "Merge branch 'task/{id}'"
+   ```
+   - Use `--no-ff` to preserve branch history
+
+9. **Clean up task branch**:
+   ```bash
    git branch -d task/{id}
    ```
 
@@ -116,7 +116,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
     **DO NOT skip this step. If the commit fails, stop and report the error.**
 
 11. **Confirm completion**:
-    - Print: "PR merged successfully!"
+    - Print: "Branch merged successfully!"
     - Print: "Branch task/{id} deleted"
     - Print: "Task {id} completed!"
     - Print current branch (should be main)
@@ -153,15 +153,17 @@ User: `/kanban:merge 001`
 Merging task 001 "Add user authentication"...
 
 Task: 001 - Add user authentication
-PR: https://github.com/user/repo/pull/42
+Branch: task/001
+Commits to merge:
+  abc1234 Add login form
+  def5678 Add authentication service
 
-Ready to merge this PR? [Y/n]
+Ready to merge this branch into main? [Y/n]
 > Y
 
-Merging PR...
-PR merged successfully!
+Merging branch into main...
+Branch merged successfully!
 
-Switching to main...
 Deleting branch task/001...
 Branch task/001 deleted.
 

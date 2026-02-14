@@ -11,6 +11,7 @@ Update product documentation, commit the changes, and move task from **Update Do
 ## Directory Reference
 - **`.claude/`** — System config (workflow, templates, skills) — READ ONLY
 - **`.kanban/`** — Project data (tasks, specs, plans, product docs) — READ/WRITE
+- **`.kanban/product/`** — Product documentation files (features.md, overview.md, etc.) — This is where user-facing docs live
 
 ## Column Transition
 
@@ -99,6 +100,10 @@ The description summarizes what documentation was updated (e.g., "add authentica
    ```
 
 8. **If user confirms (Y)**:
+   - **FIRST:** Read existing product documentation from `.kanban/product/`:
+     - List files in `.kanban/product/` directory
+     - Read `.kanban/product/features.md` (main feature documentation)
+     - Read `.kanban/product/overview.md` and any other relevant docs
    - **SCOPE RESTRICTION:** Only update docs to reflect what THIS task implemented
    - **Do NOT:**
      - Add "Planned" or "Not yet implemented" markers for unrelated features
@@ -110,9 +115,9 @@ The description summarizes what documentation was updated (e.g., "add authentica
      - Mark this task's feature as implemented if appropriate
      - Add any new documentation files needed for this task's feature
    - Help identify which docs to update:
-     - For `feature`: suggest feature documentation
-     - For `api`: suggest API documentation
-     - For `breaking`: suggest changelog
+     - For `feature`: update `.kanban/product/features.md`
+     - For `api`: update API documentation in `.kanban/product/`
+     - For `breaking`: update changelog in `.kanban/product/`
    - Ask what documentation changes are needed
    - Make documentation changes
    - Generate commit message based on changes made
