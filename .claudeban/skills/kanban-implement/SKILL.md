@@ -12,6 +12,21 @@ Move task from **Planned** to **In Progress** and execute the plan. Code remains
 - **`.claude/`** — System config (workflow, templates, skills) — READ ONLY
 - **`.kanban/`** — Project data (tasks, specs, plans, product docs) — READ/WRITE
 
+## Helper Scripts
+
+Use these scripts to reliably find files:
+
+```bash
+# Find task by ID (returns JSON with path and metadata)
+node .claude/scripts/find-task.js {id}
+
+# Find plan by ID (returns JSON with path and metadata)
+node .claude/scripts/find-plan.js {id}
+
+# Get current date/time (returns JSON with iso and date formats)
+node .claude/scripts/get-date-time.js
+```
+
 ## Column Transition
 
 ```
@@ -34,7 +49,8 @@ None - code stays uncommitted until QA passes. Use `/kanban:save` to save partia
    - Ask user which task to implement
 
 3. **Read task file**:
-   - **NEVER guess filenames.** Glob for `.kanban/tasks/{id}-*.md` to find the exact filename
+   - Run `node .claude/scripts/find-task.js {id}` to get exact path
+   - Read the file at the `path` from JSON output
    - Parse YAML frontmatter
    - Verify current status:
      - If `planned`: Move to `in-progress` first (step 5)
@@ -58,8 +74,8 @@ None - code stays uncommitted until QA passes. Use `/kanban:save` to save partia
    - Print: "Task {id} moved to In Progress"
 
 6. **Find and read plan file**:
-   - Check for `.kanban/plans/{id}-{slug}.plan.md`
-   - If plan found: Read plan content
+   - Run `node .claude/scripts/find-plan.js {id}` to get exact path
+   - If plan found: Read the plan at the `path` from JSON output
    - If NO plan found:
      - Warn: "No plan found for task {id}"
      - Suggest: "Create plan with /kanban:plan first"

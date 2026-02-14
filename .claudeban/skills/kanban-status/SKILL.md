@@ -8,12 +8,31 @@ allowed-tools: Read, Glob, Grep
 
 Show the current state of the board and suggest what command to run next. Helps users resume work after losing context.
 
+## Helper Scripts
+
+Use these scripts to reliably find files and list tasks:
+
+```bash
+# List all tasks (returns JSON with count and tasks array)
+node .claude/scripts/list-tasks.js
+
+# List tasks filtered by status
+node .claude/scripts/list-tasks.js --status=in-progress
+
+# Find task by ID (returns JSON with path and metadata)
+node .claude/scripts/find-task.js {id}
+
+# Find plan by ID (returns JSON with path and metadata)
+node .claude/scripts/find-plan.js {id}
+```
+
 ## Steps
 
 ### If task ID provided ($ARGUMENTS is not empty):
 
 1. **Find and read the task file**:
-   - **NEVER guess filenames.** Glob for `.kanban/tasks/{id}-*.md` to find the exact filename
+   - Run `node .claude/scripts/find-task.js {id}` to get exact path
+   - Read the file at the `path` from JSON output
    - Parse YAML frontmatter
    - Error if task not found
 
@@ -74,8 +93,8 @@ Show the current state of the board and suggest what command to run next. Helps 
 ### If no task ID provided (show full board):
 
 1. **Find all task files**:
-   - Glob for `.kanban/tasks/*.md`
-   - If no tasks found, inform user and suggest `/kanban:create`
+   - Run `node .claude/scripts/list-tasks.js` to get all tasks
+   - If count is 0, inform user and suggest `/kanban:create`
 
 2. **Parse each task**:
    - Read frontmatter to get id, title, status

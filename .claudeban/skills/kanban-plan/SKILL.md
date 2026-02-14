@@ -12,6 +12,21 @@ Create a plan file in `.kanban/plans/` and move task from **Scoped** to **Planne
 - **`.claude/`** — System config (workflow, templates, skills) — READ ONLY
 - **`.kanban/`** — Project data (tasks, specs, plans, product docs) — READ/WRITE
 
+## Helper Scripts
+
+Use these scripts to reliably find files:
+
+```bash
+# Find task by ID (returns JSON with path and metadata)
+node .claude/scripts/find-task.js {id}
+
+# Find spec by ID (returns JSON with path and metadata)
+node .claude/scripts/find-spec.js {id}
+
+# Get current date/time (returns JSON with iso and date formats)
+node .claude/scripts/get-date-time.js
+```
+
 ## Column Transition
 
 ```
@@ -36,7 +51,8 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    - Ask user which task to plan
 
 3. **Read task file**:
-   - **NEVER guess filenames.** Glob for `.kanban/tasks/{id}-*.md` to find the exact filename
+   - Run `node .claude/scripts/find-task.js {id}` to get exact path
+   - Read the file at the `path` from JSON output
    - Parse YAML frontmatter
    - Verify current status is `scoped`:
      - If not scoped, warn user and confirm they want to proceed
@@ -52,7 +68,8 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
      - Exit
 
 5. **Read functional specification**:
-   - Read spec file at `.kanban/specs/{id}-{slug}.spec.md`
+   - Run `node .claude/scripts/find-spec.js {id}` to get exact path
+   - Read the spec file at the `path` from JSON output
    - If spec not found, BLOCK planning with message:
      ```
      Task {id} needs scoping before planning.

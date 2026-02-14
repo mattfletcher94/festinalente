@@ -8,6 +8,21 @@ allowed-tools: Read, Glob, Grep
 
 Display the Kanban board as a visual terminal output.
 
+## Helper Scripts
+
+Use these scripts to reliably find files and list tasks:
+
+```bash
+# List all tasks (returns JSON with count and tasks array)
+node .claude/scripts/list-tasks.js
+
+# Find task by ID (returns JSON with path and metadata)
+node .claude/scripts/find-task.js {id}
+
+# Find plan by ID (returns JSON with path and metadata)
+node .claude/scripts/find-plan.js {id}
+```
+
 ## Steps
 
 ### 1. Check for `.kanban/` directory
@@ -39,8 +54,8 @@ Ask the user:
 
 ### 4. Read all task files
 
-- Glob for `.kanban/tasks/*.md`
-- Parse YAML frontmatter from each: `id`, `title`, `status`, `labels`
+- Run `node .claude/scripts/list-tasks.js` to get all tasks with metadata
+- The JSON output includes `id`, `title`, `status`, `labels` for each task
 - Group tasks by `status`
 
 ### 5. For tasks with plans, get progress

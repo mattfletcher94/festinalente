@@ -12,6 +12,18 @@ Create a new task file in `.kanban/tasks/` in the **Backlog** column and commit.
 - **`.claude/`** — System config (workflow, templates, skills) — READ ONLY
 - **`.kanban/`** — Project data (tasks, specs, plans, product docs) — READ/WRITE
 
+## Helper Scripts
+
+Use these scripts to reliably find files and get formatted values:
+
+```bash
+# Get next task ID (returns JSON with nextId, currentHighest, padding)
+node .claude/scripts/next-id.js
+
+# Get current date/time (returns JSON with iso and date formats)
+node .claude/scripts/get-date-time.js
+```
+
 ## Column Transition
 
 ```
@@ -62,9 +74,8 @@ See `.claude/kanban-workflow.yaml` for column definitions.
    ```
 
 5. **Determine next ID**:
-   - List files in `.kanban/tasks/`
-   - Find highest numbered ID (e.g., 001, 002)
-   - Increment by 1, pad to 3 digits
+   - Run `node .claude/scripts/next-id.js`
+   - Use `nextId` from JSON output
 
 6. **Get task details**:
    - Title: Use $ARGUMENTS if provided, otherwise ask user

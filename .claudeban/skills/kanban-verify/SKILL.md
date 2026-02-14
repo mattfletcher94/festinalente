@@ -12,6 +12,21 @@ Run AI code review using configured skills. On failure, AI fixes issues and retr
 - **`.claude/`** — System config (workflow, templates, skills) — READ ONLY
 - **`.kanban/`** — Project data (tasks, specs, plans, product docs) — READ/WRITE
 
+## Helper Scripts
+
+Use these scripts to reliably find files:
+
+```bash
+# Find task by ID (returns JSON with path and metadata)
+node .claude/scripts/find-task.js {id}
+
+# Find plan by ID (returns JSON with path and metadata)
+node .claude/scripts/find-plan.js {id}
+
+# Get current date/time (returns JSON with iso and date formats)
+node .claude/scripts/get-date-time.js
+```
+
 ## Column Transition
 
 ```
@@ -41,7 +56,8 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    - Ask user which task to verify
 
 3. **Read task file**:
-   - **NEVER guess filenames.** Glob for `.kanban/tasks/{id}-*.md` to find the exact filename
+   - Run `node .claude/scripts/find-task.js {id}` to get exact path
+   - Read the file at the `path` from JSON output
    - Parse YAML frontmatter
    - Verify status is `in-progress`:
      - If not, warn: "Task is in {status} status. Expected: in-progress. Continue anyway? (y/n)"
@@ -56,7 +72,8 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
      - Exit
 
 5. **Read plan file**:
-   - Find plan at `.kanban/plans/{id}-{slug}.plan.md`
+   - Run `node .claude/scripts/find-plan.js {id}` to get exact path
+   - Read the plan at the `path` from JSON output
    - Verify all implementation checkboxes are marked complete
    - If any unchecked, warn: "Plan has incomplete items. Verify anyway? (y/n)"
 

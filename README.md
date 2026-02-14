@@ -385,6 +385,25 @@ docs(001): done - Add user authentication       # on main, task complete
 
 ---
 
+## Helper Scripts
+
+Claude Kanban includes helper scripts that the AI uses to reliably find files:
+
+| Script | Purpose |
+|--------|---------|
+| `find-task.js` | Find task file by ID |
+| `find-spec.js` | Find spec file by task ID |
+| `find-plan.js` | Find plan file by task ID |
+| `list-tasks.js` | List all tasks with optional filtering |
+| `next-id.js` | Get next available task ID |
+| `get-date-time.js` | Get formatted date/time strings |
+
+Scripts are installed to `.claude/scripts/` and return JSON output.
+
+See [scripts/README.md](.claudeban/scripts/README.md) for full documentation.
+
+---
+
 ## Philosophy
 
 - **Branch isolation.** Task work happens on `task/{id}` branches, keeping main clean.

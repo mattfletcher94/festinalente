@@ -8,6 +8,7 @@
 //   - kanban-templates/
 //   - kanban-workflow.yaml
 //   - kanban-manifest.json
+//   - scripts/
 //
 // It will NEVER touch user files outside these paths.
 // The manifest tracks exactly which files were installed.
@@ -30,7 +31,8 @@ const KANBAN_PATHS = [
   'kanban-templates',
   'kanban-workflow.yaml',
   'kanban-manifest.json',
-  'kanban-local-patches'
+  'kanban-local-patches',
+  'scripts/'
 ];
 
 // ANSI colors
