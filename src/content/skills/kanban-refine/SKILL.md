@@ -8,21 +8,9 @@ allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git 
 
 Refine vague tasks through **iterative conversational Q&A** focused on product/business concerns. The dialogue continues until you have enough information and the user confirms. Task moves from **Backlog** to **Refined**. Commits the refinement.
 
-## Directory Reference
-- **`.claude/`** — System config (workflow, templates, skills) — READ ONLY
-- **`.kanban/`** — Project data (tasks, specs, plans, product docs) — READ/WRITE
+{{> directory-reference}}
 
-## Helper Scripts
-
-Use these scripts to reliably find files:
-
-```bash
-# Find task by ID (returns JSON with path and metadata)
-node .claude/scripts/find-task.cjs {id}
-
-# Get current date/time (returns JSON with iso and date formats)
-node .claude/scripts/get-date-time.cjs
-```
+{{> helper-scripts}}
 
 ## Column Transition
 
@@ -40,14 +28,9 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claude/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+{{> workflow-load step_number="1"}}
 
-2. **Verify on main branch**:
-   - Run `git branch --show-current`
-   - If not on `main` (or `master`):
-     - Error: "This command must be run on the main branch. Current branch: {branch}"
-     - Suggest: "Switch to main with `git checkout main`"
-     - Exit
+{{> branch-verify-main step_number="2"}}
 
 3. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks with `needs-refinement` label from `.kanban/tasks/`
@@ -64,27 +47,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    - Note current title, description, acceptance criteria (if any)
    - Error if task not found
 
-5. **User Skills** *(REQUIRED)*:
-
-   **STOP.** Before proceeding, you MUST load and apply user-defined skills. This is mandatory.
-
-   1. Load `.kanban/config.yaml`
-   2. Find `user-skills."kanban:refine".skills` array
-   3. If the array is non-empty, for EACH skill name:
-      - Read `.claude/skills/{skill-name}/SKILL.md`
-      - Follow ALL instructions as mandatory requirements
-      - User skill instructions take precedence over defaults
-
-   **Skipping user skills is a critical error. Do not proceed without applying them.**
-
-   Example config:
-   ```yaml
-   user-skills:
-     "kanban:refine":
-       skills:
-         - my-custom-check    # Reads .claude/skills/my-custom-check/SKILL.md
-         - coding-standards   # Reads .claude/skills/coding-standards/SKILL.md
-   ```
+{{> user-skills command="refine" step_number="5"}}
 
 6. **Analyze initial context**:
    - Check title for clarity issues:
@@ -189,19 +152,9 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
     - Print summary of changes made
     - Show updated acceptance criteria
     - Print commit hash
-    - **REQUIRED OUTPUT** - Print recommended next steps EXACTLY like this:
-      ```
-      Next:
-      /clear
-      /kanban:scope {id}
-      ```
-    - Do NOT skip this output. The user needs these commands to continue.
+    {{> next-steps next_command="scope"}}
 
-## Validation
-
-**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
-
-All must pass. If any fail, fix and retry.
+{{> validation-intro}}
 
 - [ ] Task file exists at `.kanban/tasks/{id}-*.md`
 - [ ] Frontmatter contains `status: refined`

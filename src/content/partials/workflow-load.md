@@ -1,0 +1,1 @@
+{{#if step_number}}{{step_number}}{{else}}1{{/if}}. **Load workflow schema**: Read `.claude/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.

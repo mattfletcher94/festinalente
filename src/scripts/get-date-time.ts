@@ -4,7 +4,7 @@
 // Usage: node get-date-time.cjs
 // Returns JSON with iso and date formats
 
-function main() {
+function main(): void {
   const now = new Date();
 
   const result = {

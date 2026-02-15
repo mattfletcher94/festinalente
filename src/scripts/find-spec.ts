@@ -1,35 +1,42 @@
 #!/usr/bin/env node
 
-// Find task file by ID
-// Usage: node find-task.cjs <id>
+// Find spec file by task ID
+// Usage: node find-spec.cjs <id>
 // Returns JSON with path and metadata
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
-const TASKS_DIR = '.kanban/tasks';
+const SPECS_DIR = '.kanban/specs';
 
-function parseFrontmatter(content) {
+interface Frontmatter {
+  task?: string;
+  created?: string;
+  updated?: string;
+  [key: string]: string | undefined;
+}
+
+interface FileMatch {
+  filename: string;
+  path: string;
+}
+
+function parseFrontmatter(content: string): Frontmatter {
   const match = content.match(/^---\n([\s\S]*?)\n---/);
   if (!match) return {};
 
   const yaml = match[1];
-  const result = {};
+  const result: Frontmatter = {};
 
   const lines = yaml.split('\n');
   for (const line of lines) {
     const kvMatch = line.match(/^(\w+):\s*(.*)$/);
     if (kvMatch) {
       let value = kvMatch[2].trim();
-      // Handle quoted strings
       if (value.startsWith('"') && value.endsWith('"')) {
         value = value.slice(1, -1);
       } else if (value.startsWith("'") && value.endsWith("'")) {
         value = value.slice(1, -1);
-      }
-      // Handle arrays like [item1, item2]
-      if (value.startsWith('[') && value.endsWith(']')) {
-        value = value.slice(1, -1).split(',').map(s => s.trim().replace(/^["']|["']$/g, ''));
       }
       result[kvMatch[1]] = value;
     }
@@ -38,7 +45,7 @@ function parseFrontmatter(content) {
   return result;
 }
 
-function findFiles(dir, pattern) {
+function findFiles(dir: string, pattern: string): FileMatch[] {
   if (!fs.existsSync(dir)) return [];
 
   const files = fs.readdirSync(dir);
@@ -49,32 +56,32 @@ function findFiles(dir, pattern) {
     .map(f => ({ filename: f, path: path.join(dir, f).replace(/\\/g, '/') }));
 }
 
-function main() {
+function main(): void {
   const args = process.argv.slice(2);
 
   if (args.length === 0) {
-    console.log(JSON.stringify({ error: true, message: 'Usage: find-task.cjs <id>' }));
+    console.log(JSON.stringify({ error: true, message: 'Usage: find-spec.cjs <id>' }));
     process.exit(1);
   }
 
   const id = args[0];
 
-  if (!fs.existsSync(TASKS_DIR)) {
+  if (!fs.existsSync(SPECS_DIR)) {
     console.log(JSON.stringify({
       error: true,
-      message: `${TASKS_DIR}/ directory not found. Run /kanban:init first.`
+      message: `${SPECS_DIR}/ directory not found. Run /kanban:init first.`
     }));
     process.exit(1);
   }
 
-  // Find task file matching the ID pattern
-  const pattern = `^${id}-.*\\.md$`;
-  const matches = findFiles(TASKS_DIR, pattern);
+  // Find spec file matching the ID pattern
+  const pattern = `^${id}-.*\\.spec\\.md$`;
+  const matches = findFiles(SPECS_DIR, pattern);
 
   if (matches.length === 0) {
     console.log(JSON.stringify({
       error: true,
-      message: `Task ${id} not found in ${TASKS_DIR}/`
+      message: `Spec for task ${id} not found in ${SPECS_DIR}/`
     }));
     process.exit(1);
   }
@@ -87,10 +94,9 @@ function main() {
     id: id,
     filename: file.filename,
     path: file.path,
-    title: frontmatter.title || '',
-    status: frontmatter.status || '',
-    priority: frontmatter.priority || '',
-    labels: Array.isArray(frontmatter.labels) ? frontmatter.labels : []
+    task: frontmatter.task || id,
+    created: frontmatter.created || '',
+    updated: frontmatter.updated || ''
   };
 
   console.log(JSON.stringify(result, null, 2));

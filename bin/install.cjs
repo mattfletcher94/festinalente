@@ -19,7 +19,7 @@ const crypto = require('crypto');
 const readline = require('readline');
 
 const PACKAGE_NAME = 'claude-kanban';
-const SOURCE_DIR = '.claudeban';
+const SOURCE_DIR = 'dist';
 const TARGET_DIR = '.claude';
 const MANIFEST_FILE = 'kanban-manifest.json';
 const BACKUP_DIR = 'kanban-local-patches';

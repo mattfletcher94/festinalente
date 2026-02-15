@@ -4,20 +4,24 @@
 // Usage: node next-id.cjs
 // Returns JSON with nextId, currentHighest, and padding
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
 
 const TASKS_DIR = '.kanban/tasks';
 const CONFIG_FILE = '.kanban/config.yaml';
 
-function parseSimpleYaml(content) {
-  const result = {};
+interface SimpleYamlResult {
+  idPadding?: number;
+  [key: string]: string | number | undefined;
+}
+
+function parseSimpleYaml(content: string): SimpleYamlResult {
+  const result: SimpleYamlResult = {};
   const lines = content.split('\n');
 
   for (const line of lines) {
     const match = line.match(/^(\w+):\s*(.*)$/);
     if (match) {
-      let value = match[2].trim();
+      let value: string = match[2].trim();
       if (value.startsWith('"') && value.endsWith('"')) {
         value = value.slice(1, -1);
       } else if (value.startsWith("'") && value.endsWith("'")) {
@@ -32,12 +36,12 @@ function parseSimpleYaml(content) {
   return result;
 }
 
-function extractId(filename) {
+function extractId(filename: string): number | null {
   const match = filename.match(/^(\d+)-/);
   return match ? parseInt(match[1], 10) : null;
 }
 
-function main() {
+function main(): void {
   // Read config for padding
   let padding = 3;
 
@@ -48,7 +52,7 @@ function main() {
       if (config.idPadding) {
         padding = config.idPadding;
       }
-    } catch (e) {
+    } catch {
       // Use default padding
     }
   }

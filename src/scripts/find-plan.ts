@@ -4,17 +4,30 @@
 // Usage: node find-plan.cjs <id>
 // Returns JSON with path and metadata
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 const PLANS_DIR = '.kanban/plans';
 
-function parseFrontmatter(content) {
+interface Frontmatter {
+  task?: string;
+  spec?: string;
+  status?: string;
+  iteration?: string;
+  [key: string]: string | undefined;
+}
+
+interface FileMatch {
+  filename: string;
+  path: string;
+}
+
+function parseFrontmatter(content: string): Frontmatter {
   const match = content.match(/^---\n([\s\S]*?)\n---/);
   if (!match) return {};
 
   const yaml = match[1];
-  const result = {};
+  const result: Frontmatter = {};
 
   const lines = yaml.split('\n');
   for (const line of lines) {
@@ -33,7 +46,7 @@ function parseFrontmatter(content) {
   return result;
 }
 
-function findFiles(dir, pattern) {
+function findFiles(dir: string, pattern: string): FileMatch[] {
   if (!fs.existsSync(dir)) return [];
 
   const files = fs.readdirSync(dir);
@@ -44,7 +57,7 @@ function findFiles(dir, pattern) {
     .map(f => ({ filename: f, path: path.join(dir, f).replace(/\\/g, '/') }));
 }
 
-function main() {
+function main(): void {
   const args = process.argv.slice(2);
 
   if (args.length === 0) {
@@ -85,7 +98,7 @@ function main() {
     task: frontmatter.task || id,
     spec: frontmatter.spec || '',
     status: frontmatter.status || '',
-    iteration: parseInt(frontmatter.iteration, 10) || 1
+    iteration: parseInt(frontmatter.iteration || '1', 10) || 1
   };
 
   console.log(JSON.stringify(result, null, 2));

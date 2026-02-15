@@ -404,6 +404,140 @@ See [scripts/README.md](.claude/scripts/README.md) for full documentation.
 
 ---
 
+## Development
+
+This section is for contributors or those who want to modify Claude Kanban.
+
+### Prerequisites
+
+- Node.js >= 18
+- pnpm (`npm install -g pnpm`)
+
+### Project Structure
+
+```
+claudeban/
+├── src/
+│   ├── content/                 # Markdown content (compiled with Handlebars)
+│   │   ├── skills/              # Skill definitions (kanban-*/SKILL.md)
+│   │   ├── commands/            # Command wrappers (kanban/*.md)
+│   │   ├── partials/            # Shared template fragments
+│   │   ├── kanban-templates/    # Document templates (copied as-is)
+│   │   └── kanban-workflow.yaml # Workflow schema (copied as-is)
+│   │
+│   ├── scripts/                 # Runtime helper scripts (TypeScript → CJS)
+│   │   ├── find-task.ts
+│   │   ├── find-spec.ts
+│   │   └── ...
+│   │
+│   └── build/                   # Build tools (TypeScript)
+│       └── index.ts             # Handlebars compilation logic
+│
+├── dist/                        # Build output (generated, .gitignored)
+│   ├── skills/                  # Compiled skills (no Handlebars syntax)
+│   ├── commands/                # Compiled commands
+│   ├── scripts/*.cjs            # Compiled helper scripts
+│   ├── kanban-templates/        # Copied templates
+│   └── kanban-workflow.yaml     # Copied schema
+│
+├── bin/
+│   └── install.cjs              # Installer (reads from dist/)
+│
+├── turbo.json                   # Turborepo task configuration
+├── tsdown.config.ts             # TypeScript bundler configuration
+└── package.json
+```
+
+### Building
+
+```bash
+# Install dependencies
+pnpm install
+
+# Build everything (uses Turborepo for caching and parallelization)
+pnpm run build
+
+# Clean build artifacts
+pnpm run clean
+```
+
+The build process:
+1. **build:tools** - Compiles `src/build/index.ts` to ESM
+2. **build:scripts** - Compiles `src/scripts/*.ts` to CJS (for Claude to run)
+3. **build:content** - Runs Handlebars compilation on skills/commands, copies static files
+
+Tasks 1 and 2 run in parallel. Task 3 depends on task 1.
+
+### Handlebars Partials
+
+Partials are shared template fragments in `src/content/partials/`. They reduce duplication across skills.
+
+**Using a partial in a skill:**
+```handlebars
+{{> directory-reference}}
+
+{{> user-skills command="refine" step_number="5"}}
+
+{{> next-steps next_command="scope"}}
+```
+
+**Available partials:**
+
+| Partial | Parameters | Purpose |
+|---------|------------|---------|
+| `directory-reference` | none | Standard directory reference section |
+| `helper-scripts` | none | List of available helper scripts |
+| `user-skills` | `command`, `step_number` | User skills loading instructions |
+| `next-steps` | `next_command`, `no_id` | Required output format for next steps |
+| `validation-intro` | none | Validation section header |
+| `workflow-load` | `step_number` | Load workflow schema instruction |
+| `branch-verify-main` | `step_number`, `reason` | Verify on main branch |
+| `branch-verify-task` | `step_number` | Verify on task branch |
+
+**Creating a new partial:**
+
+1. Create `src/content/partials/my-partial.md`
+2. Use it in skills with `{{> my-partial param="value"}}`
+3. Run `pnpm run build`
+
+### Modifying Skills
+
+1. Edit the skill in `src/content/skills/kanban-*/SKILL.md`
+2. Use partials for repeated sections
+3. Run `pnpm run build`
+4. Test with `node bin/install.cjs --local`
+
+### Modifying Scripts
+
+1. Edit the TypeScript file in `src/scripts/*.ts`
+2. Run `pnpm run build`
+3. Test the compiled script: `node dist/scripts/script-name.cjs`
+
+### Testing Locally
+
+```bash
+# Build
+pnpm run build
+
+# Install to current directory
+node bin/install.cjs --local
+
+# Files are now in .claude/
+# Test commands in Claude Code
+```
+
+### Publishing
+
+```bash
+# Build first
+pnpm run build
+
+# Publish (dist/ is included via package.json "files")
+npm publish
+```
+
+---
+
 ## Philosophy
 
 - **Branch isolation.** Task work happens on `task/{id}` branches, keeping main clean.

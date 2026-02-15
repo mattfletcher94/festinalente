@@ -1,0 +1,22 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "compile": {
+      "dependsOn": ["build:tools", "build:scripts", "build:content"],
+      "outputs": ["dist/**", "src/build/dist/**"]
+    },
+    "build:tools": {
+      "outputs": ["src/build/dist/**"],
+      "inputs": ["src/build/**/*.ts", "tsconfig.json", "tsconfig.base.json"]
+    },
+    "build:scripts": {
+      "outputs": ["dist/scripts/**"],
+      "inputs": ["src/scripts/**/*.ts", "tsconfig.json", "tsconfig.base.json"]
+    },
+    "build:content": {
+      "dependsOn": ["build:tools"],
+      "outputs": ["dist/skills/**", "dist/commands/**", "dist/kanban-templates/**", "dist/kanban-workflow.yaml"],
+      "inputs": ["src/content/**/*", "src/build/dist/**"]
+    }
+  }
+}

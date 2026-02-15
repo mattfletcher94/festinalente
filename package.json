@@ -2,13 +2,21 @@
   "name": "claude-kanban",
   "version": "1.0.0",
   "description": "A kanban-style task management system for Claude Code with spec-driven development workflow",
+  "type": "module",
   "bin": {
-    "claude-kanban": "bin/install.js"
+    "claude-kanban": "bin/install.cjs"
   },
   "files": [
     "bin",
-    ".claudeban"
+    "dist"
   ],
+  "scripts": {
+    "build": "turbo compile",
+    "build:tools": "tsdown -c tsdown.config.ts src/build/index.ts --format esm --out-dir src/build/dist",
+    "build:scripts": "tsdown -c tsdown.config.ts src/scripts/find-task.ts src/scripts/find-spec.ts src/scripts/find-plan.ts src/scripts/list-tasks.ts src/scripts/next-id.ts src/scripts/get-date-time.ts --format cjs --out-dir dist/scripts",
+    "build:content": "node src/build/dist/index.js",
+    "clean": "node -e \"fs=require('fs');fs.rmSync('dist',{recursive:true,force:true});fs.rmSync('src/build/dist',{recursive:true,force:true})\""
+  },
   "keywords": [
     "claude",
     "claude-code",
@@ -24,6 +32,15 @@
     "url": "https://github.com/mattfletcher94/claude-kanban"
   },
   "engines": {
-    "node": ">=16.7.0"
+    "node": ">=18.0.0"
+  },
+  "packageManager": "pnpm@7.29.3",
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "glob": "^10.3.10",
+    "handlebars": "^4.7.8",
+    "tsdown": "^0.11.4",
+    "turbo": "^2.3.3",
+    "typescript": "^5.3.3"
   }
 }
