@@ -12,13 +12,9 @@ updated: YYYY-MM-DD
 
 ## Definition
 
-<!-- Clear, concise definition of this concept. 1-2 sentences. -->
-
 A {Concept Name} is {definition}. It represents {what it models/represents}.
 
 ## Examples
-
-<!-- Concrete examples that illustrate this concept. -->
 
 **Example 1: {Name}**
 - {Description of this example}
@@ -30,22 +26,16 @@ A {Concept Name} is {definition}. It represents {what it models/represents}.
 
 ## Rules & Constraints
 
-<!-- Business rules, validation rules, or constraints that apply. -->
-
 - **{Rule Name}**: {Description of the rule}
 - **{Rule Name}**: {Description of the rule}
 
 ### Validation
-
-<!-- How is this concept validated? What makes it valid/invalid? -->
 
 | Field | Rule | Example |
 |-------|------|---------|
 | {field} | {validation rule} | {valid/invalid example} |
 
 ## Relationships
-
-<!-- How this concept relates to other concepts or features. -->
 
 ```
 {Concept} ──has many──▶ {Related Concept}
@@ -56,8 +46,6 @@ A {Concept Name} is {definition}. It represents {what it models/represents}.
 - **{Related Concept}**: {Nature of relationship}
 
 ## Edge Cases
-
-<!-- Non-obvious scenarios or exceptions to understand. -->
 
 - **{Scenario}**: {How this concept behaves in this edge case}
 - **{Scenario}**: {How this concept behaves in this edge case}
