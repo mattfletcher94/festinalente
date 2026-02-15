@@ -17,6 +17,8 @@ Create a plan file in `.kanban/plans/` and move task from Scoped to Planned, the
 
 {{> helper-scripts show_find_task=true show_find_spec=true show_get_date_time=true}}
 
+{{> product-docs-scripts show_search_product=true show_list_product=true}}
+
 {{> column-transition from="scoped" to="planned"}}
 </context>
 
@@ -62,6 +64,29 @@ Create a plan file in `.kanban/plans/` and move task from Scoped to Planned, the
       Run: /kanban-scope {taskId}
       ```
     - Extract functional requirements, affected files, and existing patterns
+  </step>
+
+  <step name="research_product_docs" outputs="productContext">
+    **Read product documentation for implementation context:**
+
+    1. **Check task's affects field:**
+       - If task has `affects` field in frontmatter:
+         - For each product doc ID: Read `.kanban/product/{id}.md`
+         - Note: current behavior, UI components, user flows, constraints
+
+    2. **Search for related product docs:**
+       - Extract key terms from spec (feature names, component names, domains)
+       - Run `node .claude/scripts/search-product.cjs {keywords}` to find related docs
+       - Read any docs with score ≥ 0.3 that weren't already read
+
+    3. **List product docs if unsure:**
+       - Run `node .claude/scripts/list-product.cjs` to see all available docs
+       - Identify any obviously relevant docs by domain/name
+
+    **Use this context to:**
+    - Understand existing user-facing behavior that may constrain implementation
+    - Identify UI patterns and terminology to maintain consistency
+    - Ensure plan steps account for documented feature interactions
   </step>
 
   <step name="check_existing_plan">
@@ -148,6 +173,12 @@ Create a plan file in `.kanban/plans/` and move task from Scoped to Planned, the
     - Print plan file path
     - Print number of implementation steps created
     - Print commit hash
+    - Print next steps:
+      ```
+      Next:
+      /clear
+      /kanban-implement {taskId}
+      ```
   </step>
 </process>
 
@@ -177,6 +208,13 @@ Reading functional specification...
 - 4 functional requirements
 - 3 files to modify, 1 new file
 - Using Passport.js pattern from existing auth
+
+Researching product documentation...
+- Task affects: auth/login, auth/session
+- Reading .kanban/product/auth/login.md
+- Reading .kanban/product/auth/session.md
+- Searched for "oauth provider" - found auth/providers.md
+- Product context: Login page has email/password fields, session expires after 24h
 
 Creating implementation plan...
 
