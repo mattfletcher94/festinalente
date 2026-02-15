@@ -10,41 +10,40 @@ disable-model-invocation: true
 
 Create a new task file in `.kanban/tasks/` in the **Backlog** column and commit.
 
+## Reference
+
 {{> directory-reference}}
 
 {{> helper-scripts show_next_id=true show_get_date_time=true}}
 
 {{> column-transition from="[New Task]" to="backlog"}}
 
-## Commit
-
-{{> commit-format type="docs" action="create"}}
-
 ## Steps
 
-1. **Load workflow schema**
+- [ ] 1. **Load workflow schema**
    {{> workflow-load}}
 
-2. **Verify on main branch**
+- [ ] 2. **Verify on main branch**
    {{> branch-verify-main}}
 
-3. **Verify .kanban/ exists**: Check that `.kanban/tasks/` directory exists. If not, inform user to run `npx claude-kanban init` first.
+- [ ] 3. **Verify .kanban/ exists**
+   Check that `.kanban/tasks/` directory exists. If not, inform user to run `npx claude-kanban init` first.
 
-4. **User Skills** *(REQUIRED)*
+- [ ] 4. **Load user skills**
    {{> user-skills command="create"}}
 
-5. **Determine next ID**:
-   - Run `node .claude/scripts/next-id.cjs`
-   - Use `nextId` from JSON output
+- [ ] 5. **Determine next ID**
+   Run `node .claude/scripts/next-id.cjs`
+   Use `nextId` from JSON output.
 
-6. **Get task details**:
+- [ ] 6. **Get task details**
    - Title: Use $ARGUMENTS if provided, otherwise ask user
    - Ensure title follows best practices (suggest improvements if needed)
    - Generate initial description based on title
    - Status: Use first column ID from kanban-workflow.yaml (`backlog`)
    - Priority: Ask user (use priority IDs from kanban-workflow.yaml), default to `medium` if not specified
 
-7. **Detect vague tasks**:
+- [ ] 7. **Detect vague tasks**
    - Check if task was created with ONLY a title (no $ARGUMENTS body/description provided)
    - Check if title is very short (<5 words) without clear action verb
    - Check if no description could be generated (title too ambiguous)
@@ -52,11 +51,11 @@ Create a new task file in `.kanban/tasks/` in the **Backlog** column and commit.
      - Add `needs-refinement` to labels array (from kanban-workflow.yaml)
      - Note to user: "Task marked as needs-refinement. Run `/kanban-refine {id}` to clarify before planning."
 
-8. **Determine label**:
+- [ ] 8. **Determine label**
    - Use `labels[].detect-keywords` from kanban-workflow.yaml to auto-detect label from title/context
    - If unclear, ask user to confirm or skip
 
-9. **Create task file** at `.kanban/tasks/{id}-{slug}.md`:
+- [ ] 9. **Create task file** at `.kanban/tasks/{id}-{slug}.md`
    - Follow template at `.claude/kanban-templates/task.md`
    - Fill sections for this phase:
      - Frontmatter: `id`, `title`, `status: backlog`, `priority`, `labels`, `created`
@@ -67,28 +66,20 @@ Create a new task file in `.kanban/tasks/` in the **Backlog** column and commit.
      - `## Acceptance Criteria`
      - Frontmatter: `spec`, `plan`, `updated`, `completed`
 
-10. **CRITICAL: Commit the task file**
-    {{> commit-critical}}
+- [ ] 10. **Commit the task file**
+   Format: `docs({id}): create - {title}`
 
-    - Use `commits.create` format from kanban-workflow.yaml
-    ```bash
-    git add .kanban/tasks/{id}-{slug}.md
-    git commit -m "docs({id}): create - {title}"
-    ```
+   ```bash
+   git add .kanban/tasks/{id}-{slug}.md
+   git commit -m "docs({id}): create - {title}"
+   ```
 
-11. **Confirm creation**:
+- [ ] 11. **Output next steps to user**
    - Print the created file path and task ID
    - Print commit hash
    - If `needs-refinement` label was added, note this
-   {{> next-steps next_command="refine"}}
-
-## Arguments
-
-- `$ARGUMENTS` - Task title and optional description
 
 ## Validation
-
-{{> validation-intro}}
 
 - [ ] Task file exists at `.kanban/tasks/{id}-*.md`
 - [ ] Frontmatter contains `id: "{id}"`
@@ -96,6 +87,7 @@ Create a new task file in `.kanban/tasks/` in the **Backlog** column and commit.
 - [ ] Frontmatter contains `title: "{title}"`
 - [ ] Task file contains `## Description` section
 - [ ] Git log shows `docs({id}): create -`
+- [ ] Next steps shown to user
 
 ## Example
 
@@ -115,4 +107,9 @@ Next:
 /kanban-refine 002
 ```
 
-{{> final-next-steps next_command="refine"}}
+## Next Steps
+
+```
+/clear
+/kanban-refine {id}
+```

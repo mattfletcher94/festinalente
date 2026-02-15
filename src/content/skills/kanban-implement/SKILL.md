@@ -10,27 +10,26 @@ disable-model-invocation: true
 
 Move task from **Planned** to **In Progress** and execute the plan. Code remains uncommitted until verification passes.
 
+## Reference
+
 {{> directory-reference}}
 
 {{> helper-scripts show_find_task=true show_find_plan=true show_get_date_time=true}}
 
 {{> column-transition from="planned" to="in-progress"}}
 
-## Commit
-
-None - code stays uncommitted until QA passes. Use `/kanban-save` to save partial progress.
-
 ## Steps
 
-1. **Load workflow schema**
+- [ ] 1. **Load workflow schema**
    {{> workflow-load}}
 
-2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
+- [ ] 2. **Get task ID**
+   Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `planned` or `in-progress` status from `.kanban/tasks/`
    - Show task IDs and titles
    - Ask user which task to implement
 
-3. **Read task file**:
+- [ ] 3. **Read task file**
    - Run `node .claude/scripts/find-task.cjs {id}` to get exact path
    - Read the file at the `path` from JSON output
    - Parse YAML frontmatter
@@ -41,16 +40,16 @@ None - code stays uncommitted until QA passes. Use `/kanban-save` to save partia
      - If `checks` or later: Warn task is past implementation
    - Error if task not found
 
-4. **Verify on task branch**
+- [ ] 4. **Verify on task branch**
    {{> branch-verify-task}}
 
-5. **Move to In Progress** (if status was `planned`):
+- [ ] 5. **Move to In Progress** (if status was `planned`)
    - Change `status: planned` to `status: in-progress`
    - Add `updated: {YYYY-MM-DD}`
    - Write updated task file
    - Print: "Task {id} moved to In Progress"
 
-6. **Find and read plan file**:
+- [ ] 6. **Find and read plan file**
    - Run `node .claude/scripts/find-plan.cjs {id}` to get exact path
    - If plan found: Read the plan at the `path` from JSON output
    - If NO plan found:
@@ -58,62 +57,58 @@ None - code stays uncommitted until QA passes. Use `/kanban-save` to save partia
      - Suggest: "Create plan with /kanban-plan first"
      - Exit
 
-7. **Read functional specification** (for context):
+- [ ] 7. **Read functional specification** (for context)
    - Get `spec` path from plan frontmatter
    - Read spec file for full context on requirements and patterns
 
-8. **User Skills** *(REQUIRED)*
+- [ ] 8. **Load user skills**
    {{> user-skills command="implement"}}
 
-9. **Parse plan checkboxes**:
+- [ ] 9. **Parse plan checkboxes**
    - Find all unchecked items: `- [ ]` pattern
    - Find all checked items: `- [x]` pattern
    - Calculate: total items, completed items, remaining items
    - Display progress overview
 
-10. **Execute plan checkboxes**:
-    - For each unchecked item (`- [ ]`) in order:
-      a. Display: "[{n}/{total}] {checkbox description}"
-      b. Execute the implementation step described
-      c. Mark checkbox as complete: change `- [ ]` to `- [x]`
-      d. Write updated plan file immediately (enables resume)
-      e. Report: "Done"
-    - If any step fails:
-      - Stop execution
-      - Report which step failed and why
-      - Progress is saved (can resume later with same command)
-      - Suggest: "Use /kanban-save to save progress"
+- [ ] 10. **Execute plan checkboxes**
+   - For each unchecked item (`- [ ]`) in order:
+     a. Display: "[{n}/{total}] {checkbox description}"
+     b. Execute the implementation step described
+     c. Mark checkbox as complete: change `- [ ]` to `- [x]`
+     d. Write updated plan file immediately (enables resume)
+     e. Report: "Done"
+   - If any step fails:
+     - Stop execution
+     - Report which step failed and why
+     - Progress is saved (can resume later with same command)
+     - Suggest: "Use /kanban-save to save progress"
 
-11. **On completion**:
-    - After ALL checkboxes complete:
-      - Keep status as `in-progress` (verification will move it)
-      - Update `updated: {YYYY-MM-DD}`
-      - Write updated task file
-    - If some checkboxes remain:
-      - Keep status as `in-progress`
-      - Report: "Partial progress: {completed}/{total} items"
-      - Suggest: "Use /kanban-save to save progress"
+- [ ] 11. **On completion**
+   - After ALL checkboxes complete:
+     - Keep status as `in-progress` (verification will move it)
+     - Update `updated: {YYYY-MM-DD}`
+     - Write updated task file
+   - If some checkboxes remain:
+     - Keep status as `in-progress`
+     - Report: "Partial progress: {completed}/{total} items"
+     - Suggest: "Use /kanban-save to save progress"
 
-12. **Report completion**:
-    - Display implementation summary
-    - Show files modified (uncommitted)
-    - Show status
-    {{> next-steps next_command="verify"}}
+- [ ] 12. **Output next steps to user**
+   - Display implementation summary
+   - Show files modified (uncommitted)
+   - Show status
 
 ## Validation
-
-{{> validation-intro}}
 
 - [ ] Task file exists at `.kanban/tasks/{id}-*.md`
 - [ ] Task frontmatter contains `status: in-progress`
 - [ ] Plan file exists at `.kanban/plans/{id}-{slug}.plan.md`
 - [ ] All plan checkboxes are marked complete (`- [x]`)
+- [ ] Next steps shown to user
 
-## Arguments
+## Example
 
-- `$ARGUMENTS` - Task ID (e.g., "001")
-
-## Example: Full Implementation
+**Full Implementation:**
 
 User: `/kanban-implement 001`
 
@@ -150,7 +145,7 @@ Next:
 /kanban-verify 001
 ```
 
-## Example: Resume Partial Implementation
+**Resume Partial Implementation:**
 
 User: `/kanban-implement 002`
 

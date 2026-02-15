@@ -9,29 +9,31 @@ disable-model-invocation: true
 
 Show the current state of the board and suggest what command to run next. Helps users resume work after losing context.
 
+## Reference
+
 {{> helper-scripts show_list_tasks=true show_find_task=true show_find_plan=true}}
 
 ## Steps
 
 ### If task ID provided ($ARGUMENTS is not empty):
 
-1. **Find and read the task file**:
+- [ ] 1. **Find and read the task file**
    - Run `node .claude/scripts/find-task.cjs {id}` to get exact path
    - Read the file at the `path` from JSON output
    - Parse YAML frontmatter
    - Error if task not found
 
-2. **Gather task details**:
+- [ ] 2. **Gather task details**
    - Title, status, labels, priority
    - Created/updated dates
 
-3. **If task has a plan** (status is `planned`, `in-progress`, `checks`, or `qa`):
+- [ ] 3. **If task has a plan** (status is `planned`, `in-progress`, `checks`, or `qa`)
    - Read `.kanban/plans/{id}-{slug}.plan.md`
    - Count checkboxes: total, completed, remaining
    - Check for WIP Notes section
    - Check for Iterations section (previous failures)
 
-4. **Output task status**:
+- [ ] 4. **Output task status**
    ```
    ## Task {id}: {title}
 
@@ -47,7 +49,7 @@ Show the current state of the board and suggest what command to run next. Helps 
    {If Iterations exist, show last failure summary}
    ```
 
-5. **Suggest next command** based on status:
+- [ ] 5. **Suggest next command** based on status
    - `backlog` → `/kanban-refine {id}`
    - `refined` → `/kanban-scope {id}`
    - `scoped` → `/kanban-plan {id}`
@@ -59,7 +61,7 @@ Show the current state of the board and suggest what command to run next. Helps 
    - `pr` → `/kanban-merge {id}` or `/kanban-rework {id}`
    - `done` → "Task complete. No action needed."
 
-6. **Format output**:
+- [ ] 6. **Output next steps to user**
    ```
    ## Task {id}: {title}
 
@@ -77,19 +79,19 @@ Show the current state of the board and suggest what command to run next. Helps 
 
 ### If no task ID provided (show full board):
 
-1. **Find all task files**:
+- [ ] 1. **Find all task files**
    - Run `node .claude/scripts/list-tasks.cjs` to get all tasks
    - If count is 0, inform user and suggest `/kanban-create`
 
-2. **Parse each task**:
+- [ ] 2. **Parse each task**
    - Read frontmatter to get id, title, status
    - Group tasks by status
 
-3. **For in-progress tasks, get plan progress**:
+- [ ] 3. **For in-progress tasks, get plan progress**
    - Read plan file if exists
    - Count completed/total checkboxes
 
-4. **Output board status** grouped by column:
+- [ ] 4. **Output board status** grouped by column
    ```
    ## Board Status
 
@@ -126,7 +128,7 @@ Show the current state of the board and suggest what command to run next. Helps 
 
    Only show columns that have tasks. Order by workflow priority (in-progress first, done last).
 
-5. **Suggest next action** based on board state:
+- [ ] 5. **Suggest next action** based on board state
    - If tasks in `in-progress`: Suggest resuming that task
    - If tasks in `checks`: Checks run automatically - wait for completion
    - If tasks in `qa`: Suggest approving or sending back for rework
@@ -136,7 +138,7 @@ Show the current state of the board and suggest what command to run next. Helps 
    - If only backlog/refined/scoped tasks: Suggest advancing the highest priority one
    - If no tasks: Suggest creating one
 
-6. **Format final output**:
+- [ ] 6. **Output next steps to user**
    ```
    ## Board Status
 
@@ -153,17 +155,14 @@ Show the current state of the board and suggest what command to run next. Helps 
 
 ## Validation
 
-{{> validation-intro}}
-
 - [ ] Output shows task(s) with current status
 - [ ] Output includes a suggested next command
 - [ ] Suggested command is appropriate for the task's current status
+- [ ] Next steps shown to user
 
-## Arguments
+## Example
 
-- `$ARGUMENTS` - Optional task ID (e.g., "001")
-
-## Example: Full Board Status
+**Full Board Status:**
 
 User: `/kanban-status`
 
@@ -191,7 +190,7 @@ User: `/kanban-status`
 Task 001 is in progress with 4 steps remaining. Resume implementation to continue.
 ```
 
-## Example: Single Task Status
+**Single Task Status:**
 
 User: `/kanban-status 001`
 
@@ -223,7 +222,7 @@ Next step is the toggle component. Theme context is already set up.
 Resume implementation to complete remaining steps.
 ```
 
-## Example: No Tasks
+**No Tasks:**
 
 User: `/kanban-status`
 
@@ -238,4 +237,18 @@ No tasks found.
 /kanban-create "Your task title"
 
 Create your first task to get started.
+```
+
+## Next Steps
+
+Check status of a specific task:
+```
+/clear
+/kanban-status {id}
+```
+
+Or view the full board:
+```
+/clear
+/kanban-status
 ```

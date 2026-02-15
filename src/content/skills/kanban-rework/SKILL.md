@@ -10,6 +10,8 @@ disable-model-invocation: true
 
 Return a task to In Progress when human review finds issues. This consolidated command works from both **QA** and **PR** columns.
 
+## Reference
+
 {{> directory-reference}}
 
 ## Column Transitions
@@ -21,21 +23,18 @@ pr → in-progress
 
 See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 
-## Commit
-
-{{> commit-format type="docs" action="rework"}}
-
 ## Steps
 
-1. **Load workflow schema**
+- [ ] 1. **Load workflow schema**
    {{> workflow-load}}
 
-2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
+- [ ] 2. **Get task ID**
+   Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `qa` or `pr` status from `.kanban/tasks/`
    - Show task IDs and titles
    - Ask user which task needs rework
 
-3. **Read task file**:
+- [ ] 3. **Read task file**
    - **NEVER guess filenames.** Glob for `.kanban/tasks/{id}-*.md` to find the exact filename
    - Parse YAML frontmatter
    - Verify current status is `qa` or `pr`:
@@ -43,30 +42,31 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    - Note current title, status, and acceptance criteria
    - Error if task not found
 
-4. **Verify on task branch**
+- [ ] 4. **Verify on task branch**
    {{> branch-verify-task}}
 
-5. **Find and read plan file**:
+- [ ] 5. **Find and read plan file**
    - Check for `.kanban/plans/{id}-{slug}.plan.md`
    - If plan found: Read plan content
    - Plan will be updated with issues to address
 
-6. **User Skills** *(REQUIRED)*
+- [ ] 6. **Load user skills**
    {{> user-skills command="rework"}}
 
-7. **If task was in PR column, close the PR**:
+- [ ] 7. **If task was in PR column, close the PR**
    - If status was `pr`:
      ```bash
      gh pr close
      ```
    - Print: "PR closed"
 
-8. **Prompt for issues**:
+- [ ] 8. **Prompt for issues**
    - Ask user: "What issues need to be fixed?"
    - Collect detailed description of problems
    - Parse into individual issues if multiple provided
 
-9. **Update plan file with iteration** (following template at `.claude/kanban-templates/plan.md`):
+- [ ] 9. **Update plan file with iteration**
+   Following template at `.claude/kanban-templates/plan.md`:
    - Increment `iteration` in frontmatter
    - Determine phase name based on original status:
      - `qa` → "QA Failed"
@@ -89,31 +89,28 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
      ---
      ```
 
-10. **Move to In Progress**:
-    - Change `status: {qa|pr}` to `status: in-progress`
-    - Add `updated: {YYYY-MM-DD}`
-    - Write updated task file
+- [ ] 10. **Move to In Progress**
+   - Change `status: {qa|pr}` to `status: in-progress`
+   - Add `updated: {YYYY-MM-DD}`
+   - Write updated task file
 
-11. **CRITICAL: Commit the rework notes**
-    {{> commit-critical}}
+- [ ] 11. **Commit the rework notes**
+   Format: `docs({id}): rework - {title}`
 
-    ```bash
-    git add .kanban/tasks/{id}-*.md
-    git add .kanban/plans/{id}-{slug}.plan.md  # if exists
-    git commit -m "docs({id}): rework - {title}"
-    ```
+   ```bash
+   git add .kanban/tasks/{id}-*.md
+   git add .kanban/plans/{id}-{slug}.plan.md  # if exists
+   git commit -m "docs({id}): rework - {title}"
+   ```
 
-12. **Confirm**:
-    - Print commit hash
-    - Print: "Task {id} returned to In Progress for rework"
-    - Print iteration number
-    - Print number of issues to address
-    {{> next-steps next_command="implement"}}
-    - Also mention: "Then re-verify with /kanban-verify {id}"
+- [ ] 12. **Output next steps to user**
+   - Print commit hash
+   - Print: "Task {id} returned to In Progress for rework"
+   - Print iteration number
+   - Print number of issues to address
+   - Also mention: "Then re-verify with /kanban-verify {id}"
 
 ## Validation
-
-{{> validation-intro}}
 
 - [ ] Task file exists at `.kanban/tasks/{id}-*.md`
 - [ ] Plan file exists at `.kanban/plans/{id}-{slug}.plan.md`
@@ -121,10 +118,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 - [ ] Plan contains `## Iterations` section with rework entry
 - [ ] Git log shows `docs({id}): rework -`
 - [ ] If was in PR: PR is closed (verify with `gh pr view --json state`)
-
-## Arguments
-
-- `$ARGUMENTS` - Task ID (e.g., "001")
+- [ ] Next steps shown to user
 
 ## Example
 

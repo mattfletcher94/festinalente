@@ -10,31 +10,26 @@ disable-model-invocation: true
 
 Update product documentation, commit the changes, and move task from **Update Docs** to **PR**. User creates the pull request on GitHub.
 
+## Reference
+
 {{> directory-reference}}
 
 - **`.kanban/product/`** — Product documentation files (features.md, overview.md, etc.) — This is where user-facing docs live
 
 {{> column-transition from="update-docs" to="pr"}}
 
-## Commit
-
-**Format:** `docs({id}): product - {description}`
-
-The description summarizes what documentation was updated (e.g., "add authentication guide", "update API reference").
-
-**CRITICAL:** Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `docs`, not `kanban`.
-
 ## Steps
 
-1. **Load workflow schema**
+- [ ] 1. **Load workflow schema**
    {{> workflow-load}}
 
-2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
+- [ ] 2. **Get task ID**
+   Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `update-docs` status from `.kanban/tasks/`
    - Show task IDs and titles
    - Ask user which task needs documentation
 
-3. **Read task file**:
+- [ ] 3. **Read task file**
    - **NEVER guess filenames.** Task files are ALWAYS named `{id}-{slug}.md`, not `{id}.md`
    - Glob for `.kanban/tasks/{id}-*.md` to find the exact filename
    - Parse YAML frontmatter
@@ -44,13 +39,13 @@ The description summarizes what documentation was updated (e.g., "add authentica
    - Note title, labels, description for documentation context
    - Error if task not found
 
-4. **Verify on task branch**
+- [ ] 4. **Verify on task branch**
    {{> branch-verify-task}}
 
-5. **User Skills** *(REQUIRED)*
+- [ ] 5. **Load user skills**
    {{> user-skills command="docs"}}
 
-6. **Analyze documentation needs**:
+- [ ] 6. **Analyze documentation needs**
    - Check task labels:
      - `feature` -> likely needs feature docs
      - `breaking` -> MUST update changelog/migration docs
@@ -60,7 +55,7 @@ The description summarizes what documentation was updated (e.g., "add authentica
      - `bug` -> may need troubleshooting docs
    - Check task description for user-facing changes
 
-7. **Prompt for documentation updates**:
+- [ ] 7. **Prompt for documentation updates**
    ```
    Task: {id} - {title}
    Labels: {labels}
@@ -71,7 +66,7 @@ The description summarizes what documentation was updated (e.g., "add authentica
    Update documentation? [Y/n]
    ```
 
-8. **If user confirms (Y)**:
+- [ ] 8. **If user confirms (Y)**
    - **FIRST:** Read existing product documentation from `.kanban/product/`:
      - List files in `.kanban/product/` directory
      - Read `.kanban/product/features.md` (main feature documentation)
@@ -94,58 +89,59 @@ The description summarizes what documentation was updated (e.g., "add authentica
    - Make documentation changes
    - Generate commit message based on changes made
 
-9. **If user declines (n)**:
+- [ ] 9. **If user declines (n)**
    - Log: "Documentation update skipped"
    - Ask for reason (optional)
    - Still proceed to move status
    - Use generic commit message: "docs({id}): product - no updates needed for {title}"
 
-10. **CRITICAL: Commit documentation changes** (if any)
-    {{> commit-critical}}
+- [ ] 10. **Commit documentation changes** (if any)
+   Format: `docs({id}): product - {description}`
 
-    ```bash
-    git add {doc files}
-    git commit -m "docs({id}): product - {description of doc changes}"
-    ```
+   The description summarizes what documentation was updated (e.g., "add authentication guide", "update API reference").
 
-11. **Push branch to remote**:
-    ```bash
-    git push -u origin task/{id}
-    ```
-    - Print: "Branch pushed to remote"
+   **CRITICAL:** Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `docs`, not `kanban`.
 
-12. **Move to PR**:
-    - Change `status: update-docs` to `status: pr`
-    - Add `updated: {YYYY-MM-DD}`
-    - Write updated task file
+   ```bash
+   git add {doc files}
+   git commit -m "docs({id}): product - {description of doc changes}"
+   ```
 
-13. **Confirm completion**:
-    - Print documentation status (updated/skipped)
-    - Print commit hash (if docs were committed)
-    - Print: "Branch pushed. Ready for PR creation."
-    - Print: "Task {id} moved to PR column."
-    - **REQUIRED OUTPUT** - Print next steps EXACTLY like this:
-      ```
-      Create PR on GitHub, then run:
-      /clear
-      /kanban-merge {id}
-      ```
-    - Do NOT skip this output. The user needs these commands to continue.
-    - Also mention: "Or if PR needs changes: /kanban-rework {id}"
+- [ ] 11. **Push branch to remote**
+   ```bash
+   git push -u origin task/{id}
+   ```
+   Print: "Branch pushed to remote"
+
+- [ ] 12. **Move to PR**
+   - Change `status: update-docs` to `status: pr`
+   - Add `updated: {YYYY-MM-DD}`
+   - Write updated task file
+
+- [ ] 13. **Output next steps to user**
+   - Print documentation status (updated/skipped)
+   - Print commit hash (if docs were committed)
+   - Print: "Branch pushed. Ready for PR creation."
+   - Print: "Task {id} moved to PR column."
+   - **REQUIRED OUTPUT** - Print next steps EXACTLY like this:
+     ```
+     Create PR on GitHub, then run:
+     /clear
+     /kanban-merge {id}
+     ```
+   - Do NOT skip this output. The user needs these commands to continue.
+   - Also mention: "Or if PR needs changes: /kanban-rework {id}"
 
 ## Validation
-
-{{> validation-intro}}
 
 - [ ] Task file exists at `.kanban/tasks/{id}-*.md`
 - [ ] Task frontmatter contains `status: pr`
 - [ ] Branch has been pushed to remote
+- [ ] Next steps shown to user
 
-## Arguments
+## Example
 
-- `$ARGUMENTS` - Task ID (e.g., "001")
-
-## Example: Documentation Updated
+**Documentation Updated:**
 
 User: `/kanban-docs 001`
 
@@ -199,7 +195,7 @@ Or if PR needs changes: /kanban-rework 001
 - Only add/update documentation for the feature this task implemented
 - Leave other sections unchanged
 
-## Example: Documentation Skipped
+**Documentation Skipped:**
 
 User: `/kanban-docs 002`
 

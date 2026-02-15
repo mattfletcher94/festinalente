@@ -10,27 +10,26 @@ disable-model-invocation: true
 
 Create a plan file in `.kanban/plans/` and move task from **Scoped** to **Planned**. Commits the plan.
 
+## Reference
+
 {{> directory-reference}}
 
 {{> helper-scripts show_find_task=true show_find_spec=true show_get_date_time=true}}
 
 {{> column-transition from="scoped" to="planned"}}
 
-## Commit
-
-{{> commit-format type="docs" action="plan"}}
-
 ## Steps
 
-1. **Load workflow schema**
+- [ ] 1. **Load workflow schema**
    {{> workflow-load}}
 
-2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
+- [ ] 2. **Get task ID**
+   Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `scoped` status from `.kanban/tasks/`
    - Show task IDs and titles
    - Ask user which task to plan
 
-3. **Read task file**:
+- [ ] 3. **Read task file**
    - Run `node .claude/scripts/find-task.cjs {id}` to get exact path
    - Read the file at the `path` from JSON output
    - Parse YAML frontmatter
@@ -39,10 +38,10 @@ Create a plan file in `.kanban/plans/` and move task from **Scoped** to **Planne
    - Get `spec` path from frontmatter
    - Error if task not found
 
-4. **Verify on task branch**
+- [ ] 4. **Verify on task branch**
    {{> branch-verify-task}}
 
-5. **Read functional specification**:
+- [ ] 5. **Read functional specification**
    - Run `node .claude/scripts/find-spec.cjs {id}` to get exact path
    - Read the spec file at the `path` from JSON output
    - If spec not found, BLOCK planning with message:
@@ -52,14 +51,14 @@ Create a plan file in `.kanban/plans/` and move task from **Scoped** to **Planne
      ```
    - Extract functional requirements, affected files, and existing patterns
 
-6. **Check for existing plan**:
+- [ ] 6. **Check for existing plan**
    - Check if `.kanban/plans/{id}-{slug}.plan.md` exists
    - If exists, ask if user wants to overwrite or view existing
 
-7. **User Skills** *(REQUIRED)*
+- [ ] 7. **Load user skills**
    {{> user-skills command="plan"}}
 
-8. **Create plan file** at `.kanban/plans/{id}-{slug}.plan.md`:
+- [ ] 8. **Create plan file** at `.kanban/plans/{id}-{slug}.plan.md`
    - Follow template at `.claude/kanban-templates/plan.md`
    - Link to spec in frontmatter
    - Create implementation steps based on spec
@@ -107,33 +106,30 @@ Create a plan file in `.kanban/plans/` and move task from **Scoped** to **Planne
    - Order steps logically (dependencies first)
    - Don't mix refactoring with feature work
 
-9. **Update task file**:
+- [ ] 9. **Update task file**
    - Change `status: scoped` to `status: planned`
    - Add `plan: "plans/{id}-{slug}.plan.md"` to frontmatter
    - Add `updated: {YYYY-MM-DD}`
 
-10. **Write updated files**:
-    - Write plan file
-    - Write task file
+- [ ] 10. **Write updated files**
+   - Write plan file
+   - Write task file
 
-11. **CRITICAL: Commit the plan and task update**
-    {{> commit-critical}}
+- [ ] 11. **Commit the plan and task update**
+   Format: `docs({id}): plan - {title}`
 
-    ```bash
-    git add .kanban/plans/{id}-{slug}.plan.md .kanban/tasks/{id}-*.md
-    git commit -m "docs({id}): plan - {title}"
-    ```
+   ```bash
+   git add .kanban/plans/{id}-{slug}.plan.md .kanban/tasks/{id}-*.md
+   git commit -m "docs({id}): plan - {title}"
+   ```
 
-12. **Confirm**:
-    - Print: "Task {id} moved to Planned"
-    - Print plan file path
-    - Print number of implementation steps created
-    - Print commit hash
-    {{> next-steps next_command="implement"}}
+- [ ] 12. **Output next steps to user**
+   - Print: "Task {id} moved to Planned"
+   - Print plan file path
+   - Print number of implementation steps created
+   - Print commit hash
 
 ## Validation
-
-{{> validation-intro}}
 
 - [ ] Task file exists at `.kanban/tasks/{id}-*.md`
 - [ ] Task frontmatter contains `status: planned`
@@ -145,10 +141,7 @@ Create a plan file in `.kanban/plans/` and move task from **Scoped** to **Planne
 - [ ] Plan frontmatter contains `iteration: 1`
 - [ ] Plan contains `## Implementation Steps` section with checkboxes
 - [ ] Git log shows `docs({id}): plan -`
-
-## Arguments
-
-- `$ARGUMENTS` - Task ID (e.g., "001")
+- [ ] Next steps shown to user
 
 ## Example
 
@@ -181,4 +174,9 @@ Next:
 /kanban-implement 001
 ```
 
-{{> final-next-steps next_command="implement"}}
+## Next Steps
+
+```
+/clear
+/kanban-implement {id}
+```

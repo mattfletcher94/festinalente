@@ -13,100 +13,89 @@ Define a new product through Socratic Q&A and generate product documentation.
 
 N/A - This is a product discovery command, not a task workflow command.
 
-## Commit
-
-{{> commit-format type="docs" action="define-product - {brief product description}"}}
-
 ## Steps
 
-### 0. Load Workflow Schema
+- [ ] 1. **Load Workflow Schema**
+   {{> workflow-load}}
 
-{{> workflow-load}}
+- [ ] 2. **Pre-flight Check**
+   1. Verify `.kanban/` directory exists
+      - If not: Error - "Please initialize kanban first with `kanban-init`"
+   2. Check if `.kanban/product/` has existing files
+      - If yes: Ask user using AskUserQuestion:
+        - "I found existing product docs. How should I proceed?"
+        - Options: Preserve and extend / Start fresh
 
-### 1. Pre-flight Check
+- [ ] 3. **Socratic Q&A (with Incremental Writing)**
 
-1. Verify `.kanban/` directory exists
-   - If not: Error - "Please initialize kanban first with `kanban-init`"
-2. Check if `.kanban/product/` has existing files
-   - If yes: Ask user using AskUserQuestion:
-     - "I found existing product docs. How should I proceed?"
-     - Options: Preserve and extend / Start fresh
+   Use AskUserQuestion tool for **one question at a time**.
 
-### 2. Socratic Q&A (with Incremental Writing)
+   **CRITICAL: Write docs incrementally to prevent context loss**
 
-Use AskUserQuestion tool for **one question at a time**.
+   **Start with vision:**
 
-**CRITICAL: Write docs incrementally to prevent context loss**
+   Ask: "What problem are you trying to solve with this product?"
 
-**Start with vision:**
+   **Explore users:**
 
-Ask: "What problem are you trying to solve with this product?"
+   Ask: "Who will be the primary users of this product?"
 
-**Explore users:**
+   **Identify features:**
 
-Ask: "Who will be the primary users of this product?"
+   Ask: "What are the main capabilities or features you want to build?"
 
-**Identify features:**
+   **For each feature (depth-first):**
 
-Ask: "What are the main capabilities or features you want to build?"
+   1. Ask "How should {feature} work from the user's perspective?"
+   2. Ask "What are the key interactions or workflows?"
+   3. Ask "Are there any constraints or limitations to consider?"
+   4. Ask "Does this relate to any other features?"
+   5. **IMMEDIATELY write the product doc:**
+      - Create `.kanban/product/{feature-id}.md`
+      - Use template structure from `.claude/kanban-templates/product-doc.md`
+      - Fill with all information gathered so far
+      - This preserves context even if session is long
 
-**For each feature (depth-first):**
+   **Expand:**
 
-1. Ask "How should {feature} work from the user's perspective?"
-2. Ask "What are the key interactions or workflows?"
-3. Ask "Are there any constraints or limitations to consider?"
-4. Ask "Does this relate to any other features?"
-5. **IMMEDIATELY write the product doc:**
-   - Create `.kanban/product/{feature-id}.md`
-   - Use template structure from `.claude/kanban-templates/product-doc.md`
-   - Fill with all information gathered so far
-   - This preserves context even if session is long
+   1. Ask "Does this product need to integrate with any external services?"
+      - If new integrations mentioned: Create/update relevant docs immediately
+   2. Ask "Are there specific technical requirements (performance, security, etc.)?"
+      - Update existing docs with constraints
+   3. Ask "What's the minimum viable version of this product?"
+      - Note MVP scope in doc limitations sections
 
-**Expand:**
+   **Exit:**
 
-1. Ask "Does this product need to integrate with any external services?"
-   - If new integrations mentioned: Create/update relevant docs immediately
-2. Ask "Are there specific technical requirements (performance, security, etc.)?"
-   - Update existing docs with constraints
-3. Ask "What's the minimum viable version of this product?"
-   - Note MVP scope in doc limitations sections
+   1. Ask "Is there anything else you'd like to add about the product?"
+   2. If user says no/nothing/that's all: Proceed to final review
+   3. If user has more: Continue Q&A
 
-**Exit:**
+- [ ] 4. **Final Review**
+   1. Read all generated product docs in `.kanban/product/`
+   2. Check for completeness and consistency
+   3. Update any docs that need adjustments based on later Q&A context
+   4. Verify all relationships (uses/related/extends) are accurate across docs
 
-1. Ask "Is there anything else you'd like to add about the product?"
-2. If user says no/nothing/that's all: Proceed to final review
-3. If user has more: Continue Q&A
+- [ ] 5. **Commit**
+   Format: `docs: define-product - {brief product description}`
 
-### 3. Final Review
+   ```bash
+   git add .kanban/product/
+   git commit -m "docs: define-product - {brief product description}"
+   ```
 
-1. Read all generated product docs in `.kanban/product/`
-2. Check for completeness and consistency
-3. Update any docs that need adjustments based on later Q&A context
-4. Verify all relationships (uses/related/extends) are accurate across docs
+   Example: `docs: define-product - task management app with projects, tasks, collaboration`
 
-### 4. CRITICAL: Commit
-
-{{> commit-critical}}
-
-```bash
-git add .kanban/product/
-git commit -m "docs: define-product - {brief product description}"
-```
-
-Example: `docs: define-product - task management app with projects, tasks, collaboration`
+- [ ] 6. **Output next steps to user**
 
 ## Validation
-
-{{> validation-intro}}
 
 - [ ] `.kanban/product/` directory exists
 - [ ] At least one product doc was created
 - [ ] Each product doc has valid frontmatter (id, title, summary, keywords, updated)
 - [ ] Git log shows `docs: define-product -`
-
-## Arguments
-
-- `$ARGUMENTS` - None expected
+- [ ] Next steps shown to user
 
 ## Example
 
@@ -150,4 +139,9 @@ How should Task Tracking work from the user's perspective?
 - Explore user journeys and workflows
 - Ask about constraints, priorities, and trade-offs
 
-{{> final-next-steps next_command="create" no_id=true arg="\"Your task title\""}}
+## Next Steps
+
+```
+/clear
+/kanban-create "Your task title"
+```

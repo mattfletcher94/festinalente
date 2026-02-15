@@ -10,23 +10,37 @@ disable-model-invocation: true
 
 Query what tasks a specific git user has worked on using natural language.
 
+## Reference
+
 {{> helper-scripts show_list_tasks=true show_find_task=true}}
 
 ## Usage
 
 `/kanban-report-user {name} [question]`
 
-## Workflow
+## Steps
 
-1. Parse `$ARGUMENTS` to extract user name (first argument) and optional question (remaining text)
-2. Find task IDs the user has touched:
+- [ ] 1. **Parse $ARGUMENTS**
+   Extract user name (first argument) and optional question (remaining text)
+
+- [ ] 2. **Find task IDs the user has touched**
    ```bash
    git log --all --author="{name}" --format="%s" | grep -oP '\(\K\d+(?=\))' | sort -u
    ```
-3. For each task ID found, read the task file: `.kanban/tasks/{id}-*.md`
-4. Get current board state to understand task statuses
-5. If no question provided, ask the user what they want to know
-6. If question provided, answer conversationally using the gathered data
+
+- [ ] 3. **For each task ID found**
+   Read the task file: `.kanban/tasks/{id}-*.md`
+
+- [ ] 4. **Get current board state**
+   Understand task statuses
+
+- [ ] 5. **If no question provided**
+   Ask the user what they want to know
+
+- [ ] 6. **If question provided**
+   Answer conversationally using the gathered data
+
+- [ ] 7. **Output next steps to user**
 
 ## Data Sources
 
@@ -48,7 +62,13 @@ Focus on **tasks**, not raw commits. Commits are used to identify which tasks th
 - "What's in progress?"
 - "Show their task history"
 
-## Examples
+## Validation
+
+- [ ] User's tasks found via git history
+- [ ] Question answered conversationally
+- [ ] Next steps shown to user
+
+## Example
 
 `/kanban-report-user matt`
 
@@ -57,3 +77,10 @@ Finds all tasks matt has worked on and asks what you want to know.
 `/kanban-report-user matt What bugs have they fixed?`
 
 Lists completed bug tasks that matt contributed to.
+
+## Next Steps
+
+```
+/clear
+/kanban-status
+```

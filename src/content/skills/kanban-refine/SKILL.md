@@ -10,30 +10,29 @@ disable-model-invocation: true
 
 Refine vague tasks through **iterative conversational Q&A** focused on product/business concerns. The dialogue continues until you have enough information and the user confirms. Task moves from **Backlog** to **Refined**. Commits the refinement.
 
+## Reference
+
 {{> directory-reference}}
 
 {{> helper-scripts show_find_task=true show_find_spec=true show_find_plan=true show_get_date_time=true}}
 
 {{> column-transition from="backlog" to="refined"}}
 
-## Commit
-
-{{> commit-format type="docs" action="refine"}}
-
 ## Steps
 
-1. **Load workflow schema**
+- [ ] 1. **Load workflow schema**
    {{> workflow-load}}
 
-2. **Verify on main branch**
+- [ ] 2. **Verify on main branch**
    {{> branch-verify-main}}
 
-3. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
+- [ ] 3. **Get task ID**
+   Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks with `needs-refinement` label from `.kanban/tasks/`
    - Show task IDs, titles, and current vagueness indicators
    - Ask user which task to refine
 
-4. **Read task file**:
+- [ ] 4. **Read task file**
    - Run `node .claude/scripts/find-task.cjs {id}` to get exact path
    - Read the file at the `path` from JSON output
    - Parse YAML frontmatter
@@ -43,10 +42,10 @@ Refine vague tasks through **iterative conversational Q&A** focused on product/b
    - Note current title, description, acceptance criteria (if any)
    - Error if task not found
 
-5. **User Skills** *(REQUIRED)*
+- [ ] 5. **Load user skills**
    {{> user-skills command="refine"}}
 
-6. **Analyze initial context**:
+- [ ] 6. **Analyze initial context**
    - Check title for clarity issues:
      - Title too short (<5 words)?
      - Missing action verb?
@@ -55,7 +54,7 @@ Refine vague tasks through **iterative conversational Q&A** focused on product/b
    - Check acceptance criteria for specificity
    - Read any related product docs from `.kanban/product/` for domain context
 
-7. **Conduct iterative Q&A dialogue**:
+- [ ] 7. **Conduct iterative Q&A dialogue**
 
    This is a **conversational session** focused on **product/business concerns**:
    - What problem are we solving?
@@ -102,7 +101,7 @@ Refine vague tasks through **iterative conversational Q&A** focused on product/b
    - Research when it helps clarify requirements
    - Don't rush - thoroughness now saves time later
 
-8. **Update task file**:
+- [ ] 8. **Update task file**
    - Follow template at `.claude/kanban-templates/task.md`
    - Fill sections for this phase:
      - `## What problem are you trying to solve?`
@@ -113,7 +112,7 @@ Refine vague tasks through **iterative conversational Q&A** focused on product/b
      - Add `updated: {YYYY-MM-DD}`
      - Remove `needs-refinement` from labels if present
 
-9. **Format acceptance criteria in Gherkin**:
+- [ ] 9. **Format acceptance criteria in Gherkin**
    ```gherkin
    Given {precondition}
    And {additional precondition if needed}
@@ -131,36 +130,28 @@ Refine vague tasks through **iterative conversational Q&A** focused on product/b
    And their session is established
    ```
 
-10. **Write updated task file**
+- [ ] 10. **Write updated task file**
 
-11. **CRITICAL: Commit the refinement**
-    {{> commit-critical}}
+- [ ] 11. **Commit the refinement**
+   Format: `docs({id}): refine - {title}`
 
-    - Use `commits.refine` format from kanban-workflow.yaml
-    ```bash
-    git add .kanban/tasks/{id}-*.md
-    git commit -m "docs({id}): refine - {title}"
-    ```
+   ```bash
+   git add .kanban/tasks/{id}-*.md
+   git commit -m "docs({id}): refine - {title}"
+   ```
 
-12. **Confirm refinement complete**:
-    - Print summary of changes made
-    - Show updated acceptance criteria
-    - Print commit hash
-    {{> next-steps next_command="scope"}}
+- [ ] 12. **Output next steps to user**
+   - Print summary of changes made
+   - Show updated acceptance criteria
+   - Print commit hash
 
 ## Validation
-
-{{> validation-intro}}
 
 - [ ] Task file exists at `.kanban/tasks/{id}-*.md`
 - [ ] Frontmatter contains `status: refined`
 - [ ] Task file contains `## Acceptance Criteria` section with Gherkin format
 - [ ] Git log shows `docs({id}): refine -`
-- [ ] User was shown "Next:" output with the next command
-
-## Arguments
-
-- `$ARGUMENTS` - Task ID (e.g., "001")
+- [ ] Next steps shown to user
 
 ## Example
 
@@ -236,4 +227,9 @@ Next:
 /kanban-scope 003
 ```
 
-{{> final-next-steps next_command="scope"}}
+## Next Steps
+
+```
+/clear
+/kanban-scope {id}
+```

@@ -10,32 +10,31 @@ disable-model-invocation: true
 
 Run AI code review using configured skills. On failure, AI fixes issues and retries automatically. On success, auto-advances to QA. Moves task from **In Progress** to **Checks** then **QA**.
 
+## Behavior
+
+**Auto-loop on failure** — AI fixes issues and retries (max 3 attempts).
+**Auto-advance on success** — Moves directly to QA when all checks pass.
+
+## Reference
+
 {{> directory-reference}}
 
 {{> helper-scripts show_find_task=true show_find_plan=true show_get_date_time=true}}
 
 {{> column-transition from="in-progress" to="checks → qa (automatic on success)"}}
 
-## Behavior
-
-**Auto-loop on failure** — AI fixes issues and retries (max 3 attempts).
-**Auto-advance on success** — Moves directly to QA when all checks pass.
-
-## Commit
-
-{{> commit-format type="docs" action="verify-retry"}}
-
 ## Steps
 
-1. **Load workflow schema**
+- [ ] 1. **Load workflow schema**
    {{> workflow-load}}
 
-2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
+- [ ] 2. **Get task ID**
+   Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `in-progress` status from `.kanban/tasks/`
    - Show task IDs and titles
    - Ask user which task to verify
 
-3. **Read task file**:
+- [ ] 3. **Read task file**
    - Run `node .claude/scripts/find-task.cjs {id}` to get exact path
    - Read the file at the `path` from JSON output
    - Parse YAML frontmatter
@@ -43,16 +42,16 @@ Run AI code review using configured skills. On failure, AI fixes issues and retr
      - If not, warn: "Task is in {status} status. Expected: in-progress. Continue anyway? (y/n)"
    - Error if task not found
 
-4. **Verify on task branch**
+- [ ] 4. **Verify on task branch**
    {{> branch-verify-task}}
 
-5. **Read plan file**:
+- [ ] 5. **Read plan file**
    - Run `node .claude/scripts/find-plan.cjs {id}` to get exact path
    - Read the plan at the `path` from JSON output
    - Verify all implementation checkboxes are marked complete
    - If any unchecked, warn: "Plan has incomplete items. Verify anyway? (y/n)"
 
-6. **Load verification checks**:
+- [ ] 6. **Load verification checks**
    - Read `.kanban/config.yaml`
    - Find `user-skills."kanban-verify".skills` array
    - If skills array is empty:
@@ -62,7 +61,7 @@ Run AI code review using configured skills. On failure, AI fixes issues and retr
      - Read the skill file
      - Extract the check command and pass criteria
 
-7. **Run verification loop** (max 3 attempts):
+- [ ] 7. **Run verification loop** (max 3 attempts)
 
    ```
    attempt = 1
@@ -98,10 +97,8 @@ Run AI code review using configured skills. On failure, AI fixes issues and retr
                    Make code changes to fix the issue
                    Write updated plan file
 
-                   # CRITICAL: Commit the retry fix
-                   # This step is MANDATORY. Do not skip.
-                   Commit: "docs({id}): verify-retry - {title}"
-                   # DO NOT skip this commit. If it fails, stop and report the error.
+                   # Commit the retry fix
+                   Format: `docs({id}): verify-retry - {title}`
 
                    attempt += 1
                    break (restart all checks from beginning)
@@ -115,7 +112,7 @@ Run AI code review using configured skills. On failure, AI fixes issues and retr
        break
    ```
 
-8. **Handle success** (all checks passed):
+- [ ] 8. **Handle success** (all checks passed)
    - Update task status to `checks`
    - Write task file
    - Print: "All checks passed. Moving to QA..."
@@ -133,17 +130,17 @@ Run AI code review using configured skills. On failure, AI fixes issues and retr
 
    - Print summary of all passed checks
    - Print: "Task {id} moved to QA."
-   {{> next-steps next_command="approve"}}
+
+- [ ] 9. **Output next steps to user**
 
 ## Validation
-
-{{> validation-intro}}
 
 - [ ] Task exists at `.kanban/tasks/{id}-*.md`
 - [ ] Plan exists at `.kanban/plans/{id}-{slug}.plan.md`
 - [ ] If checks passed: task status is `qa`
 - [ ] If checks failed after 3 attempts: plan has updated Iterations section
 - [ ] All retry attempts are logged to plan
+- [ ] Next steps shown to user
 
 ## Check Skill Format
 
@@ -195,11 +192,9 @@ Exit code 0, all tests pass.
 - "Cannot find module" — missing test dependency
 ```
 
-## Arguments
+## Example
 
-- `$ARGUMENTS` - Task ID (e.g., "001")
-
-## Example: All Checks Pass First Try
+**All Checks Pass First Try:**
 
 User: `/kanban-verify 001`
 
@@ -232,7 +227,7 @@ Next:
 /kanban-approve 001
 ```
 
-## Example: Auto-Retry on Failure
+**Auto-Retry on Failure:**
 
 User: `/kanban-verify 001`
 
@@ -285,7 +280,7 @@ Next:
 /kanban-approve 001
 ```
 
-## Example: Max Retries Exceeded
+**Max Retries Exceeded:**
 
 User: `/kanban-verify 002`
 

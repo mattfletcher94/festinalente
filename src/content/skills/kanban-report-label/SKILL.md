@@ -10,22 +10,36 @@ disable-model-invocation: true
 
 Query tasks filtered by label using natural language.
 
+## Reference
+
 {{> helper-scripts show_list_tasks=true show_find_task=true}}
 
 ## Usage
 
 `/kanban-report-label {label} [question]`
 
-## Workflow
+## Steps
 
-1. Parse `$ARGUMENTS` to extract label (first argument) and optional question (remaining text)
-2. Find all task files with the matching label:
+- [ ] 1. **Parse $ARGUMENTS**
+   Extract label (first argument) and optional question (remaining text)
+
+- [ ] 2. **Find all task files with the matching label**
    - Search `.kanban/tasks/*.md` for files containing the label in frontmatter
    - Use: `grep -l "labels:.*{label}" .kanban/tasks/*.md`
-3. For each matching task, read the task file to get full details
-4. Optionally read specs/plans for additional context
-5. If no question provided, ask the user what they want to know
-6. If question provided, answer conversationally using the gathered data
+
+- [ ] 3. **For each matching task**
+   Read the task file to get full details
+
+- [ ] 4. **Optionally read specs/plans**
+   For additional context
+
+- [ ] 5. **If no question provided**
+   Ask the user what they want to know
+
+- [ ] 6. **If question provided**
+   Answer conversationally using the gathered data
+
+- [ ] 7. **Output next steps to user**
 
 ## Valid Labels
 
@@ -52,7 +66,13 @@ From `.claude/kanban-workflow.yaml`:
 - "What's the highest priority?"
 - "Which tasks are blocked?"
 
-## Examples
+## Validation
+
+- [ ] Tasks with label found successfully
+- [ ] Question answered conversationally
+- [ ] Next steps shown to user
+
+## Example
 
 `/kanban-report-label bug`
 
@@ -61,3 +81,10 @@ Finds all tasks labeled as bugs and asks what you want to know.
 `/kanban-report-label feature What's in progress?`
 
 Lists all feature tasks currently in the in-progress column.
+
+## Next Steps
+
+```
+/clear
+/kanban-status
+```

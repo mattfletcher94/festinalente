@@ -13,141 +13,130 @@ Analyze existing codebase and create product documentation through Socratic Q&A.
 
 N/A - This is a product discovery command, not a task workflow command.
 
-## Commit
-
-{{> commit-format type="docs" action="map-product - {brief summary listing main features}"}}
-
 ## Steps
 
-### 0. Load Workflow Schema
+- [ ] 1. **Load Workflow Schema**
+   {{> workflow-load}}
 
-{{> workflow-load}}
+- [ ] 2. **Pre-flight Check**
+   1. Verify `.kanban/` directory exists
+      - If not: Error - "Please initialize kanban first with `kanban-init`"
+   2. Check if `.kanban/product/` has existing files
+      - If yes: Ask user using AskUserQuestion:
+        - "I found existing product docs. How should I proceed?"
+        - Options: Preserve and extend / Merge with findings / Start fresh
 
-### 1. Pre-flight Check
+- [ ] 3. **Deep Codebase Research**
 
-1. Verify `.kanban/` directory exists
-   - If not: Error - "Please initialize kanban first with `kanban-init`"
-2. Check if `.kanban/product/` has existing files
-   - If yes: Ask user using AskUserQuestion:
-     - "I found existing product docs. How should I proceed?"
-     - Options: Preserve and extend / Merge with findings / Start fresh
+   Research the codebase thoroughly:
 
-### 2. Deep Codebase Research
+   **Directory Structure:**
+   - Use Glob to find source directories (src/, lib/, app/, components/, pages/, api/)
+   - Identify the project structure
 
-Research the codebase thoroughly:
+   **Package/Config Files:**
+   - Read package.json, requirements.txt, Cargo.toml, go.mod, etc.
+   - Note dependencies that hint at features (auth libraries, database drivers, etc.)
 
-**Directory Structure:**
-- Use Glob to find source directories (src/, lib/, app/, components/, pages/, api/)
-- Identify the project structure
+   **Entry Points:**
+   - Find main entry files
+   - Identify routing/API definitions
 
-**Package/Config Files:**
-- Read package.json, requirements.txt, Cargo.toml, go.mod, etc.
-- Note dependencies that hint at features (auth libraries, database drivers, etc.)
+   **User-Facing Features:**
+   - API endpoints (look for routes, controllers, handlers)
+   - UI components (React, Vue, etc.)
+   - CLI commands (if any)
 
-**Entry Points:**
-- Find main entry files
-- Identify routing/API definitions
+   **Architecture:**
+   - Database schemas (migrations, models)
+   - Service structure
+   - Key patterns (MVC, microservices, etc.)
 
-**User-Facing Features:**
-- API endpoints (look for routes, controllers, handlers)
-- UI components (React, Vue, etc.)
-- CLI commands (if any)
+   **Integrations:**
+   - External APIs
+   - Third-party services
+   - Authentication providers
 
-**Architecture:**
-- Database schemas (migrations, models)
-- Service structure
-- Key patterns (MVC, microservices, etc.)
+- [ ] 4. **Present Summary**
 
-**Integrations:**
-- External APIs
-- Third-party services
-- Authentication providers
+   Output a structured summary to the user:
 
-### 3. Present Summary
+   ```
+   I analyzed the codebase and found the following:
 
-Output a structured summary to the user:
+   **Features:**
+   - {Feature 1}: {brief description}
+   - {Feature 2}: {brief description}
+   ...
 
-```
-I analyzed the codebase and found the following:
+   **Architecture:**
+   - {Pattern/structure observation}
+   ...
 
-**Features:**
-- {Feature 1}: {brief description}
-- {Feature 2}: {brief description}
-...
+   **Integrations:**
+   - {External service/API}
+   ...
 
-**Architecture:**
-- {Pattern/structure observation}
-...
+   Let me ask some questions to validate and expand on this understanding.
+   ```
 
-**Integrations:**
-- {External service/API}
-...
+- [ ] 5. **Socratic Q&A (with Incremental Writing)**
 
-Let me ask some questions to validate and expand on this understanding.
-```
+   Use AskUserQuestion tool for **one question at a time**.
 
-### 4. Socratic Q&A (with Incremental Writing)
+   **CRITICAL: Write docs incrementally to prevent context loss**
 
-Use AskUserQuestion tool for **one question at a time**.
+   **For each feature (depth-first):**
 
-**CRITICAL: Write docs incrementally to prevent context loss**
+   1. Validate: Ask "I found {feature} that appears to {description}. Is this accurate?"
+   2. If user corrects: Update understanding
+   3. Clarify: Ask "Can you tell me more about how {aspect} works?"
+   4. Probe: Ask "Are there any edge cases or limitations I should know about?"
+   5. Context: Ask "Who primarily uses this feature? What problem does it solve?"
+   6. **IMMEDIATELY write the product doc:**
+      - Create `.kanban/product/{feature-id}.md`
+      - Use template structure from `.claude/kanban-templates/product-doc.md`
+      - Fill with all information gathered so far
+      - This preserves context even if session is long
 
-**For each feature (depth-first):**
+   **After all features:**
 
-1. Validate: Ask "I found {feature} that appears to {description}. Is this accurate?"
-2. If user corrects: Update understanding
-3. Clarify: Ask "Can you tell me more about how {aspect} works?"
-4. Probe: Ask "Are there any edge cases or limitations I should know about?"
-5. Context: Ask "Who primarily uses this feature? What problem does it solve?"
-6. **IMMEDIATELY write the product doc:**
-   - Create `.kanban/product/{feature-id}.md`
-   - Use template structure from `.claude/kanban-templates/product-doc.md`
-   - Fill with all information gathered so far
-   - This preserves context even if session is long
+   1. Ask "What's the overall value proposition of this product?"
+   2. Ask "Are there any performance or security requirements I should document?"
+   3. Ask "Did I miss any important features or capabilities?"
+      - If new features mentioned: Create docs for them immediately
 
-**After all features:**
+   **Exit:**
 
-1. Ask "What's the overall value proposition of this product?"
-2. Ask "Are there any performance or security requirements I should document?"
-3. Ask "Did I miss any important features or capabilities?"
-   - If new features mentioned: Create docs for them immediately
+   1. Ask "Is there anything else you'd like to add about the product?"
+   2. If user says no/nothing/that's all: Proceed to final review
+   3. If user has more: Continue Q&A
 
-**Exit:**
+- [ ] 6. **Final Review**
+   1. Read all generated product docs in `.kanban/product/`
+   2. Check for completeness and consistency
+   3. Update any docs that need adjustments based on later Q&A context
+   4. Verify all relationships (uses/related/extends) are accurate across docs
 
-1. Ask "Is there anything else you'd like to add about the product?"
-2. If user says no/nothing/that's all: Proceed to final review
-3. If user has more: Continue Q&A
+- [ ] 7. **Commit**
+   Format: `docs: map-product - {brief summary listing main features}`
 
-### 5. Final Review
+   ```bash
+   git add .kanban/product/
+   git commit -m "docs: map-product - {brief summary listing main features}"
+   ```
 
-1. Read all generated product docs in `.kanban/product/`
-2. Check for completeness and consistency
-3. Update any docs that need adjustments based on later Q&A context
-4. Verify all relationships (uses/related/extends) are accurate across docs
+   Example: `docs: map-product - authentication, user management, notifications, search`
 
-### 6. CRITICAL: Commit
-
-{{> commit-critical}}
-
-```bash
-git add .kanban/product/
-git commit -m "docs: map-product - {brief summary listing main features}"
-```
-
-Example: `docs: map-product - authentication, user management, notifications, search`
+- [ ] 8. **Output next steps to user**
 
 ## Validation
-
-{{> validation-intro}}
 
 - [ ] `.kanban/product/` directory exists
 - [ ] At least one product doc was created
 - [ ] Each product doc has valid frontmatter (id, title, summary, keywords, updated)
 - [ ] Git log shows `docs: map-product -`
-
-## Arguments
-
-- `$ARGUMENTS` - None expected
+- [ ] Next steps shown to user
 
 ## Example
 
@@ -188,4 +177,9 @@ I found User Authentication that appears to handle JWT-based login. Is this accu
 - Ask about edge cases, limitations, and known issues
 - Probe for undocumented features or tribal knowledge
 
-{{> final-next-steps next_command="create" no_id=true arg="\"Your task title\""}}
+## Next Steps
+
+```
+/clear
+/kanban-create "Your task title"
+```

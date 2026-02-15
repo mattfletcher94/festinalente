@@ -10,30 +10,29 @@ disable-model-invocation: true
 
 Create a functional specification through **iterative conversational Q&A** focused on technical decisions. Research the codebase and web as topics arise. The dialogue continues until you have enough information and the user confirms. Creates spec at `.kanban/specs/{id}-{slug}.spec.md` and moves task from **Refined** to **Scoped**. Commits the scoping.
 
+## Reference
+
 {{> directory-reference}}
 
 {{> helper-scripts show_find_task=true show_get_date_time=true}}
 
 {{> column-transition from="refined" to="scoped"}}
 
-## Commit
-
-{{> commit-format type="docs" action="scope"}}
-
 ## Steps
 
-1. **Load workflow schema**
+- [ ] 1. **Load workflow schema**
    {{> workflow-load}}
 
-2. **Verify on main branch**
+- [ ] 2. **Verify on main branch**
    {{> branch-verify-main reason="to create the task branch"}}
 
-3. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
+- [ ] 3. **Get task ID**
+   Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `refined` status from `.kanban/tasks/`
    - Show task IDs and titles
    - Ask user which task to scope
 
-4. **Read task file**:
+- [ ] 4. **Read task file**
    - Run `node .claude/scripts/find-task.cjs {id}` to get exact path
    - Read the file at the `path` from JSON output
    - Parse YAML frontmatter
@@ -42,10 +41,10 @@ Create a functional specification through **iterative conversational Q&A** focus
    - Extract problem, value, and acceptance criteria for reference
    - Error if task not found
 
-5. **User Skills** *(REQUIRED)*
+- [ ] 5. **Load user skills**
    {{> user-skills command="scope"}}
 
-6. **Initial codebase research**:
+- [ ] 6. **Initial codebase research**
    Based on task description and acceptance criteria, do preliminary research:
    - Use Glob to find potentially affected files
    - Use Grep to search for relevant patterns, functions, or components
@@ -58,7 +57,7 @@ Create a functional specification through **iterative conversational Q&A** focus
    - Search for related types/interfaces: "What types are involved?"
    - Search for integration points: "What connects to this?"
 
-7. **Conduct iterative Q&A dialogue**:
+- [ ] 7. **Conduct iterative Q&A dialogue**
 
    This is a **conversational session** focused on **technical decisions**:
    - Architecture and approach
@@ -121,7 +120,8 @@ Create a functional specification through **iterative conversational Q&A** focus
    - Let the conversation flow naturally
    - Don't rush - thoroughness now saves time during implementation
 
-8. **Create functional specification file** at `.kanban/specs/{id}-{slug}.spec.md` (derive slug from task title, same as task file):
+- [ ] 8. **Create functional specification file** at `.kanban/specs/{id}-{slug}.spec.md`
+   Derive slug from task title, same as task file.
    - Follow template at `.claude/kanban-templates/spec.md`
    - Fill ALL sections:
 
@@ -181,38 +181,37 @@ Create a functional specification through **iterative conversational Q&A** focus
    - [ ] {Unresolved items}
    ```
 
-9. **Update task frontmatter**:
+- [ ] 9. **Update task frontmatter**
    - Change `status: refined` to `status: scoped`
    - Add `spec: "specs/{id}-{slug}.spec.md"` to frontmatter
    - Update `updated: {YYYY-MM-DD}`
 
-10. **Write both files**:
-    - Write spec file at `.kanban/specs/{id}-{slug}.spec.md`
-    - Write updated task file
+- [ ] 10. **Write both files**
+   - Write spec file at `.kanban/specs/{id}-{slug}.spec.md`
+   - Write updated task file
 
-11. **Create and switch to task branch**:
-    - Run `git checkout -b task/{id}`
-    - Confirm: "Created branch task/{id}"
+- [ ] 11. **Create and switch to task branch**
+   ```bash
+   git checkout -b task/{id}
+   ```
+   Confirm: "Created branch task/{id}"
 
-12. **CRITICAL: Commit the scoping**
-    {{> commit-critical}}
+- [ ] 12. **Commit the scoping**
+   Format: `docs({id}): scope - {title}`
 
-    ```bash
-    git add .kanban/specs/{id}-{slug}.spec.md .kanban/tasks/{id}-*.md
-    git commit -m "docs({id}): scope - {title}"
-    ```
+   ```bash
+   git add .kanban/specs/{id}-{slug}.spec.md .kanban/tasks/{id}-*.md
+   git commit -m "docs({id}): scope - {title}"
+   ```
 
-13. **Confirm scoping complete**:
-    - Print summary of affected files identified
-    - Print existing patterns found
-    - Print any research findings and decisions
-    - Print any open questions
-    - Print commit hash
-    {{> next-steps next_command="plan"}}
+- [ ] 13. **Output next steps to user**
+   - Print summary of affected files identified
+   - Print existing patterns found
+   - Print any research findings and decisions
+   - Print any open questions
+   - Print commit hash
 
 ## Validation
-
-{{> validation-intro}}
 
 - [ ] Task file exists at `.kanban/tasks/{id}-*.md`
 - [ ] Spec file exists at `.kanban/specs/{id}-{slug}.spec.md`
@@ -223,10 +222,7 @@ Create a functional specification through **iterative conversational Q&A** focus
 - [ ] Spec file contains `## Existing Patterns` section
 - [ ] Git log shows `docs({id}): scope -`
 - [ ] Current branch is `task/{id}` after completion
-
-## Arguments
-
-- `$ARGUMENTS` - Task ID (e.g., "001")
+- [ ] Next steps shown to user
 
 ## Example
 
@@ -333,4 +329,9 @@ Next:
 /kanban-plan 001
 ```
 
-{{> final-next-steps next_command="plan"}}
+## Next Steps
+
+```
+/clear
+/kanban-plan {id}
+```

@@ -9,21 +9,23 @@ disable-model-invocation: true
 
 Create the `.kanban/` directory structure for a new project.
 
+## Reference
+
 {{> directory-reference}}
 
 ## Steps
 
-1. **Check if already initialized**:
+- [ ] 1. **Check if already initialized**
    - Check if `.kanban/` directory exists
    - If exists, ask user: "Kanban already initialized. Reinitialize? (This will NOT delete existing tasks)"
    - If user declines, exit
 
-2. **Check for git repository**:
+- [ ] 2. **Check for git repository**
    - Run `git status` to verify we're in a git repo
    - If not a git repo, warn: "Not a git repository. Kanban works best with git for commit tracking."
    - Ask if user wants to continue anyway
 
-3. **Create directory structure**:
+- [ ] 3. **Create directory structure**
    ```bash
    mkdir -p .kanban/tasks
    mkdir -p .kanban/specs
@@ -32,7 +34,7 @@ Create the `.kanban/` directory structure for a new project.
    mkdir -p .kanban/skills
    ```
 
-4. **Create config.yaml**:
+- [ ] 4. **Create config.yaml**
    - Read template from `.claude/kanban-templates/config.yaml`
    - Write to `.kanban/config.yaml` **exactly as-is** (do not modify or add properties)
    - If template not found, create minimal config **exactly as shown below**:
@@ -79,7 +81,7 @@ Create the `.kanban/` directory structure for a new project.
        archiveOnComplete: false
      ```
 
-5. **Confirm initialization**:
+- [ ] 5. **Output next steps to user**
    - Print created directories
    - Print config location
    - Suggest next steps
@@ -100,8 +102,6 @@ User-defined skills in `.kanban/skills/` are simple `.md` files (NOT directories
 
 ## Validation
 
-{{> validation-intro}}
-
 - [ ] `.kanban/` directory exists
 - [ ] `.kanban/tasks/` directory exists
 - [ ] `.kanban/specs/` directory exists
@@ -110,10 +110,7 @@ User-defined skills in `.kanban/skills/` are simple `.md` files (NOT directories
 - [ ] `.kanban/skills/` directory exists
 - [ ] `.kanban/config.yaml` exists
 - [ ] `.kanban/config.yaml` has ONLY these top-level keys: `name`, `user-skills`, `settings` (no extra keys)
-
-## Arguments
-
-- `$ARGUMENTS` - None expected
+- [ ] Next steps shown to user
 
 ## Example
 
