@@ -2,6 +2,7 @@
 name: kanban-status
 description: Show board status and suggest next command to run. Use when user wants to see where things are or resume work.
 allowed-tools: Read, Glob, Grep
+disable-model-invocation: true
 ---
 
 # Kanban Board Status
@@ -63,15 +64,15 @@ node .claude/scripts/find-plan.cjs {id}
    ```
 
 5. **Suggest next command** based on status:
-   - `backlog` → `/kanban:refine {id}`
-   - `refined` → `/kanban:scope {id}`
-   - `scoped` → `/kanban:plan {id}`
-   - `planned` → `/kanban:implement {id}`
-   - `in-progress` → `/kanban:implement {id}` (to resume) or `/kanban:verify {id}` (if all checkboxes done)
+   - `backlog` → `/kanban-refine {id}`
+   - `refined` → `/kanban-scope {id}`
+   - `scoped` → `/kanban-plan {id}`
+   - `planned` → `/kanban-implement {id}`
+   - `in-progress` → `/kanban-implement {id}` (to resume) or `/kanban-verify {id}` (if all checkboxes done)
    - `checks` → "Checks run automatically. Wait for auto-advance to QA."
-   - `qa` → `/kanban:approve {id}` or `/kanban:rework {id}`
-   - `update-docs` → `/kanban:docs {id}`
-   - `pr` → `/kanban:merge {id}` or `/kanban:rework {id}`
+   - `qa` → `/kanban-approve {id}` or `/kanban-rework {id}`
+   - `update-docs` → `/kanban-docs {id}`
+   - `pr` → `/kanban-merge {id}` or `/kanban-rework {id}`
    - `done` → "Task complete. No action needed."
 
 6. **Format output**:
@@ -86,7 +87,7 @@ node .claude/scripts/find-plan.cjs {id}
    **Next:**
    ```
    /clear
-   /kanban:{appropriate-command} {id}
+   /kanban-{appropriate-command} {id}
    ```
    ```
 
@@ -94,7 +95,7 @@ node .claude/scripts/find-plan.cjs {id}
 
 1. **Find all task files**:
    - Run `node .claude/scripts/list-tasks.cjs` to get all tasks
-   - If count is 0, inform user and suggest `/kanban:create`
+   - If count is 0, inform user and suggest `/kanban-create`
 
 2. **Parse each task**:
    - Read frontmatter to get id, title, status
@@ -160,7 +161,7 @@ node .claude/scripts/find-plan.cjs {id}
    **Next:**
    ```
    /clear
-   /kanban:{command} {id}
+   /kanban-{command} {id}
    ```
 
    {Brief explanation of why this is suggested}
@@ -180,7 +181,7 @@ node .claude/scripts/find-plan.cjs {id}
 
 ## Example: Full Board Status
 
-User: `/kanban:status`
+User: `/kanban-status`
 
 ```
 ## Board Status
@@ -201,14 +202,14 @@ User: `/kanban:status`
 **Next:**
 
 /clear
-/kanban:implement 001
+/kanban-implement 001
 
 Task 001 is in progress with 4 steps remaining. Resume implementation to continue.
 ```
 
 ## Example: Single Task Status
 
-User: `/kanban:status 001`
+User: `/kanban-status 001`
 
 ```
 ## Task 001: Add dark mode support
@@ -233,14 +234,14 @@ Next step is the toggle component. Theme context is already set up.
 **Next:**
 
 /clear
-/kanban:implement 001
+/kanban-implement 001
 
 Resume implementation to complete remaining steps.
 ```
 
 ## Example: No Tasks
 
-User: `/kanban:status`
+User: `/kanban-status`
 
 ```
 ## Board Status
@@ -250,7 +251,7 @@ No tasks found.
 **Next:**
 
 /clear
-/kanban:create "Your task title"
+/kanban-create "Your task title"
 
 Create your first task to get started.
 ```

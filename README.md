@@ -26,7 +26,7 @@ The installer detects existing installations and backs up any files you've modif
 ### 1. Initialize
 
 ```bash
-/kanban:init
+/kanban-init
 ```
 
 This creates the `.kanban/` directory structure in your project:
@@ -45,13 +45,13 @@ This creates the `.kanban/` directory structure in your project:
 
 For **existing codebases** with features but no documentation:
 ```bash
-/kanban:map-product
+/kanban-map-product
 ```
 The AI analyzes your code, asks clarifying questions, and generates product docs.
 
 For **new projects** where you want to define vision first:
 ```bash
-/kanban:define-product
+/kanban-define-product
 ```
 The AI asks "What problem are you trying to solve?" and guides you through defining features.
 
@@ -60,7 +60,7 @@ Both create docs in `.kanban/product/` that give the AI context for future task 
 ### 3. Create Your First Task
 
 ```bash
-/kanban:create "Add user authentication"
+/kanban-create "Add user authentication"
 ```
 
 This creates a task file, assigns it an ID (e.g., `001`), and commits it to git.
@@ -72,34 +72,34 @@ Each task progresses through columns. Run `/clear` before each command to reset 
 ```bash
 # On main branch
 /clear
-/kanban:refine 001              # Clarify requirements via Q&A
+/kanban-refine 001              # Clarify requirements via Q&A
 
 /clear
-/kanban:scope 001               # Research codebase, create spec
+/kanban-scope 001               # Research codebase, create spec
                                 # Creates task/001 branch automatically
 
 # Now on task/001 branch
 /clear
-/kanban:plan 001                # Create implementation plan
+/kanban-plan 001                # Create implementation plan
 
 /clear
-/kanban:implement 001           # Write the code
+/kanban-implement 001           # Write the code
 
 /clear
-/kanban:verify 001              # Run AI checks (auto-retries, auto-advances to QA)
+/kanban-verify 001              # Run AI checks (auto-retries, auto-advances to QA)
 
 # Human tests the application...
 
 /clear
-/kanban:approve 001             # Approve QA, commit code
+/kanban-approve 001             # Approve QA, commit code
 
 /clear
-/kanban:docs 001                # Update docs, push branch
+/kanban-docs 001                # Update docs, push branch
 
 # Create PR on GitHub, get it reviewed...
 
 /clear
-/kanban:merge 001               # Merge PR, delete branch, done!
+/kanban-merge 001               # Merge PR, delete branch, done!
                                 # Returns to main branch
 ```
 
@@ -185,50 +185,50 @@ That's it. Your PR is merged and git history tells the story of your task.
 
 | Command | From | To | Branch | Commits |
 |---------|------|-----|--------|---------|
-| `kanban:init` | — | — | any | No |
-| `kanban:status [id]` | — | — | any | No |
-| `kanban:create "title"` | (new) | Backlog | main | Yes |
-| `kanban:refine [id]` | Backlog | Refined | main | Yes |
-| `kanban:scope [id]` | Refined | Scoped | main → task/{id} | Yes |
-| `kanban:plan [id]` | Scoped | Planned | task/{id} | Yes |
-| `kanban:implement [id]` | Planned | In Progress | task/{id} | No |
-| `kanban:save [id]` | In Progress | In Progress | task/{id} | Yes |
-| `kanban:verify [id]` | In Progress | Checks → QA | task/{id} | On retry |
-| `kanban:approve [id]` | QA | Update Docs | task/{id} | Yes |
-| `kanban:docs [id]` | Update Docs | PR | task/{id} | Yes |
-| `kanban:merge [id]` | PR | Done | task/{id} → main | Yes |
-| `kanban:rework [id]` | QA or PR | In Progress | task/{id} | Yes |
+| `kanban-init` | — | — | any | No |
+| `kanban-status [id]` | — | — | any | No |
+| `kanban-create "title"` | (new) | Backlog | main | Yes |
+| `kanban-refine [id]` | Backlog | Refined | main | Yes |
+| `kanban-scope [id]` | Refined | Scoped | main → task/{id} | Yes |
+| `kanban-plan [id]` | Scoped | Planned | task/{id} | Yes |
+| `kanban-implement [id]` | Planned | In Progress | task/{id} | No |
+| `kanban-save [id]` | In Progress | In Progress | task/{id} | Yes |
+| `kanban-verify [id]` | In Progress | Checks → QA | task/{id} | On retry |
+| `kanban-approve [id]` | QA | Update Docs | task/{id} | Yes |
+| `kanban-docs [id]` | Update Docs | PR | task/{id} | Yes |
+| `kanban-merge [id]` | PR | Done | task/{id} → main | Yes |
+| `kanban-rework [id]` | QA or PR | In Progress | task/{id} | Yes |
 
 **Utility commands:**
 
 | Command | Purpose |
 |---------|---------|
-| `kanban:status` | Show board status and suggest next command |
-| `kanban:status [id]` | Show detailed status for a specific task |
+| `kanban-status` | Show board status and suggest next command |
+| `kanban-status [id]` | Show detailed status for a specific task |
 
 **Product discovery commands:**
 
 | Command | Purpose |
 |---------|---------|
-| `kanban:map-product` | Analyze existing codebase and create product docs |
-| `kanban:define-product` | Define a new product through Q&A before coding |
+| `kanban-map-product` | Analyze existing codebase and create product docs |
+| `kanban-define-product` | Define a new product through Q&A before coding |
 
 ---
 
 ## Happy Path Example
 
 ```bash
-/kanban:create "Add dark mode support"    # → Backlog
-/kanban:refine 001                        # → Refined
-/kanban:scope 001                         # → Scoped (creates task branch)
-/kanban:plan 001                          # → Planned
-/kanban:implement 001                     # → In Progress
-/kanban:verify 001                        # → Checks (AI review, auto-loops, auto-advances to QA)
+/kanban-create "Add dark mode support"    # → Backlog
+/kanban-refine 001                        # → Refined
+/kanban-scope 001                         # → Scoped (creates task branch)
+/kanban-plan 001                          # → Planned
+/kanban-implement 001                     # → In Progress
+/kanban-verify 001                        # → Checks (AI review, auto-loops, auto-advances to QA)
 # Human tests the application...
-/kanban:approve 001                       # → Update Docs (commits code)
-/kanban:docs 001                          # → PR (commits docs, pushes)
+/kanban-approve 001                       # → Update Docs (commits code)
+/kanban-docs 001                          # → PR (commits docs, pushes)
 # User creates PR on GitHub, reviews, approves...
-/kanban:merge 001                         # → Done
+/kanban-merge 001                         # → Done
 ```
 
 ---
@@ -266,18 +266,18 @@ Edit `.kanban/config.yaml` to attach skills to commands:
 
 ```yaml
 user-skills:
-  "kanban:implement":
+  "kanban-implement":
     skills:
       - coding-standards    # Reads .claude/skills/coding-standards/SKILL.md
       - architecture        # Reads .claude/skills/architecture/SKILL.md
 
-  "kanban:verify":
+  "kanban-verify":
     skills:
       - check-typescript    # Reads .claude/skills/check-typescript/SKILL.md
       - check-tests         # Reads .claude/skills/check-tests/SKILL.md
       - check-lint          # Reads .claude/skills/check-lint/SKILL.md
 
-  "kanban:approve":
+  "kanban-approve":
     skills:
       - code-review-checklist  # Reads .claude/skills/code-review-checklist/SKILL.md
 ```
@@ -313,35 +313,35 @@ name: My Project
 
 # Skill names resolve to .claude/skills/{name}/SKILL.md
 user-skills:
-  "kanban:init":
+  "kanban-init":
     skills:
-  "kanban:status":
+  "kanban-status":
     skills:
-  "kanban:create":
+  "kanban-create":
     skills:
-  "kanban:refine":
+  "kanban-refine":
     skills:
-  "kanban:scope":
+  "kanban-scope":
     skills:
-  "kanban:plan":
+  "kanban-plan":
     skills:
-  "kanban:implement":
+  "kanban-implement":
     skills:
-  "kanban:save":
+  "kanban-save":
     skills:
-  "kanban:verify":
+  "kanban-verify":
     skills:
-  "kanban:approve":
+  "kanban-approve":
     skills:
-  "kanban:docs":
+  "kanban-docs":
     skills:
-  "kanban:merge":
+  "kanban-merge":
     skills:
-  "kanban:rework":
+  "kanban-rework":
     skills:
-  "kanban:map-product":
+  "kanban-map-product":
     skills:
-  "kanban:define-product":
+  "kanban-define-product":
     skills:
 
 settings:
@@ -420,7 +420,6 @@ claudeban/
 ├── src/
 │   ├── content/                 # Markdown content (compiled with Handlebars)
 │   │   ├── skills/              # Skill definitions (kanban-*/SKILL.md)
-│   │   ├── commands/            # Command wrappers (kanban/*.md)
 │   │   ├── partials/            # Shared template fragments
 │   │   ├── kanban-templates/    # Document templates (copied as-is)
 │   │   └── kanban-workflow.yaml # Workflow schema (copied as-is)
@@ -435,7 +434,6 @@ claudeban/
 │
 ├── dist/                        # Build output (generated, .gitignored)
 │   ├── skills/                  # Compiled skills (no Handlebars syntax)
-│   ├── commands/                # Compiled commands
 │   ├── scripts/*.cjs            # Compiled helper scripts
 │   ├── tools/                   # Compiled build tools
 │   ├── kanban-templates/        # Copied templates

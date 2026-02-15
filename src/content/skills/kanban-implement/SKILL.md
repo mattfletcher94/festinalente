@@ -2,6 +2,8 @@
 name: kanban-implement
 description: Implement a planned task. Moves task to In Progress, executes the plan, then moves to Checks. No commit - code stays uncommitted.
 allowed-tools: Read, Write, Edit, Bash(*)
+argument-hint: "[task-id]"
+disable-model-invocation: true
 ---
 
 # Implement Kanban Task
@@ -37,7 +39,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 
 ## Commit
 
-None - code stays uncommitted until QA passes. Use `/kanban:save` to save partial progress.
+None - code stays uncommitted until QA passes. Use `/kanban-save` to save partial progress.
 
 ## Steps
 
@@ -55,7 +57,7 @@ None - code stays uncommitted until QA passes. Use `/kanban:save` to save partia
    - Verify current status:
      - If `planned`: Move to `in-progress` first (step 5)
      - If `in-progress`: Resume implementation (skip step 5)
-     - If `backlog` or `refined`: Suggest `/kanban:refine {id}` or `/kanban:scope {id}` first, exit
+     - If `backlog` or `refined`: Suggest `/kanban-refine {id}` or `/kanban-scope {id}` first, exit
      - If `checks` or later: Warn task is past implementation
    - Error if task not found
 
@@ -78,7 +80,7 @@ None - code stays uncommitted until QA passes. Use `/kanban:save` to save partia
    - If plan found: Read the plan at the `path` from JSON output
    - If NO plan found:
      - Warn: "No plan found for task {id}"
-     - Suggest: "Create plan with /kanban:plan first"
+     - Suggest: "Create plan with /kanban-plan first"
      - Exit
 
 7. **Read functional specification** (for context):
@@ -90,7 +92,7 @@ None - code stays uncommitted until QA passes. Use `/kanban:save` to save partia
    **STOP.** Before proceeding, you MUST load and apply user-defined skills. This is mandatory.
 
    1. Load `.kanban/config.yaml`
-   2. Find `user-skills."kanban:implement".skills` array
+   2. Find `user-skills."kanban-implement".skills` array
    3. If the array is non-empty, for EACH skill name:
       - Read `.claude/skills/{skill-name}/SKILL.md`
       - Follow ALL instructions as mandatory requirements
@@ -101,7 +103,7 @@ None - code stays uncommitted until QA passes. Use `/kanban:save` to save partia
    Example config:
    ```yaml
    user-skills:
-     "kanban:implement":
+     "kanban-implement":
        skills:
          - my-custom-check    # Reads .claude/skills/my-custom-check/SKILL.md
          - coding-standards   # Reads .claude/skills/coding-standards/SKILL.md
@@ -124,7 +126,7 @@ None - code stays uncommitted until QA passes. Use `/kanban:save` to save partia
       - Stop execution
       - Report which step failed and why
       - Progress is saved (can resume later with same command)
-      - Suggest: "Use /kanban:save to save progress"
+      - Suggest: "Use /kanban-save to save progress"
 
 11. **On completion**:
     - After ALL checkboxes complete:
@@ -134,7 +136,7 @@ None - code stays uncommitted until QA passes. Use `/kanban:save` to save partia
     - If some checkboxes remain:
       - Keep status as `in-progress`
       - Report: "Partial progress: {completed}/{total} items"
-      - Suggest: "Use /kanban:save to save progress"
+      - Suggest: "Use /kanban-save to save progress"
 
 12. **Report completion**:
     - Display implementation summary
@@ -144,7 +146,7 @@ None - code stays uncommitted until QA passes. Use `/kanban:save` to save partia
       ```
       Next:
       /clear
-      /kanban:verify {id}
+      /kanban-verify {id}
       ```
     - Do NOT skip this output. The user needs these commands to continue.
 
@@ -165,7 +167,7 @@ All must pass. If any fail, fix and retry.
 
 ## Example: Full Implementation
 
-User: `/kanban:implement 001`
+User: `/kanban-implement 001`
 
 ```
 Implementing task 001 "Add user auth"...
@@ -197,12 +199,12 @@ Task 001 ready for verification
 
 Next:
 /clear
-/kanban:verify 001
+/kanban-verify 001
 ```
 
 ## Example: Resume Partial Implementation
 
-User: `/kanban:implement 002`
+User: `/kanban-implement 002`
 
 ```
 Implementing task 002 "Setup database"...
@@ -234,7 +236,7 @@ Task 002 ready for verification
 
 Next:
 /clear
-/kanban:verify 002
+/kanban-verify 002
 ```
 
 ## Next Steps
@@ -242,11 +244,11 @@ Next:
 If interrupted:
 ```
 /clear
-/kanban:save {id}
+/kanban-save {id}
 ```
 
 When implementation complete:
 ```
 /clear
-/kanban:verify {id}
+/kanban-verify {id}
 ```

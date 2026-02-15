@@ -2,6 +2,8 @@
 name: kanban-view
 description: Visualize the Kanban board in the terminal with box-drawing characters
 allowed-tools: Read, Glob, Grep
+argument-hint: "[task-id]"
+disable-model-invocation: true
 ---
 
 # Kanban Board View
@@ -29,7 +31,7 @@ node .claude/scripts/find-plan.cjs {id}
 
 - If `.kanban/tasks/` doesn't exist, output error:
   ```
-  No Kanban board found. Run `/kanban:init` to initialize.
+  No Kanban board found. Run `/kanban-init` to initialize.
   ```
 
 ### 2. Ask user for view preset
@@ -109,7 +111,7 @@ Use this column order (workflow order):
 No tasks on the board.
 
 **Next:**
-/kanban:create "Your first task"
+/kanban-create "Your first task"
 ```
 
 **Done count only (Quick preset):**

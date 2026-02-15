@@ -2,6 +2,8 @@
 name: kanban-merge
 description: Merge task branch to main, delete task branch, and complete the task.
 allowed-tools: Read, Write, Bash(ls *, git *)
+argument-hint: "[task-id]"
+disable-model-invocation: true
 ---
 
 # Merge Task Branch
@@ -39,7 +41,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    - **NEVER guess filenames.** Glob for `.kanban/tasks/{id}-*.md` to find the exact filename
    - Parse YAML frontmatter
    - Verify current status is `pr`:
-     - If `update-docs`: Suggest `/kanban:docs {id}` first
+     - If `update-docs`: Suggest `/kanban-docs {id}` first
      - If earlier status: Suggest appropriate command
    - Error if task not found
 
@@ -55,7 +57,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    **STOP.** Before proceeding, you MUST load and apply user-defined skills. This is mandatory.
 
    1. Load `.kanban/config.yaml`
-   2. Find `user-skills."kanban:merge".skills` array
+   2. Find `user-skills."kanban-merge".skills` array
    3. If the array is non-empty, for EACH skill name:
       - Read `.claude/skills/{skill-name}/SKILL.md`
       - Follow ALL instructions as mandatory requirements
@@ -66,7 +68,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    Example config:
    ```yaml
    user-skills:
-     "kanban:merge":
+     "kanban-merge":
        skills:
          - my-custom-check    # Reads .claude/skills/my-custom-check/SKILL.md
          - coding-standards   # Reads .claude/skills/coding-standards/SKILL.md
@@ -125,7 +127,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
       ```
       Next:
       /clear
-      /kanban:create "Your next task"
+      /kanban-create "Your next task"
       ```
     - Do NOT skip this output. The user needs these commands to continue.
 
@@ -147,7 +149,7 @@ All must pass:
 
 ## Example
 
-User: `/kanban:merge 001`
+User: `/kanban-merge 001`
 
 ```
 Merging task 001 "Add user authentication"...
@@ -176,7 +178,7 @@ Congratulations! Task complete.
 
 Next:
 /clear
-/kanban:create "Your next task"
+/kanban-create "Your next task"
 ```
 
 ## Next Steps
@@ -184,5 +186,5 @@ Next:
 Task complete! To start a new task:
 ```
 /clear
-/kanban:create "Task title"
+/kanban-create "Task title"
 ```

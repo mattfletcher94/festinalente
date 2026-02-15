@@ -1,8 +1,9 @@
 ---
-name: report-user
+name: kanban-report-user
 description: Query what tasks a git user has worked on
 allowed-tools: Read, Glob, Grep, Bash(git log *)
 argument-hint: "{name} [question]"
+disable-model-invocation: true
 ---
 
 # Report User
@@ -11,7 +12,7 @@ Query what tasks a specific git user has worked on using natural language.
 
 ## Usage
 
-`/kanban:report-user {name} [question]`
+`/kanban-report-user {name} [question]`
 
 ## Workflow
 
@@ -47,10 +48,10 @@ Focus on **tasks**, not raw commits. Commits are used to identify which tasks th
 
 ## Examples
 
-`/kanban:report-user matt`
+`/kanban-report-user matt`
 
 Finds all tasks matt has worked on and asks what you want to know.
 
-`/kanban:report-user matt What bugs have they fixed?`
+`/kanban-report-user matt What bugs have they fixed?`
 
 Lists completed bug tasks that matt contributed to.

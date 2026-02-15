@@ -2,6 +2,7 @@
 name: kanban-map-product
 description: Analyze existing codebase and create product documentation through Socratic Q&A
 allowed-tools: Read, Write, Glob, Grep, Bash(git add *, git commit *, git status), AskUserQuestion
+disable-model-invocation: true
 ---
 
 # Skill: Map Product
@@ -27,7 +28,7 @@ Read `.claude/kanban-workflow.yaml` for commit formats.
 ### 1. Pre-flight Check
 
 1. Verify `.kanban/` directory exists
-   - If not: Error - "Please initialize kanban first with `kanban:init`"
+   - If not: Error - "Please initialize kanban first with `kanban-init`"
 2. Check if `.kanban/product/` has existing files
    - If yes: Ask user using AskUserQuestion:
      - "I found existing product docs. How should I proceed?"
@@ -156,7 +157,7 @@ All must pass. If any fail, fix and retry.
 
 ## Example
 
-User: `/kanban:map-product`
+User: `/kanban-map-product`
 
 ```
 I analyzed the codebase and found the following:
@@ -197,5 +198,5 @@ I found User Authentication that appears to handle JWT-based login. Is this accu
 
 ```
 /clear
-/kanban:create "Your task title"
+/kanban-create "Your task title"
 ```

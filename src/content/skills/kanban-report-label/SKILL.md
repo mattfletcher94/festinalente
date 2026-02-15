@@ -1,8 +1,9 @@
 ---
-name: report-label
+name: kanban-report-label
 description: Query tasks filtered by label (bug, feature, docs, refactor)
 allowed-tools: Read, Glob, Grep, Bash(git log *)
 argument-hint: "{label} [question]"
+disable-model-invocation: true
 ---
 
 # Report Label
@@ -11,7 +12,7 @@ Query tasks filtered by label using natural language.
 
 ## Usage
 
-`/kanban:report-label {label} [question]`
+`/kanban-report-label {label} [question]`
 
 ## Workflow
 
@@ -51,10 +52,10 @@ From `.claude/kanban-workflow.yaml`:
 
 ## Examples
 
-`/kanban:report-label bug`
+`/kanban-report-label bug`
 
 Finds all tasks labeled as bugs and asks what you want to know.
 
-`/kanban:report-label feature What's in progress?`
+`/kanban-report-label feature What's in progress?`
 
 Lists all feature tasks currently in the in-progress column.

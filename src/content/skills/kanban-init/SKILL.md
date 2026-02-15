@@ -2,6 +2,7 @@
 name: kanban-init
 description: Initialize kanban board structure in current project
 allowed-tools: Read, Write, Bash(ls *, mkdir *, git status)
+disable-model-invocation: true
 ---
 
 # Initialize Kanban Board
@@ -46,31 +47,31 @@ Create the `.kanban/` directory structure for a new project.
      name: My Project
 
      user-skills:
-       "kanban:create":
+       "kanban-create":
          skills:
-       "kanban:refine":
+       "kanban-refine":
          skills:
-       "kanban:scope":
+       "kanban-scope":
          skills:
-       "kanban:plan":
+       "kanban-plan":
          skills:
-       "kanban:implement":
+       "kanban-implement":
          skills:
-       "kanban:save":
+       "kanban-save":
          skills:
-       "kanban:verify":
+       "kanban-verify":
          skills:
-       "kanban:approve":
+       "kanban-approve":
          skills:
-       "kanban:docs":
+       "kanban-docs":
          skills:
-       "kanban:merge":
+       "kanban-merge":
          skills:
-       "kanban:rework":
+       "kanban-rework":
          skills:
-       "kanban:map-product":
+       "kanban-map-product":
          skills:
-       "kanban:define-product":
+       "kanban-define-product":
          skills:
 
      settings:
@@ -120,7 +121,7 @@ All must pass. If any fail, fix and retry.
 
 ## Example
 
-User: `/kanban:init`
+User: `/kanban-init`
 
 ```
 Initializing kanban board...
@@ -138,9 +139,9 @@ Created config:
 Kanban initialized!
 
 Next steps:
-- Define your product: /kanban:define-product
-- Or map existing code: /kanban:map-product
-- Or create a task: /kanban:create "Your first task"
+- Define your product: /kanban-define-product
+- Or map existing code: /kanban-map-product
+- Or create a task: /kanban-create "Your first task"
 ```
 
 ## Next Steps
@@ -148,17 +149,17 @@ Next steps:
 For new projects:
 ```
 /clear
-/kanban:define-product
+/kanban-define-product
 ```
 
 For existing codebases:
 ```
 /clear
-/kanban:map-product
+/kanban-map-product
 ```
 
 Or skip product discovery and create a task:
 ```
 /clear
-/kanban:create "Task title"
+/kanban-create "Task title"
 ```

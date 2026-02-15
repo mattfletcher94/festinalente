@@ -3,7 +3,6 @@
 // Claude Kanban Installer
 //
 // SAFETY: This installer ONLY manages kanban-related files:
-//   - commands/kanban/
 //   - skills/kanban-*/
 //   - kanban-templates/
 //   - kanban-workflow.yaml
@@ -26,7 +25,6 @@ const BACKUP_DIR = 'kanban-local-patches';
 
 // Files/directories that belong to kanban (safety check)
 const KANBAN_PATHS = [
-  'commands/kanban',
   'skills/kanban-',
   'kanban-templates',
   'kanban-workflow.yaml',
@@ -274,7 +272,7 @@ ${colors.bright}Options:${colors.reset}
   -v, --version   Show version number
 
 ${colors.bright}After installation:${colors.reset}
-  Run /kanban:init in Claude Code to initialize a project
+  Run /kanban-init in Claude Code to initialize a project
 `);
 }
 
@@ -393,7 +391,7 @@ async function main() {
   console.log();
   console.log(`${colors.bright}Next steps:${colors.reset}`);
   console.log(`  1. Open Claude Code in your project`);
-  console.log(`  2. Run ${colors.cyan}/kanban:init${colors.reset} to initialize the kanban board`);
+  console.log(`  2. Run ${colors.cyan}/kanban-init${colors.reset} to initialize the kanban board`);
   console.log();
 }
 

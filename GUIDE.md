@@ -22,7 +22,7 @@ This guide walks you through using Claude Kanban from start to finish. By the en
 Run this once per project to set up the kanban structure:
 
 ```bash
-/kanban:init
+/kanban-init
 ```
 
 This creates the `.kanban/` directory:
@@ -45,13 +45,13 @@ Before creating tasks, document what your product does. This gives the AI contex
 
 **For existing codebases:**
 ```bash
-/kanban:map-product
+/kanban-map-product
 ```
 The AI analyzes your code and asks questions to create documentation.
 
 **For new projects:**
 ```bash
-/kanban:define-product
+/kanban-define-product
 ```
 The AI guides you through defining your vision before coding.
 
@@ -94,7 +94,7 @@ Always run `/clear` before each kanban command. This resets the AI's context so 
 
 ```bash
 /clear
-/kanban:refine 001
+/kanban-refine 001
 ```
 
 ---
@@ -106,7 +106,7 @@ Always run `/clear` before each kanban command. This resets the AI's context so 
 **Branch:** `main`
 
 ```bash
-/kanban:create "Add password reset functionality"
+/kanban-create "Add password reset functionality"
 ```
 
 **What happens:**
@@ -123,7 +123,7 @@ Task 001 created in Backlog
 
 Commit: docs(001): create - Add password reset functionality
 
-Next: /kanban:refine 001
+Next: /kanban-refine 001
 ```
 
 ---
@@ -134,7 +134,7 @@ Next: /kanban:refine 001
 
 ```bash
 /clear
-/kanban:refine 001
+/kanban-refine 001
 ```
 
 **What happens:**
@@ -171,7 +171,7 @@ Commit: docs(001): refine - Add password reset functionality
 
 ```bash
 /clear
-/kanban:scope 001
+/kanban-scope 001
 ```
 
 **What happens:**
@@ -206,7 +206,7 @@ Commit: docs(001): scope - Add password reset functionality
 
 ```bash
 /clear
-/kanban:plan 001
+/kanban-plan 001
 ```
 
 **What happens:**
@@ -237,7 +237,7 @@ Commit: docs(001): plan - Add password reset functionality
 
 ```bash
 /clear
-/kanban:implement 001
+/kanban-implement 001
 ```
 
 **What happens:**
@@ -271,12 +271,12 @@ Commit: docs(001): plan - Add password reset functionality
 Implementation complete!
 Files modified: 6 (uncommitted)
 
-Next: /kanban:verify 001
+Next: /kanban-verify 001
 ```
 
 **Save progress if interrupted:**
 ```bash
-/kanban:save 001
+/kanban-save 001
 ```
 This commits your work-in-progress so you don't lose it.
 
@@ -288,7 +288,7 @@ This commits your work-in-progress so you don't lose it.
 
 ```bash
 /clear
-/kanban:verify 001
+/kanban-verify 001
 ```
 
 **What happens:**
@@ -307,7 +307,7 @@ Moving to QA...
 
 Task 001 moved to QA
 
-Next: /kanban:approve 001
+Next: /kanban-approve 001
 ```
 
 **Example output (auto-retry):**
@@ -336,7 +336,7 @@ Task 001 moved to QA
 
 ```bash
 /clear
-/kanban:approve 001
+/kanban-approve 001
 ```
 
 **What happens:**
@@ -369,7 +369,7 @@ Task 001 moved to Update Docs
 
 ```bash
 /clear
-/kanban:docs 001
+/kanban-docs 001
 ```
 
 **What happens:**
@@ -397,7 +397,7 @@ Branch pushed to remote.
 Task 001 moved to PR.
 
 Create PR on GitHub, then run:
-/kanban:merge 001
+/kanban-merge 001
 ```
 
 ---
@@ -408,7 +408,7 @@ Create PR on GitHub, then run:
 
 ```bash
 /clear
-/kanban:merge 001
+/kanban-merge 001
 ```
 
 **What happens:**
@@ -451,7 +451,7 @@ If tests, typecheck, or lint fail during verification, the AI automatically:
 If all 3 attempts fail, you'll need to fix manually and re-run:
 ```bash
 /clear
-/kanban:verify 001
+/kanban-verify 001
 ```
 
 ### QA or PR Rejected
@@ -460,7 +460,7 @@ If human QA or PR review finds issues:
 
 ```bash
 /clear
-/kanban:rework 001
+/kanban-rework 001
 ```
 
 This:
@@ -475,7 +475,7 @@ This:
 ### Check Board Status
 
 ```bash
-/kanban:status
+/kanban-status
 ```
 
 Shows all tasks grouped by column and suggests what to do next.
@@ -483,7 +483,7 @@ Shows all tasks grouped by column and suggests what to do next.
 ### Check Specific Task
 
 ```bash
-/kanban:status 001
+/kanban-status 001
 ```
 
 Shows detailed status including:
@@ -498,7 +498,7 @@ If you stopped mid-implementation:
 
 ```bash
 /clear
-/kanban:implement 001
+/kanban-implement 001
 ```
 
 The AI picks up where it left off (checkboxes track progress).
@@ -522,7 +522,7 @@ Run `/clear` before each kanban command. This resets context and prevents confus
 
 ```bash
 /clear
-/kanban:scope 001
+/kanban-scope 001
 ```
 
 ### 2. One Task at a Time
@@ -534,7 +534,7 @@ Focus on completing one task before starting another. The branch strategy assume
 If you need to stop mid-implementation:
 
 ```bash
-/kanban:save 001
+/kanban-save 001
 ```
 
 This saves your progress with notes on where to resume.
@@ -545,7 +545,7 @@ Add your checks to `.kanban/config.yaml`:
 
 ```yaml
 user-skills:
-  "kanban:verify":
+  "kanban-verify":
     skills:
       - check-typescript    # Reads .claude/skills/check-typescript/SKILL.md
       - check-tests         # Reads .claude/skills/check-tests/SKILL.md
@@ -587,16 +587,16 @@ docs(001): create - Add password reset functionality
 
 | Step | Command | Branch |
 |------|---------|--------|
-| Create | `/kanban:create "title"` | main |
-| Refine | `/kanban:refine 001` | main |
-| Scope | `/kanban:scope 001` | main → task/001 |
-| Plan | `/kanban:plan 001` | task/001 |
-| Implement | `/kanban:implement 001` | task/001 |
-| Verify | `/kanban:verify 001` | task/001 |
-| Approve | `/kanban:approve 001` | task/001 |
-| Docs | `/kanban:docs 001` | task/001 |
-| Merge | `/kanban:merge 001` | task/001 → main |
-| Rework | `/kanban:rework 001` | task/001 |
+| Create | `/kanban-create "title"` | main |
+| Refine | `/kanban-refine 001` | main |
+| Scope | `/kanban-scope 001` | main → task/001 |
+| Plan | `/kanban-plan 001` | task/001 |
+| Implement | `/kanban-implement 001` | task/001 |
+| Verify | `/kanban-verify 001` | task/001 |
+| Approve | `/kanban-approve 001` | task/001 |
+| Docs | `/kanban-docs 001` | task/001 |
+| Merge | `/kanban-merge 001` | task/001 → main |
+| Rework | `/kanban-rework 001` | task/001 |
 
 ---
 
@@ -605,8 +605,8 @@ docs(001): create - Add password reset functionality
 You now know the complete workflow. Start with:
 
 ```bash
-/kanban:init
-/kanban:create "Your first task"
+/kanban-init
+/kanban-create "Your first task"
 ```
 
 And follow the flow from there. Each command tells you what to run next.

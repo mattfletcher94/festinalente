@@ -2,6 +2,8 @@
 name: kanban-create
 description: Create a new task in the kanban board and commit. Use when the user wants to add a task, ticket, bug, or feature to track.
 allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *), Grep
+argument-hint: "[task title]"
+disable-model-invocation: true
 ---
 
 # Create Kanban Task
@@ -56,7 +58,7 @@ See `.claude/kanban-workflow.yaml` for column definitions.
    **STOP.** Before proceeding, you MUST load and apply user-defined skills. This is mandatory.
 
    1. Load `.kanban/config.yaml`
-   2. Find `user-skills."kanban:create".skills` array
+   2. Find `user-skills."kanban-create".skills` array
    3. If the array is non-empty, for EACH skill name:
       - Read `.claude/skills/{skill-name}/SKILL.md`
       - Follow ALL instructions as mandatory requirements
@@ -67,7 +69,7 @@ See `.claude/kanban-workflow.yaml` for column definitions.
    Example config:
    ```yaml
    user-skills:
-     "kanban:create":
+     "kanban-create":
        skills:
          - my-custom-check    # Reads .claude/skills/my-custom-check/SKILL.md
          - coding-standards   # Reads .claude/skills/coding-standards/SKILL.md
@@ -90,7 +92,7 @@ See `.claude/kanban-workflow.yaml` for column definitions.
    - Check if no description could be generated (title too ambiguous)
    - If ANY vagueness indicator detected:
      - Add `needs-refinement` to labels array (from kanban-workflow.yaml)
-     - Note to user: "Task marked as needs-refinement. Run `/kanban:refine {id}` to clarify before planning."
+     - Note to user: "Task marked as needs-refinement. Run `/kanban-refine {id}` to clarify before planning."
 
 8. **Determine label**:
    - Use `labels[].detect-keywords` from kanban-workflow.yaml to auto-detect label from title/context
@@ -127,7 +129,7 @@ See `.claude/kanban-workflow.yaml` for column definitions.
      ```
      Next:
      /clear
-     /kanban:refine {id}
+     /kanban-refine {id}
      ```
    - Do NOT skip this output. The user needs these commands to continue.
 
@@ -150,7 +152,7 @@ All must pass. If any fail, fix and retry.
 
 ## Example
 
-User: `/kanban:create Fix login redirect bug`
+User: `/kanban-create Fix login redirect bug`
 
 Creates: `.kanban/tasks/002-fix-login-redirect-bug.md`
 
@@ -163,12 +165,12 @@ Commit: a1b2c3d docs(002): create - Fix login redirect bug
 
 Next:
 /clear
-/kanban:refine 002
+/kanban-refine 002
 ```
 
 ## Next Steps
 
 ```
 /clear
-/kanban:refine {id}
+/kanban-refine {id}
 ```

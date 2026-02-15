@@ -2,6 +2,8 @@
 name: kanban-refine
 description: Refine vague tasks through conversational Q&A to add clarity and acceptance criteria, then commit
 allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *), Grep, Glob, AskUserQuestion, WebSearch, WebFetch
+argument-hint: "[task-id]"
+disable-model-invocation: true
 ---
 
 # Refine Kanban Task
@@ -168,7 +170,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 
 ## Example
 
-User: `/kanban:refine 003`
+User: `/kanban-refine 003`
 
 ```
 Analyzing task 003 "Fix the thing"...
@@ -237,12 +239,12 @@ Commit: b2c3d4e docs(003): refine - Add client-side email validation to login fo
 
 Next:
 /clear
-/kanban:scope 003
+/kanban-scope 003
 ```
 
 ## Next Steps
 
 ```
 /clear
-/kanban:scope {id}
+/kanban-scope {id}
 ```

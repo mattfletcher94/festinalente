@@ -2,6 +2,7 @@
 name: kanban-define-product
 description: Define a new product through Socratic Q&A and generate product documentation
 allowed-tools: Read, Write, Bash(git add *, git commit *, git status), AskUserQuestion
+disable-model-invocation: true
 ---
 
 # Skill: Define Product
@@ -27,7 +28,7 @@ Read `.claude/kanban-workflow.yaml` for commit formats.
 ### 1. Pre-flight Check
 
 1. Verify `.kanban/` directory exists
-   - If not: Error - "Please initialize kanban first with `kanban:init`"
+   - If not: Error - "Please initialize kanban first with `kanban-init`"
 2. Check if `.kanban/product/` has existing files
    - If yes: Ask user using AskUserQuestion:
      - "I found existing product docs. How should I proceed?"
@@ -115,7 +116,7 @@ All must pass. If any fail, fix and retry.
 
 ## Example
 
-User: `/kanban:define-product`
+User: `/kanban-define-product`
 
 ```
 What problem are you trying to solve with this product?
@@ -159,5 +160,5 @@ How should Task Tracking work from the user's perspective?
 
 ```
 /clear
-/kanban:create "Your task title"
+/kanban-create "Your task title"
 ```

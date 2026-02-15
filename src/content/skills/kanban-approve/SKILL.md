@@ -2,6 +2,8 @@
 name: kanban-approve
 description: Approve implementation after human QA, commit code, and move to Update Docs. Use when QA testing passes.
 allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git diff *, git branch *)
+argument-hint: "[task-id]"
+disable-model-invocation: true
 ---
 
 # Approve Kanban Task
@@ -63,7 +65,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    **STOP.** Before proceeding, you MUST load and apply user-defined skills. This is mandatory.
 
    1. Load `.kanban/config.yaml`
-   2. Find `user-skills."kanban:approve".skills` array
+   2. Find `user-skills."kanban-approve".skills` array
    3. If the array is non-empty, for EACH skill name:
       - Read `.claude/skills/{skill-name}/SKILL.md`
       - Follow ALL instructions as mandatory requirements
@@ -74,7 +76,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    Example config:
    ```yaml
    user-skills:
-     "kanban:approve":
+     "kanban-approve":
        skills:
          - my-custom-check    # Reads .claude/skills/my-custom-check/SKILL.md
          - coding-standards   # Reads .claude/skills/coding-standards/SKILL.md
@@ -84,7 +86,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    - Display task title and acceptance criteria
    - Ask: "Have you tested the application and verified it meets acceptance criteria? [Y/n]"
    - If user declines:
-     - Suggest: "Use /kanban:rework {id} to document issues"
+     - Suggest: "Use /kanban-rework {id} to document issues"
      - Exit
 
 7. **Check for uncommitted changes**:
@@ -132,7 +134,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
      ```
      Next:
      /clear
-     /kanban:docs {id}
+     /kanban-docs {id}
      ```
    - Do NOT skip this output. The user needs these commands to continue.
 
@@ -152,7 +154,7 @@ All must pass. If any fail, fix and retry.
 
 ## Example: Feature QA Passed
 
-User: `/kanban:approve 001`
+User: `/kanban-approve 001`
 
 ```
 Approving task 001 "Add user authentication"...
@@ -186,12 +188,12 @@ QA passed!
 
 Next:
 /clear
-/kanban:docs 001
+/kanban-docs 001
 ```
 
 ## Example: Bug Fix QA Passed
 
-User: `/kanban:approve 002`
+User: `/kanban-approve 002`
 
 ```
 Approving task 002 "Fix login redirect loop"...
@@ -223,18 +225,18 @@ QA passed!
 
 Next:
 /clear
-/kanban:docs 002
+/kanban-docs 002
 ```
 
 ## Next Steps
 
 ```
 /clear
-/kanban:docs {id}
+/kanban-docs {id}
 ```
 
 Or if issues are found during QA:
 ```
 /clear
-/kanban:rework {id}
+/kanban-rework {id}
 ```

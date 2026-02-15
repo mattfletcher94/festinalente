@@ -2,6 +2,8 @@
 name: kanban-plan
 description: Create a plan document for a scoped task. Transforms functional specification into executable implementation checkboxes.
 allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *)
+argument-hint: "[task-id]"
+disable-model-invocation: true
 ---
 
 # Plan Kanban Task
@@ -73,7 +75,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    - If spec not found, BLOCK planning with message:
      ```
      Task {id} needs scoping before planning.
-     Run: /kanban:scope {id}
+     Run: /kanban-scope {id}
      ```
    - Extract functional requirements, affected files, and existing patterns
 
@@ -86,7 +88,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    **STOP.** Before proceeding, you MUST load and apply user-defined skills. This is mandatory.
 
    1. Load `.kanban/config.yaml`
-   2. Find `user-skills."kanban:plan".skills` array
+   2. Find `user-skills."kanban-plan".skills` array
    3. If the array is non-empty, for EACH skill name:
       - Read `.claude/skills/{skill-name}/SKILL.md`
       - Follow ALL instructions as mandatory requirements
@@ -97,7 +99,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    Example config:
    ```yaml
    user-skills:
-     "kanban:plan":
+     "kanban-plan":
        skills:
          - my-custom-check    # Reads .claude/skills/my-custom-check/SKILL.md
          - coding-standards   # Reads .claude/skills/coding-standards/SKILL.md
@@ -180,7 +182,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
       ```
       Next:
       /clear
-      /kanban:implement {id}
+      /kanban-implement {id}
       ```
     - Do NOT skip this output. The user needs these commands to continue.
 
@@ -207,7 +209,7 @@ All must pass. If any fail, fix and retry.
 
 ## Example
 
-User: `/kanban:plan 001`
+User: `/kanban-plan 001`
 
 ```
 Planning task 001 "Add OAuth Login"...
@@ -233,12 +235,12 @@ Commit: g7h8i9j docs(001): plan - Add OAuth Login
 
 Next:
 /clear
-/kanban:implement 001
+/kanban-implement 001
 ```
 
 ## Next Steps
 
 ```
 /clear
-/kanban:implement {id}
+/kanban-implement {id}
 ```

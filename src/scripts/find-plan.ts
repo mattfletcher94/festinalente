@@ -70,7 +70,7 @@ function main(): void {
   if (!fs.existsSync(PLANS_DIR)) {
     console.log(JSON.stringify({
       error: true,
-      message: `${PLANS_DIR}/ directory not found. Run /kanban:init first.`
+      message: `${PLANS_DIR}/ directory not found. Run /kanban-init first.`
     }));
     process.exit(1);
   }

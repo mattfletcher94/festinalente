@@ -2,6 +2,8 @@
 name: kanban-docs
 description: Update product documentation and commit. Move task to PR column.
 allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *, git push *), Grep
+argument-hint: "[task-id]"
+disable-model-invocation: true
 ---
 
 # Update Kanban Task Documentation
@@ -43,7 +45,7 @@ The description summarizes what documentation was updated (e.g., "add authentica
    - Glob for `.kanban/tasks/{id}-*.md` to find the exact filename
    - Parse YAML frontmatter
    - Verify current status is `update-docs`:
-     - If `qa`: Suggest `/kanban:approve {id}` first
+     - If `qa`: Suggest `/kanban-approve {id}` first
      - If earlier status: Suggest appropriate command
    - Note title, labels, description for documentation context
    - Error if task not found
@@ -61,7 +63,7 @@ The description summarizes what documentation was updated (e.g., "add authentica
    **STOP.** Before proceeding, you MUST load and apply user-defined skills. This is mandatory.
 
    1. Load `.kanban/config.yaml`
-   2. Find `user-skills."kanban:docs".skills` array
+   2. Find `user-skills."kanban-docs".skills` array
    3. If the array is non-empty, for EACH skill name:
       - Read `.claude/skills/{skill-name}/SKILL.md`
       - Follow ALL instructions as mandatory requirements
@@ -72,7 +74,7 @@ The description summarizes what documentation was updated (e.g., "add authentica
    Example config:
    ```yaml
    user-skills:
-     "kanban:docs":
+     "kanban-docs":
        skills:
          - my-custom-check    # Reads .claude/skills/my-custom-check/SKILL.md
          - coding-standards   # Reads .claude/skills/coding-standards/SKILL.md
@@ -159,10 +161,10 @@ The description summarizes what documentation was updated (e.g., "add authentica
       ```
       Create PR on GitHub, then run:
       /clear
-      /kanban:merge {id}
+      /kanban-merge {id}
       ```
     - Do NOT skip this output. The user needs these commands to continue.
-    - Also mention: "Or if PR needs changes: /kanban:rework {id}"
+    - Also mention: "Or if PR needs changes: /kanban-rework {id}"
 
 ## Validation
 
@@ -180,7 +182,7 @@ All must pass. If any fail, fix and retry.
 
 ## Example: Documentation Updated
 
-User: `/kanban:docs 001`
+User: `/kanban-docs 001`
 
 ```
 Completing documentation for task 001 "Add user authentication"...
@@ -218,9 +220,9 @@ Task 001 moved to PR column.
 
 Create PR on GitHub, then run:
 /clear
-/kanban:merge 001
+/kanban-merge 001
 
-Or if PR needs changes: /kanban:rework 001
+Or if PR needs changes: /kanban-rework 001
 ```
 
 **WRONG behavior (do NOT do this):**
@@ -234,7 +236,7 @@ Or if PR needs changes: /kanban:rework 001
 
 ## Example: Documentation Skipped
 
-User: `/kanban:docs 002`
+User: `/kanban-docs 002`
 
 ```
 Completing documentation for task 002 "Refactor database queries"...
@@ -261,9 +263,9 @@ Task 002 moved to PR column.
 
 Create PR on GitHub, then run:
 /clear
-/kanban:merge 002
+/kanban-merge 002
 
-Or if PR needs changes: /kanban:rework 002
+Or if PR needs changes: /kanban-rework 002
 ```
 
 ## Git History Example
@@ -288,11 +290,11 @@ docs(001): done - Add user authentication          # after merge on main
 Create PR on GitHub, then merge:
 ```
 /clear
-/kanban:merge {id}
+/kanban-merge {id}
 ```
 
 Or if the PR needs changes:
 ```
 /clear
-/kanban:rework {id}
+/kanban-rework {id}
 ```

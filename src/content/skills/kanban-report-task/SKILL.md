@@ -1,8 +1,9 @@
 ---
-name: report-task
+name: kanban-report-task
 description: Query a specific task's history and current state
 allowed-tools: Read, Glob, Grep, Bash(git log *)
 argument-hint: "{id} [question]"
+disable-model-invocation: true
 ---
 
 # Report Task
@@ -11,7 +12,7 @@ Query a specific task's history and current state using natural language.
 
 ## Usage
 
-`/kanban:report-task {id} [question]`
+`/kanban-report-task {id} [question]`
 
 ## Workflow
 
@@ -44,10 +45,10 @@ Query a specific task's history and current state using natural language.
 
 ## Examples
 
-`/kanban:report-task 003`
+`/kanban-report-task 003`
 
 Gathers data for task 003 and asks what you want to know.
 
-`/kanban:report-task 003 What files were changed?`
+`/kanban-report-task 003 What files were changed?`
 
 Analyzes git history for task 003 and lists modified files.

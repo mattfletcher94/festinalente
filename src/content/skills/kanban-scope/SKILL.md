@@ -2,6 +2,8 @@
 name: kanban-scope
 description: Research codebase and create functional specification through conversational Q&A. Focuses on engineering analysis - HOW to build it technically.
 allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *, git checkout *), Glob, Grep, AskUserQuestion, WebSearch, WebFetch
+argument-hint: "[task-id]"
+disable-model-invocation: true
 ---
 
 # Scope Kanban Task
@@ -68,7 +70,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    **STOP.** Before proceeding, you MUST load and apply user-defined skills. This is mandatory.
 
    1. Load `.kanban/config.yaml`
-   2. Find `user-skills."kanban:scope".skills` array
+   2. Find `user-skills."kanban-scope".skills` array
    3. If the array is non-empty, for EACH skill name:
       - Read `.claude/skills/{skill-name}/SKILL.md`
       - Follow ALL instructions as mandatory requirements
@@ -79,7 +81,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    Example config:
    ```yaml
    user-skills:
-     "kanban:scope":
+     "kanban-scope":
        skills:
          - my-custom-check    # Reads .claude/skills/my-custom-check/SKILL.md
          - coding-standards   # Reads .claude/skills/coding-standards/SKILL.md
@@ -255,7 +257,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
       ```
       Next:
       /clear
-      /kanban:plan {id}
+      /kanban-plan {id}
       ```
     - Do NOT skip this output. The user needs these commands to continue.
 
@@ -281,7 +283,7 @@ All must pass. If any fail, fix and retry.
 
 ## Example
 
-User: `/kanban:scope 001`
+User: `/kanban-scope 001`
 
 ```
 Scoping task 001 "Add localStorage persistence for app state"...
@@ -381,12 +383,12 @@ Commit: d4e5f6g docs(001): scope - Add localStorage persistence for app state
 
 Next:
 /clear
-/kanban:plan 001
+/kanban-plan 001
 ```
 
 ## Next Steps
 
 ```
 /clear
-/kanban:plan {id}
+/kanban-plan {id}
 ```

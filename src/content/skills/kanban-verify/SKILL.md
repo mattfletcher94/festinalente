@@ -2,6 +2,8 @@
 name: kanban-verify
 description: Run AI code review using skills. Auto-retries on failure, auto-advances to QA on success.
 allowed-tools: Read, Write, Bash(*)
+argument-hint: "[task-id]"
+disable-model-invocation: true
 ---
 
 # Verify Kanban Task
@@ -79,7 +81,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 
 6. **Load verification checks**:
    - Read `.kanban/config.yaml`
-   - Find `user-skills."kanban:verify".skills` array
+   - Find `user-skills."kanban-verify".skills` array
    - If skills array is empty:
      - Inform user: "No verification checks configured. Add check skills to config.yaml"
      - Ask: "Continue without checks? (y/n)"
@@ -133,7 +135,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
                else:
                    # Max attempts reached
                    Print: "Max retry attempts reached. Manual intervention needed."
-                   Print: "Fix issues and re-run /kanban:verify {id}"
+                   Print: "Fix issues and re-run /kanban-verify {id}"
                    Exit
 
        # If we get here, all checks passed
@@ -162,7 +164,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
      ```
      Next:
      /clear
-     /kanban:approve {id}
+     /kanban-approve {id}
      ```
    - Do NOT skip this output. The user needs these commands to continue.
 
@@ -234,7 +236,7 @@ Exit code 0, all tests pass.
 
 ## Example: All Checks Pass First Try
 
-User: `/kanban:verify 001`
+User: `/kanban-verify 001`
 
 ```
 Verifying task 001 "Add OAuth Login"...
@@ -262,12 +264,12 @@ Task 001 moved to QA.
 
 Next:
 /clear
-/kanban:approve 001
+/kanban-approve 001
 ```
 
 ## Example: Auto-Retry on Failure
 
-User: `/kanban:verify 001`
+User: `/kanban-verify 001`
 
 ```
 Verifying task 001 "Add OAuth Login"...
@@ -315,12 +317,12 @@ Task 001 moved to QA.
 
 Next:
 /clear
-/kanban:approve 001
+/kanban-approve 001
 ```
 
 ## Example: Max Retries Exceeded
 
-User: `/kanban:verify 002`
+User: `/kanban-verify 002`
 
 ```
 Verifying task 002 "Database migration"...
@@ -348,7 +350,7 @@ The following issues could not be auto-fixed:
 See plan file for all logged attempts.
 
 Fix issues manually and re-run:
-/kanban:verify 002
+/kanban-verify 002
 ```
 
 ## Next Steps
@@ -356,11 +358,11 @@ Fix issues manually and re-run:
 After verification passes and moves to QA:
 ```
 /clear
-/kanban:approve {id}
+/kanban-approve {id}
 ```
 
 If human QA finds issues:
 ```
 /clear
-/kanban:rework {id}
+/kanban-rework {id}
 ```

@@ -2,6 +2,8 @@
 name: kanban-save
 description: Save partial implementation progress with WIP commit. Use when implementation is interrupted and you need to save work.
 allowed-tools: Read, Write, Edit, Bash(ls *, git add *, git commit *, git status, git diff *, git branch *)
+argument-hint: "[task-id]"
+disable-model-invocation: true
 ---
 
 # WIP Commit Kanban Task
@@ -59,7 +61,7 @@ See `.claude/kanban-workflow.yaml` for column definitions.
    **STOP.** Before proceeding, you MUST load and apply user-defined skills. This is mandatory.
 
    1. Load `.kanban/config.yaml`
-   2. Find `user-skills."kanban:save".skills` array
+   2. Find `user-skills."kanban-save".skills` array
    3. If the array is non-empty, for EACH skill name:
       - Read `.claude/skills/{skill-name}/SKILL.md`
       - Follow ALL instructions as mandatory requirements
@@ -70,7 +72,7 @@ See `.claude/kanban-workflow.yaml` for column definitions.
    Example config:
    ```yaml
    user-skills:
-     "kanban:save":
+     "kanban-save":
        skills:
          - my-custom-check    # Reads .claude/skills/my-custom-check/SKILL.md
          - coding-standards   # Reads .claude/skills/coding-standards/SKILL.md
@@ -130,7 +132,7 @@ See `.claude/kanban-workflow.yaml` for column definitions.
     - Print commit hash
     - Print progress: "{completed}/{total} plan items complete"
     - Print continuation hint
-    - Remind: "Resume with /kanban:implement {id}"
+    - Remind: "Resume with /kanban-implement {id}"
 
 ## Validation
 
@@ -148,7 +150,7 @@ All must pass. If any fail, fix and retry.
 
 ## Example: WIP Commit Mid-Implementation
 
-User: `/kanban:save 001`
+User: `/kanban-save 001`
 
 ```
 Saving WIP for task 001 "Add user authentication"...
@@ -176,12 +178,12 @@ WIP saved!
 - Progress: 2/5 items
 - Next step: Add logout endpoint
 
-Resume with: /kanban:implement 001
+Resume with: /kanban-implement 001
 ```
 
 ## Example: No Changes to Commit
 
-User: `/kanban:save 002`
+User: `/kanban-save 002`
 
 ```
 Saving WIP for task 002 "Setup database"...
@@ -195,7 +197,7 @@ No uncommitted changes found.
 Plan checkboxes are up to date.
 Nothing to commit.
 
-Resume with: /kanban:implement 002
+Resume with: /kanban-implement 002
 ```
 
 ## Next Steps
@@ -203,5 +205,5 @@ Resume with: /kanban:implement 002
 To resume implementation:
 ```
 /clear
-/kanban:implement {id}
+/kanban-implement {id}
 ```
