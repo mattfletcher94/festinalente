@@ -8,10 +8,11 @@ disable-model-invocation: true
 
 # Refine Kanban Task
 
-Refine vague tasks through **iterative conversational Q&A** focused on product/business concerns. The dialogue continues until you have enough information and the user confirms. Task moves from **Backlog** to **Refined**. Commits the refinement.
+<purpose>
+Refine vague tasks through iterative conversational Q&A focused on product/business concerns, then move from Backlog to Refined and commit.
+</purpose>
 
-## Reference
-
+<context>
 {{> directory-reference}}
 
 {{> helper-scripts show_find_task=true show_find_spec=true show_find_plan=true show_get_date_time=true}}
@@ -19,151 +20,171 @@ Refine vague tasks through **iterative conversational Q&A** focused on product/b
 {{> product-docs-scripts show_search_product=true}}
 
 {{> column-transition from="backlog" to="refined"}}
+</context>
 
-## Steps
+<prohibited>
+- Do not skip the Q&A dialogue and jump to writing
+- Do not make assumptions without validating with user
+- Do not write acceptance criteria that aren't confirmed by user
+- Do not skip the commit step
+</prohibited>
 
-- [ ] 1. **Load workflow schema**
-   {{> workflow-load}}
+<process>
+  <step name="load_workflow">
+    {{> workflow-load}}
+  </step>
 
-- [ ] 2. **Verify on main branch**
-   {{> branch-verify-main}}
+  <step name="verify_branch">
+    {{> branch-verify-main}}
+  </step>
 
-- [ ] 3. **Get task ID**
-   Use $ARGUMENTS if provided (e.g., "001"), otherwise:
-   - List tasks with `needs-refinement` label from `.kanban/tasks/`
-   - Show task IDs, titles, and current vagueness indicators
-   - Ask user which task to refine
+  <step name="get_task_id" outputs="taskId">
+    Use $ARGUMENTS if provided (e.g., "001"), otherwise:
+    - List tasks with `needs-refinement` label from `.kanban/tasks/`
+    - Show task IDs, titles, and current vagueness indicators
+    - Ask user which task to refine
+  </step>
 
-- [ ] 4. **Read task file**
-   - Run `node .claude/scripts/find-task.cjs {id}` to get exact path
-   - Read the file at the `path` from JSON output
-   - Parse YAML frontmatter
-   - Verify task has `needs-refinement` label (from kanban-workflow.yaml):
-     - If present, proceed with refinement
-     - If not present, warn: "Task does not have needs-refinement label. Refine anyway? (y/n)"
-   - Note current title, description, acceptance criteria (if any)
-   - Error if task not found
+  <step name="read_task_file" outputs="taskPath, title, currentLabels">
+    - Run `node .claude/scripts/find-task.cjs {taskId}` to get exact path
+    - Read the file at the `path` from JSON output
+    - Parse YAML frontmatter
+    - Verify task has `needs-refinement` label (from kanban-workflow.yaml):
+      - If present, proceed with refinement
+      - If not present, warn: "Task does not have needs-refinement label. Refine anyway? (y/n)"
+    - Note current title, description, acceptance criteria (if any)
+    - Error if task not found
+  </step>
 
-- [ ] 5. **Load user skills**
-   {{> user-skills command="refine"}}
+  <step name="load_user_skills">
+    {{> user-skills command="refine"}}
+  </step>
 
-- [ ] 6. **Analyze initial context**
-   - Check title for clarity issues:
-     - Title too short (<5 words)?
-     - Missing action verb?
-     - Contains ambiguous terms ("fix stuff", "improve things")?
-   - Check description for completeness
-   - Check acceptance criteria for specificity
+  <step name="analyze_initial_context">
+    - Check title for clarity issues:
+      - Title too short (<5 words)?
+      - Missing action verb?
+      - Contains ambiguous terms ("fix stuff", "improve things")?
+    - Check description for completeness
+    - Check acceptance criteria for specificity
 
-   **Load product context:**
-   - If task has `affects` field with IDs:
-     - For each ID: Read `.kanban/product/{id}.md`
-     - Note current product behavior for context
-   - If task has empty/no `affects` field:
-     - Run: `node .claude/scripts/search-product.cjs {keywords from title}`
-     - If matches found (score ≥ 0.3):
-       - Read top matches for context
-       - Consider suggesting `affects` field update
-   - Reference product docs during Q&A to ensure alignment with existing product
+    **Load product context:**
+    - If task has `affects` field with IDs:
+      - For each ID: Read `.kanban/product/{id}.md`
+      - Note current product behavior for context
+    - If task has empty/no `affects` field:
+      - Run: `node .claude/scripts/search-product.cjs {keywords from title}`
+      - If matches found (score ≥ 0.3):
+        - Read top matches for context
+        - Consider suggesting `affects` field update
+    - Reference product docs during Q&A to ensure alignment with existing product
+  </step>
 
-- [ ] 7. **Conduct iterative Q&A dialogue**
+  <step name="conduct_qa_dialogue">
+    This is a **conversational session** focused on **product/business concerns**:
+    - What problem are we solving?
+    - What value does it provide?
+    - What does "done" look like?
+    - User context, constraints, preferences
 
-   This is a **conversational session** focused on **product/business concerns**:
-   - What problem are we solving?
-   - What value does it provide?
-   - What does "done" look like?
-   - User context, constraints, preferences
+    **How the dialogue works:**
 
-   **How the dialogue works:**
+    a. **Ask questions as needed** using AskUserQuestion:
+       - Start with the most important gaps (problem, value, acceptance criteria)
+       - Ask follow-up questions based on answers
+       - Don't follow a rigid script - adapt to the conversation
 
-   a. **Ask questions as needed** using AskUserQuestion:
-      - Start with the most important gaps (problem, value, acceptance criteria)
-      - Ask follow-up questions based on answers
-      - Don't follow a rigid script - adapt to the conversation
+    b. **User can volunteer information at any time**:
+       - User may provide context you didn't ask for
+       - User may request research (e.g., "research how other apps handle password reset")
+       - User may skip questions ("skip" or "you fill it in")
 
-   b. **User can volunteer information at any time**:
-      - User may provide context you didn't ask for
-      - User may request research (e.g., "research how other apps handle password reset")
-      - User may skip questions ("skip" or "you fill it in")
+    c. **Perform web research when requested or beneficial**:
+       - If user asks to research something, use WebSearch/WebFetch
+       - Research domain topics, best practices, how other products solve similar problems
+       - Share findings and ask if they influence requirements
 
-   c. **Perform web research when requested or beneficial**:
-      - If user asks to research something, use WebSearch/WebFetch
-      - Research domain topics, best practices, how other products solve similar problems
-      - Share findings and ask if they influence requirements
+    d. **Continue until you have enough information**:
+       - You need enough to write: problem statement, value statement, acceptance criteria
+       - When you feel ready, signal to the user:
 
-   d. **Continue until you have enough information**:
-      - You need enough to write: problem statement, value statement, acceptance criteria
-      - When you feel ready, signal to the user:
+         **"I think I have enough information to write the refinement. Here's what I understand:**
+         - **Problem:** {summary}
+         - **Value:** {summary}
+         - **Acceptance criteria:** {summary}
 
-        **"I think I have enough information to write the refinement. Here's what I understand:**
-        - **Problem:** {summary}
-        - **Value:** {summary}
-        - **Acceptance criteria:** {summary}
+         **Is there anything else you'd like to discuss before I finalize this?"**
 
-        **Is there anything else you'd like to discuss before I finalize this?"**
+    e. **User confirms or continues**:
+       - If user says "that's good" / "go ahead" / similar → proceed to writing
+       - If user adds more context → incorporate and ask if anything else
+       - If user has corrections → update understanding and confirm again
 
-   e. **User confirms or continues**:
-      - If user says "that's good" / "go ahead" / similar → proceed to writing
-      - If user adds more context → incorporate and ask if anything else
-      - If user has corrections → update understanding and confirm again
+    **Key principles:**
+    - Focus on PRODUCT/BUSINESS concerns, not technical implementation
+    - Let the conversation flow naturally
+    - Research when it helps clarify requirements
+    - Don't rush - thoroughness now saves time later
+  </step>
 
-   **Key principles:**
-   - Focus on PRODUCT/BUSINESS concerns, not technical implementation
-   - Let the conversation flow naturally
-   - Research when it helps clarify requirements
-   - Don't rush - thoroughness now saves time later
+  <step name="update_task_file">
+    - Follow template at `.claude/kanban-templates/task.md`
+    - Fill sections for this phase:
+      - `## What problem are you trying to solve?`
+      - `## What value would it provide if solved?`
+      - `## Acceptance Criteria` (in Gherkin format)
+    - Update frontmatter:
+      - Change status per `transitions.backlog` in kanban-workflow.yaml (`backlog` → `refined`)
+      - Add `updated: {YYYY-MM-DD}`
+      - Remove `needs-refinement` from labels if present
+  </step>
 
-- [ ] 8. **Update task file**
-   - Follow template at `.claude/kanban-templates/task.md`
-   - Fill sections for this phase:
-     - `## What problem are you trying to solve?`
-     - `## What value would it provide if solved?`
-     - `## Acceptance Criteria` (in Gherkin format)
-   - Update frontmatter:
-     - Change status per `transitions.backlog` in kanban-workflow.yaml (`backlog` → `refined`)
-     - Add `updated: {YYYY-MM-DD}`
-     - Remove `needs-refinement` from labels if present
+  <step name="format_acceptance_criteria">
+    ```gherkin
+    Given {precondition}
+    And {additional precondition if needed}
+    When {action}
+    Then {expected outcome}
+    And {additional outcome if needed}
+    ```
 
-- [ ] 9. **Format acceptance criteria in Gherkin**
-   ```gherkin
-   Given {precondition}
-   And {additional precondition if needed}
-   When {action}
-   Then {expected outcome}
-   And {additional outcome if needed}
-   ```
+    Example:
+    ```gherkin
+    Given a user is on the login page
+    And they have entered valid credentials
+    When they click the login button
+    Then they are redirected to the dashboard
+    And their session is established
+    ```
+  </step>
 
-   Example:
-   ```gherkin
-   Given a user is on the login page
-   And they have entered valid credentials
-   When they click the login button
-   Then they are redirected to the dashboard
-   And their session is established
-   ```
+  <step name="write_task_file">
+    Write the updated task file.
+  </step>
 
-- [ ] 10. **Write updated task file**
+  <step name="commit">
+    Format: `docs({taskId}): refine - {title}`
 
-- [ ] 11. **Commit the refinement**
-   Format: `docs({id}): refine - {title}`
+    ```bash
+    git add .kanban/tasks/{taskId}-*.md
+    git commit -m "docs({taskId}): refine - {title}"
+    ```
+  </step>
 
-   ```bash
-   git add .kanban/tasks/{id}-*.md
-   git commit -m "docs({id}): refine - {title}"
-   ```
+  <step name="output_result">
+    - Print summary of changes made
+    - Show updated acceptance criteria
+    - Print commit hash
+  </step>
+</process>
 
-- [ ] 12. **Output next steps to user**
-   - Print summary of changes made
-   - Show updated acceptance criteria
-   - Print commit hash
-
-## Validation
-
-- [ ] Task file exists at `.kanban/tasks/{id}-*.md`
-- [ ] Frontmatter contains `status: refined`
-- [ ] Task file contains `## Acceptance Criteria` section with Gherkin format
-- [ ] Git log shows `docs({id}): refine -`
-- [ ] Next steps shown to user
+<success_criteria>
+- Task file exists at `.kanban/tasks/{taskId}-*.md`
+- Frontmatter contains `status: refined`
+- Task file contains `## Acceptance Criteria` section with Gherkin format
+- Git log shows `docs({taskId}): refine -`
+- Next steps shown to user
+</success_criteria>
 
 ## Example
 

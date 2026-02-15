@@ -8,118 +8,128 @@ disable-model-invocation: true
 
 # Kanban Board View
 
-Display the Kanban board as a visual terminal output.
+<purpose>
+Display the Kanban board as a visual terminal output with box-drawing characters.
+</purpose>
 
-## Reference
-
+<context>
 {{> helper-scripts show_list_tasks=true show_find_task=true show_find_plan=true}}
+</context>
 
-## Steps
+<prohibited>
+- Do not render without asking for view preset first
+- Do not show stale or cached data — always read fresh from files
+</prohibited>
 
-- [ ] 1. **Check for `.kanban/` directory**
-   - If `.kanban/tasks/` doesn't exist, output error:
-     ```
-     No Kanban board found. Run `/kanban-init` to initialize.
-     ```
+<process>
+  <step name="check_kanban_exists">
+    - If `.kanban/tasks/` doesn't exist, output error:
+      ```
+      No Kanban board found. Run `/kanban-init` to initialize.
+      ```
+  </step>
 
-- [ ] 2. **Ask user for view preset**
+  <step name="ask_view_preset" outputs="preset">
+    Ask the user:
 
-   Ask the user:
+    **"Which view?"**
+    - **Quick** — Hide empty columns, Done as count only (recommended for daily use)
+    - **Full** — Show all 10 columns, all tasks
+    - **Custom** — Choose your own settings
+  </step>
 
-   **"Which view?"**
-   - **Quick** — Hide empty columns, Done as count only (recommended for daily use)
-   - **Full** — Show all 10 columns, all tasks
-   - **Custom** — Choose your own settings
+  <step name="ask_custom_settings" when="Custom selected">
+    **"Show empty columns?"**
+    - Yes — Show all 10 columns even if empty
+    - No — Only show columns with tasks
 
-- [ ] 3. **If Custom selected, ask follow-up questions**
+    **"How to display Done tasks?"**
+    - All — Show every completed task
+    - Count only — Just show `Done (N tasks)`
+    - Recent 3 — Show count plus last 3 completed
+  </step>
 
-   **"Show empty columns?"**
-   - Yes — Show all 10 columns even if empty
-   - No — Only show columns with tasks
+  <step name="read_all_tasks" outputs="tasks">
+    - Run `node .claude/scripts/list-tasks.cjs` to get all tasks with metadata
+    - The JSON output includes `id`, `title`, `status`, `labels` for each task
+    - Group tasks by `status`
+  </step>
 
-   **"How to display Done tasks?"**
-   - All — Show every completed task
-   - Count only — Just show `Done (N tasks)`
-   - Recent 3 — Show count plus last 3 completed
+  <step name="get_plan_progress" when="tasks have status `planned`, `in-progress`, `verify`, or `review`">
+    For tasks with status `planned`, `in-progress`, `verify`, or `review`:
+    - Read `.kanban/plans/{id}-{slug}.plan.md` if it exists
+    - Count checkboxes: `- [ ]` (incomplete) and `- [x]` (complete)
+    - Calculate progress as `{complete}/{total}`
+  </step>
 
-- [ ] 4. **Read all task files**
-   - Run `node .claude/scripts/list-tasks.cjs` to get all tasks with metadata
-   - The JSON output includes `id`, `title`, `status`, `labels` for each task
-   - Group tasks by `status`
+  <step name="render_board">
+    Use this column order (workflow order):
+    1. `backlog` → "BACKLOG"
+    2. `refined` → "REFINED"
+    3. `scoped` → "SCOPED"
+    4. `planned` → "PLANNED"
+    5. `in-progress` → "IN PROGRESS"
+    6. `verify` → "VERIFY"
+    7. `review` → "REVIEW"
+    8. `update-docs` → "UPDATE DOCS"
+    9. `awaiting-merge` → "AWAITING MERGE"
+    10. `done` → "DONE"
 
-- [ ] 5. **For tasks with plans, get progress**
-   For tasks with status `planned`, `in-progress`, `verify`, or `review`:
-   - Read `.kanban/plans/{id}-{slug}.plan.md` if it exists
-   - Count checkboxes: `- [ ]` (incomplete) and `- [x]` (complete)
-   - Calculate progress as `{complete}/{total}`
+    **Box format:**
+    ```
+    ┌─ {COLUMN NAME} ({count}) ─────────────┐
+    │ {id}: {title} [{label}] {progress}    │
+    │ {id}: {title} [{label}]               │
+    └───────────────────────────────────────┘
+    ```
 
-- [ ] 6. **Render the board**
+    **Rendering rules:**
+    - Box width: 45 characters (adjust based on longest task line, min 40, max 60)
+    - Truncate titles with `...` if task line exceeds box width minus padding
+    - Show label only if task has one (first label if multiple)
+    - Show progress only if plan exists
+    - Use consistent box width for all columns
 
-   Use this column order (workflow order):
-   1. `backlog` → "BACKLOG"
-   2. `refined` → "REFINED"
-   3. `scoped` → "SCOPED"
-   4. `planned` → "PLANNED"
-   5. `in-progress` → "IN PROGRESS"
-   6. `verify` → "VERIFY"
-   7. `review` → "REVIEW"
-   8. `update-docs` → "UPDATE DOCS"
-   9. `awaiting-merge` → "AWAITING MERGE"
-   10. `done` → "DONE"
+    **If Quick preset:**
+    - Skip columns with zero tasks
+    - For Done column, show: `Done (N tasks)` without a box
 
-   **Box format:**
-   ```
-   ┌─ {COLUMN NAME} ({count}) ─────────────┐
-   │ {id}: {title} [{label}] {progress}    │
-   │ {id}: {title} [{label}]               │
-   └───────────────────────────────────────┘
-   ```
+    **If Full preset:**
+    - Show all columns, even empty ones: `┌─ VERIFY (0) ─┐ └──────────────┘`
+    - Show all Done tasks in box
+  </step>
 
-   **Rendering rules:**
-   - Box width: 45 characters (adjust based on longest task line, min 40, max 60)
-   - Truncate titles with `...` if task line exceeds box width minus padding
-   - Show label only if task has one (first label if multiple)
-   - Show progress only if plan exists
-   - Use consistent box width for all columns
+  <step name="output_result">
+    **No tasks:**
+    ```
+    No tasks on the board.
 
-   **If Quick preset:**
-   - Skip columns with zero tasks
-   - For Done column, show: `Done (N tasks)` without a box
+    **Next:**
+    /kanban-create "Your first task"
+    ```
 
-   **If Full preset:**
-   - Show all columns, even empty ones: `┌─ VERIFY (0) ─┐ └──────────────┘`
-   - Show all Done tasks in box
+    **Done count only (Quick preset):**
+    ```
+    Done (5 tasks)
+    ```
 
-- [ ] 7. **Output next steps to user**
+    **Done recent 3 (Custom):**
+    ```
+    Done (5 tasks) — recent: 005, 004, 003
+    ```
+  </step>
+</process>
 
-   **No tasks:**
-   ```
-   No tasks on the board.
-
-   **Next:**
-   /kanban-create "Your first task"
-   ```
-
-   **Done count only (Quick preset):**
-   ```
-   Done (5 tasks)
-   ```
-
-   **Done recent 3 (Custom):**
-   ```
-   Done (5 tasks) — recent: 005, 004, 003
-   ```
-
-## Validation
-
-- [ ] Asked user for view preset before rendering
-- [ ] Board shows tasks grouped by status column
-- [ ] Column order follows workflow (Backlog → Done)
-- [ ] Tasks show ID, title, label (if present), progress (if has plan)
-- [ ] Empty columns handled per preset (hidden or shown)
-- [ ] Done column handled per preset (all, count, or recent)
-- [ ] Box-drawing characters render correctly
-- [ ] Next steps shown to user
+<success_criteria>
+- Asked user for view preset before rendering
+- Board shows tasks grouped by status column
+- Column order follows workflow (Backlog → Done)
+- Tasks show ID, title, label (if present), progress (if has plan)
+- Empty columns handled per preset (hidden or shown)
+- Done column handled per preset (all, count, or recent)
+- Box-drawing characters render correctly
+- Next steps shown to user
+</success_criteria>
 
 ## Example
 

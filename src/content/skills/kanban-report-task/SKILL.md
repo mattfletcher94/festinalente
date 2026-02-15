@@ -8,34 +8,51 @@ disable-model-invocation: true
 
 # Report Task
 
+<purpose>
 Query a specific task's history and current state using natural language.
+</purpose>
 
-## Reference
-
+<context>
 {{> helper-scripts show_find_task=true show_find_spec=true show_find_plan=true}}
 
-## Usage
+**Usage:** `/kanban-report-task {id} [question]`
+</context>
 
-`/kanban-report-task {id} [question]`
+<prohibited>
+- Do not answer questions without first gathering task data
+- Do not make up information not found in task files or git history
+</prohibited>
 
-## Steps
+<process>
+  <step name="parse_arguments" outputs="taskId, question">
+    Extract task ID (first argument) and optional question (remaining text)
+  </step>
 
-- [ ] 1. **Parse $ARGUMENTS**
-   Extract task ID (first argument) and optional question (remaining text)
+  <step name="gather_task_data" outputs="taskFile, specFile, planFile, gitHistory">
+    - Task file: Run `node .claude/scripts/find-task.cjs {taskId}` to get path
+    - Spec file (if exists): Run `node .claude/scripts/find-spec.cjs {taskId}` to get path
+    - Plan file (if exists): Run `node .claude/scripts/find-plan.cjs {taskId}` to get path
+    - Git commits: `git log --oneline --all --grep="({taskId})"`
+  </step>
 
-- [ ] 2. **Gather all data for the task**
-   - Task file: `.kanban/tasks/{id}-*.md`
-   - Spec file (if exists): `.kanban/specs/{id}-{slug}.spec.md`
-   - Plan file (if exists): `.kanban/plans/{id}-{slug}.plan.md`
-   - Git commits: `git log --oneline --all --grep="({id})"`
+  <step name="prompt_for_question" when="no question provided">
+    Ask the user what they want to know about the task
+  </step>
 
-- [ ] 3. **If no question provided**
-   Ask the user what they want to know about the task
+  <step name="answer_question" when="question provided">
+    Answer conversationally using the gathered data
+  </step>
 
-- [ ] 4. **If question provided**
-   Answer conversationally using the gathered data
+  <step name="output_result">
+    Output next steps to user.
+  </step>
+</process>
 
-- [ ] 5. **Output next steps to user**
+<success_criteria>
+- Task data gathered successfully
+- Question answered conversationally
+- Next steps shown to user
+</success_criteria>
 
 ## Data Sources
 
@@ -54,12 +71,6 @@ Query a specific task's history and current state using natural language.
 - "What files were changed?"
 - "Show me the timeline"
 - "Is the spec complete?"
-
-## Validation
-
-- [ ] Task data gathered successfully
-- [ ] Question answered conversationally
-- [ ] Next steps shown to user
 
 ## Example
 

@@ -8,39 +8,58 @@ disable-model-invocation: true
 
 # Report User
 
+<purpose>
 Query what tasks a specific git user has worked on using natural language.
+</purpose>
 
-## Reference
-
+<context>
 {{> helper-scripts show_list_tasks=true show_find_task=true}}
 
-## Usage
+**Usage:** `/kanban-report-user {name} [question]`
+</context>
 
-`/kanban-report-user {name} [question]`
+<prohibited>
+- Do not answer questions without first gathering task data
+- Do not report on raw commits — focus on tasks
+</prohibited>
 
-## Steps
+<process>
+  <step name="parse_arguments" outputs="userName, question">
+    Extract user name (first argument) and optional question (remaining text)
+  </step>
 
-- [ ] 1. **Parse $ARGUMENTS**
-   Extract user name (first argument) and optional question (remaining text)
+  <step name="find_task_ids" outputs="taskIds">
+    ```bash
+    git log --all --author="{userName}" --format="%s" | grep -oP '\(\K\d+(?=\))' | sort -u
+    ```
+  </step>
 
-- [ ] 2. **Find task IDs the user has touched**
-   ```bash
-   git log --all --author="{name}" --format="%s" | grep -oP '\(\K\d+(?=\))' | sort -u
-   ```
+  <step name="read_task_files">
+    For each task ID found, read the task file: `.kanban/tasks/{id}-*.md`
+  </step>
 
-- [ ] 3. **For each task ID found**
-   Read the task file: `.kanban/tasks/{id}-*.md`
+  <step name="get_board_state">
+    Understand task statuses (what's in-progress, done, etc.)
+  </step>
 
-- [ ] 4. **Get current board state**
-   Understand task statuses
+  <step name="prompt_for_question" when="no question provided">
+    Ask the user what they want to know
+  </step>
 
-- [ ] 5. **If no question provided**
-   Ask the user what they want to know
+  <step name="answer_question" when="question provided">
+    Answer conversationally using the gathered data
+  </step>
 
-- [ ] 6. **If question provided**
-   Answer conversationally using the gathered data
+  <step name="output_result">
+    Output next steps to user.
+  </step>
+</process>
 
-- [ ] 7. **Output next steps to user**
+<success_criteria>
+- User's tasks found via git history
+- Question answered conversationally
+- Next steps shown to user
+</success_criteria>
 
 ## Data Sources
 
@@ -61,12 +80,6 @@ Focus on **tasks**, not raw commits. Commits are used to identify which tasks th
 - "What bugs have they fixed?"
 - "What's in progress?"
 - "Show their task history"
-
-## Validation
-
-- [ ] User's tasks found via git history
-- [ ] Question answered conversationally
-- [ ] Next steps shown to user
 
 ## Example
 

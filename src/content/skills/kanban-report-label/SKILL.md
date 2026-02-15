@@ -8,38 +8,57 @@ disable-model-invocation: true
 
 # Report Label
 
+<purpose>
 Query tasks filtered by label using natural language.
+</purpose>
 
-## Reference
-
+<context>
 {{> helper-scripts show_list_tasks=true show_find_task=true}}
 
-## Usage
+**Usage:** `/kanban-report-label {label} [question]`
+</context>
 
-`/kanban-report-label {label} [question]`
+<prohibited>
+- Do not answer questions without first gathering task data
+- Do not make up information not found in task files
+</prohibited>
 
-## Steps
+<process>
+  <step name="parse_arguments" outputs="label, question">
+    Extract label (first argument) and optional question (remaining text)
+  </step>
 
-- [ ] 1. **Parse $ARGUMENTS**
-   Extract label (first argument) and optional question (remaining text)
+  <step name="find_matching_tasks" outputs="taskFiles">
+    - Search `.kanban/tasks/*.md` for files containing the label in frontmatter
+    - Use: `grep -l "labels:.*{label}" .kanban/tasks/*.md`
+  </step>
 
-- [ ] 2. **Find all task files with the matching label**
-   - Search `.kanban/tasks/*.md` for files containing the label in frontmatter
-   - Use: `grep -l "labels:.*{label}" .kanban/tasks/*.md`
+  <step name="read_task_details">
+    For each matching task, read the task file to get full details
+  </step>
 
-- [ ] 3. **For each matching task**
-   Read the task file to get full details
+  <step name="read_specs_plans" when="additional context needed">
+    Optionally read specs/plans for additional context
+  </step>
 
-- [ ] 4. **Optionally read specs/plans**
-   For additional context
+  <step name="prompt_for_question" when="no question provided">
+    Ask the user what they want to know
+  </step>
 
-- [ ] 5. **If no question provided**
-   Ask the user what they want to know
+  <step name="answer_question" when="question provided">
+    Answer conversationally using the gathered data
+  </step>
 
-- [ ] 6. **If question provided**
-   Answer conversationally using the gathered data
+  <step name="output_result">
+    Output next steps to user.
+  </step>
+</process>
 
-- [ ] 7. **Output next steps to user**
+<success_criteria>
+- Tasks with label found successfully
+- Question answered conversationally
+- Next steps shown to user
+</success_criteria>
 
 ## Valid Labels
 
@@ -65,12 +84,6 @@ From `.claude/kanban-workflow.yaml`:
 - "List all completed refactors"
 - "What's the highest priority?"
 - "Which tasks are blocked?"
-
-## Validation
-
-- [ ] Tasks with label found successfully
-- [ ] Question answered conversationally
-- [ ] Next steps shown to user
 
 ## Example
 

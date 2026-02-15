@@ -8,100 +8,121 @@ disable-model-invocation: true
 
 # Approve Kanban Task
 
-Approve implementation after human QA testing, commit the code with appropriate conventional commit type, and move task from **QA** to **Update Docs**.
+<purpose>
+Approve implementation after human QA testing, commit the code with appropriate conventional commit type, and move task from QA to Update Docs.
+</purpose>
 
-## Reference
-
+<context>
 {{> directory-reference}}
 
 {{> column-transition from="qa" to="update-docs"}}
+</context>
 
-## Steps
+<prohibited>
+- Do not approve without QA confirmation from user
+- Do not use invented commit types like `kanban(...)` — valid types are: `feat`, `fix`, `refactor`, `docs`
+- Do not skip the commit step
+- Do not commit sensitive files (.env, credentials)
+</prohibited>
 
-- [ ] 1. **Load workflow schema**
-   {{> workflow-load}}
+<process>
+  <step name="load_workflow">
+    {{> workflow-load}}
+  </step>
 
-- [ ] 2. **Get task ID**
-   Use $ARGUMENTS if provided (e.g., "001"), otherwise:
-   - List tasks in `qa` status from `.kanban/tasks/`
-   - Show task IDs and titles
-   - Ask user which task to approve
+  <step name="get_task_id" outputs="taskId">
+    Use $ARGUMENTS if provided (e.g., "001"), otherwise:
+    - List tasks in `qa` status from `.kanban/tasks/`
+    - Show task IDs and titles
+    - Ask user which task to approve
+  </step>
 
-- [ ] 3. **Read task file**
-   - **NEVER guess filenames.** Glob for `.kanban/tasks/{id}-*.md` to find the exact filename
-   - Parse YAML frontmatter
-   - Verify current status is `qa`:
-     - If `in-progress`: Suggest completing verification first
-     - If `backlog` or `planned`: Suggest earlier commands
-     - If `update-docs` or later: Warn task already past QA
-   - Get title and labels for commit message
-   - Error if task not found
+  <step name="read_task_file" outputs="taskPath, title, labels">
+    - **NEVER guess filenames.** Glob for `.kanban/tasks/{taskId}-*.md` to find the exact filename
+    - Parse YAML frontmatter
+    - Verify current status is `qa`:
+      - If `in-progress`: Suggest completing verification first
+      - If `backlog` or `planned`: Suggest earlier commands
+      - If `update-docs` or later: Warn task already past QA
+    - Get title and labels for commit message
+    - Error if task not found
+  </step>
 
-- [ ] 4. **Verify on task branch**
-   {{> branch-verify-task}}
+  <step name="verify_branch">
+    {{> branch-verify-task}}
+  </step>
 
-- [ ] 5. **Load user skills**
-   {{> user-skills command="approve"}}
+  <step name="load_user_skills">
+    {{> user-skills command="approve"}}
+  </step>
 
-- [ ] 6. **Prompt for QA confirmation**
-   - Display task title and acceptance criteria
-   - Ask: "Have you tested the application and verified it meets acceptance criteria? [Y/n]"
-   - If user declines:
-     - Suggest: "Use /kanban-rework {id} to document issues"
-     - Exit
+  <step name="prompt_qa_confirmation">
+    - Display task title and acceptance criteria
+    - Ask: "Have you tested the application and verified it meets acceptance criteria? [Y/n]"
+    - If user declines:
+      - Suggest: "Use /kanban-rework {taskId} to document issues"
+      - Exit
+  </step>
 
-- [ ] 7. **Check for uncommitted changes**
-   - Run `git status` to find modified/new files
-   - Run `git diff --name-only` to list changed files
-   - Display files that will be committed
-   - If no changes found:
-     - Warn: "No uncommitted changes to commit. Was the implementation already committed?"
-     - Ask if user wants to proceed anyway (just move status)
+  <step name="check_uncommitted_changes" outputs="changedFiles">
+    - Run `git status` to find modified/new files
+    - Run `git diff --name-only` to list changed files
+    - Display files that will be committed
+    - If no changes found:
+      - Warn: "No uncommitted changes to commit. Was the implementation already committed?"
+      - Ask if user wants to proceed anyway (just move status)
+  </step>
 
-- [ ] 8. **Determine commit type from labels**
-   - Check task labels array:
-     - If contains `bug`: type = `fix`
-     - If contains `refactor`: type = `refactor`
-     - If contains `docs`: type = `docs`
-     - If contains `feature` or default: type = `feat`
+  <step name="determine_commit_type" outputs="commitType">
+    - Check task labels array:
+      - If contains `bug`: type = `fix`
+      - If contains `refactor`: type = `refactor`
+      - If contains `docs`: type = `docs`
+      - If contains `feature` or default: type = `feat`
+  </step>
 
-- [ ] 9. **Move to Update Docs** (before commit so status is included)
-   - Change `status: qa` to `status: update-docs`
-   - Add `updated: {YYYY-MM-DD}`
-   - Write updated task file
+  <step name="move_to_update_docs">
+    (Before commit so status is included)
+    - Change `status: qa` to `status: update-docs`
+    - Add `updated: {YYYY-MM-DD}`
+    - Write updated task file
+  </step>
 
-- [ ] 10. **Stage and commit code**
-   Format: `{type}({id}): {title}` where `{type}` comes from task label:
-   - `bug` label → `fix({id}): {title}`
-   - `feature` label → `feat({id}): {title}`
-   - `refactor` label → `refactor({id}): {title}`
-   - `docs` label → `docs({id}): {title}`
-   - Default → `feat({id}): {title}`
+  <step name="stage_and_commit">
+    Format: `{commitType}({taskId}): {title}` where `{commitType}` comes from task label:
+    - `bug` label → `fix({taskId}): {title}`
+    - `feature` label → `feat({taskId}): {title}`
+    - `refactor` label → `refactor({taskId}): {title}`
+    - `docs` label → `docs({taskId}): {title}`
+    - Default → `feat({taskId}): {title}`
 
-   **CRITICAL:** Use EXACTLY these formats. Do NOT invent commit types like `kanban(...)`. Valid types are: `feat`, `fix`, `refactor`, `docs`.
+    **CRITICAL:** Use EXACTLY these formats. Do NOT invent commit types like `kanban(...)`. Valid types are: `feat`, `fix`, `refactor`, `docs`.
 
-   - Stage implementation files AND .kanban files together:
-     ```bash
-     git add {implementation files}
-     git add .kanban/
-     ```
-   - `.kanban` files MUST be included — they accumulate status and plan changes from implement/verify that are not committed earlier
-   - Create commit:
-     ```bash
-     git commit -m "{type}({id}): {title}"
-     ```
+    - Stage implementation files AND .kanban files together:
+      ```bash
+      git add {implementation files}
+      git add .kanban/
+      ```
+    - `.kanban` files MUST be included — they accumulate status and plan changes from implement/verify that are not committed earlier
+    - Create commit:
+      ```bash
+      git commit -m "{commitType}({taskId}): {title}"
+      ```
+  </step>
 
-- [ ] 11. **Output next steps to user**
-   - Print commit hash and message
-   - Print: "Task {id} moved to Update Docs"
-   - Print: "QA passed! Code committed."
+  <step name="output_result">
+    - Print commit hash and message
+    - Print: "Task {taskId} moved to Update Docs"
+    - Print: "QA passed! Code committed."
+  </step>
+</process>
 
-## Validation
-
-- [ ] Task file exists at `.kanban/tasks/{id}-*.md`
-- [ ] Task frontmatter contains `status: update-docs`
-- [ ] Git log shows appropriate commit type (`feat`, `fix`, `refactor`, or `docs`) with `({id}):`
-- [ ] Next steps shown to user
+<success_criteria>
+- Task file exists at `.kanban/tasks/{taskId}-*.md`
+- Task frontmatter contains `status: update-docs`
+- Git log shows appropriate commit type (`feat`, `fix`, `refactor`, or `docs`) with `({taskId}):`
+- Next steps shown to user
+</success_criteria>
 
 ## Example
 

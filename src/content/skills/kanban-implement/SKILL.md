@@ -8,110 +8,130 @@ disable-model-invocation: true
 
 # Implement Kanban Task
 
-Move task from **Planned** to **In Progress** and execute the plan. Code remains uncommitted until verification passes.
+<purpose>
+Move task from Planned to In Progress and execute the plan. Code remains uncommitted until verification passes.
+</purpose>
 
-## Reference
-
+<context>
 {{> directory-reference}}
 
 {{> helper-scripts show_find_task=true show_find_plan=true show_get_date_time=true}}
 
 {{> column-transition from="planned" to="in-progress"}}
+</context>
 
-## Steps
+<prohibited>
+- Do not commit code during implementation (code stays uncommitted until verify passes)
+- Do not skip plan steps or mark them complete without executing them
+- Do not implement tasks that haven't been planned
+</prohibited>
 
-- [ ] 1. **Load workflow schema**
-   {{> workflow-load}}
+<process>
+  <step name="load_workflow">
+    {{> workflow-load}}
+  </step>
 
-- [ ] 2. **Get task ID**
-   Use $ARGUMENTS if provided (e.g., "001"), otherwise:
-   - List tasks in `planned` or `in-progress` status from `.kanban/tasks/`
-   - Show task IDs and titles
-   - Ask user which task to implement
+  <step name="get_task_id" outputs="taskId">
+    Use $ARGUMENTS if provided (e.g., "001"), otherwise:
+    - List tasks in `planned` or `in-progress` status from `.kanban/tasks/`
+    - Show task IDs and titles
+    - Ask user which task to implement
+  </step>
 
-- [ ] 3. **Read task file**
-   - Run `node .claude/scripts/find-task.cjs {id}` to get exact path
-   - Read the file at the `path` from JSON output
-   - Parse YAML frontmatter
-   - Verify current status:
-     - If `planned`: Move to `in-progress` first (step 5)
-     - If `in-progress`: Resume implementation (skip step 5)
-     - If `backlog` or `refined`: Suggest `/kanban-refine {id}` or `/kanban-scope {id}` first, exit
-     - If `checks` or later: Warn task is past implementation
-   - Error if task not found
+  <step name="read_task_file" outputs="taskPath, title, status">
+    - Run `node .claude/scripts/find-task.cjs {taskId}` to get exact path
+    - Read the file at the `path` from JSON output
+    - Parse YAML frontmatter
+    - Verify current status:
+      - If `planned`: Move to `in-progress` first (step move_to_in_progress)
+      - If `in-progress`: Resume implementation (skip step move_to_in_progress)
+      - If `backlog` or `refined`: Suggest `/kanban-refine {taskId}` or `/kanban-scope {taskId}` first, exit
+      - If `checks` or later: Warn task is past implementation
+    - Error if task not found
+  </step>
 
-- [ ] 4. **Verify on task branch**
-   {{> branch-verify-task}}
+  <step name="verify_branch">
+    {{> branch-verify-task}}
+  </step>
 
-- [ ] 5. **Move to In Progress** (if status was `planned`)
-   - Change `status: planned` to `status: in-progress`
-   - Add `updated: {YYYY-MM-DD}`
-   - Write updated task file
-   - Print: "Task {id} moved to In Progress"
+  <step name="move_to_in_progress" when="status was `planned`">
+    - Change `status: planned` to `status: in-progress`
+    - Add `updated: {YYYY-MM-DD}`
+    - Write updated task file
+    - Print: "Task {taskId} moved to In Progress"
+  </step>
 
-- [ ] 6. **Find and read plan file**
-   - Run `node .claude/scripts/find-plan.cjs {id}` to get exact path
-   - If plan found: Read the plan at the `path` from JSON output
-   - If NO plan found:
-     - Warn: "No plan found for task {id}"
-     - Suggest: "Create plan with /kanban-plan first"
-     - Exit
+  <step name="read_plan_file" outputs="planPath, planContent">
+    - Run `node .claude/scripts/find-plan.cjs {taskId}` to get exact path
+    - If plan found: Read the plan at the `path` from JSON output
+    - If NO plan found:
+      - Warn: "No plan found for task {taskId}"
+      - Suggest: "Create plan with /kanban-plan first"
+      - Exit
+  </step>
 
-- [ ] 7. **Read functional specification** (for context)
-   - Get `spec` path from plan frontmatter
-   - Read spec file for full context on requirements and patterns
+  <step name="read_spec">
+    - Get `spec` path from plan frontmatter
+    - Read spec file for full context on requirements and patterns
+  </step>
 
-- [ ] 8. **Load product context**
-   - If task has `affects` field:
-     - For each ID in affects:
-       - Read `.kanban/product/{id}.md`
-     - Understand current product behavior
-     - Implementation should maintain or extend documented behavior
+  <step name="load_product_context" when="task has `affects` field">
+    - For each ID in affects:
+      - Read `.kanban/product/{id}.md`
+    - Understand current product behavior
+    - Implementation should maintain or extend documented behavior
+  </step>
 
-- [ ] 9. **Load user skills**
-   {{> user-skills command="implement"}}
+  <step name="load_user_skills">
+    {{> user-skills command="implement"}}
+  </step>
 
-- [ ] 10. **Parse plan checkboxes**
-   - Find all unchecked items: `- [ ]` pattern
-   - Find all checked items: `- [x]` pattern
-   - Calculate: total items, completed items, remaining items
-   - Display progress overview
+  <step name="parse_plan_checkboxes" outputs="totalItems, completedItems, remainingItems">
+    - Find all unchecked items: `- [ ]` pattern
+    - Find all checked items: `- [x]` pattern
+    - Calculate: total items, completed items, remaining items
+    - Display progress overview
+  </step>
 
-- [ ] 11. **Execute plan checkboxes**
-   - For each unchecked item (`- [ ]`) in order:
-     a. Display: "[{n}/{total}] {checkbox description}"
-     b. Execute the implementation step described
-     c. Mark checkbox as complete: change `- [ ]` to `- [x]`
-     d. Write updated plan file immediately (enables resume)
-     e. Report: "Done"
-   - If any step fails:
-     - Stop execution
-     - Report which step failed and why
-     - Progress is saved (can resume later with same command)
-     - Suggest: "Use /kanban-save to save progress"
+  <step name="execute_plan_checkboxes">
+    - For each unchecked item (`- [ ]`) in order:
+      a. Display: "[{n}/{total}] {checkbox description}"
+      b. Execute the implementation step described
+      c. Mark checkbox as complete: change `- [ ]` to `- [x]`
+      d. Write updated plan file immediately (enables resume)
+      e. Report: "Done"
+    - If any step fails:
+      - Stop execution
+      - Report which step failed and why
+      - Progress is saved (can resume later with same command)
+      - Suggest: "Use /kanban-save to save progress"
+  </step>
 
-- [ ] 12. **On completion**
-   - After ALL checkboxes complete:
-     - Keep status as `in-progress` (verification will move it)
-     - Update `updated: {YYYY-MM-DD}`
-     - Write updated task file
-   - If some checkboxes remain:
-     - Keep status as `in-progress`
-     - Report: "Partial progress: {completed}/{total} items"
-     - Suggest: "Use /kanban-save to save progress"
+  <step name="on_completion">
+    - After ALL checkboxes complete:
+      - Keep status as `in-progress` (verification will move it)
+      - Update `updated: {YYYY-MM-DD}`
+      - Write updated task file
+    - If some checkboxes remain:
+      - Keep status as `in-progress`
+      - Report: "Partial progress: {completed}/{total} items"
+      - Suggest: "Use /kanban-save to save progress"
+  </step>
 
-- [ ] 13. **Output next steps to user**
-   - Display implementation summary
-   - Show files modified (uncommitted)
-   - Show status
+  <step name="output_result">
+    - Display implementation summary
+    - Show files modified (uncommitted)
+    - Show status
+  </step>
+</process>
 
-## Validation
-
-- [ ] Task file exists at `.kanban/tasks/{id}-*.md`
-- [ ] Task frontmatter contains `status: in-progress`
-- [ ] Plan file exists at `.kanban/plans/{id}-{slug}.plan.md`
-- [ ] All plan checkboxes are marked complete (`- [x]`)
-- [ ] Next steps shown to user
+<success_criteria>
+- Task file exists at `.kanban/tasks/{taskId}-*.md`
+- Task frontmatter contains `status: in-progress`
+- Plan file exists at `.kanban/plans/{taskId}-{slug}.plan.md`
+- All plan checkboxes are marked complete (`- [x]`)
+- Next steps shown to user
+</success_criteria>
 
 ## Example
 

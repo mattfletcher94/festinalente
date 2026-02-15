@@ -8,103 +8,122 @@ disable-model-invocation: true
 
 # WIP Commit Kanban Task
 
-Save partial implementation progress when interrupted. Task stays in **In Progress**. Commits current code changes and ensures plan checkboxes are up to date.
+<purpose>
+Save partial implementation progress when interrupted. Task stays in In Progress. Commits current code changes and ensures plan checkboxes are up to date.
+</purpose>
 
-## Reference
-
+<context>
 {{> column-transition from="in-progress" to="in-progress (no change)"}}
+</context>
 
-## Steps
+<prohibited>
+- Do not save WIP for tasks not in `in-progress` status
+- Do not skip updating plan checkboxes to reflect actual progress
+</prohibited>
 
-- [ ] 1. **Load workflow schema**
-   {{> workflow-load}}
+<process>
+  <step name="load_workflow">
+    {{> workflow-load}}
+  </step>
 
-- [ ] 2. **Get task ID**
-   Use $ARGUMENTS if provided (e.g., "001"), otherwise:
-   - List tasks in `in-progress` status from `.kanban/tasks/`
-   - Show task IDs and titles
-   - Ask user which task to commit WIP for
+  <step name="get_task_id" outputs="taskId">
+    Use $ARGUMENTS if provided (e.g., "001"), otherwise:
+    - List tasks in `in-progress` status from `.kanban/tasks/`
+    - Show task IDs and titles
+    - Ask user which task to commit WIP for
+  </step>
 
-- [ ] 3. **Read task file**
-   - **NEVER guess filenames.** Glob for `.kanban/tasks/{id}-*.md` to find the exact filename
-   - Parse YAML frontmatter
-   - Verify current status is `in-progress`:
-     - If not `in-progress`, warn user: "Task is not in progress. WIP commit only works for tasks being implemented."
-     - Exit
-   - Error if task not found
+  <step name="read_task_file" outputs="taskPath, title">
+    - **NEVER guess filenames.** Glob for `.kanban/tasks/{taskId}-*.md` to find the exact filename
+    - Parse YAML frontmatter
+    - Verify current status is `in-progress`:
+      - If not `in-progress`, warn user: "Task is not in progress. WIP commit only works for tasks being implemented."
+      - Exit
+    - Error if task not found
+  </step>
 
-- [ ] 4. **Verify on task branch**
-   {{> branch-verify-task}}
+  <step name="verify_branch">
+    {{> branch-verify-task}}
+  </step>
 
-- [ ] 5. **Find and read plan file**
-   - Check for `.kanban/plans/{id}-{slug}.plan.md`
-   - If plan found: Read plan content
-   - If NO plan found:
-     - Warn: "No plan found for task {id}"
-     - Still proceed with WIP commit (code can still be committed)
+  <step name="read_plan_file" outputs="planPath, planContent">
+    - Check for `.kanban/plans/{taskId}-{slug}.plan.md`
+    - If plan found: Read plan content
+    - If NO plan found:
+      - Warn: "No plan found for task {taskId}"
+      - Still proceed with WIP commit (code can still be committed)
+  </step>
 
-- [ ] 6. **Load user skills**
-   {{> user-skills command="save"}}
+  <step name="load_user_skills">
+    {{> user-skills command="save"}}
+  </step>
 
-- [ ] 7. **Verify plan checkboxes match reality**
-   - If plan exists:
-     - Parse all checkboxes in the plan
-     - For each implementation step, verify if the work was actually done
-     - Update any checkboxes that should be checked but aren't
-     - Report any discrepancies found
+  <step name="verify_plan_checkboxes">
+    If plan exists:
+    - Parse all checkboxes in the plan
+    - For each implementation step, verify if the work was actually done
+    - Update any checkboxes that should be checked but aren't
+    - Report any discrepancies found
+  </step>
 
-- [ ] 8. **Generate progress summary**
-   - Count completed vs total checkboxes
-   - Identify which steps were completed
-   - Create a brief summary (e.g., "completed auth routes and middleware")
+  <step name="generate_progress_summary" outputs="progressSummary">
+    - Count completed vs total checkboxes
+    - Identify which steps were completed
+    - Create a brief summary (e.g., "completed auth routes and middleware")
+  </step>
 
-- [ ] 9. **Add WIP notes to plan**
-   - If plan exists, add or update `## WIP Notes` section:
-     - Follow template at `.claude/kanban-templates/plan.md`
-     ```markdown
-     ## WIP Notes
+  <step name="add_wip_notes_to_plan" when="plan exists">
+    Add or update `## WIP Notes` section:
+    - Follow template at `.claude/kanban-templates/plan.md`
+    ```markdown
+    ## WIP Notes
 
-     **Last WIP:** {YYYY-MM-DD}
-     **Progress:** {completed}/{total} steps
+    **Last WIP:** {YYYY-MM-DD}
+    **Progress:** {completed}/{total} steps
 
-     **Continuation hints:**
-     - Next step: {description of next unchecked item}
-     - Context: {any relevant context for resuming}
-     ```
+    **Continuation hints:**
+    - Next step: {description of next unchecked item}
+    - Context: {any relevant context for resuming}
+    ```
+  </step>
 
-- [ ] 10. **Check for uncommitted changes**
-   - Run `git status` to find modified/new files
-   - Run `git diff --name-only` to list changed files
-   - If no changes found:
-     - Warn: "No uncommitted changes to commit"
-     - Still update plan if checkboxes changed
-     - Exit early if nothing to commit
+  <step name="check_uncommitted_changes" outputs="changedFiles">
+    - Run `git status` to find modified/new files
+    - Run `git diff --name-only` to list changed files
+    - If no changes found:
+      - Warn: "No uncommitted changes to commit"
+      - Still update plan if checkboxes changed
+      - Exit early if nothing to commit
+  </step>
 
-- [ ] 11. **Stage and commit**
-   Format: `wip({id}): {progress summary}`
+  <step name="stage_and_commit">
+    Format: `wip({taskId}): {progress summary}`
 
-   - Stage all relevant files (code + plan):
-     ```bash
-     git add {changed files}
-     git add .kanban/plans/{id}-{slug}.plan.md  # if exists
-     ```
-   - Commit with WIP message:
-     ```bash
-     git commit -m "wip({id}): {progress summary}"
-     ```
+    - Stage all relevant files (code + plan):
+      ```bash
+      git add {changed files}
+      git add .kanban/plans/{taskId}-{slug}.plan.md  # if exists
+      ```
+    - Commit with WIP message:
+      ```bash
+      git commit -m "wip({taskId}): {progress summary}"
+      ```
+  </step>
 
-- [ ] 12. **Output next steps to user**
-   - Print commit hash
-   - Print progress: "{completed}/{total} plan items complete"
-   - Print continuation hint
-   - Remind: "Resume with /kanban-implement {id}"
+  <step name="output_result">
+    - Print commit hash
+    - Print progress: "{completed}/{total} plan items complete"
+    - Print continuation hint
+    - Remind: "Resume with /kanban-implement {taskId}"
+  </step>
+</process>
 
-## Validation
-
-- [ ] Task file exists at `.kanban/tasks/{id}-*.md`
-- [ ] Task frontmatter contains `status: in-progress`
-- [ ] If changes existed: git log shows `wip({id}):`
-- [ ] Next steps shown to user
+<success_criteria>
+- Task file exists at `.kanban/tasks/{taskId}-*.md`
+- Task frontmatter contains `status: in-progress`
+- If changes existed: git log shows `wip({taskId}):`
+- Next steps shown to user
+</success_criteria>
 
 ## Example
 

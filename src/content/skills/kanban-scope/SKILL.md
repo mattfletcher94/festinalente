@@ -8,229 +8,250 @@ disable-model-invocation: true
 
 # Scope Kanban Task
 
-Create a functional specification through **iterative conversational Q&A** focused on technical decisions. Research the codebase and web as topics arise. The dialogue continues until you have enough information and the user confirms. Creates spec at `.kanban/specs/{id}-{slug}.spec.md` and moves task from **Refined** to **Scoped**. Commits the scoping.
+<purpose>
+Create a functional specification through iterative conversational Q&A focused on technical decisions, then move from Refined to Scoped and commit.
+</purpose>
 
-## Reference
-
+<context>
 {{> directory-reference}}
 
 {{> helper-scripts show_find_task=true show_get_date_time=true}}
 
 {{> column-transition from="refined" to="scoped"}}
+</context>
 
-## Steps
+<prohibited>
+- Do not skip codebase research before the Q&A dialogue
+- Do not create a spec without understanding existing patterns
+- Do not skip the commit step
+- Do not forget to create the task branch
+</prohibited>
 
-- [ ] 1. **Load workflow schema**
-   {{> workflow-load}}
+<process>
+  <step name="load_workflow">
+    {{> workflow-load}}
+  </step>
 
-- [ ] 2. **Verify on main branch**
-   {{> branch-verify-main reason="to create the task branch"}}
+  <step name="verify_branch">
+    {{> branch-verify-main reason="to create the task branch"}}
+  </step>
 
-- [ ] 3. **Get task ID**
-   Use $ARGUMENTS if provided (e.g., "001"), otherwise:
-   - List tasks in `refined` status from `.kanban/tasks/`
-   - Show task IDs and titles
-   - Ask user which task to scope
+  <step name="get_task_id" outputs="taskId">
+    Use $ARGUMENTS if provided (e.g., "001"), otherwise:
+    - List tasks in `refined` status from `.kanban/tasks/`
+    - Show task IDs and titles
+    - Ask user which task to scope
+  </step>
 
-- [ ] 4. **Read task file**
-   - Run `node .claude/scripts/find-task.cjs {id}` to get exact path
-   - Read the file at the `path` from JSON output
-   - Parse YAML frontmatter
-   - Verify status is `refined`:
-     - If not refined, warn: "Task is in {status} status. Expected: refined. Continue anyway? (y/n)"
-   - Extract problem, value, and acceptance criteria for reference
-   - Error if task not found
+  <step name="read_task_file" outputs="taskPath, title, acceptanceCriteria">
+    - Run `node .claude/scripts/find-task.cjs {taskId}` to get exact path
+    - Read the file at the `path` from JSON output
+    - Parse YAML frontmatter
+    - Verify status is `refined`:
+      - If not refined, warn: "Task is in {status} status. Expected: refined. Continue anyway? (y/n)"
+    - Extract problem, value, and acceptance criteria for reference
+    - Error if task not found
+  </step>
 
-- [ ] 5. **Load user skills**
-   {{> user-skills command="scope"}}
+  <step name="load_user_skills">
+    {{> user-skills command="scope"}}
+  </step>
 
-- [ ] 6. **Initial codebase research**
+  <step name="initial_codebase_research">
+    **Read product context first:**
+    - If task has `affects` field:
+      - For each ID: Read `.kanban/product/{id}.md`
+      - Note: current behavior, constraints, interactions
+      - This informs WHERE to look in codebase
 
-   **Read product context first:**
-   - If task has `affects` field:
-     - For each ID: Read `.kanban/product/{id}.md`
-     - Note: current behavior, constraints, interactions
-     - This informs WHERE to look in codebase
+    **Then proceed with codebase research:**
+    Based on task description and acceptance criteria, do preliminary research:
+    - Use Glob to find potentially affected files
+    - Use Grep to search for relevant patterns, functions, or components
+    - Read key files to understand existing patterns
+    - Identify dependencies and libraries involved
+    - Look for similar implementations that can serve as references
 
-   **Then proceed with codebase research:**
-   Based on task description and acceptance criteria, do preliminary research:
-   - Use Glob to find potentially affected files
-   - Use Grep to search for relevant patterns, functions, or components
-   - Read key files to understand existing patterns
-   - Identify dependencies and libraries involved
-   - Look for similar implementations that can serve as references
+    **Pattern search strategy:**
+    - Search for similar functionality: "How is X done elsewhere?"
+    - Search for related types/interfaces: "What types are involved?"
+    - Search for integration points: "What connects to this?"
+  </step>
 
-   **Pattern search strategy:**
-   - Search for similar functionality: "How is X done elsewhere?"
-   - Search for related types/interfaces: "What types are involved?"
-   - Search for integration points: "What connects to this?"
+  <step name="conduct_qa_dialogue">
+    This is a **conversational session** focused on **technical decisions**:
+    - Architecture and approach
+    - Existing patterns to follow
+    - Dependencies and libraries
+    - Technical constraints
+    - Files to modify/create
 
-- [ ] 7. **Conduct iterative Q&A dialogue**
+    **How the dialogue works:**
 
-   This is a **conversational session** focused on **technical decisions**:
-   - Architecture and approach
-   - Existing patterns to follow
-   - Dependencies and libraries
-   - Technical constraints
-   - Files to modify/create
+    a. **Share initial findings and ask questions**:
+       - Present what you found in the codebase
+       - Ask about technical approach, preferences, constraints
+       - Don't follow a rigid script - adapt to the conversation
 
-   **How the dialogue works:**
+    b. **User can volunteer information at any time**:
+       - User may provide technology directives (e.g., "use Zustand", "use React Query")
+       - User may request research (e.g., "research reactive localStorage packages for React")
+       - User may share architectural preferences or constraints
 
-   a. **Share initial findings and ask questions**:
-      - Present what you found in the codebase
-      - Ask about technical approach, preferences, constraints
-      - Don't follow a rigid script - adapt to the conversation
+    c. **Perform research when requested or beneficial**:
 
-   b. **User can volunteer information at any time**:
-      - User may provide technology directives (e.g., "use Zustand", "use React Query")
-      - User may request research (e.g., "research reactive localStorage packages for React")
-      - User may share architectural preferences or constraints
+       **Local codebase research:**
+       - Use Glob/Grep to find patterns as topics arise
+       - Read files to understand existing implementations
 
-   c. **Perform research when requested or beneficial**:
+       **Web research:**
+       - If user asks to research packages/libraries, use WebSearch
+       - Research npm packages, documentation, best practices
+       - Compare options and present findings
+       - Ask if findings influence the approach
 
-      **Local codebase research:**
-      - Use Glob/Grep to find patterns as topics arise
-      - Read files to understand existing implementations
+       Example: User says "research reactive localStorage packages for React"
+       → WebSearch for packages
+       → Evaluate options (maintenance, API, bundle size)
+       → Present comparison and recommendation
+       → Ask which to use or if more research needed
 
-      **Web research:**
-      - If user asks to research packages/libraries, use WebSearch
-      - Research npm packages, documentation, best practices
-      - Compare options and present findings
-      - Ask if findings influence the approach
+    d. **Continue until you have enough information**:
+       - You need enough to write a complete functional spec
+       - When you feel ready, signal to the user:
 
-      Example: User says "research reactive localStorage packages for React"
-      → WebSearch for packages
-      → Evaluate options (maintenance, API, bundle size)
-      → Present comparison and recommendation
-      → Ask which to use or if more research needed
+         **"I think I have enough information to write the functional spec. Here's what I understand:**
 
-   d. **Continue until you have enough information**:
-      - You need enough to write a complete functional spec
-      - When you feel ready, signal to the user:
+         - **Approach:** {summary}
+         - **Key files:** {list}
+         - **Dependencies:** {list}
+         - **Patterns to follow:** {summary}
 
-        **"I think I have enough information to write the functional spec. Here's what I understand:**
+         **Is there anything else you'd like to discuss before I write the spec?"**
 
-        - **Approach:** {summary}
-        - **Key files:** {list}
-        - **Dependencies:** {list}
-        - **Patterns to follow:** {summary}
+    e. **User confirms or continues**:
+       - If user says "that's good" / "go ahead" / similar → proceed to writing spec
+       - If user adds more context → incorporate and ask if anything else
+       - If user has corrections → update understanding and confirm again
 
-        **Is there anything else you'd like to discuss before I write the spec?"**
+    **Key principles:**
+    - Focus on TECHNICAL decisions, not product requirements (those are in the task)
+    - Research as topics arise, not just at the beginning
+    - Let the conversation flow naturally
+    - Don't rush - thoroughness now saves time during implementation
+  </step>
 
-   e. **User confirms or continues**:
-      - If user says "that's good" / "go ahead" / similar → proceed to writing spec
-      - If user adds more context → incorporate and ask if anything else
-      - If user has corrections → update understanding and confirm again
+  <step name="create_spec_file" outputs="specPath, slug">
+    Create at `.kanban/specs/{taskId}-{slug}.spec.md`
+    Derive slug from task title, same as task file.
+    - Follow template at `.claude/kanban-templates/spec.md`
+    - Fill ALL sections:
 
-   **Key principles:**
-   - Focus on TECHNICAL decisions, not product requirements (those are in the task)
-   - Research as topics arise, not just at the beginning
-   - Let the conversation flow naturally
-   - Don't rush - thoroughness now saves time during implementation
+    ```markdown
+    ---
+    task: "{taskId}"
+    created: {YYYY-MM-DD}
+    updated: {YYYY-MM-DD}
+    ---
 
-- [ ] 8. **Create functional specification file** at `.kanban/specs/{id}-{slug}.spec.md`
-   Derive slug from task title, same as task file.
-   - Follow template at `.claude/kanban-templates/spec.md`
-   - Fill ALL sections:
+    # Functional Specification: {title}
 
-   ```markdown
-   ---
-   task: "{id}"
-   created: {YYYY-MM-DD}
-   updated: {YYYY-MM-DD}
-   ---
+    ## Context
+    {Pull from task's problem and value sections}
 
-   # Functional Specification: {title}
+    ## Scope
+    ### In Scope
+    - {What this spec covers}
 
-   ## Context
-   {Pull from task's problem and value sections}
+    ### Out of Scope
+    - {Explicit boundaries}
 
-   ## Scope
-   ### In Scope
-   - {What this spec covers}
+    ## Functional Requirements
+    - FR1: The system shall...
+    - FR2: The system shall...
 
-   ### Out of Scope
-   - {Explicit boundaries}
+    ## Affected Files
+    - `path/to/file.ts` (modify) - {reason}
+    - `path/to/new.ts` (create) - {reason}
 
-   ## Functional Requirements
-   - FR1: The system shall...
-   - FR2: The system shall...
+    ## Existing Patterns
+    - **Pattern:** {description}
+      - Reference: `path/to/example.ts:42`
 
-   ## Affected Files
-   - `path/to/file.ts` (modify) - {reason}
-   - `path/to/new.ts` (create) - {reason}
+    ## Technical Constraints
+    - {Constraints discovered during research}
 
-   ## Existing Patterns
-   - **Pattern:** {description}
-     - Reference: `path/to/example.ts:42`
+    ## Dependencies
+    ### External
+    - {Libraries/APIs - include any researched/chosen packages}
 
-   ## Technical Constraints
-   - {Constraints discovered during research}
+    ### Internal
+    - {Other features/tasks}
 
-   ## Dependencies
-   ### External
-   - {Libraries/APIs - include any researched/chosen packages}
+    ## Research Findings
+    {If web research was conducted, summarize findings and decisions}
+    - **Topic:** {what was researched}
+    - **Options considered:** {list}
+    - **Decision:** {what was chosen and why}
 
-   ### Internal
-   - {Other features/tasks}
+    ## Risks & Mitigations
+    | Risk | Impact | Mitigation |
+    |------|--------|------------|
+    | ... | ... | ... |
 
-   ## Research Findings
-   {If web research was conducted, summarize findings and decisions}
-   - **Topic:** {what was researched}
-   - **Options considered:** {list}
-   - **Decision:** {what was chosen and why}
+    ## Open Questions
+    - [ ] {Unresolved items}
+    ```
+  </step>
 
-   ## Risks & Mitigations
-   | Risk | Impact | Mitigation |
-   |------|--------|------------|
-   | ... | ... | ... |
+  <step name="update_task_frontmatter">
+    - Change `status: refined` to `status: scoped`
+    - Add `spec: "specs/{taskId}-{slug}.spec.md"` to frontmatter
+    - Update `updated: {YYYY-MM-DD}`
+  </step>
 
-   ## Open Questions
-   - [ ] {Unresolved items}
-   ```
+  <step name="write_files">
+    - Write spec file at `.kanban/specs/{taskId}-{slug}.spec.md`
+    - Write updated task file
+  </step>
 
-- [ ] 9. **Update task frontmatter**
-   - Change `status: refined` to `status: scoped`
-   - Add `spec: "specs/{id}-{slug}.spec.md"` to frontmatter
-   - Update `updated: {YYYY-MM-DD}`
+  <step name="create_task_branch">
+    ```bash
+    git checkout -b task/{taskId}
+    ```
+    Confirm: "Created branch task/{taskId}"
+  </step>
 
-- [ ] 10. **Write both files**
-   - Write spec file at `.kanban/specs/{id}-{slug}.spec.md`
-   - Write updated task file
+  <step name="commit">
+    Format: `docs({taskId}): scope - {title}`
 
-- [ ] 11. **Create and switch to task branch**
-   ```bash
-   git checkout -b task/{id}
-   ```
-   Confirm: "Created branch task/{id}"
+    ```bash
+    git add .kanban/specs/{taskId}-{slug}.spec.md .kanban/tasks/{taskId}-*.md
+    git commit -m "docs({taskId}): scope - {title}"
+    ```
+  </step>
 
-- [ ] 12. **Commit the scoping**
-   Format: `docs({id}): scope - {title}`
+  <step name="output_result">
+    - Print summary of affected files identified
+    - Print existing patterns found
+    - Print any research findings and decisions
+    - Print any open questions
+    - Print commit hash
+  </step>
+</process>
 
-   ```bash
-   git add .kanban/specs/{id}-{slug}.spec.md .kanban/tasks/{id}-*.md
-   git commit -m "docs({id}): scope - {title}"
-   ```
-
-- [ ] 13. **Output next steps to user**
-   - Print summary of affected files identified
-   - Print existing patterns found
-   - Print any research findings and decisions
-   - Print any open questions
-   - Print commit hash
-
-## Validation
-
-- [ ] Task file exists at `.kanban/tasks/{id}-*.md`
-- [ ] Spec file exists at `.kanban/specs/{id}-{slug}.spec.md`
-- [ ] Task frontmatter contains `status: scoped`
-- [ ] Task frontmatter contains `spec: "specs/{id}-{slug}.spec.md"`
-- [ ] Spec file contains `## Functional Requirements` section
-- [ ] Spec file contains `## Affected Files` section
-- [ ] Spec file contains `## Existing Patterns` section
-- [ ] Git log shows `docs({id}): scope -`
-- [ ] Current branch is `task/{id}` after completion
-- [ ] Next steps shown to user
+<success_criteria>
+- Task file exists at `.kanban/tasks/{taskId}-*.md`
+- Spec file exists at `.kanban/specs/{taskId}-{slug}.spec.md`
+- Task frontmatter contains `status: scoped`
+- Task frontmatter contains `spec: "specs/{taskId}-{slug}.spec.md"`
+- Spec file contains `## Functional Requirements` section
+- Spec file contains `## Affected Files` section
+- Spec file contains `## Existing Patterns` section
+- Git log shows `docs({taskId}): scope -`
+- Current branch is `task/{taskId}` after completion
+- Next steps shown to user
+</success_criteria>
 
 ## Example
 

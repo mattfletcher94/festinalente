@@ -7,158 +7,171 @@ disable-model-invocation: true
 
 # Skill: Define Product
 
+<purpose>
 Define a new product through Socratic Q&A and generate product documentation.
+</purpose>
 
-## Reference
-
+<context>
 {{> helper-scripts show_get_date_time=true}}
 
 {{> product-docs-scripts show_list_product=true}}
 
-## Column Transition
+**Column Transition:** N/A - This is a product discovery command, not a task workflow command.
+</context>
 
-N/A - This is a product discovery command, not a task workflow command.
+<prohibited>
+- Do not write docs without validating with user through Q&A
+- Do not skip the commit step
+- Do not invent features the user hasn't described
+</prohibited>
 
-## Steps
+<process>
+  <step name="load_workflow">
+    {{> workflow-load}}
+  </step>
 
-- [ ] 1. **Load Workflow Schema**
-   {{> workflow-load}}
+  <step name="preflight_check">
+    1. Verify `.kanban/` directory exists
+       - If not: Error - "Please initialize kanban first with `kanban-init`"
+    2. Check if `.kanban/product/` has files OTHER than `overview.md`
+       - Run `node .claude/scripts/list-product.cjs` to get all product docs
+       - If count > 1, OR if count == 1 and the doc is not `overview`: Ask user using AskUserQuestion:
+         - "I found existing product docs. How should I proceed?"
+         - Options: Preserve and extend / Start fresh
+       - If only `overview.md` exists (or no docs): Proceed without prompting (this is expected from kanban-init)
+  </step>
 
-- [ ] 2. **Pre-flight Check**
-   1. Verify `.kanban/` directory exists
-      - If not: Error - "Please initialize kanban first with `kanban-init`"
-   2. Check if `.kanban/product/` has files OTHER than `overview.md`
-      - Run `node .claude/scripts/list-product.cjs` to get all product docs
-      - If count > 1, OR if count == 1 and the doc is not `overview`: Ask user using AskUserQuestion:
-        - "I found existing product docs. How should I proceed?"
-        - Options: Preserve and extend / Start fresh
-      - If only `overview.md` exists (or no docs): Proceed without prompting (this is expected from kanban-init)
+  <step name="create_product_overview">
+    1. Ask: "What is this product called?"
+    2. Ask: "In one sentence, what does it do?"
+    3. Ask: "Who are the target users?"
+    4. **IMMEDIATELY create overview.md:**
+       - Create `.kanban/product/overview.md`
+       - Use template from `.claude/kanban-templates/overview.md`
+       - Fill frontmatter: `id: overview`, `type: overview`, `title`, `summary`
+       - Fill body sections: What is this?, Key Capabilities, Target Users
+  </step>
 
-- [ ] 3. **Create Product Overview**
-   1. Ask: "What is this product called?"
-   2. Ask: "In one sentence, what does it do?"
-   3. Ask: "Who are the target users?"
-   4. **IMMEDIATELY create overview.md:**
-      - Create `.kanban/product/overview.md`
-      - Use template from `.claude/kanban-templates/overview.md`
-      - Fill frontmatter: `id: overview`, `type: overview`, `title`, `summary`
-      - Fill body sections: What is this?, Key Capabilities, Target Users
+  <step name="socratic_qa_dialogue">
+    Use AskUserQuestion tool for **one question at a time**.
 
-- [ ] 4. **Socratic Q&A (with Incremental Writing)**
+    **CRITICAL: Write docs incrementally to prevent context loss**
 
-   Use AskUserQuestion tool for **one question at a time**.
+    **Identify features and domains:**
 
-   **CRITICAL: Write docs incrementally to prevent context loss**
+    Ask: "What are the main capabilities or features you want to build?"
+    Ask: "How would you group these features? (e.g., auth, billing, users)"
 
-   **Identify features and domains:**
+    **For each feature (depth-first):**
 
-   Ask: "What are the main capabilities or features you want to build?"
-   Ask: "How would you group these features? (e.g., auth, billing, users)"
+    1. Ask "How should {feature} work from the user's perspective?"
+    2. Ask "What are the key interactions or workflows?"
+    3. Ask "Are there any constraints or limitations to consider?"
+    4. Ask "Does this relate to any other features?"
+    5. **IMMEDIATELY write the product doc:**
+       - Determine domain folder (e.g., `auth`, `billing`, `users`)
+       - Create domain folder if needed: `.kanban/product/{domain}/`
+       - Get current date: `node .claude/scripts/get-date-time.cjs` (use `date` field)
+       - Create `.kanban/product/{domain}/{feature}.md`
 
-   **For each feature (depth-first):**
+       **For features** (use `.claude/kanban-templates/product-doc.md`):
+       ```yaml
+       ---
+       id: {domain}/{feature}
+       title: {Feature Name}
+       type: feature
+       summary: {One sentence description}
+       keywords: [{relevant, terms}]
+       related: [{other/doc-ids}]
+       updated: {YYYY-MM-DD from get-date-time}
+       ---
 
-   1. Ask "How should {feature} work from the user's perspective?"
-   2. Ask "What are the key interactions or workflows?"
-   3. Ask "Are there any constraints or limitations to consider?"
-   4. Ask "Does this relate to any other features?"
-   5. **IMMEDIATELY write the product doc:**
-      - Determine domain folder (e.g., `auth`, `billing`, `users`)
-      - Create domain folder if needed: `.kanban/product/{domain}/`
-      - Get current date: `node .claude/scripts/get-date-time.cjs` (use `date` field)
-      - Create `.kanban/product/{domain}/{feature}.md`
+       # {Feature Name}
 
-      **For features** (use `.claude/kanban-templates/product-doc.md`):
-      ```yaml
-      ---
-      id: {domain}/{feature}
-      title: {Feature Name}
-      type: feature
-      summary: {One sentence description}
-      keywords: [{relevant, terms}]
-      related: [{other/doc-ids}]
-      updated: {YYYY-MM-DD from get-date-time}
-      ---
+       ## Overview
+       {What this feature is and why it exists}
 
-      # {Feature Name}
+       ## How It Works
+       {User-facing behavior from Q&A}
 
-      ## Overview
-      {What this feature is and why it exists}
+       ## Limitations
+       {Constraints mentioned during Q&A}
+       ```
 
-      ## How It Works
-      {User-facing behavior from Q&A}
+       **For concepts** (use `.claude/kanban-templates/concept-doc.md`):
+       ```yaml
+       ---
+       id: {domain}/{concept}
+       title: {Concept Name}
+       type: concept
+       summary: {One sentence definition}
+       keywords: [{relevant, terms}]
+       related: [{other/doc-ids}]
+       updated: {YYYY-MM-DD from get-date-time}
+       ---
 
-      ## Limitations
-      {Constraints mentioned during Q&A}
-      ```
+       # {Concept Name}
 
-      **For concepts** (use `.claude/kanban-templates/concept-doc.md`):
-      ```yaml
-      ---
-      id: {domain}/{concept}
-      title: {Concept Name}
-      type: concept
-      summary: {One sentence definition}
-      keywords: [{relevant, terms}]
-      related: [{other/doc-ids}]
-      updated: {YYYY-MM-DD from get-date-time}
-      ---
+       ## Definition
+       {Clear definition}
 
-      # {Concept Name}
+       ## Examples
+       {Concrete examples}
 
-      ## Definition
-      {Clear definition}
+       ## Rules & Constraints
+       {Business rules}
+       ```
 
-      ## Examples
-      {Concrete examples}
+       - This preserves context even if session is long
 
-      ## Rules & Constraints
-      {Business rules}
-      ```
+    **Expand:**
 
-      - This preserves context even if session is long
+    1. Ask "Does this product need to integrate with any external services?"
+       - If new integrations mentioned: Create/update relevant docs immediately
+    2. Ask "Are there specific technical requirements (performance, security, etc.)?"
+       - Update existing docs with constraints
+    3. Ask "What's the minimum viable version of this product?"
+       - Note MVP scope in doc limitations sections
 
-   **Expand:**
+    **Exit:**
 
-   1. Ask "Does this product need to integrate with any external services?"
-      - If new integrations mentioned: Create/update relevant docs immediately
-   2. Ask "Are there specific technical requirements (performance, security, etc.)?"
-      - Update existing docs with constraints
-   3. Ask "What's the minimum viable version of this product?"
-      - Note MVP scope in doc limitations sections
+    1. Ask "Is there anything else you'd like to add about the product?"
+    2. If user says no/nothing/that's all: Proceed to final review
+    3. If user has more: Continue Q&A
+  </step>
 
-   **Exit:**
+  <step name="final_review">
+    1. Read all generated product docs in `.kanban/product/` (including subdirectories)
+    2. Check for completeness and consistency
+    3. Update any docs that need adjustments based on later Q&A context
+    4. Verify all `related` fields are accurate across docs
+    5. Ensure all docs have proper `id` with domain prefix (e.g., `auth/login`)
+  </step>
 
-   1. Ask "Is there anything else you'd like to add about the product?"
-   2. If user says no/nothing/that's all: Proceed to final review
-   3. If user has more: Continue Q&A
+  <step name="commit">
+    Format: `docs: define-product - {brief product description}`
 
-- [ ] 5. **Final Review**
-   1. Read all generated product docs in `.kanban/product/` (including subdirectories)
-   2. Check for completeness and consistency
-   3. Update any docs that need adjustments based on later Q&A context
-   4. Verify all `related` fields are accurate across docs
-   5. Ensure all docs have proper `id` with domain prefix (e.g., `auth/login`)
+    ```bash
+    git add .kanban/product/
+    git commit -m "docs: define-product - {brief product description}"
+    ```
 
-- [ ] 6. **Commit**
-   Format: `docs: define-product - {brief product description}`
+    Example: `docs: define-product - task management app with projects, tasks, collaboration`
+  </step>
 
-   ```bash
-   git add .kanban/product/
-   git commit -m "docs: define-product - {brief product description}"
-   ```
+  <step name="output_result">
+    Output next steps to user.
+  </step>
+</process>
 
-   Example: `docs: define-product - task management app with projects, tasks, collaboration`
-
-- [ ] 7. **Output next steps to user**
-
-## Validation
-
-- [ ] `.kanban/product/` directory exists
-- [ ] At least one product doc was created
-- [ ] Each product doc has valid frontmatter (id with domain prefix, type, title, summary, keywords, updated)
-- [ ] `overview.md` exists with `type: overview`
-- [ ] Git log shows `docs: define-product -`
-- [ ] Next steps shown to user
+<success_criteria>
+- `.kanban/product/` directory exists
+- At least one product doc was created
+- Each product doc has valid frontmatter (id with domain prefix, type, title, summary, keywords, updated)
+- `overview.md` exists with `type: overview`
+- Git log shows `docs: define-product -`
+- Next steps shown to user
+</success_criteria>
 
 ## Example
 

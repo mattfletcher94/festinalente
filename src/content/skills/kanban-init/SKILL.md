@@ -7,92 +7,118 @@ disable-model-invocation: true
 
 # Initialize Kanban Board
 
+<purpose>
 Create the `.kanban/` directory structure for a new project.
+</purpose>
 
-## Reference
-
+<context>
 {{> directory-reference}}
+</context>
 
-## Steps
+<prohibited>
+- Do not add extra properties to config.yaml beyond what the template specifies
+- Do not invent config keys like `verification`, `checks`, `hooks`, `commands`
+- Do not delete existing tasks when reinitializing
+</prohibited>
 
-- [ ] 1. **Check if already initialized**
-   - Check if `.kanban/` directory exists
-   - If exists, ask user: "Kanban already initialized. Reinitialize? (This will NOT delete existing tasks)"
-   - If user declines, exit
+<process>
+  <step name="check_already_initialized">
+    - Check if `.kanban/` directory exists
+    - If exists, ask user: "Kanban already initialized. Reinitialize? (This will NOT delete existing tasks)"
+    - If user declines, exit
+  </step>
 
-- [ ] 2. **Check for git repository**
-   - Run `git status` to verify we're in a git repo
-   - If not a git repo, warn: "Not a git repository. Kanban works best with git for commit tracking."
-   - Ask if user wants to continue anyway
+  <step name="check_git_repository">
+    - Run `git status` to verify we're in a git repo
+    - If not a git repo, warn: "Not a git repository. Kanban works best with git for commit tracking."
+    - Ask if user wants to continue anyway
+  </step>
 
-- [ ] 3. **Create directory structure**
-   ```bash
-   mkdir -p .kanban/tasks
-   mkdir -p .kanban/specs
-   mkdir -p .kanban/plans
-   mkdir -p .kanban/product
-   mkdir -p .kanban/skills
-   ```
+  <step name="create_directory_structure">
+    ```bash
+    mkdir -p .kanban/tasks
+    mkdir -p .kanban/specs
+    mkdir -p .kanban/plans
+    mkdir -p .kanban/product
+    mkdir -p .kanban/skills
+    ```
+  </step>
 
-- [ ] 4. **Create product overview**
-   - Read template from `.claude/kanban-templates/overview.md`
-   - Create `.kanban/product/overview.md`
-   - Ask user: "What is this product called?"
-   - Ask user: "In one sentence, what does it do?"
-   - Fill template with responses
-   - This becomes the root product doc that LLMs read first
+  <step name="create_product_overview">
+    - Read template from `.claude/kanban-templates/overview.md`
+    - Create `.kanban/product/overview.md`
+    - Ask user: "What is this product called?"
+    - Ask user: "In one sentence, what does it do?"
+    - Fill template with responses
+    - This becomes the root product doc that LLMs read first
+  </step>
 
-- [ ] 5. **Create config.yaml**
-   - Read template from `.claude/kanban-templates/config.yaml`
-   - Write to `.kanban/config.yaml` **exactly as-is** (do not modify or add properties)
-   - If template not found, create minimal config **exactly as shown below**:
+  <step name="create_config_yaml">
+    - Read template from `.claude/kanban-templates/config.yaml`
+    - Write to `.kanban/config.yaml` **exactly as-is** (do not modify or add properties)
+    - If template not found, create minimal config **exactly as shown below**:
 
-   **CRITICAL: Do NOT add, invent, or improvise any properties not shown in the template.**
-   The config.yaml schema has exactly three top-level keys: `name`, `user-skills`, `settings`.
-   Do NOT add keys like `verification`, `checks`, `hooks`, `commands`, or anything else.
-     ```yaml
-     # Skill names resolve to .claude/skills/{name}/SKILL.md
-     name: My Project
+    **CRITICAL: Do NOT add, invent, or improvise any properties not shown in the template.**
+    The config.yaml schema has exactly three top-level keys: `name`, `user-skills`, `settings`.
+    Do NOT add keys like `verification`, `checks`, `hooks`, `commands`, or anything else.
+      ```yaml
+      # Skill names resolve to .claude/skills/{name}/SKILL.md
+      name: My Project
 
-     user-skills:
-       "kanban-create":
-         skills:
-       "kanban-refine":
-         skills:
-       "kanban-scope":
-         skills:
-       "kanban-plan":
-         skills:
-       "kanban-implement":
-         skills:
-       "kanban-save":
-         skills:
-       "kanban-verify":
-         skills:
-       "kanban-approve":
-         skills:
-       "kanban-docs":
-         skills:
-       "kanban-merge":
-         skills:
-       "kanban-rework":
-         skills:
-       "kanban-map-product":
-         skills:
-       "kanban-define-product":
-         skills:
+      user-skills:
+        "kanban-create":
+          skills:
+        "kanban-refine":
+          skills:
+        "kanban-scope":
+          skills:
+        "kanban-plan":
+          skills:
+        "kanban-implement":
+          skills:
+        "kanban-save":
+          skills:
+        "kanban-verify":
+          skills:
+        "kanban-approve":
+          skills:
+        "kanban-docs":
+          skills:
+        "kanban-merge":
+          skills:
+        "kanban-rework":
+          skills:
+        "kanban-map-product":
+          skills:
+        "kanban-define-product":
+          skills:
 
-     settings:
-       version: "2.0"
-       idPrefix: ""
-       idPadding: 3
-       archiveOnComplete: false
-     ```
+      settings:
+        version: "2.0"
+        idPrefix: ""
+        idPadding: 3
+        archiveOnComplete: false
+      ```
+  </step>
 
-- [ ] 6. **Output next steps to user**
-   - Print created directories
-   - Print config location
-   - Suggest next steps
+  <step name="output_result">
+    - Print created directories
+    - Print config location
+    - Suggest next steps
+  </step>
+</process>
+
+<success_criteria>
+- `.kanban/` directory exists
+- `.kanban/tasks/` directory exists
+- `.kanban/specs/` directory exists
+- `.kanban/plans/` directory exists
+- `.kanban/product/` directory exists
+- `.kanban/skills/` directory exists
+- `.kanban/config.yaml` exists
+- `.kanban/config.yaml` has ONLY these top-level keys: `name`, `user-skills`, `settings` (no extra keys)
+- Next steps shown to user
+</success_criteria>
 
 ## File Naming Conventions
 
@@ -107,18 +133,6 @@ Create the `.kanban/` directory structure for a new project.
 | `.kanban/skills/` | `{name}.md` | `check-typescript.md` |
 
 User-defined skills in `.kanban/skills/` are simple `.md` files (NOT directories with `SKILL.md` inside).
-
-## Validation
-
-- [ ] `.kanban/` directory exists
-- [ ] `.kanban/tasks/` directory exists
-- [ ] `.kanban/specs/` directory exists
-- [ ] `.kanban/plans/` directory exists
-- [ ] `.kanban/product/` directory exists
-- [ ] `.kanban/skills/` directory exists
-- [ ] `.kanban/config.yaml` exists
-- [ ] `.kanban/config.yaml` has ONLY these top-level keys: `name`, `user-skills`, `settings` (no extra keys)
-- [ ] Next steps shown to user
 
 ## Example
 
