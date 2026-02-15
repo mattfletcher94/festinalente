@@ -19,9 +19,11 @@ Run AI code review using configured skills. On failure, AI fixes issues and retr
 
 {{> column-transition from="in-progress" to="checks → qa (automatic on success)"}}
 
+<note>
 **Behavior:**
 - Auto-loop on failure — AI fixes issues and retries (max 3 attempts)
 - Auto-advance on success — Moves directly to QA when all checks pass
+</note>
 </context>
 
 <prohibited>
@@ -37,19 +39,28 @@ Run AI code review using configured skills. On failure, AI fixes issues and retr
   </step>
 
   <step name="get_task_id" outputs="taskId">
-    Use $ARGUMENTS if provided (e.g., "001"), otherwise:
-    - List tasks in `in-progress` status from `.kanban/tasks/`
-    - Show task IDs and titles
-    - Ask user which task to verify
+    <branch condition="$ARGUMENTS provided">
+      <action>Use $ARGUMENTS as taskId</action>
+    </branch>
+    <branch condition="$ARGUMENTS not provided">
+      <action>List tasks in `in-progress` status from `.kanban/tasks/`</action>
+      <output>Show task IDs and titles</output>
+      <prompt>Which task to verify?</prompt>
+    </branch>
   </step>
 
   <step name="read_task_file" outputs="taskPath, title">
-    - Run `node .claude/scripts/find-task.cjs {taskId}` to get exact path
-    - Read the file at the `path` from JSON output
-    - Parse YAML frontmatter
-    - Verify status is `in-progress`:
-      - If not, warn: "Task is in {status} status. Expected: in-progress. Continue anyway? (y/n)"
-    - Error if task not found
+    <command>node .claude/scripts/find-task.cjs {taskId}</command>
+    <action>Read the file at the `path` from JSON output</action>
+    <action>Parse YAML frontmatter</action>
+    <validate>Verify status is `in-progress`</validate>
+    <branch condition="status is not in-progress">
+      <prompt>Task is in {status} status. Expected: in-progress. Continue anyway? (y/n)</prompt>
+    </branch>
+    <branch condition="task not found">
+      <output>Error: Task not found</output>
+      <action>Exit</action>
+    </branch>
   </step>
 
   <step name="verify_branch">
@@ -57,96 +68,97 @@ Run AI code review using configured skills. On failure, AI fixes issues and retr
   </step>
 
   <step name="read_plan_file" outputs="planPath">
-    - Run `node .claude/scripts/find-plan.cjs {taskId}` to get exact path
-    - Read the plan at the `path` from JSON output
-    - Verify all implementation checkboxes are marked complete
-    - If any unchecked, warn: "Plan has incomplete items. Verify anyway? (y/n)"
+    <command>node .claude/scripts/find-plan.cjs {taskId}</command>
+    <action>Read the plan at the `path` from JSON output</action>
+    <validate>Verify all implementation checkboxes are marked complete</validate>
+    <branch condition="any unchecked items">
+      <prompt>Plan has incomplete items. Verify anyway? (y/n)</prompt>
+    </branch>
   </step>
 
   <step name="load_verification_checks" outputs="checkSkills">
-    - Read `.kanban/config.yaml`
-    - Find `user-skills."kanban-verify".skills` array
-    - If skills array is empty:
-      - Inform user: "No verification checks configured. Add check skills to config.yaml"
-      - Ask: "Continue without checks? (y/n)"
-    - For each skill path in the array:
-      - Read the skill file
-      - Extract the check command and pass criteria
+    <action>Read `.kanban/config.yaml`</action>
+    <action>Find `user-skills."kanban-verify".skills` array</action>
+    <branch condition="skills array is empty">
+      <output>No verification checks configured. Add check skills to config.yaml</output>
+      <prompt>Continue without checks? (y/n)</prompt>
+    </branch>
+    <action>For each skill path in the array: read the skill file</action>
+    <action>Extract the check command and pass criteria</action>
   </step>
 
   <step name="run_verification_loop">
-    ```
-    attempt = 1
-    while attempt <= 3:
-        for each check skill:
-            Print: "Running check: {check name}..."
-            Execute the check command from the skill
-            Evaluate pass criteria
+    <note>
+```
+attempt = 1
+while attempt <= 3:
+    for each check skill:
+        Print: "Running check: {check name}..."
+        Execute the check command from the skill
+        Evaluate pass criteria
 
-            if PASS:
-                Print "PASS: {check name}"
-                continue to next check
+        if PASS:
+            Print "PASS: {check name}"
+            continue to next check
 
-            if FAIL:
-                Print "FAIL: {check name}"
-                Print error output
+        if FAIL:
+            Print "FAIL: {check name}"
+            Print error output
 
-                # Log attempt to plan
-                Add to ## Iterations section:
-                    ### Attempt {n} — Verify (attempt {attempt}) ({YYYY-MM-DD})
-                    **Phase:** checks
-                    **Result:** failed
-                    **Check:** {check name}
-                    **Errors:**
-                    ```
-                    {check output}
-                    ```
+            # Log attempt to plan
+            Add to ## Iterations section:
+                ### Attempt {n} — Verify (attempt {attempt}) ({YYYY-MM-DD})
+                **Phase:** checks
+                **Result:** failed
+                **Check:** {check name}
+                **Errors:**
+                ```
+                {check output}
+                ```
 
-                if attempt < 3:
-                    # AI auto-fix
-                    Print: "Attempting to fix issues..."
-                    Analyze the error output
-                    Make code changes to fix the issue
-                    Write updated plan file
+            if attempt < 3:
+                # AI auto-fix
+                Print: "Attempting to fix issues..."
+                Analyze the error output
+                Make code changes to fix the issue
+                Write updated plan file
 
-                    # Commit the retry fix
-                    Format: `docs({taskId}): verify-retry - {title}`
+                # Commit the retry fix
+                Format: `docs({taskId}): verify-retry - {title}`
 
-                    attempt += 1
-                    break (restart all checks from beginning)
-                else:
-                    # Max attempts reached
-                    Print: "Max retry attempts reached. Manual intervention needed."
-                    Print: "Fix issues and re-run /kanban-verify {taskId}"
-                    Exit
+                attempt += 1
+                break (restart all checks from beginning)
+            else:
+                # Max attempts reached
+                Print: "Max retry attempts reached. Manual intervention needed."
+                Print: "Fix issues and re-run /kanban-verify {taskId}"
+                Exit
 
-        # If we get here, all checks passed
-        break
-    ```
+    # If we get here, all checks passed
+    break
+```
+    </note>
   </step>
 
   <step name="handle_success" when="all checks passed">
-    - Update task status to `checks`
-    - Write task file
-    - Print: "All checks passed. Moving to QA..."
+    <action>Update task status to `checks`</action>
+    <action>Write task file</action>
+    <output>All checks passed. Moving to QA...</output>
 
-    **Auto-advance to QA:**
-    - Update task status to `qa`
-    - Add `updated: {YYYY-MM-DD}`
-    - Write task file
+    <note>Auto-advance to QA:</note>
+    <action>Update task status to `qa`</action>
+    <action>Add `updated: {YYYY-MM-DD}`</action>
+    <action>Write task file</action>
 
-    **IMPORTANT: Task file changes are ONLY:**
-    - `status: qa`
-    - `updated: {YYYY-MM-DD}`
+    <warning>Task file changes are ONLY: `status: qa` and `updated: {YYYY-MM-DD}`</warning>
+    <warning>DO NOT add verification results, check names, pass/fail logs, or any other content to the task file</warning>
 
-    **DO NOT add verification results, check names, pass/fail logs, or any other content to the task file.**
-
-    - Print summary of all passed checks
-    - Print: "Task {taskId} moved to QA."
+    <output>Print summary of all passed checks</output>
+    <output>Task {taskId} moved to QA.</output>
   </step>
 
   <step name="output_result">
-    Output next steps to user.
+    <output>Output next steps to user</output>
   </step>
 </process>
 
@@ -159,11 +171,12 @@ Run AI code review using configured skills. On failure, AI fixes issues and retr
 - Next steps shown to user
 </success_criteria>
 
-## Check Skill Format
+<note>
+**Check Skill Format:**
 
-**File naming:** `.kanban/skills/{name}.md` (e.g., `check-typescript.md`, `check-tests.md`)
+File naming: `.kanban/skills/{name}.md` (e.g., `check-typescript.md`, `check-tests.md`)
 
-**IMPORTANT:** Before creating or reading skills, always glob `.kanban/skills/*.md` first to see existing files and naming conventions.
+Before creating or reading skills, always glob `.kanban/skills/*.md` first to see existing files and naming conventions.
 
 Each check skill should follow this format:
 
@@ -178,8 +191,10 @@ Run `{command}`
 ### Common failures
 - "{error pattern}" — {fix suggestion}
 ```
+</note>
 
-## Example Check Skills
+<note>
+**Example Check Skills:**
 
 ### check-typescript.md
 ```markdown
@@ -208,9 +223,9 @@ Exit code 0, all tests pass.
 - "Test suite failed" — review failing test output
 - "Cannot find module" — missing test dependency
 ```
+</note>
 
-## Example
-
+<example>
 **All Checks Pass First Try:**
 
 User: `/kanban-verify 001`
@@ -329,9 +344,9 @@ See plan file for all logged attempts.
 Fix issues manually and re-run:
 /kanban-verify 002
 ```
+</example>
 
-## Next Steps
-
+<next_steps>
 After verification passes and moves to QA:
 ```
 /clear
@@ -343,3 +358,4 @@ If human QA finds issues:
 /clear
 /kanban-rework {id}
 ```
+</next_steps>

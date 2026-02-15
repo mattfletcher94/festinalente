@@ -15,7 +15,7 @@ Query tasks filtered by label using natural language.
 <context>
 {{> helper-scripts show_list_tasks=true show_find_task=true}}
 
-**Usage:** `/kanban-report-label {label} [question]`
+<note>**Usage:** `/kanban-report-label {label} [question]`</note>
 </context>
 
 <prohibited>
@@ -25,32 +25,33 @@ Query tasks filtered by label using natural language.
 
 <process>
   <step name="parse_arguments" outputs="label, question">
-    Extract label (first argument) and optional question (remaining text)
+    <action>Extract label (first argument)</action>
+    <action>Extract optional question (remaining text)</action>
   </step>
 
   <step name="find_matching_tasks" outputs="taskFiles">
-    - Search `.kanban/tasks/*.md` for files containing the label in frontmatter
-    - Use: `grep -l "labels:.*{label}" .kanban/tasks/*.md`
+    <action>Search `.kanban/tasks/*.md` for files containing the label in frontmatter</action>
+    <command>grep -l "labels:.*{label}" .kanban/tasks/*.md</command>
   </step>
 
   <step name="read_task_details">
-    For each matching task, read the task file to get full details
+    <action>For each matching task, read the task file to get full details</action>
   </step>
 
   <step name="read_specs_plans" when="additional context needed">
-    Optionally read specs/plans for additional context
+    <action>Optionally read specs/plans for additional context</action>
   </step>
 
   <step name="prompt_for_question" when="no question provided">
-    Ask the user what they want to know
+    <prompt>What would you like to know about these tasks?</prompt>
   </step>
 
   <step name="answer_question" when="question provided">
-    Answer conversationally using the gathered data
+    <action>Answer conversationally using the gathered data</action>
   </step>
 
   <step name="output_result">
-    Output next steps to user.
+    <output>Output next steps to user</output>
   </step>
 </process>
 
@@ -60,7 +61,8 @@ Query tasks filtered by label using natural language.
 - Next steps shown to user
 </success_criteria>
 
-## Valid Labels
+<note>
+**Valid Labels:**
 
 From `.claude/kanban-workflow.yaml`:
 - `bug` - Bug fixes
@@ -68,25 +70,29 @@ From `.claude/kanban-workflow.yaml`:
 - `docs` - Documentation
 - `refactor` - Code refactoring
 - `needs-refinement` - Tasks requiring more detail
+</note>
 
-## Data Sources
+<note>
+**Data Sources:**
 
 | Source | Location | Contains |
 |--------|----------|----------|
 | Task files | `.kanban/tasks/*.md` | Status, priority, labels, description |
 | Spec files | `.kanban/specs/{id}-{slug}.spec.md` | Requirements for scoped tasks |
 | Plan files | `.kanban/plans/{id}-{slug}.plan.md` | Implementation plans |
+</note>
 
-## Example Questions
+<note>
+**Example Questions:**
 
 - "How many bugs are open?"
 - "What features are in progress?"
 - "List all completed refactors"
 - "What's the highest priority?"
 - "Which tasks are blocked?"
+</note>
 
-## Example
-
+<example>
 `/kanban-report-label bug`
 
 Finds all tasks labeled as bugs and asks what you want to know.
@@ -94,10 +100,11 @@ Finds all tasks labeled as bugs and asks what you want to know.
 `/kanban-report-label feature What's in progress?`
 
 Lists all feature tasks currently in the in-progress column.
+</example>
 
-## Next Steps
-
+<next_steps>
 ```
 /clear
 /kanban-status
 ```
+</next_steps>

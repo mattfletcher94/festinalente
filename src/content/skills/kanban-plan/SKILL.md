@@ -35,20 +35,29 @@ Create a plan file in `.kanban/plans/` and move task from Scoped to Planned, the
   </step>
 
   <step name="get_task_id" outputs="taskId">
-    Use $ARGUMENTS if provided (e.g., "001"), otherwise:
-    - List tasks in `scoped` status from `.kanban/tasks/`
-    - Show task IDs and titles
-    - Ask user which task to plan
+    <branch condition="$ARGUMENTS provided">
+      <action>Use $ARGUMENTS as taskId</action>
+    </branch>
+    <branch condition="$ARGUMENTS not provided">
+      <action>List tasks in `scoped` status from `.kanban/tasks/`</action>
+      <output>Show task IDs and titles</output>
+      <prompt>Which task to plan?</prompt>
+    </branch>
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, specPath">
-    - Run `node .claude/scripts/find-task.cjs {taskId}` to get exact path
-    - Read the file at the `path` from JSON output
-    - Parse YAML frontmatter
-    - Verify current status is `scoped`:
-      - If not scoped, warn user and confirm they want to proceed
-    - Get `spec` path from frontmatter
-    - Error if task not found
+    <command>node .claude/scripts/find-task.cjs {taskId}</command>
+    <action>Read the file at the `path` from JSON output</action>
+    <action>Parse YAML frontmatter</action>
+    <validate>Verify current status is `scoped`</validate>
+    <branch condition="status is not scoped">
+      <prompt>Task is in {status} status. Expected: scoped. Continue anyway? (y/n)</prompt>
+    </branch>
+    <action>Get `spec` path from frontmatter</action>
+    <branch condition="task not found">
+      <output>Error: Task not found</output>
+      <action>Exit</action>
+    </branch>
   </step>
 
   <step name="verify_branch">
@@ -56,42 +65,49 @@ Create a plan file in `.kanban/plans/` and move task from Scoped to Planned, the
   </step>
 
   <step name="read_spec" outputs="functionalRequirements, affectedFiles, existingPatterns">
-    - Run `node .claude/scripts/find-spec.cjs {taskId}` to get exact path
-    - Read the spec file at the `path` from JSON output
-    - If spec not found, BLOCK planning with message:
-      ```
-      Task {taskId} needs scoping before planning.
-      Run: /kanban-scope {taskId}
-      ```
-    - Extract functional requirements, affected files, and existing patterns
+    <command>node .claude/scripts/find-spec.cjs {taskId}</command>
+    <branch condition="spec found">
+      <action>Read the spec file at the `path` from JSON output</action>
+    </branch>
+    <branch condition="spec NOT found">
+      <output>
+Task {taskId} needs scoping before planning.
+Run: /kanban-scope {taskId}
+      </output>
+      <action>Exit</action>
+    </branch>
+    <action>Extract functional requirements, affected files, and existing patterns</action>
   </step>
 
   <step name="research_product_docs" outputs="productContext">
-    **Read product documentation for implementation context:**
+    <note>Read product documentation for implementation context:</note>
 
-    1. **Check task's affects field:**
-       - If task has `affects` field in frontmatter:
-         - For each product doc ID: Read `.kanban/product/{id}.md`
-         - Note: current behavior, UI components, user flows, constraints
+    <action>Check task's affects field</action>
+    <branch condition="task has `affects` field in frontmatter">
+      <action>For each product doc ID: Read `.kanban/product/{id}.md`</action>
+      <action>Note: current behavior, UI components, user flows, constraints</action>
+    </branch>
 
-    2. **Search for related product docs:**
-       - Extract key terms from spec (feature names, component names, domains)
-       - Run `node .claude/scripts/search-product.cjs {keywords}` to find related docs
-       - Read any docs with score ≥ 0.3 that weren't already read
+    <action>Search for related product docs</action>
+    <action>Extract key terms from spec (feature names, component names, domains)</action>
+    <command>node .claude/scripts/search-product.cjs {keywords}</command>
+    <action>Read any docs with score ≥ 0.3 that weren't already read</action>
 
-    3. **List product docs if unsure:**
-       - Run `node .claude/scripts/list-product.cjs` to see all available docs
-       - Identify any obviously relevant docs by domain/name
+    <action>List product docs if unsure</action>
+    <command>node .claude/scripts/list-product.cjs</command>
+    <action>Identify any obviously relevant docs by domain/name</action>
 
-    **Use this context to:**
-    - Understand existing user-facing behavior that may constrain implementation
-    - Identify UI patterns and terminology to maintain consistency
-    - Ensure plan steps account for documented feature interactions
+    <note>Use this context to:
+- Understand existing user-facing behavior that may constrain implementation
+- Identify UI patterns and terminology to maintain consistency
+- Ensure plan steps account for documented feature interactions</note>
   </step>
 
   <step name="check_existing_plan">
-    - Check if `.kanban/plans/{taskId}-{slug}.plan.md` exists
-    - If exists, ask if user wants to overwrite or view existing
+    <validate>Check if `.kanban/plans/{taskId}-{slug}.plan.md` exists</validate>
+    <branch condition="plan exists">
+      <prompt>Plan already exists. Overwrite or view existing?</prompt>
+    </branch>
   </step>
 
   <step name="load_user_skills">
@@ -99,86 +115,82 @@ Create a plan file in `.kanban/plans/` and move task from Scoped to Planned, the
   </step>
 
   <step name="create_plan_file" outputs="planPath, slug">
-    Create at `.kanban/plans/{taskId}-{slug}.plan.md`
-    - Follow template at `.claude/kanban-templates/plan.md`
-    - Link to spec in frontmatter
-    - Create implementation steps based on spec
+    <action>Create at `.kanban/plans/{taskId}-{slug}.plan.md`</action>
+    <action>Follow template at `.claude/kanban-templates/plan.md`</action>
+    <action>Link to spec in frontmatter</action>
+    <action>Create implementation steps based on spec</action>
 
-    ```yaml
-    ---
-    task: "{taskId}"
-    spec: "specs/{taskId}-{slug}.spec.md"
-    status: approved
-    created: {YYYY-MM-DD}
-    generated_by: claude
-    model: {current model}
-    version: 1
-    iteration: 1
-    ---
+    <example_code lang="yaml">
+---
+task: "{taskId}"
+spec: "specs/{taskId}-{slug}.spec.md"
+status: approved
+created: {YYYY-MM-DD}
+generated_by: claude
+model: {current model}
+version: 1
+iteration: 1
+---
 
-    # Plan: {task title}
+# Plan: {task title}
 
-    ## Overview
+## Overview
 
-    {Brief summary referencing functional spec}
-    See full specification: specs/{taskId}-{slug}.spec.md
+{Brief summary referencing functional spec}
+See full specification: specs/{taskId}-{slug}.spec.md
 
-    ## Implementation Steps
+## Implementation Steps
 
-    <!-- Step Guidelines:
-    1. ATOMIC: Each step = one logical change that leaves codebase working
-    2. COMPLETE: Understand desired change, definition of done, all sub-steps, all info needed
-    3. TRACEABLE: Reference specific file(s) and/or FR from spec
-    4. SEPARABLE: Don't mix concerns - refactoring separate from features
-    5. TESTABLE: The change can be verified (test, type-check, manual)
-    -->
+<!-- Step Guidelines:
+1. ATOMIC: Each step = one logical change that leaves codebase working
+2. COMPLETE: Understand desired change, definition of done, all sub-steps, all info needed
+3. TRACEABLE: Reference specific file(s) and/or FR from spec
+4. SEPARABLE: Don't mix concerns - refactoring separate from features
+5. TESTABLE: The change can be verified (test, type-check, manual)
+-->
 
-    - [ ] Step 1: {description} `path/to/file.ts` (FR1)
-    - [ ] Step 2: {description} `path/to/file.ts` (FR1)
-    - [ ] Step 3: {description} `path/to/new.ts` (FR2)
-    - [ ] Step N: Verify acceptance criteria are met
-    ```
+- [ ] Step 1: {description} `path/to/file.ts` (FR1)
+- [ ] Step 2: {description} `path/to/file.ts` (FR1)
+- [ ] Step 3: {description} `path/to/new.ts` (FR2)
+- [ ] Step N: Verify acceptance criteria are met
+    </example_code>
 
-    **Step creation guidelines:**
-    - Each step should be atomic and independently verifiable
-    - Reference specific files from spec's Affected Files section
-    - Map steps to Functional Requirements (FR1, FR2, etc.)
-    - Include testing/verification as explicit steps
-    - Order steps logically (dependencies first)
-    - Don't mix refactoring with feature work
+    <note>Step creation guidelines:
+- Each step should be atomic and independently verifiable
+- Reference specific files from spec's Affected Files section
+- Map steps to Functional Requirements (FR1, FR2, etc.)
+- Include testing/verification as explicit steps
+- Order steps logically (dependencies first)
+- Don't mix refactoring with feature work</note>
   </step>
 
   <step name="update_task_file">
-    - Change `status: scoped` to `status: planned`
-    - Add `plan: "plans/{taskId}-{slug}.plan.md"` to frontmatter
-    - Add `updated: {YYYY-MM-DD}`
+    <action>Change `status: scoped` to `status: planned`</action>
+    <action>Add `plan: "plans/{taskId}-{slug}.plan.md"` to frontmatter</action>
+    <action>Add `updated: {YYYY-MM-DD}`</action>
   </step>
 
   <step name="write_files">
-    - Write plan file
-    - Write task file
+    <action>Write plan file</action>
+    <action>Write task file</action>
   </step>
 
   <step name="commit">
-    Format: `docs({taskId}): plan - {title}`
-
-    ```bash
-    git add .kanban/plans/{taskId}-{slug}.plan.md .kanban/tasks/{taskId}-*.md
-    git commit -m "docs({taskId}): plan - {title}"
-    ```
+    <note>Format: `docs({taskId}): plan - {title}`</note>
+    <command>git add .kanban/plans/{taskId}-{slug}.plan.md .kanban/tasks/{taskId}-*.md</command>
+    <command>git commit -m "docs({taskId}): plan - {title}"</command>
   </step>
 
   <step name="output_result">
-    - Print: "Task {taskId} moved to Planned"
-    - Print plan file path
-    - Print number of implementation steps created
-    - Print commit hash
-    - Print next steps:
-      ```
-      Next:
-      /clear
-      /kanban-implement {taskId}
-      ```
+    <output>Print: "Task {taskId} moved to Planned"</output>
+    <output>Print plan file path</output>
+    <output>Print number of implementation steps created</output>
+    <output>Print commit hash</output>
+    <output>
+Next:
+/clear
+/kanban-implement {taskId}
+    </output>
   </step>
 </process>
 
@@ -196,8 +208,7 @@ Create a plan file in `.kanban/plans/` and move task from Scoped to Planned, the
 - Next steps shown to user
 </success_criteria>
 
-## Example
-
+<example>
 User: `/kanban-plan 001`
 
 ```
@@ -233,10 +244,11 @@ Next:
 /clear
 /kanban-implement 001
 ```
+</example>
 
-## Next Steps
-
+<next_steps>
 ```
 /clear
 /kanban-implement {id}
 ```
+</next_steps>

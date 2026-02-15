@@ -15,7 +15,7 @@ Query what tasks a specific git user has worked on using natural language.
 <context>
 {{> helper-scripts show_list_tasks=true show_find_task=true}}
 
-**Usage:** `/kanban-report-user {name} [question]`
+<note>**Usage:** `/kanban-report-user {name} [question]`</note>
 </context>
 
 <prohibited>
@@ -25,33 +25,32 @@ Query what tasks a specific git user has worked on using natural language.
 
 <process>
   <step name="parse_arguments" outputs="userName, question">
-    Extract user name (first argument) and optional question (remaining text)
+    <action>Extract user name (first argument)</action>
+    <action>Extract optional question (remaining text)</action>
   </step>
 
   <step name="find_task_ids" outputs="taskIds">
-    ```bash
-    git log --all --author="{userName}" --format="%s" | grep -oP '\(\K\d+(?=\))' | sort -u
-    ```
+    <command description="Find task IDs from user's commits">git log --all --author="{userName}" --format="%s" | grep -oP '\(\K\d+(?=\))' | sort -u</command>
   </step>
 
   <step name="read_task_files">
-    For each task ID found, read the task file: `.kanban/tasks/{id}-*.md`
+    <action>For each task ID found, read the task file: `.kanban/tasks/{id}-*.md`</action>
   </step>
 
   <step name="get_board_state">
-    Understand task statuses (what's in-progress, done, etc.)
+    <action>Understand task statuses (what's in-progress, done, etc.)</action>
   </step>
 
   <step name="prompt_for_question" when="no question provided">
-    Ask the user what they want to know
+    <prompt>What would you like to know about this user's tasks?</prompt>
   </step>
 
   <step name="answer_question" when="question provided">
-    Answer conversationally using the gathered data
+    <action>Answer conversationally using the gathered data</action>
   </step>
 
   <step name="output_result">
-    Output next steps to user.
+    <output>Output next steps to user</output>
   </step>
 </process>
 
@@ -61,28 +60,33 @@ Query what tasks a specific git user has worked on using natural language.
 - Next steps shown to user
 </success_criteria>
 
-## Data Sources
+<note>
+**Data Sources:**
 
 | Source | How to Get | Contains |
 |--------|------------|----------|
 | User's commits | `git log --author="{name}"` | Task IDs touched |
 | Task files | `.kanban/tasks/{id}-*.md` | Current status, priority, labels |
 | Board columns | All task statuses | What's in-progress, done, etc. |
+</note>
 
-## Important
+<note>
+**Important:**
 
 Focus on **tasks**, not raw commits. Commits are used to identify which tasks the user has worked on, but answers should be about task status, completion, and outcomes.
+</note>
 
-## Example Questions
+<note>
+**Example Questions:**
 
 - "How many tasks are they currently working on?"
 - "What have they completed?"
 - "What bugs have they fixed?"
 - "What's in progress?"
 - "Show their task history"
+</note>
 
-## Example
-
+<example>
 `/kanban-report-user matt`
 
 Finds all tasks matt has worked on and asks what you want to know.
@@ -90,10 +94,11 @@ Finds all tasks matt has worked on and asks what you want to know.
 `/kanban-report-user matt What bugs have they fixed?`
 
 Lists completed bug tasks that matt contributed to.
+</example>
 
-## Next Steps
-
+<next_steps>
 ```
 /clear
 /kanban-status
 ```
+</next_steps>

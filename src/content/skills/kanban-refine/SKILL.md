@@ -39,21 +39,32 @@ Refine vague tasks through iterative conversational Q&A focused on product/busin
   </step>
 
   <step name="get_task_id" outputs="taskId">
-    Use $ARGUMENTS if provided (e.g., "001"), otherwise:
-    - List tasks with `needs-refinement` label from `.kanban/tasks/`
-    - Show task IDs, titles, and current vagueness indicators
-    - Ask user which task to refine
+    <branch condition="$ARGUMENTS provided">
+      <action>Use $ARGUMENTS as taskId</action>
+    </branch>
+    <branch condition="$ARGUMENTS not provided">
+      <action>List tasks with `needs-refinement` label from `.kanban/tasks/`</action>
+      <output>Show task IDs, titles, and current vagueness indicators</output>
+      <prompt>Which task to refine?</prompt>
+    </branch>
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, currentLabels">
-    - Run `node .claude/scripts/find-task.cjs {taskId}` to get exact path
-    - Read the file at the `path` from JSON output
-    - Parse YAML frontmatter
-    - Verify task has `needs-refinement` label (from kanban-workflow.yaml):
-      - If present, proceed with refinement
-      - If not present, warn: "Task does not have needs-refinement label. Refine anyway? (y/n)"
-    - Note current title, description, acceptance criteria (if any)
-    - Error if task not found
+    <command>node .claude/scripts/find-task.cjs {taskId}</command>
+    <action>Read the file at the `path` from JSON output</action>
+    <action>Parse YAML frontmatter</action>
+    <validate>Check if task has `needs-refinement` label (from kanban-workflow.yaml)</validate>
+    <branch condition="needs-refinement label present">
+      <action>Proceed with refinement</action>
+    </branch>
+    <branch condition="needs-refinement label not present">
+      <prompt>Task does not have needs-refinement label. Refine anyway? (y/n)</prompt>
+    </branch>
+    <action>Note current title, description, acceptance criteria (if any)</action>
+    <branch condition="task not found">
+      <output>Error: Task not found</output>
+      <action>Exit</action>
+    </branch>
   </step>
 
   <step name="load_user_skills">
@@ -61,120 +72,125 @@ Refine vague tasks through iterative conversational Q&A focused on product/busin
   </step>
 
   <step name="analyze_initial_context">
-    - Check title for clarity issues:
-      - Title too short (<5 words)?
-      - Missing action verb?
-      - Contains ambiguous terms ("fix stuff", "improve things")?
-    - Check description for completeness
-    - Check acceptance criteria for specificity
+    <action>Check title for clarity issues</action>
+    <validate>Title too short (&lt;5 words)?</validate>
+    <validate>Missing action verb?</validate>
+    <validate>Contains ambiguous terms ("fix stuff", "improve things")?</validate>
+    <action>Check description for completeness</action>
+    <action>Check acceptance criteria for specificity</action>
 
-    **Load product context:**
-    - If task has `affects` field with IDs:
-      - For each ID: Read `.kanban/product/{id}.md`
-      - Note current product behavior for context
-    - If task has empty/no `affects` field:
-      - Run: `node .claude/scripts/search-product.cjs {keywords from title}`
-      - If matches found (score ≥ 0.3):
-        - Read top matches for context
-        - Consider suggesting `affects` field update
-    - Reference product docs during Q&A to ensure alignment with existing product
+    <note>Load product context:</note>
+    <branch condition="task has `affects` field with IDs">
+      <action>For each ID: Read `.kanban/product/{id}.md`</action>
+      <action>Note current product behavior for context</action>
+    </branch>
+    <branch condition="task has empty/no `affects` field">
+      <command>node .claude/scripts/search-product.cjs {keywords from title}</command>
+      <branch condition="matches found (score ≥ 0.3)">
+        <action>Read top matches for context</action>
+        <action>Consider suggesting `affects` field update</action>
+      </branch>
+    </branch>
+    <note>Reference product docs during Q&A to ensure alignment with existing product</note>
   </step>
 
   <step name="conduct_qa_dialogue">
-    This is a **conversational session** focused on **product/business concerns**:
-    - What problem are we solving?
-    - What value does it provide?
-    - What does "done" look like?
-    - User context, constraints, preferences
+    <note>This is a **conversational session** focused on **product/business concerns**:
+- What problem are we solving?
+- What value does it provide?
+- What does "done" look like?
+- User context, constraints, preferences</note>
 
-    **How the dialogue works:**
+    <note>How the dialogue works:</note>
 
-    a. **Ask questions as needed** using AskUserQuestion:
-       - Start with the most important gaps (problem, value, acceptance criteria)
-       - Ask follow-up questions based on answers
-       - Don't follow a rigid script - adapt to the conversation
+    <action>Ask questions as needed using AskUserQuestion</action>
+    <note>Start with the most important gaps (problem, value, acceptance criteria)</note>
+    <note>Ask follow-up questions based on answers</note>
+    <note>Don't follow a rigid script - adapt to the conversation</note>
 
-    b. **User can volunteer information at any time**:
-       - User may provide context you didn't ask for
-       - User may request research (e.g., "research how other apps handle password reset")
-       - User may skip questions ("skip" or "you fill it in")
+    <note>User can volunteer information at any time:
+- User may provide context you didn't ask for
+- User may request research (e.g., "research how other apps handle password reset")
+- User may skip questions ("skip" or "you fill it in")</note>
 
-    c. **Perform web research when requested or beneficial**:
-       - If user asks to research something, use WebSearch/WebFetch
-       - Research domain topics, best practices, how other products solve similar problems
-       - Share findings and ask if they influence requirements
+    <branch condition="user requests research">
+      <action>Use WebSearch/WebFetch to research domain topics, best practices, how other products solve similar problems</action>
+      <output>Share findings and ask if they influence requirements</output>
+    </branch>
 
-    d. **Continue until you have enough information**:
-       - You need enough to write: problem statement, value statement, acceptance criteria
-       - When you feel ready, signal to the user:
+    <action>Continue until you have enough information to write: problem statement, value statement, acceptance criteria</action>
 
-         **"I think I have enough information to write the refinement. Here's what I understand:**
-         - **Problem:** {summary}
-         - **Value:** {summary}
-         - **Acceptance criteria:** {summary}
+    <output>
+**"I think I have enough information to write the refinement. Here's what I understand:**
+- **Problem:** {summary}
+- **Value:** {summary}
+- **Acceptance criteria:** {summary}
 
-         **Is there anything else you'd like to discuss before I finalize this?"**
+**Is there anything else you'd like to discuss before I finalize this?"**
+    </output>
 
-    e. **User confirms or continues**:
-       - If user says "that's good" / "go ahead" / similar → proceed to writing
-       - If user adds more context → incorporate and ask if anything else
-       - If user has corrections → update understanding and confirm again
+    <branch condition="user says 'that's good' / 'go ahead' / similar">
+      <action>Proceed to writing</action>
+    </branch>
+    <branch condition="user adds more context">
+      <action>Incorporate and ask if anything else</action>
+    </branch>
+    <branch condition="user has corrections">
+      <action>Update understanding and confirm again</action>
+    </branch>
 
-    **Key principles:**
-    - Focus on PRODUCT/BUSINESS concerns, not technical implementation
-    - Let the conversation flow naturally
-    - Research when it helps clarify requirements
-    - Don't rush - thoroughness now saves time later
+    <note>Key principles:
+- Focus on PRODUCT/BUSINESS concerns, not technical implementation
+- Let the conversation flow naturally
+- Research when it helps clarify requirements
+- Don't rush - thoroughness now saves time later</note>
   </step>
 
   <step name="update_task_file">
-    - Follow template at `.claude/kanban-templates/task.md`
-    - Fill sections for this phase:
-      - `## What problem are you trying to solve?`
-      - `## What value would it provide if solved?`
-      - `## Acceptance Criteria` (in Gherkin format)
-    - Update frontmatter:
-      - Change status per `transitions.backlog` in kanban-workflow.yaml (`backlog` → `refined`)
-      - Add `updated: {YYYY-MM-DD}`
-      - Remove `needs-refinement` from labels if present
+    <action>Follow template at `.claude/kanban-templates/task.md`</action>
+    <action>Fill sections for this phase:</action>
+    <note>`## What problem are you trying to solve?`</note>
+    <note>`## What value would it provide if solved?`</note>
+    <note>`## Acceptance Criteria` (in Gherkin format)</note>
+    <action>Update frontmatter:</action>
+    <action>Change status per `transitions.backlog` in kanban-workflow.yaml (`backlog` → `refined`)</action>
+    <action>Add `updated: {YYYY-MM-DD}`</action>
+    <action>Remove `needs-refinement` from labels if present</action>
   </step>
 
   <step name="format_acceptance_criteria">
-    ```gherkin
-    Given {precondition}
-    And {additional precondition if needed}
-    When {action}
-    Then {expected outcome}
-    And {additional outcome if needed}
-    ```
+    <example_code lang="gherkin">
+Given {precondition}
+And {additional precondition if needed}
+When {action}
+Then {expected outcome}
+And {additional outcome if needed}
+    </example_code>
 
-    Example:
-    ```gherkin
-    Given a user is on the login page
-    And they have entered valid credentials
-    When they click the login button
-    Then they are redirected to the dashboard
-    And their session is established
-    ```
+    <note>Example:</note>
+    <example_code lang="gherkin">
+Given a user is on the login page
+And they have entered valid credentials
+When they click the login button
+Then they are redirected to the dashboard
+And their session is established
+    </example_code>
   </step>
 
   <step name="write_task_file">
-    Write the updated task file.
+    <action>Write the updated task file</action>
   </step>
 
   <step name="commit">
-    Format: `docs({taskId}): refine - {title}`
-
-    ```bash
-    git add .kanban/tasks/{taskId}-*.md
-    git commit -m "docs({taskId}): refine - {title}"
-    ```
+    <note>Format: `docs({taskId}): refine - {title}`</note>
+    <command>git add .kanban/tasks/{taskId}-*.md</command>
+    <command>git commit -m "docs({taskId}): refine - {title}"</command>
   </step>
 
   <step name="output_result">
-    - Print summary of changes made
-    - Show updated acceptance criteria
-    - Print commit hash
+    <output>Print summary of changes made</output>
+    <output>Show updated acceptance criteria</output>
+    <output>Print commit hash</output>
   </step>
 </process>
 
@@ -186,8 +202,7 @@ Refine vague tasks through iterative conversational Q&A focused on product/busin
 - Next steps shown to user
 </success_criteria>
 
-## Example
-
+<example>
 User: `/kanban-refine 003`
 
 ```
@@ -259,10 +274,11 @@ Next:
 /clear
 /kanban-scope 003
 ```
+</example>
 
-## Next Steps
-
+<next_steps>
 ```
 /clear
 /kanban-scope {id}
 ```
+</next_steps>

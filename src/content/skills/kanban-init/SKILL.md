@@ -23,88 +23,96 @@ Create the `.kanban/` directory structure for a new project.
 
 <process>
   <step name="check_already_initialized">
-    - Check if `.kanban/` directory exists
-    - If exists, ask user: "Kanban already initialized. Reinitialize? (This will NOT delete existing tasks)"
-    - If user declines, exit
+    <validate>Check if `.kanban/` directory exists</validate>
+    <branch condition="directory exists">
+      <prompt>Kanban already initialized. Reinitialize? (This will NOT delete existing tasks)</prompt>
+      <branch condition="user declines">
+        <action>Exit</action>
+      </branch>
+    </branch>
   </step>
 
   <step name="check_git_repository">
-    - Run `git status` to verify we're in a git repo
-    - If not a git repo, warn: "Not a git repository. Kanban works best with git for commit tracking."
-    - Ask if user wants to continue anyway
+    <command>git status</command>
+    <validate>Verify we're in a git repo</validate>
+    <branch condition="not a git repo">
+      <output>Warning: Not a git repository. Kanban works best with git for commit tracking.</output>
+      <prompt>Continue anyway?</prompt>
+    </branch>
   </step>
 
   <step name="create_directory_structure">
-    ```bash
-    mkdir -p .kanban/tasks
-    mkdir -p .kanban/specs
-    mkdir -p .kanban/plans
-    mkdir -p .kanban/product
-    mkdir -p .kanban/skills
-    ```
+    <command>
+mkdir -p .kanban/tasks
+mkdir -p .kanban/specs
+mkdir -p .kanban/plans
+mkdir -p .kanban/product
+mkdir -p .kanban/skills
+    </command>
   </step>
 
   <step name="create_product_overview">
-    - Read template from `.claude/kanban-templates/overview.md`
-    - Create `.kanban/product/overview.md`
-    - Ask user: "What is this product called?"
-    - Ask user: "In one sentence, what does it do?"
-    - Fill template with responses
-    - This becomes the root product doc that LLMs read first
+    <action>Read template from `.claude/kanban-templates/overview.md`</action>
+    <action>Create `.kanban/product/overview.md`</action>
+    <prompt>What is this product called?</prompt>
+    <prompt>In one sentence, what does it do?</prompt>
+    <action>Fill template with responses</action>
+    <note>This becomes the root product doc that LLMs read first</note>
   </step>
 
   <step name="create_config_yaml">
-    - Read template from `.claude/kanban-templates/config.yaml`
-    - Write to `.kanban/config.yaml` **exactly as-is** (do not modify or add properties)
-    - If template not found, create minimal config **exactly as shown below**:
+    <action>Read template from `.claude/kanban-templates/config.yaml`</action>
+    <action>Write to `.kanban/config.yaml` exactly as-is (do not modify or add properties)</action>
+    <branch condition="template not found">
+      <action>Create minimal config exactly as shown</action>
+      <warning>Do NOT add, invent, or improvise any properties not shown in the template</warning>
+      <note>The config.yaml schema has exactly three top-level keys: `name`, `user-skills`, `settings`</note>
+      <note>Do NOT add keys like `verification`, `checks`, `hooks`, `commands`, or anything else</note>
+      <example_code lang="yaml">
+# Skill names resolve to .claude/skills/{name}/SKILL.md
+name: My Project
 
-    **CRITICAL: Do NOT add, invent, or improvise any properties not shown in the template.**
-    The config.yaml schema has exactly three top-level keys: `name`, `user-skills`, `settings`.
-    Do NOT add keys like `verification`, `checks`, `hooks`, `commands`, or anything else.
-      ```yaml
-      # Skill names resolve to .claude/skills/{name}/SKILL.md
-      name: My Project
+user-skills:
+  "kanban-create":
+    skills:
+  "kanban-refine":
+    skills:
+  "kanban-scope":
+    skills:
+  "kanban-plan":
+    skills:
+  "kanban-implement":
+    skills:
+  "kanban-save":
+    skills:
+  "kanban-verify":
+    skills:
+  "kanban-approve":
+    skills:
+  "kanban-docs":
+    skills:
+  "kanban-merge":
+    skills:
+  "kanban-rework":
+    skills:
+  "kanban-map-product":
+    skills:
+  "kanban-define-product":
+    skills:
 
-      user-skills:
-        "kanban-create":
-          skills:
-        "kanban-refine":
-          skills:
-        "kanban-scope":
-          skills:
-        "kanban-plan":
-          skills:
-        "kanban-implement":
-          skills:
-        "kanban-save":
-          skills:
-        "kanban-verify":
-          skills:
-        "kanban-approve":
-          skills:
-        "kanban-docs":
-          skills:
-        "kanban-merge":
-          skills:
-        "kanban-rework":
-          skills:
-        "kanban-map-product":
-          skills:
-        "kanban-define-product":
-          skills:
-
-      settings:
-        version: "2.0"
-        idPrefix: ""
-        idPadding: 3
-        archiveOnComplete: false
-      ```
+settings:
+  version: "2.0"
+  idPrefix: ""
+  idPadding: 3
+  archiveOnComplete: false
+      </example_code>
+    </branch>
   </step>
 
   <step name="output_result">
-    - Print created directories
-    - Print config location
-    - Suggest next steps
+    <output>Print created directories</output>
+    <output>Print config location</output>
+    <output>Suggest next steps</output>
   </step>
 </process>
 
@@ -120,9 +128,8 @@ Create the `.kanban/` directory structure for a new project.
 - Next steps shown to user
 </success_criteria>
 
-## File Naming Conventions
-
-**IMPORTANT:** When working with kanban files, always glob/search first to discover existing naming conventions rather than guessing.
+<note>
+**File Naming Conventions:**
 
 | Directory | File Pattern | Example |
 |-----------|-------------|---------|
@@ -133,9 +140,11 @@ Create the `.kanban/` directory structure for a new project.
 | `.kanban/skills/` | `{name}.md` | `check-typescript.md` |
 
 User-defined skills in `.kanban/skills/` are simple `.md` files (NOT directories with `SKILL.md` inside).
+</note>
 
-## Example
+<warning>Always glob/search first to discover existing naming conventions rather than guessing.</warning>
 
+<example>
 User: `/kanban-init`
 
 ```
@@ -158,9 +167,9 @@ Next steps:
 - Or map existing code: /kanban-map-product
 - Or create a task: /kanban-create "Your first task"
 ```
+</example>
 
-## Next Steps
-
+<next_steps>
 For new projects:
 ```
 /clear
@@ -178,3 +187,4 @@ Or skip product discovery and create a task:
 /clear
 /kanban-create "Task title"
 ```
+</next_steps>

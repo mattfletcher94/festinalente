@@ -23,154 +23,194 @@ Show the current state of the board and suggest what command to run next. Helps 
 <process>
   <!-- If task ID provided -->
   <step name="find_task" when="$ARGUMENTS is not empty" outputs="taskPath">
-    - Run `node .claude/scripts/find-task.cjs {id}` to get exact path
-    - Read the file at the `path` from JSON output
-    - Parse YAML frontmatter
-    - Error if task not found
+    <command>node .claude/scripts/find-task.cjs {id}</command>
+    <action>Read the file at the `path` from JSON output</action>
+    <action>Parse YAML frontmatter</action>
+    <branch condition="task not found">
+      <output>Error: Task not found</output>
+      <action>Exit</action>
+    </branch>
   </step>
 
   <step name="gather_task_details" when="$ARGUMENTS is not empty" outputs="title, status, labels, priority">
-    - Title, status, labels, priority
-    - Created/updated dates
+    <action>Extract title, status, labels, priority</action>
+    <action>Extract created/updated dates</action>
   </step>
 
   <step name="get_plan_progress" when="$ARGUMENTS is not empty AND status is `planned`, `in-progress`, `checks`, or `qa`">
-    - Read `.kanban/plans/{id}-{slug}.plan.md`
-    - Count checkboxes: total, completed, remaining
-    - Check for WIP Notes section
-    - Check for Iterations section (previous failures)
+    <action>Read `.kanban/plans/{id}-{slug}.plan.md`</action>
+    <action>Count checkboxes: total, completed, remaining</action>
+    <action>Check for WIP Notes section</action>
+    <action>Check for Iterations section (previous failures)</action>
   </step>
 
   <step name="output_task_status" when="$ARGUMENTS is not empty">
-    ```
-    ## Task {id}: {title}
+    <output>
+## Task {id}: {title}
 
-    **Status:** {status}
-    **Labels:** {labels}
-    **Priority:** {priority}
+**Status:** {status}
+**Labels:** {labels}
+**Priority:** {priority}
 
-    **Progress:** {completed}/{total} steps complete
+**Progress:** {completed}/{total} steps complete
 
-    **Last activity:** {updated date}
+**Last activity:** {updated date}
 
-    {If WIP Notes exist, show continuation hints}
-    {If Iterations exist, show last failure summary}
-    ```
+{If WIP Notes exist, show continuation hints}
+{If Iterations exist, show last failure summary}
+    </output>
   </step>
 
   <step name="suggest_next_command_for_task" when="$ARGUMENTS is not empty">
-    Based on status:
-    - `backlog` → `/kanban-refine {id}`
-    - `refined` → `/kanban-scope {id}`
-    - `scoped` → `/kanban-plan {id}`
-    - `planned` → `/kanban-implement {id}`
-    - `in-progress` → `/kanban-implement {id}` (to resume) or `/kanban-verify {id}` (if all checkboxes done)
-    - `checks` → "Checks run automatically. Wait for auto-advance to QA."
-    - `qa` → `/kanban-approve {id}` or `/kanban-rework {id}`
-    - `update-docs` → `/kanban-docs {id}`
-    - `pr` → `/kanban-merge {id}` or `/kanban-rework {id}`
-    - `done` → "Task complete. No action needed."
+    <branch condition="status is backlog">
+      <output>Next: `/kanban-refine {id}`</output>
+    </branch>
+    <branch condition="status is refined">
+      <output>Next: `/kanban-scope {id}`</output>
+    </branch>
+    <branch condition="status is scoped">
+      <output>Next: `/kanban-plan {id}`</output>
+    </branch>
+    <branch condition="status is planned">
+      <output>Next: `/kanban-implement {id}`</output>
+    </branch>
+    <branch condition="status is in-progress">
+      <output>Next: `/kanban-implement {id}` (to resume) or `/kanban-verify {id}` (if all checkboxes done)</output>
+    </branch>
+    <branch condition="status is checks">
+      <output>Checks run automatically. Wait for auto-advance to QA.</output>
+    </branch>
+    <branch condition="status is qa">
+      <output>Next: `/kanban-approve {id}` or `/kanban-rework {id}`</output>
+    </branch>
+    <branch condition="status is update-docs">
+      <output>Next: `/kanban-docs {id}`</output>
+    </branch>
+    <branch condition="status is pr">
+      <output>Next: `/kanban-merge {id}` or `/kanban-rework {id}`</output>
+    </branch>
+    <branch condition="status is done">
+      <output>Task complete. No action needed.</output>
+    </branch>
   </step>
 
   <step name="output_task_next_steps" when="$ARGUMENTS is not empty">
-    ```
-    ## Task {id}: {title}
+    <output>
+## Task {id}: {title}
 
-    **Status:** {status}
-    **Progress:** {completed}/{total} steps complete
+**Status:** {status}
+**Progress:** {completed}/{total} steps complete
 
-    {additional context if relevant}
+{additional context if relevant}
 
-    **Next:**
-    ```
-    /clear
-    /kanban-{appropriate-command} {id}
-    ```
-    ```
+**Next:**
+```
+/clear
+/kanban-{appropriate-command} {id}
+```
+    </output>
   </step>
 
   <!-- If no task ID provided (show full board) -->
   <step name="find_all_tasks" when="$ARGUMENTS is empty" outputs="tasks">
-    - Run `node .claude/scripts/list-tasks.cjs` to get all tasks
-    - If count is 0, inform user and suggest `/kanban-create`
+    <command>node .claude/scripts/list-tasks.cjs</command>
+    <branch condition="count is 0">
+      <output>No tasks found.</output>
+      <output>Next: `/kanban-create "Your task title"`</output>
+      <action>Exit</action>
+    </branch>
   </step>
 
   <step name="parse_each_task" when="$ARGUMENTS is empty">
-    - Read frontmatter to get id, title, status
-    - Group tasks by status
+    <action>Read frontmatter to get id, title, status</action>
+    <action>Group tasks by status</action>
   </step>
 
   <step name="get_in_progress_plan_progress" when="$ARGUMENTS is empty">
-    For in-progress tasks:
-    - Read plan file if exists
-    - Count completed/total checkboxes
+    <note>For in-progress tasks:</note>
+    <action>Read plan file if exists</action>
+    <action>Count completed/total checkboxes</action>
   </step>
 
   <step name="output_board_status" when="$ARGUMENTS is empty">
-    Grouped by column:
-    ```
-    ## Board Status
+    <note>Group by column, ordered by workflow priority (in-progress first, done last)</note>
+    <output>
+## Board Status
 
-    **In Progress ({count})**
-    - {id}: {title} — {completed}/{total} steps
+**In Progress ({count})**
+- {id}: {title} — {completed}/{total} steps
 
-    **Checks ({count})**
-    - {id}: {title}
+**Checks ({count})**
+- {id}: {title}
 
-    **QA ({count})**
-    - {id}: {title}
+**QA ({count})**
+- {id}: {title}
 
-    **Update Docs ({count})**
-    - {id}: {title}
+**Update Docs ({count})**
+- {id}: {title}
 
-    **PR ({count})**
-    - {id}: {title}
+**PR ({count})**
+- {id}: {title}
 
-    **Planned ({count})**
-    - {id}: {title}
+**Planned ({count})**
+- {id}: {title}
 
-    **Scoped ({count})**
-    - {id}: {title}
+**Scoped ({count})**
+- {id}: {title}
 
-    **Refined ({count})**
-    - {id}: {title}
+**Refined ({count})**
+- {id}: {title}
 
-    **Backlog ({count})**
-    - {id}: {title}
+**Backlog ({count})**
+- {id}: {title}
 
-    **Done ({count})**
-    - {id}: {title}
-    ```
-
-    Only show columns that have tasks. Order by workflow priority (in-progress first, done last).
+**Done ({count})**
+- {id}: {title}
+    </output>
+    <note>Only show columns that have tasks</note>
   </step>
 
   <step name="suggest_next_action_for_board" when="$ARGUMENTS is empty">
-    Based on board state:
-    - If tasks in `in-progress`: Suggest resuming that task
-    - If tasks in `checks`: Checks run automatically - wait for completion
-    - If tasks in `qa`: Suggest approving or sending back for rework
-    - If tasks in `update-docs`: Suggest completing documentation
-    - If tasks in `pr`: Suggest merging or sending back for rework
-    - If tasks in `planned` but none in progress: Suggest starting implementation
-    - If only backlog/refined/scoped tasks: Suggest advancing the highest priority one
-    - If no tasks: Suggest creating one
+    <branch condition="tasks in in-progress">
+      <action>Suggest resuming that task</action>
+    </branch>
+    <branch condition="tasks in checks">
+      <note>Checks run automatically - wait for completion</note>
+    </branch>
+    <branch condition="tasks in qa">
+      <action>Suggest approving or sending back for rework</action>
+    </branch>
+    <branch condition="tasks in update-docs">
+      <action>Suggest completing documentation</action>
+    </branch>
+    <branch condition="tasks in pr">
+      <action>Suggest merging or sending back for rework</action>
+    </branch>
+    <branch condition="tasks in planned but none in progress">
+      <action>Suggest starting implementation</action>
+    </branch>
+    <branch condition="only backlog/refined/scoped tasks">
+      <action>Suggest advancing the highest priority one</action>
+    </branch>
+    <branch condition="no tasks">
+      <action>Suggest creating one</action>
+    </branch>
   </step>
 
   <step name="output_board_next_steps" when="$ARGUMENTS is empty">
-    ```
-    ## Board Status
+    <output>
+## Board Status
 
-    {grouped task list}
+{grouped task list}
 
-    **Next:**
-    ```
-    /clear
-    /kanban-{command} {id}
-    ```
+**Next:**
+```
+/clear
+/kanban-{command} {id}
+```
 
-    {Brief explanation of why this is suggested}
-    ```
+{Brief explanation of why this is suggested}
+    </output>
   </step>
 </process>
 
@@ -181,8 +221,7 @@ Show the current state of the board and suggest what command to run next. Helps 
 - Next steps shown to user
 </success_criteria>
 
-## Example
-
+<example>
 **Full Board Status:**
 
 User: `/kanban-status`
@@ -259,9 +298,9 @@ No tasks found.
 
 Create your first task to get started.
 ```
+</example>
 
-## Next Steps
-
+<next_steps>
 Check status of a specific task:
 ```
 /clear
@@ -273,3 +312,4 @@ Or view the full board:
 /clear
 /kanban-status
 ```
+</next_steps>

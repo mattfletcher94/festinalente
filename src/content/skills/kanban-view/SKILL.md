@@ -23,100 +23,99 @@ Display the Kanban board as a visual terminal output with box-drawing characters
 
 <process>
   <step name="check_kanban_exists">
-    - If `.kanban/tasks/` doesn't exist, output error:
-      ```
-      No Kanban board found. Run `/kanban-init` to initialize.
-      ```
+    <validate>Check if `.kanban/tasks/` directory exists</validate>
+    <branch condition="directory doesn't exist">
+      <output>No Kanban board found. Run `/kanban-init` to initialize.</output>
+      <action>Exit</action>
+    </branch>
   </step>
 
   <step name="ask_view_preset" outputs="preset">
-    Ask the user:
-
-    **"Which view?"**
-    - **Quick** — Hide empty columns, Done as count only (recommended for daily use)
-    - **Full** — Show all 10 columns, all tasks
-    - **Custom** — Choose your own settings
+    <prompt>Which view?
+- **Quick** — Hide empty columns, Done as count only (recommended for daily use)
+- **Full** — Show all 10 columns, all tasks
+- **Custom** — Choose your own settings</prompt>
   </step>
 
   <step name="ask_custom_settings" when="Custom selected">
-    **"Show empty columns?"**
-    - Yes — Show all 10 columns even if empty
-    - No — Only show columns with tasks
-
-    **"How to display Done tasks?"**
-    - All — Show every completed task
-    - Count only — Just show `Done (N tasks)`
-    - Recent 3 — Show count plus last 3 completed
+    <prompt>Show empty columns?
+- Yes — Show all 10 columns even if empty
+- No — Only show columns with tasks</prompt>
+    <prompt>How to display Done tasks?
+- All — Show every completed task
+- Count only — Just show `Done (N tasks)`
+- Recent 3 — Show count plus last 3 completed</prompt>
   </step>
 
   <step name="read_all_tasks" outputs="tasks">
-    - Run `node .claude/scripts/list-tasks.cjs` to get all tasks with metadata
-    - The JSON output includes `id`, `title`, `status`, `labels` for each task
-    - Group tasks by `status`
+    <command>node .claude/scripts/list-tasks.cjs</command>
+    <note>The JSON output includes `id`, `title`, `status`, `labels` for each task</note>
+    <action>Group tasks by `status`</action>
   </step>
 
   <step name="get_plan_progress" when="tasks have status `planned`, `in-progress`, `verify`, or `review`">
-    For tasks with status `planned`, `in-progress`, `verify`, or `review`:
-    - Read `.kanban/plans/{id}-{slug}.plan.md` if it exists
-    - Count checkboxes: `- [ ]` (incomplete) and `- [x]` (complete)
-    - Calculate progress as `{complete}/{total}`
+    <note>For tasks with status `planned`, `in-progress`, `verify`, or `review`:</note>
+    <action>Read `.kanban/plans/{id}-{slug}.plan.md` if it exists</action>
+    <action>Count checkboxes: `- [ ]` (incomplete) and `- [x]` (complete)</action>
+    <action>Calculate progress as `{complete}/{total}`</action>
   </step>
 
   <step name="render_board">
-    Use this column order (workflow order):
-    1. `backlog` → "BACKLOG"
-    2. `refined` → "REFINED"
-    3. `scoped` → "SCOPED"
-    4. `planned` → "PLANNED"
-    5. `in-progress` → "IN PROGRESS"
-    6. `verify` → "VERIFY"
-    7. `review` → "REVIEW"
-    8. `update-docs` → "UPDATE DOCS"
-    9. `awaiting-merge` → "AWAITING MERGE"
-    10. `done` → "DONE"
+    <note>Use this column order (workflow order):
+1. `backlog` → "BACKLOG"
+2. `refined` → "REFINED"
+3. `scoped` → "SCOPED"
+4. `planned` → "PLANNED"
+5. `in-progress` → "IN PROGRESS"
+6. `verify` → "VERIFY"
+7. `review` → "REVIEW"
+8. `update-docs` → "UPDATE DOCS"
+9. `awaiting-merge` → "AWAITING MERGE"
+10. `done` → "DONE"</note>
 
-    **Box format:**
-    ```
-    ┌─ {COLUMN NAME} ({count}) ─────────────┐
-    │ {id}: {title} [{label}] {progress}    │
-    │ {id}: {title} [{label}]               │
-    └───────────────────────────────────────┘
-    ```
+    <note>Box format:
+```
+┌─ {COLUMN NAME} ({count}) ─────────────┐
+│ {id}: {title} [{label}] {progress}    │
+│ {id}: {title} [{label}]               │
+└───────────────────────────────────────┘
+```</note>
 
-    **Rendering rules:**
-    - Box width: 45 characters (adjust based on longest task line, min 40, max 60)
-    - Truncate titles with `...` if task line exceeds box width minus padding
-    - Show label only if task has one (first label if multiple)
-    - Show progress only if plan exists
-    - Use consistent box width for all columns
+    <note>Rendering rules:
+- Box width: 45 characters (adjust based on longest task line, min 40, max 60)
+- Truncate titles with `...` if task line exceeds box width minus padding
+- Show label only if task has one (first label if multiple)
+- Show progress only if plan exists
+- Use consistent box width for all columns</note>
 
-    **If Quick preset:**
-    - Skip columns with zero tasks
-    - For Done column, show: `Done (N tasks)` without a box
+    <branch condition="Quick preset">
+      <action>Skip columns with zero tasks</action>
+      <action>For Done column, show: `Done (N tasks)` without a box</action>
+    </branch>
 
-    **If Full preset:**
-    - Show all columns, even empty ones: `┌─ VERIFY (0) ─┐ └──────────────┘`
-    - Show all Done tasks in box
+    <branch condition="Full preset">
+      <action>Show all columns, even empty ones: `┌─ VERIFY (0) ─┐ └──────────────┘`</action>
+      <action>Show all Done tasks in box</action>
+    </branch>
   </step>
 
   <step name="output_result">
-    **No tasks:**
-    ```
-    No tasks on the board.
+    <branch condition="no tasks">
+      <output>
+No tasks on the board.
 
-    **Next:**
-    /kanban-create "Your first task"
-    ```
+**Next:**
+/kanban-create "Your first task"
+      </output>
+    </branch>
 
-    **Done count only (Quick preset):**
-    ```
-    Done (5 tasks)
-    ```
+    <branch condition="Done count only (Quick preset)">
+      <output>Done (5 tasks)</output>
+    </branch>
 
-    **Done recent 3 (Custom):**
-    ```
-    Done (5 tasks) — recent: 005, 004, 003
-    ```
+    <branch condition="Done recent 3 (Custom)">
+      <output>Done (5 tasks) — recent: 005, 004, 003</output>
+    </branch>
   </step>
 </process>
 
@@ -131,8 +130,7 @@ Display the Kanban board as a visual terminal output with box-drawing characters
 - Next steps shown to user
 </success_criteria>
 
-## Example
-
+<example>
 **Quick View:**
 
 ```
@@ -185,19 +183,21 @@ Done (2 tasks)
 │ 002: Fix login bug [bug]              │
 └───────────────────────────────────────┘
 ```
+</example>
 
-## Box-Drawing Characters Reference
-
+<note>
+**Box-Drawing Characters Reference:**
 ```
 ┌ ─ ┐   Top-left corner, horizontal, top-right corner
 │   │   Vertical sides
 └ ─ ┘   Bottom-left corner, horizontal, bottom-right corner
 ```
+</note>
 
-## Next Steps
-
+<next_steps>
 To see task details:
 ```
 /clear
 /kanban-status {id}
 ```
+</next_steps>

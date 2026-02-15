@@ -37,20 +37,29 @@ Create a functional specification through iterative conversational Q&A focused o
   </step>
 
   <step name="get_task_id" outputs="taskId">
-    Use $ARGUMENTS if provided (e.g., "001"), otherwise:
-    - List tasks in `refined` status from `.kanban/tasks/`
-    - Show task IDs and titles
-    - Ask user which task to scope
+    <branch condition="$ARGUMENTS provided">
+      <action>Use $ARGUMENTS as taskId</action>
+    </branch>
+    <branch condition="$ARGUMENTS not provided">
+      <action>List tasks in `refined` status from `.kanban/tasks/`</action>
+      <output>Show task IDs and titles</output>
+      <prompt>Which task to scope?</prompt>
+    </branch>
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, acceptanceCriteria">
-    - Run `node .claude/scripts/find-task.cjs {taskId}` to get exact path
-    - Read the file at the `path` from JSON output
-    - Parse YAML frontmatter
-    - Verify status is `refined`:
-      - If not refined, warn: "Task is in {status} status. Expected: refined. Continue anyway? (y/n)"
-    - Extract problem, value, and acceptance criteria for reference
-    - Error if task not found
+    <command>node .claude/scripts/find-task.cjs {taskId}</command>
+    <action>Read the file at the `path` from JSON output</action>
+    <action>Parse YAML frontmatter</action>
+    <validate>Verify status is `refined`</validate>
+    <branch condition="status is not refined">
+      <prompt>Task is in {status} status. Expected: refined. Continue anyway? (y/n)</prompt>
+    </branch>
+    <action>Extract problem, value, and acceptance criteria for reference</action>
+    <branch condition="task not found">
+      <output>Error: Task not found</output>
+      <action>Exit</action>
+    </branch>
   </step>
 
   <step name="load_user_skills">
@@ -58,185 +67,182 @@ Create a functional specification through iterative conversational Q&A focused o
   </step>
 
   <step name="initial_codebase_research">
-    **Read product context first:**
-    - If task has `affects` field:
-      - For each ID: Read `.kanban/product/{id}.md`
-      - Note: current behavior, constraints, interactions
-      - This informs WHERE to look in codebase
+    <note>Read product context first:</note>
+    <branch condition="task has `affects` field">
+      <action>For each ID: Read `.kanban/product/{id}.md`</action>
+      <action>Note: current behavior, constraints, interactions</action>
+      <note>This informs WHERE to look in codebase</note>
+    </branch>
 
-    **Then proceed with codebase research:**
-    Based on task description and acceptance criteria, do preliminary research:
-    - Use Glob to find potentially affected files
-    - Use Grep to search for relevant patterns, functions, or components
-    - Read key files to understand existing patterns
-    - Identify dependencies and libraries involved
-    - Look for similar implementations that can serve as references
+    <note>Then proceed with codebase research:</note>
+    <action>Based on task description and acceptance criteria, do preliminary research</action>
+    <action>Use Glob to find potentially affected files</action>
+    <action>Use Grep to search for relevant patterns, functions, or components</action>
+    <action>Read key files to understand existing patterns</action>
+    <action>Identify dependencies and libraries involved</action>
+    <action>Look for similar implementations that can serve as references</action>
 
-    **Pattern search strategy:**
-    - Search for similar functionality: "How is X done elsewhere?"
-    - Search for related types/interfaces: "What types are involved?"
-    - Search for integration points: "What connects to this?"
+    <note>Pattern search strategy:
+- Search for similar functionality: "How is X done elsewhere?"
+- Search for related types/interfaces: "What types are involved?"
+- Search for integration points: "What connects to this?"</note>
   </step>
 
   <step name="conduct_qa_dialogue">
-    This is a **conversational session** focused on **technical decisions**:
-    - Architecture and approach
-    - Existing patterns to follow
-    - Dependencies and libraries
-    - Technical constraints
-    - Files to modify/create
+    <note>This is a **conversational session** focused on **technical decisions**:
+- Architecture and approach
+- Existing patterns to follow
+- Dependencies and libraries
+- Technical constraints
+- Files to modify/create</note>
 
-    **How the dialogue works:**
+    <note>How the dialogue works:</note>
 
-    a. **Share initial findings and ask questions**:
-       - Present what you found in the codebase
-       - Ask about technical approach, preferences, constraints
-       - Don't follow a rigid script - adapt to the conversation
+    <action>Share initial findings and ask questions</action>
+    <note>Present what you found in the codebase</note>
+    <note>Ask about technical approach, preferences, constraints</note>
+    <note>Don't follow a rigid script - adapt to the conversation</note>
 
-    b. **User can volunteer information at any time**:
-       - User may provide technology directives (e.g., "use Zustand", "use React Query")
-       - User may request research (e.g., "research reactive localStorage packages for React")
-       - User may share architectural preferences or constraints
+    <note>User can volunteer information at any time:
+- User may provide technology directives (e.g., "use Zustand", "use React Query")
+- User may request research (e.g., "research reactive localStorage packages for React")
+- User may share architectural preferences or constraints</note>
 
-    c. **Perform research when requested or beneficial**:
+    <note>Perform research when requested or beneficial:</note>
 
-       **Local codebase research:**
-       - Use Glob/Grep to find patterns as topics arise
-       - Read files to understand existing implementations
+    <note>**Local codebase research:**</note>
+    <action>Use Glob/Grep to find patterns as topics arise</action>
+    <action>Read files to understand existing implementations</action>
 
-       **Web research:**
-       - If user asks to research packages/libraries, use WebSearch
-       - Research npm packages, documentation, best practices
-       - Compare options and present findings
-       - Ask if findings influence the approach
+    <note>**Web research:**</note>
+    <branch condition="user asks to research packages/libraries">
+      <action>Use WebSearch to research npm packages, documentation, best practices</action>
+      <action>Compare options and present findings</action>
+      <prompt>Ask if findings influence the approach</prompt>
+    </branch>
 
-       Example: User says "research reactive localStorage packages for React"
-       → WebSearch for packages
-       → Evaluate options (maintenance, API, bundle size)
-       → Present comparison and recommendation
-       → Ask which to use or if more research needed
+    <action>Continue until you have enough information to write a complete functional spec</action>
 
-    d. **Continue until you have enough information**:
-       - You need enough to write a complete functional spec
-       - When you feel ready, signal to the user:
+    <output>
+**"I think I have enough information to write the functional spec. Here's what I understand:**
 
-         **"I think I have enough information to write the functional spec. Here's what I understand:**
+- **Approach:** {summary}
+- **Key files:** {list}
+- **Dependencies:** {list}
+- **Patterns to follow:** {summary}
 
-         - **Approach:** {summary}
-         - **Key files:** {list}
-         - **Dependencies:** {list}
-         - **Patterns to follow:** {summary}
+**Is there anything else you'd like to discuss before I write the spec?"**
+    </output>
 
-         **Is there anything else you'd like to discuss before I write the spec?"**
+    <branch condition="user says 'that's good' / 'go ahead' / similar">
+      <action>Proceed to writing spec</action>
+    </branch>
+    <branch condition="user adds more context">
+      <action>Incorporate and ask if anything else</action>
+    </branch>
+    <branch condition="user has corrections">
+      <action>Update understanding and confirm again</action>
+    </branch>
 
-    e. **User confirms or continues**:
-       - If user says "that's good" / "go ahead" / similar → proceed to writing spec
-       - If user adds more context → incorporate and ask if anything else
-       - If user has corrections → update understanding and confirm again
-
-    **Key principles:**
-    - Focus on TECHNICAL decisions, not product requirements (those are in the task)
-    - Research as topics arise, not just at the beginning
-    - Let the conversation flow naturally
-    - Don't rush - thoroughness now saves time during implementation
+    <note>Key principles:
+- Focus on TECHNICAL decisions, not product requirements (those are in the task)
+- Research as topics arise, not just at the beginning
+- Let the conversation flow naturally
+- Don't rush - thoroughness now saves time during implementation</note>
   </step>
 
   <step name="create_spec_file" outputs="specPath, slug">
-    Create at `.kanban/specs/{taskId}-{slug}.spec.md`
-    Derive slug from task title, same as task file.
-    - Follow template at `.claude/kanban-templates/spec.md`
-    - Fill ALL sections:
+    <action>Create at `.kanban/specs/{taskId}-{slug}.spec.md`</action>
+    <note>Derive slug from task title, same as task file</note>
+    <action>Follow template at `.claude/kanban-templates/spec.md`</action>
+    <action>Link to spec in frontmatter</action>
+    <action>Fill ALL sections</action>
 
-    ```markdown
-    ---
-    task: "{taskId}"
-    created: {YYYY-MM-DD}
-    updated: {YYYY-MM-DD}
-    ---
+    <example_code lang="markdown">
+---
+task: "{taskId}"
+created: {YYYY-MM-DD}
+updated: {YYYY-MM-DD}
+---
 
-    # Functional Specification: {title}
+# Functional Specification: {title}
 
-    ## Context
-    {Pull from task's problem and value sections}
+## Context
+{Pull from task's problem and value sections}
 
-    ## Scope
-    ### In Scope
-    - {What this spec covers}
+## Scope
+### In Scope
+- {What this spec covers}
 
-    ### Out of Scope
-    - {Explicit boundaries}
+### Out of Scope
+- {Explicit boundaries}
 
-    ## Functional Requirements
-    - FR1: The system shall...
-    - FR2: The system shall...
+## Functional Requirements
+- FR1: The system shall...
+- FR2: The system shall...
 
-    ## Affected Files
-    - `path/to/file.ts` (modify) - {reason}
-    - `path/to/new.ts` (create) - {reason}
+## Affected Files
+- `path/to/file.ts` (modify) - {reason}
+- `path/to/new.ts` (create) - {reason}
 
-    ## Existing Patterns
-    - **Pattern:** {description}
-      - Reference: `path/to/example.ts:42`
+## Existing Patterns
+- **Pattern:** {description}
+  - Reference: `path/to/example.ts:42`
 
-    ## Technical Constraints
-    - {Constraints discovered during research}
+## Technical Constraints
+- {Constraints discovered during research}
 
-    ## Dependencies
-    ### External
-    - {Libraries/APIs - include any researched/chosen packages}
+## Dependencies
+### External
+- {Libraries/APIs - include any researched/chosen packages}
 
-    ### Internal
-    - {Other features/tasks}
+### Internal
+- {Other features/tasks}
 
-    ## Research Findings
-    {If web research was conducted, summarize findings and decisions}
-    - **Topic:** {what was researched}
-    - **Options considered:** {list}
-    - **Decision:** {what was chosen and why}
+## Research Findings
+{If web research was conducted, summarize findings and decisions}
+- **Topic:** {what was researched}
+- **Options considered:** {list}
+- **Decision:** {what was chosen and why}
 
-    ## Risks & Mitigations
-    | Risk | Impact | Mitigation |
-    |------|--------|------------|
-    | ... | ... | ... |
+## Risks & Mitigations
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| ... | ... | ... |
 
-    ## Open Questions
-    - [ ] {Unresolved items}
-    ```
+## Open Questions
+- [ ] {Unresolved items}
+    </example_code>
   </step>
 
   <step name="update_task_frontmatter">
-    - Change `status: refined` to `status: scoped`
-    - Add `spec: "specs/{taskId}-{slug}.spec.md"` to frontmatter
-    - Update `updated: {YYYY-MM-DD}`
+    <action>Change `status: refined` to `status: scoped`</action>
+    <action>Add `spec: "specs/{taskId}-{slug}.spec.md"` to frontmatter</action>
+    <action>Update `updated: {YYYY-MM-DD}`</action>
   </step>
 
   <step name="write_files">
-    - Write spec file at `.kanban/specs/{taskId}-{slug}.spec.md`
-    - Write updated task file
+    <action>Write spec file at `.kanban/specs/{taskId}-{slug}.spec.md`</action>
+    <action>Write updated task file</action>
   </step>
 
   <step name="create_task_branch">
-    ```bash
-    git checkout -b task/{taskId}
-    ```
-    Confirm: "Created branch task/{taskId}"
+    <command>git checkout -b task/{taskId}</command>
+    <output>Confirm: "Created branch task/{taskId}"</output>
   </step>
 
   <step name="commit">
-    Format: `docs({taskId}): scope - {title}`
-
-    ```bash
-    git add .kanban/specs/{taskId}-{slug}.spec.md .kanban/tasks/{taskId}-*.md
-    git commit -m "docs({taskId}): scope - {title}"
-    ```
+    <note>Format: `docs({taskId}): scope - {title}`</note>
+    <command>git add .kanban/specs/{taskId}-{slug}.spec.md .kanban/tasks/{taskId}-*.md</command>
+    <command>git commit -m "docs({taskId}): scope - {title}"</command>
   </step>
 
   <step name="output_result">
-    - Print summary of affected files identified
-    - Print existing patterns found
-    - Print any research findings and decisions
-    - Print any open questions
-    - Print commit hash
+    <output>Print summary of affected files identified</output>
+    <output>Print existing patterns found</output>
+    <output>Print any research findings and decisions</output>
+    <output>Print any open questions</output>
+    <output>Print commit hash</output>
   </step>
 </process>
 
@@ -253,8 +259,7 @@ Create a functional specification through iterative conversational Q&A focused o
 - Next steps shown to user
 </success_criteria>
 
-## Example
-
+<example>
 User: `/kanban-scope 001`
 
 ```
@@ -357,10 +362,11 @@ Next:
 /clear
 /kanban-plan 001
 ```
+</example>
 
-## Next Steps
-
+<next_steps>
 ```
 /clear
 /kanban-plan {id}
 ```
+</next_steps>

@@ -15,7 +15,7 @@ Query a specific task's history and current state using natural language.
 <context>
 {{> helper-scripts show_find_task=true show_find_spec=true show_find_plan=true}}
 
-**Usage:** `/kanban-report-task {id} [question]`
+<note>**Usage:** `/kanban-report-task {id} [question]`</note>
 </context>
 
 <prohibited>
@@ -25,26 +25,30 @@ Query a specific task's history and current state using natural language.
 
 <process>
   <step name="parse_arguments" outputs="taskId, question">
-    Extract task ID (first argument) and optional question (remaining text)
+    <action>Extract task ID (first argument)</action>
+    <action>Extract optional question (remaining text)</action>
   </step>
 
   <step name="gather_task_data" outputs="taskFile, specFile, planFile, gitHistory">
-    - Task file: Run `node .claude/scripts/find-task.cjs {taskId}` to get path
-    - Spec file (if exists): Run `node .claude/scripts/find-spec.cjs {taskId}` to get path
-    - Plan file (if exists): Run `node .claude/scripts/find-plan.cjs {taskId}` to get path
-    - Git commits: `git log --oneline --all --grep="({taskId})"`
+    <command description="Get task file path">node .claude/scripts/find-task.cjs {taskId}</command>
+    <action>Read the task file at the returned path</action>
+    <command description="Get spec file path (if exists)">node .claude/scripts/find-spec.cjs {taskId}</command>
+    <action>Read the spec file if found</action>
+    <command description="Get plan file path (if exists)">node .claude/scripts/find-plan.cjs {taskId}</command>
+    <action>Read the plan file if found</action>
+    <command description="Get git commits for this task">git log --oneline --all --grep="({taskId})"</command>
   </step>
 
   <step name="prompt_for_question" when="no question provided">
-    Ask the user what they want to know about the task
+    <prompt>What would you like to know about the task?</prompt>
   </step>
 
   <step name="answer_question" when="question provided">
-    Answer conversationally using the gathered data
+    <action>Answer conversationally using the gathered data</action>
   </step>
 
   <step name="output_result">
-    Output next steps to user.
+    <output>Output next steps to user</output>
   </step>
 </process>
 
@@ -54,7 +58,8 @@ Query a specific task's history and current state using natural language.
 - Next steps shown to user
 </success_criteria>
 
-## Data Sources
+<note>
+**Data Sources:**
 
 | Source | Location | Contains |
 |--------|----------|----------|
@@ -62,8 +67,10 @@ Query a specific task's history and current state using natural language.
 | Spec file | `.kanban/specs/{id}-{slug}.spec.md` | Requirements, acceptance criteria |
 | Plan file | `.kanban/plans/{id}-{slug}.plan.md` | Implementation steps, checkboxes |
 | Git history | `git log --grep="({id})"` | Timeline, commits, state transitions |
+</note>
 
-## Example Questions
+<note>
+**Example Questions:**
 
 - "What's the current status?"
 - "When was this started?"
@@ -71,9 +78,9 @@ Query a specific task's history and current state using natural language.
 - "What files were changed?"
 - "Show me the timeline"
 - "Is the spec complete?"
+</note>
 
-## Example
-
+<example>
 `/kanban-report-task 003`
 
 Gathers data for task 003 and asks what you want to know.
@@ -81,10 +88,11 @@ Gathers data for task 003 and asks what you want to know.
 `/kanban-report-task 003 What files were changed?`
 
 Analyzes git history for task 003 and lists modified files.
+</example>
 
-## Next Steps
-
+<next_steps>
 ```
 /clear
 /kanban-status {id}
 ```
+</next_steps>

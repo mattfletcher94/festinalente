@@ -15,13 +15,13 @@ Return a task to In Progress when human review finds issues. Works from both QA 
 <context>
 {{> directory-reference}}
 
-**Column Transitions:**
+<note>Column Transitions:
 ```
 qa → in-progress
 pr → in-progress
 ```
-
 See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
+</note>
 </context>
 
 <prohibited>
@@ -36,19 +36,29 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
   </step>
 
   <step name="get_task_id" outputs="taskId">
-    Use $ARGUMENTS if provided (e.g., "001"), otherwise:
-    - List tasks in `qa` or `pr` status from `.kanban/tasks/`
-    - Show task IDs and titles
-    - Ask user which task needs rework
+    <branch condition="$ARGUMENTS provided">
+      <action>Use $ARGUMENTS as taskId</action>
+    </branch>
+    <branch condition="$ARGUMENTS not provided">
+      <action>List tasks in `qa` or `pr` status from `.kanban/tasks/`</action>
+      <output>Show task IDs and titles</output>
+      <prompt>Which task needs rework?</prompt>
+    </branch>
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, currentStatus">
-    - **NEVER guess filenames.** Glob for `.kanban/tasks/{taskId}-*.md` to find the exact filename
-    - Parse YAML frontmatter
-    - Verify current status is `qa` or `pr`:
-      - If not `qa` or `pr`, warn user and confirm they want to proceed
-    - Note current title, status, and acceptance criteria
-    - Error if task not found
+    <warning>NEVER guess filenames</warning>
+    <action>Glob for `.kanban/tasks/{taskId}-*.md` to find the exact filename</action>
+    <action>Parse YAML frontmatter</action>
+    <validate>Verify current status is `qa` or `pr`</validate>
+    <branch condition="status is not qa or pr">
+      <prompt>Task is in {status} status. Expected: qa or pr. Continue anyway? (y/n)</prompt>
+    </branch>
+    <action>Note current title, status, and acceptance criteria</action>
+    <branch condition="task not found">
+      <output>Error: Task not found</output>
+      <action>Exit</action>
+    </branch>
   </step>
 
   <step name="verify_branch">
@@ -56,9 +66,11 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
   </step>
 
   <step name="read_plan_file" outputs="planPath">
-    - Check for `.kanban/plans/{taskId}-{slug}.plan.md`
-    - If plan found: Read plan content
-    - Plan will be updated with issues to address
+    <action>Check for `.kanban/plans/{taskId}-{slug}.plan.md`</action>
+    <branch condition="plan found">
+      <action>Read plan content</action>
+    </branch>
+    <note>Plan will be updated with issues to address</note>
   </step>
 
   <step name="load_user_skills">
@@ -66,65 +78,60 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
   </step>
 
   <step name="close_pr" when="status was `pr`">
-    ```bash
-    gh pr close
-    ```
-    Print: "PR closed"
+    <command>gh pr close</command>
+    <output>PR closed</output>
   </step>
 
   <step name="prompt_for_issues" outputs="issues">
-    - Ask user: "What issues need to be fixed?"
-    - Collect detailed description of problems
-    - Parse into individual issues if multiple provided
+    <prompt>What issues need to be fixed?</prompt>
+    <action>Collect detailed description of problems</action>
+    <action>Parse into individual issues if multiple provided</action>
   </step>
 
   <step name="update_plan_with_iteration">
-    Following template at `.claude/kanban-templates/plan.md`:
-    - Increment `iteration` in frontmatter
-    - Determine phase name based on original status:
-      - `qa` → "QA Failed"
-      - `pr` → "PR Rejected"
-    - Add to `## Iterations` section (create if doesn't exist):
-      ```markdown
-      ## Iterations
+    <note>Following template at `.claude/kanban-templates/plan.md`</note>
+    <action>Increment `iteration` in frontmatter</action>
+    <action>Determine phase name based on original status:
+- `qa` → "QA Failed"
+- `pr` → "PR Rejected"</action>
+    <action>Add to `## Iterations` section (create if doesn't exist)</action>
+    <example_code lang="markdown">
+## Iterations
 
-      ### Attempt {n} — {phase name} ({YYYY-MM-DD})
-      **Phase:** {qa|pr}
-      **Result:** failed
+### Attempt {n} — {phase name} ({YYYY-MM-DD})
+**Phase:** {qa|pr}
+**Result:** failed
 
-      **Issues:**
-      - [ ] {issue 1}
-      - [ ] {issue 2}
-      - [ ] {issue 3}
+**Issues:**
+- [ ] {issue 1}
+- [ ] {issue 2}
+- [ ] {issue 3}
 
-      **Action:** Address issues above, then re-verify
+**Action:** Address issues above, then re-verify
 
-      ---
-      ```
+---
+    </example_code>
   </step>
 
   <step name="move_to_in_progress">
-    - Change `status: {qa|pr}` to `status: in-progress`
-    - Add `updated: {YYYY-MM-DD}`
-    - Write updated task file
+    <action>Change `status: {qa|pr}` to `status: in-progress`</action>
+    <action>Add `updated: {YYYY-MM-DD}`</action>
+    <action>Write updated task file</action>
   </step>
 
   <step name="commit">
-    Format: `docs({taskId}): rework - {title}`
-
-    ```bash
-    git add .kanban/tasks/{taskId}-*.md
-    git add .kanban/plans/{taskId}-{slug}.plan.md  # if exists
-    git commit -m "docs({taskId}): rework - {title}"
-    ```
+    <note>Format: `docs({taskId}): rework - {title}`</note>
+    <command>git add .kanban/tasks/{taskId}-*.md</command>
+    <command>git add .kanban/plans/{taskId}-{slug}.plan.md</command>
+    <command>git commit -m "docs({taskId}): rework - {title}"</command>
   </step>
 
   <step name="output_result">
-    - Print commit hash
-    - Print: "Task {taskId} returned to In Progress for rework"
-    - Print iteration number
-    - Print number of issues to address
-    - Also mention: "Then re-verify with /kanban-verify {taskId}"
+    <output>Print commit hash</output>
+    <output>Print: "Task {taskId} returned to In Progress for rework"</output>
+    <output>Print iteration number</output>
+    <output>Print number of issues to address</output>
+    <output>Mention: "Then re-verify with /kanban-verify {taskId}"</output>
   </step>
 </process>
 
@@ -138,8 +145,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 - Next steps shown to user
 </success_criteria>
 
-## Example
-
+<example>
 User: `/kanban-rework 001`
 
 ```
@@ -168,9 +174,9 @@ Next:
 
 Then re-verify: /kanban-verify 001
 ```
+</example>
 
-## Next Steps
-
+<next_steps>
 Fix the issues (see plan's Iterations for checkboxes):
 ```
 /clear
@@ -182,3 +188,4 @@ Then re-verify:
 /clear
 /kanban-verify {id}
 ```
+</next_steps>

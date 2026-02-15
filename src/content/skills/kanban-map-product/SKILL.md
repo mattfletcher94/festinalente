@@ -16,7 +16,7 @@ Analyze existing codebase and create product documentation through Socratic Q&A.
 
 {{> product-docs-scripts show_list_product=true}}
 
-**Column Transition:** N/A - This is a product discovery command, not a task workflow command.
+<note>**Column Transition:** N/A - This is a product discovery command, not a task workflow command.</note>
 </context>
 
 <prohibited>
@@ -31,190 +31,181 @@ Analyze existing codebase and create product documentation through Socratic Q&A.
   </step>
 
   <step name="preflight_check">
-    1. Verify `.kanban/` directory exists
-       - If not: Error - "Please initialize kanban first with `kanban-init`"
-    2. Check if `.kanban/product/` has files OTHER than `overview.md`
-       - Run `node .claude/scripts/list-product.cjs` to get all product docs
-       - If count > 1, OR if count == 1 and the doc is not `overview`: Ask user using AskUserQuestion:
-         - "I found existing product docs. How should I proceed?"
-         - Options: Preserve and extend / Merge with findings / Start fresh
-       - If only `overview.md` exists (or no docs): Proceed without prompting (this is expected from kanban-init)
+    <validate>Verify `.kanban/` directory exists</validate>
+    <branch condition="directory not exists">
+      <output>Error - "Please initialize kanban first with `kanban-init`"</output>
+      <action>Exit</action>
+    </branch>
+    <action>Check if `.kanban/product/` has files OTHER than `overview.md`</action>
+    <command>node .claude/scripts/list-product.cjs</command>
+    <branch condition="count > 1, OR if count == 1 and the doc is not `overview`">
+      <prompt>I found existing product docs. How should I proceed?</prompt>
+      <note>Options: Preserve and extend / Merge with findings / Start fresh</note>
+    </branch>
+    <branch condition="only `overview.md` exists (or no docs)">
+      <action>Proceed without prompting (this is expected from kanban-init)</action>
+    </branch>
   </step>
 
   <step name="deep_codebase_research">
-    Research the codebase thoroughly:
+    <note>Research the codebase thoroughly:</note>
 
-    **Directory Structure:**
-    - Use Glob to find source directories (src/, lib/, app/, components/, pages/, api/)
-    - Identify the project structure
+    <note>**Directory Structure:**</note>
+    <action>Use Glob to find source directories (src/, lib/, app/, components/, pages/, api/)</action>
+    <action>Identify the project structure</action>
 
-    **Package/Config Files:**
-    - Read package.json, requirements.txt, Cargo.toml, go.mod, etc.
-    - Note dependencies that hint at features (auth libraries, database drivers, etc.)
+    <note>**Package/Config Files:**</note>
+    <action>Read package.json, requirements.txt, Cargo.toml, go.mod, etc.</action>
+    <action>Note dependencies that hint at features (auth libraries, database drivers, etc.)</action>
 
-    **Entry Points:**
-    - Find main entry files
-    - Identify routing/API definitions
+    <note>**Entry Points:**</note>
+    <action>Find main entry files</action>
+    <action>Identify routing/API definitions</action>
 
-    **User-Facing Features:**
-    - API endpoints (look for routes, controllers, handlers)
-    - UI components (React, Vue, etc.)
-    - CLI commands (if any)
+    <note>**User-Facing Features:**</note>
+    <action>API endpoints (look for routes, controllers, handlers)</action>
+    <action>UI components (React, Vue, etc.)</action>
+    <action>CLI commands (if any)</action>
 
-    **Architecture:**
-    - Database schemas (migrations, models)
-    - Service structure
-    - Key patterns (MVC, microservices, etc.)
+    <note>**Architecture:**</note>
+    <action>Database schemas (migrations, models)</action>
+    <action>Service structure</action>
+    <action>Key patterns (MVC, microservices, etc.)</action>
 
-    **Integrations:**
-    - External APIs
-    - Third-party services
-    - Authentication providers
+    <note>**Integrations:**</note>
+    <action>External APIs</action>
+    <action>Third-party services</action>
+    <action>Authentication providers</action>
   </step>
 
   <step name="create_product_overview">
-    Based on codebase analysis, draft overview content:
-    1. Ask: "What is this product called?"
-    2. Ask: "In one sentence, what does it do?"
-    3. Confirm target users based on what you found
-    4. **IMMEDIATELY create overview.md:**
-       - Create `.kanban/product/overview.md`
-       - Use template from `.claude/kanban-templates/overview.md`
-       - Fill frontmatter: `id: overview`, `type: overview`, `title`, `summary`
-       - Fill body sections: What is this?, Key Capabilities (from analysis), Target Users
+    <note>Based on codebase analysis, draft overview content:</note>
+    <prompt>What is this product called?</prompt>
+    <prompt>In one sentence, what does it do?</prompt>
+    <action>Confirm target users based on what you found</action>
+    <warning>IMMEDIATELY create overview.md:</warning>
+    <action>Create `.kanban/product/overview.md`</action>
+    <action>Use template from `.claude/kanban-templates/overview.md`</action>
+    <action>Fill frontmatter: `id: overview`, `type: overview`, `title`, `summary`</action>
+    <action>Fill body sections: What is this?, Key Capabilities (from analysis), Target Users</action>
   </step>
 
   <step name="present_summary">
-    Output a structured summary to the user:
-
-    ```
-    I analyzed the codebase and found the following:
-
-    **Features (grouped by domain):**
-    - {domain}/
-      - {Feature 1}: {brief description}
-      - {Feature 2}: {brief description}
-    ...
-
-    **Architecture:**
-    - {Pattern/structure observation}
-    ...
-
-    **Integrations:**
-    - {External service/API}
-    ...
-
-    Let me ask some questions to validate and expand on this understanding.
-    ```
+    <output>I analyzed the codebase and found the following:</output>
+    <output>**Features (grouped by domain):** - {domain}/ - {Feature 1}: {brief description}</output>
+    <output>**Architecture:** - {Pattern/structure observation}</output>
+    <output>**Integrations:** - {External service/API}</output>
+    <output>Let me ask some questions to validate and expand on this understanding.</output>
   </step>
 
   <step name="socratic_qa_dialogue">
-    Use AskUserQuestion tool for **one question at a time**.
+    <note>Use AskUserQuestion tool for **one question at a time**.</note>
+    <warning>CRITICAL: Write docs incrementally to prevent context loss</warning>
 
-    **CRITICAL: Write docs incrementally to prevent context loss**
+    <note>**Suggest domain organization:**</note>
+    <prompt>Based on the codebase, I suggest organizing features into these domains: {list}. Does this make sense, or would you prefer a different grouping?</prompt>
 
-    **Suggest domain organization:**
+    <note>**For each feature (depth-first):**</note>
+    <prompt>I found {feature} that appears to {description}. Is this accurate?</prompt>
+    <branch condition="user corrects">
+      <action>Update understanding</action>
+    </branch>
+    <prompt>Can you tell me more about how {aspect} works?</prompt>
+    <prompt>Are there any edge cases or limitations I should know about?</prompt>
+    <prompt>Who primarily uses this feature? What problem does it solve?</prompt>
 
-    Ask: "Based on the codebase, I suggest organizing features into these domains: {list}. Does this make sense, or would you prefer a different grouping?"
+    <warning>IMMEDIATELY write the product doc:</warning>
+    <action>Determine domain folder (e.g., `auth`, `billing`, `users`)</action>
+    <action>Create domain folder if needed: `.kanban/product/{domain}/`</action>
+    <command description="Get current date">node .claude/scripts/get-date-time.cjs</command>
+    <action>Use `date` field from output</action>
+    <action>Create `.kanban/product/{domain}/{feature}.md`</action>
 
-    **For each feature (depth-first):**
+    <note>**For features** (use `.claude/kanban-templates/product-doc.md`):</note>
+    <example_code lang="yaml">
+---
+id: {domain}/{feature}
+title: {Feature Name}
+type: feature
+summary: {One sentence description}
+keywords: [{relevant, terms}]
+related: [{other/doc-ids}]
+updated: {YYYY-MM-DD from get-date-time}
+---
 
-    1. Validate: Ask "I found {feature} that appears to {description}. Is this accurate?"
-    2. If user corrects: Update understanding
-    3. Clarify: Ask "Can you tell me more about how {aspect} works?"
-    4. Probe: Ask "Are there any edge cases or limitations I should know about?"
-    5. Context: Ask "Who primarily uses this feature? What problem does it solve?"
-    6. **IMMEDIATELY write the product doc:**
-       - Determine domain folder (e.g., `auth`, `billing`, `users`)
-       - Create domain folder if needed: `.kanban/product/{domain}/`
-       - Get current date: `node .claude/scripts/get-date-time.cjs` (use `date` field)
-       - Create `.kanban/product/{domain}/{feature}.md`
+# {Feature Name}
 
-       **For features** (use `.claude/kanban-templates/product-doc.md`):
-       ```yaml
-       ---
-       id: {domain}/{feature}
-       title: {Feature Name}
-       type: feature
-       summary: {One sentence description}
-       keywords: [{relevant, terms}]
-       related: [{other/doc-ids}]
-       updated: {YYYY-MM-DD from get-date-time}
-       ---
+## Overview
+{What this feature is and why it exists}
 
-       # {Feature Name}
+## How It Works
+{User-facing behavior from Q&A}
 
-       ## Overview
-       {What this feature is and why it exists}
+## Limitations
+{Constraints mentioned during Q&A}
+    </example_code>
 
-       ## How It Works
-       {User-facing behavior from Q&A}
+    <note>**For concepts** (use `.claude/kanban-templates/concept-doc.md`):</note>
+    <example_code lang="yaml">
+---
+id: {domain}/{concept}
+title: {Concept Name}
+type: concept
+summary: {One sentence definition}
+keywords: [{relevant, terms}]
+related: [{other/doc-ids}]
+updated: {YYYY-MM-DD from get-date-time}
+---
 
-       ## Limitations
-       {Constraints mentioned during Q&A}
-       ```
+# {Concept Name}
 
-       **For concepts** (use `.claude/kanban-templates/concept-doc.md`):
-       ```yaml
-       ---
-       id: {domain}/{concept}
-       title: {Concept Name}
-       type: concept
-       summary: {One sentence definition}
-       keywords: [{relevant, terms}]
-       related: [{other/doc-ids}]
-       updated: {YYYY-MM-DD from get-date-time}
-       ---
+## Definition
+{Clear definition}
 
-       # {Concept Name}
+## Examples
+{Concrete examples}
 
-       ## Definition
-       {Clear definition}
+## Rules & Constraints
+{Business rules}
+    </example_code>
 
-       ## Examples
-       {Concrete examples}
+    <note>This preserves context even if session is long</note>
 
-       ## Rules & Constraints
-       {Business rules}
-       ```
+    <note>**After all features:**</note>
+    <prompt>What's the overall value proposition of this product?</prompt>
+    <prompt>Are there any performance or security requirements I should document?</prompt>
+    <prompt>Did I miss any important features or capabilities?</prompt>
+    <branch condition="new features mentioned">
+      <action>Create docs for them immediately</action>
+    </branch>
 
-       - This preserves context even if session is long
-
-    **After all features:**
-
-    1. Ask "What's the overall value proposition of this product?"
-    2. Ask "Are there any performance or security requirements I should document?"
-    3. Ask "Did I miss any important features or capabilities?"
-       - If new features mentioned: Create docs for them immediately
-
-    **Exit:**
-
-    1. Ask "Is there anything else you'd like to add about the product?"
-    2. If user says no/nothing/that's all: Proceed to final review
-    3. If user has more: Continue Q&A
+    <note>**Exit:**</note>
+    <prompt>Is there anything else you'd like to add about the product?</prompt>
+    <branch condition="user says no/nothing/that's all">
+      <action>Proceed to final review</action>
+    </branch>
+    <branch condition="user has more">
+      <action>Continue Q&A</action>
+    </branch>
   </step>
 
   <step name="final_review">
-    1. Read all generated product docs in `.kanban/product/` (including subdirectories)
-    2. Check for completeness and consistency
-    3. Update any docs that need adjustments based on later Q&A context
-    4. Verify all `related` fields are accurate across docs
-    5. Ensure all docs have proper `id` with domain prefix (e.g., `auth/login`)
+    <action>Read all generated product docs in `.kanban/product/` (including subdirectories)</action>
+    <action>Check for completeness and consistency</action>
+    <action>Update any docs that need adjustments based on later Q&A context</action>
+    <action>Verify all `related` fields are accurate across docs</action>
+    <action>Ensure all docs have proper `id` with domain prefix (e.g., `auth/login`)</action>
   </step>
 
   <step name="commit">
-    Format: `docs: map-product - {brief summary listing main features}`
-
-    ```bash
-    git add .kanban/product/
-    git commit -m "docs: map-product - {brief summary listing main features}"
-    ```
-
-    Example: `docs: map-product - authentication, user management, notifications, search`
+    <note>Format: `docs: map-product - {brief summary listing main features}`</note>
+    <command>git add .kanban/product/</command>
+    <command>git commit -m "docs: map-product - {brief summary listing main features}"</command>
+    <note>Example: `docs: map-product - authentication, user management, notifications, search`</note>
   </step>
 
   <step name="output_result">
-    Output next steps to user.
+    <output>Output next steps to user</output>
   </step>
 </process>
 
@@ -227,8 +218,7 @@ Analyze existing codebase and create product documentation through Socratic Q&A.
 - Next steps shown to user
 </success_criteria>
 
-## Example
-
+<example>
 User: `/kanban-map-product`
 
 ```
@@ -270,8 +260,10 @@ I found auth/login that appears to handle JWT-based login. Is this accurate?
 └── notifications/
     └── email.md
 ```
+</example>
 
-## Socratic Q&A Best Practices
+<note>
+**Socratic Q&A Best Practices:**
 
 **Key principles:**
 1. Begin with open-ended questions that challenge assumptions
@@ -284,10 +276,11 @@ I found auth/login that appears to handle JWT-based login. Is this accurate?
 - Present findings as hypotheses: "I found X - is this accurate?"
 - Ask about edge cases, limitations, and known issues
 - Probe for undocumented features or tribal knowledge
+</note>
 
-## Next Steps
-
+<next_steps>
 ```
 /clear
 /kanban-create "Your task title"
 ```
+</next_steps>

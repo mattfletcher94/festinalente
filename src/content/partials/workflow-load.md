@@ -1,1 +1,2 @@
-Read `.claude/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+<action>Read `.claude/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats</action>
+<note>Use these values throughout this skill</note>

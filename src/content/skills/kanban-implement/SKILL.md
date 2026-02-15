@@ -32,22 +32,38 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
   </step>
 
   <step name="get_task_id" outputs="taskId">
-    Use $ARGUMENTS if provided (e.g., "001"), otherwise:
-    - List tasks in `planned` or `in-progress` status from `.kanban/tasks/`
-    - Show task IDs and titles
-    - Ask user which task to implement
+    <branch condition="$ARGUMENTS provided">
+      <action>Use $ARGUMENTS as taskId</action>
+    </branch>
+    <branch condition="$ARGUMENTS not provided">
+      <action>List tasks in `planned` or `in-progress` status from `.kanban/tasks/`</action>
+      <output>Show task IDs and titles</output>
+      <prompt>Which task to implement?</prompt>
+    </branch>
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, status">
-    - Run `node .claude/scripts/find-task.cjs {taskId}` to get exact path
-    - Read the file at the `path` from JSON output
-    - Parse YAML frontmatter
-    - Verify current status:
-      - If `planned`: Move to `in-progress` first (step move_to_in_progress)
-      - If `in-progress`: Resume implementation (skip step move_to_in_progress)
-      - If `backlog` or `refined`: Suggest `/kanban-refine {taskId}` or `/kanban-scope {taskId}` first, exit
-      - If `checks` or later: Warn task is past implementation
-    - Error if task not found
+    <command>node .claude/scripts/find-task.cjs {taskId}</command>
+    <action>Read the file at the `path` from JSON output</action>
+    <action>Parse YAML frontmatter</action>
+    <branch condition="status is planned">
+      <action>Move to `in-progress` first (step move_to_in_progress)</action>
+    </branch>
+    <branch condition="status is in-progress">
+      <action>Resume implementation (skip step move_to_in_progress)</action>
+    </branch>
+    <branch condition="status is backlog or refined">
+      <output>Task needs refinement/scoping first.</output>
+      <output>Run `/kanban-refine {taskId}` or `/kanban-scope {taskId}` first.</output>
+      <action>Exit</action>
+    </branch>
+    <branch condition="status is checks or later">
+      <output>Warning: Task is past implementation phase.</output>
+    </branch>
+    <branch condition="task not found">
+      <output>Error: Task not found</output>
+      <action>Exit</action>
+    </branch>
   </step>
 
   <step name="verify_branch">
@@ -55,31 +71,33 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
   </step>
 
   <step name="move_to_in_progress" when="status was `planned`">
-    - Change `status: planned` to `status: in-progress`
-    - Add `updated: {YYYY-MM-DD}`
-    - Write updated task file
-    - Print: "Task {taskId} moved to In Progress"
+    <action>Change `status: planned` to `status: in-progress`</action>
+    <action>Add `updated: {YYYY-MM-DD}`</action>
+    <action>Write updated task file</action>
+    <output>Task {taskId} moved to In Progress</output>
   </step>
 
   <step name="read_plan_file" outputs="planPath, planContent">
-    - Run `node .claude/scripts/find-plan.cjs {taskId}` to get exact path
-    - If plan found: Read the plan at the `path` from JSON output
-    - If NO plan found:
-      - Warn: "No plan found for task {taskId}"
-      - Suggest: "Create plan with /kanban-plan first"
-      - Exit
+    <command>node .claude/scripts/find-plan.cjs {taskId}</command>
+    <branch condition="plan found">
+      <action>Read the plan at the `path` from JSON output</action>
+    </branch>
+    <branch condition="plan NOT found">
+      <output>Warning: No plan found for task {taskId}</output>
+      <output>Suggest: Create plan with /kanban-plan first</output>
+      <action>Exit</action>
+    </branch>
   </step>
 
   <step name="read_spec">
-    - Get `spec` path from plan frontmatter
-    - Read spec file for full context on requirements and patterns
+    <action>Get `spec` path from plan frontmatter</action>
+    <action>Read spec file for full context on requirements and patterns</action>
   </step>
 
   <step name="load_product_context" when="task has `affects` field">
-    - For each ID in affects:
-      - Read `.kanban/product/{id}.md`
-    - Understand current product behavior
-    - Implementation should maintain or extend documented behavior
+    <action>For each ID in affects: Read `.kanban/product/{id}.md`</action>
+    <action>Understand current product behavior</action>
+    <note>Implementation should maintain or extend documented behavior</note>
   </step>
 
   <step name="load_user_skills">
@@ -87,41 +105,45 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
   </step>
 
   <step name="parse_plan_checkboxes" outputs="totalItems, completedItems, remainingItems">
-    - Find all unchecked items: `- [ ]` pattern
-    - Find all checked items: `- [x]` pattern
-    - Calculate: total items, completed items, remaining items
-    - Display progress overview
+    <action>Find all unchecked items: `- [ ]` pattern</action>
+    <action>Find all checked items: `- [x]` pattern</action>
+    <action>Calculate: total items, completed items, remaining items</action>
+    <output>Display progress overview</output>
   </step>
 
   <step name="execute_plan_checkboxes">
-    - For each unchecked item (`- [ ]`) in order:
-      a. Display: "[{n}/{total}] {checkbox description}"
-      b. Execute the implementation step described
-      c. Mark checkbox as complete: change `- [ ]` to `- [x]`
-      d. Write updated plan file immediately (enables resume)
-      e. Report: "Done"
-    - If any step fails:
-      - Stop execution
-      - Report which step failed and why
-      - Progress is saved (can resume later with same command)
-      - Suggest: "Use /kanban-save to save progress"
+    <note>For each unchecked item (`- [ ]`) in order:</note>
+    <action>Display: "[{n}/{total}] {checkbox description}"</action>
+    <action>Execute the implementation step described</action>
+    <action>Mark checkbox as complete: change `- [ ]` to `- [x]`</action>
+    <action>Write updated plan file immediately (enables resume)</action>
+    <output>Done</output>
+
+    <branch condition="any step fails">
+      <action>Stop execution</action>
+      <output>Report which step failed and why</output>
+      <note>Progress is saved (can resume later with same command)</note>
+      <output>Suggest: Use /kanban-save to save progress</output>
+    </branch>
   </step>
 
   <step name="on_completion">
-    - After ALL checkboxes complete:
-      - Keep status as `in-progress` (verification will move it)
-      - Update `updated: {YYYY-MM-DD}`
-      - Write updated task file
-    - If some checkboxes remain:
-      - Keep status as `in-progress`
-      - Report: "Partial progress: {completed}/{total} items"
-      - Suggest: "Use /kanban-save to save progress"
+    <branch condition="ALL checkboxes complete">
+      <action>Keep status as `in-progress` (verification will move it)</action>
+      <action>Update `updated: {YYYY-MM-DD}`</action>
+      <action>Write updated task file</action>
+    </branch>
+    <branch condition="some checkboxes remain">
+      <action>Keep status as `in-progress`</action>
+      <output>Partial progress: {completed}/{total} items</output>
+      <output>Suggest: Use /kanban-save to save progress</output>
+    </branch>
   </step>
 
   <step name="output_result">
-    - Display implementation summary
-    - Show files modified (uncommitted)
-    - Show status
+    <output>Display implementation summary</output>
+    <output>Show files modified (uncommitted)</output>
+    <output>Show status</output>
   </step>
 </process>
 
@@ -133,8 +155,7 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
 - Next steps shown to user
 </success_criteria>
 
-## Example
-
+<example>
 **Full Implementation:**
 
 User: `/kanban-implement 001`
@@ -208,9 +229,9 @@ Next:
 /clear
 /kanban-verify 002
 ```
+</example>
 
-## Next Steps
-
+<next_steps>
 If interrupted:
 ```
 /clear
@@ -222,3 +243,4 @@ When implementation complete:
 /clear
 /kanban-verify {id}
 ```
+</next_steps>

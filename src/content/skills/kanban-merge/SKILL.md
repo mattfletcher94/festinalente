@@ -31,19 +31,33 @@ Merge the task branch into main, clean up the branch, and move task to Done.
   </step>
 
   <step name="get_task_id" outputs="taskId">
-    Use $ARGUMENTS if provided (e.g., "001"), otherwise:
-    - List tasks in `pr` status from `.kanban/tasks/`
-    - Show task IDs and titles
-    - Ask user which task to merge
+    <branch condition="$ARGUMENTS provided">
+      <action>Use $ARGUMENTS as taskId</action>
+    </branch>
+    <branch condition="$ARGUMENTS not provided">
+      <action>List tasks in `pr` status from `.kanban/tasks/`</action>
+      <output>Show task IDs and titles</output>
+      <prompt>Which task to merge?</prompt>
+    </branch>
   </step>
 
   <step name="read_task_file" outputs="taskPath, title">
-    - **NEVER guess filenames.** Glob for `.kanban/tasks/{taskId}-*.md` to find the exact filename
-    - Parse YAML frontmatter
-    - Verify current status is `pr`:
-      - If `update-docs`: Suggest `/kanban-docs {taskId}` first
-      - If earlier status: Suggest appropriate command
-    - Error if task not found
+    <warning>NEVER guess filenames</warning>
+    <action>Glob for `.kanban/tasks/{taskId}-*.md` to find the exact filename</action>
+    <action>Parse YAML frontmatter</action>
+    <validate>Verify current status is `pr`</validate>
+    <branch condition="status is update-docs">
+      <output>Suggest `/kanban-docs {taskId}` first</output>
+      <action>Exit</action>
+    </branch>
+    <branch condition="status is earlier">
+      <output>Suggest appropriate command</output>
+      <action>Exit</action>
+    </branch>
+    <branch condition="task not found">
+      <output>Error: Task not found</output>
+      <action>Exit</action>
+    </branch>
   </step>
 
   <step name="verify_branch">
@@ -55,56 +69,52 @@ Merge the task branch into main, clean up the branch, and move task to Done.
   </step>
 
   <step name="verify_ready_to_merge" outputs="commitsToMerge">
-    - Run `git status` to ensure working tree is clean
-    - Run `git log main..HEAD --oneline` to show commits to be merged
-    - If working tree is dirty: Error "Please commit or stash changes first"
+    <command>git status</command>
+    <validate>Ensure working tree is clean</validate>
+    <command>git log main..HEAD --oneline</command>
+    <output>Show commits to be merged</output>
+    <branch condition="working tree is dirty">
+      <output>Error: "Please commit or stash changes first"</output>
+      <action>Exit</action>
+    </branch>
   </step>
 
   <step name="prompt_merge_confirmation">
-    ```
-    Task: {taskId} - {title}
-    Branch: task/{taskId}
-    Commits to merge: {list from step verify_ready_to_merge}
-
-    Ready to merge this branch into main? [Y/n]
-    ```
-    If user declines, exit
+    <output>Task: {taskId} - {title}</output>
+    <output>Branch: task/{taskId}</output>
+    <output>Commits to merge: {list from step verify_ready_to_merge}</output>
+    <prompt>Ready to merge this branch into main? [Y/n]</prompt>
+    <branch condition="user declines">
+      <action>Exit</action>
+    </branch>
   </step>
 
   <step name="merge_branch">
-    ```bash
-    git checkout main
-    git merge task/{taskId} --no-ff -m "Merge branch 'task/{taskId}'"
-    ```
-    Use `--no-ff` to preserve branch history
+    <command>git checkout main</command>
+    <command>git merge task/{taskId} --no-ff -m "Merge branch 'task/{taskId}'"</command>
+    <note>Use `--no-ff` to preserve branch history</note>
   </step>
 
   <step name="cleanup_branch">
-    ```bash
-    git branch -d task/{taskId}
-    ```
+    <command>git branch -d task/{taskId}</command>
   </step>
 
   <step name="move_to_done_and_commit">
-    Format: `docs({taskId}): done - {title}`
-
-    - Change `status: pr` to `status: done`
-    - Add `updated: {YYYY-MM-DD}`
-    - Add `completed: {YYYY-MM-DD}`
-    - Write updated task file
-    - Commit task file update:
-      ```bash
-      git add .kanban/tasks/{taskId}-*.md
-      git commit -m "docs({taskId}): done - {title}"
-      ```
+    <note>Format: `docs({taskId}): done - {title}`</note>
+    <action>Change `status: pr` to `status: done`</action>
+    <action>Add `updated: {YYYY-MM-DD}`</action>
+    <action>Add `completed: {YYYY-MM-DD}`</action>
+    <action>Write updated task file</action>
+    <command>git add .kanban/tasks/{taskId}-*.md</command>
+    <command>git commit -m "docs({taskId}): done - {title}"</command>
   </step>
 
   <step name="output_result">
-    - Print: "Branch merged successfully!"
-    - Print: "Branch task/{taskId} deleted"
-    - Print: "Task {taskId} completed!"
-    - Print current branch (should be main)
-    - Print: "Congratulations! Task complete."
+    <output>Print: "Branch merged successfully!"</output>
+    <output>Print: "Branch task/{taskId} deleted"</output>
+    <output>Print: "Task {taskId} completed!"</output>
+    <output>Print current branch (should be main)</output>
+    <output>Print: "Congratulations! Task complete."</output>
   </step>
 </process>
 
@@ -117,8 +127,7 @@ Merge the task branch into main, clean up the branch, and move task to Done.
 - Next steps shown to user
 </success_criteria>
 
-## Example
-
+<example>
 User: `/kanban-merge 001`
 
 ```
@@ -150,11 +159,12 @@ Next:
 /clear
 /kanban-create "Your next task"
 ```
+</example>
 
-## Next Steps
-
+<next_steps>
 Task complete! To start a new task:
 ```
 /clear
 /kanban-create "Task title"
 ```
+</next_steps>
