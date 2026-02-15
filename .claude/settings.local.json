@@ -9,7 +9,17 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(done)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(xargs:*)",
+      "Bash(git -C /c/Users/MattF/Documents/Code/claudeban log --oneline -20)",
+      "Bash(git -C /c/Users/MattF/Documents/Code/claudeban log --format=%B -5)",
+      "Bash(pnpm add:*)",
+      "Bash(node dist/scripts/list-product.cjs:*)",
+      "Bash(node dist/scripts/search-product.cjs:*)",
+      "Bash(node dist/scripts/list-tasks.cjs:*)",
+      "Bash(node dist/scripts/find-task.cjs:*)",
+      "Bash(node:*)",
+      "Bash(git push)"
     ]
   }
 }
