@@ -34,7 +34,15 @@ Create the `.kanban/` directory structure for a new project.
    mkdir -p .kanban/skills
    ```
 
-- [ ] 4. **Create config.yaml**
+- [ ] 4. **Create product overview**
+   - Read template from `.claude/kanban-templates/overview.md`
+   - Create `.kanban/product/overview.md`
+   - Ask user: "What is this product called?"
+   - Ask user: "In one sentence, what does it do?"
+   - Fill template with responses
+   - This becomes the root product doc that LLMs read first
+
+- [ ] 5. **Create config.yaml**
    - Read template from `.claude/kanban-templates/config.yaml`
    - Write to `.kanban/config.yaml` **exactly as-is** (do not modify or add properties)
    - If template not found, create minimal config **exactly as shown below**:
@@ -81,7 +89,7 @@ Create the `.kanban/` directory structure for a new project.
        archiveOnComplete: false
      ```
 
-- [ ] 5. **Output next steps to user**
+- [ ] 6. **Output next steps to user**
    - Print created directories
    - Print config location
    - Suggest next steps

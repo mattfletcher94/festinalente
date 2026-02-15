@@ -9,6 +9,12 @@ disable-model-invocation: true
 
 Analyze existing codebase and create product documentation through Socratic Q&A.
 
+## Reference
+
+{{> helper-scripts show_get_date_time=true}}
+
+{{> product-docs-scripts show_list_product=true}}
+
 ## Column Transition
 
 N/A - This is a product discovery command, not a task workflow command.
@@ -57,16 +63,28 @@ N/A - This is a product discovery command, not a task workflow command.
    - Third-party services
    - Authentication providers
 
-- [ ] 4. **Present Summary**
+- [ ] 4. **Create Product Overview**
+   Based on codebase analysis, draft overview content:
+   1. Ask: "What is this product called?"
+   2. Ask: "In one sentence, what does it do?"
+   3. Confirm target users based on what you found
+   4. **IMMEDIATELY create overview.md:**
+      - Create `.kanban/product/overview.md`
+      - Use template from `.claude/kanban-templates/overview.md`
+      - Fill frontmatter: `id: overview`, `type: overview`, `title`, `summary`
+      - Fill body sections: What is this?, Key Capabilities (from analysis), Target Users
+
+- [ ] 5. **Present Summary**
 
    Output a structured summary to the user:
 
    ```
    I analyzed the codebase and found the following:
 
-   **Features:**
-   - {Feature 1}: {brief description}
-   - {Feature 2}: {brief description}
+   **Features (grouped by domain):**
+   - {domain}/
+     - {Feature 1}: {brief description}
+     - {Feature 2}: {brief description}
    ...
 
    **Architecture:**
@@ -80,11 +98,15 @@ N/A - This is a product discovery command, not a task workflow command.
    Let me ask some questions to validate and expand on this understanding.
    ```
 
-- [ ] 5. **Socratic Q&A (with Incremental Writing)**
+- [ ] 6. **Socratic Q&A (with Incremental Writing)**
 
    Use AskUserQuestion tool for **one question at a time**.
 
    **CRITICAL: Write docs incrementally to prevent context loss**
+
+   **Suggest domain organization:**
+
+   Ask: "Based on the codebase, I suggest organizing features into these domains: {list}. Does this make sense, or would you prefer a different grouping?"
 
    **For each feature (depth-first):**
 
@@ -94,9 +116,59 @@ N/A - This is a product discovery command, not a task workflow command.
    4. Probe: Ask "Are there any edge cases or limitations I should know about?"
    5. Context: Ask "Who primarily uses this feature? What problem does it solve?"
    6. **IMMEDIATELY write the product doc:**
-      - Create `.kanban/product/{feature-id}.md`
-      - Use template structure from `.claude/kanban-templates/product-doc.md`
-      - Fill with all information gathered so far
+      - Determine domain folder (e.g., `auth`, `billing`, `users`)
+      - Create domain folder if needed: `.kanban/product/{domain}/`
+      - Get current date: `node .claude/scripts/get-date-time.cjs` (use `date` field)
+      - Create `.kanban/product/{domain}/{feature}.md`
+
+      **For features** (use `.claude/kanban-templates/product-doc.md`):
+      ```yaml
+      ---
+      id: {domain}/{feature}
+      title: {Feature Name}
+      type: feature
+      summary: {One sentence description}
+      keywords: [{relevant, terms}]
+      related: [{other/doc-ids}]
+      updated: {YYYY-MM-DD from get-date-time}
+      ---
+
+      # {Feature Name}
+
+      ## Overview
+      {What this feature is and why it exists}
+
+      ## How It Works
+      {User-facing behavior from Q&A}
+
+      ## Limitations
+      {Constraints mentioned during Q&A}
+      ```
+
+      **For concepts** (use `.claude/kanban-templates/concept-doc.md`):
+      ```yaml
+      ---
+      id: {domain}/{concept}
+      title: {Concept Name}
+      type: concept
+      summary: {One sentence definition}
+      keywords: [{relevant, terms}]
+      related: [{other/doc-ids}]
+      updated: {YYYY-MM-DD from get-date-time}
+      ---
+
+      # {Concept Name}
+
+      ## Definition
+      {Clear definition}
+
+      ## Examples
+      {Concrete examples}
+
+      ## Rules & Constraints
+      {Business rules}
+      ```
+
       - This preserves context even if session is long
 
    **After all features:**
@@ -112,13 +184,14 @@ N/A - This is a product discovery command, not a task workflow command.
    2. If user says no/nothing/that's all: Proceed to final review
    3. If user has more: Continue Q&A
 
-- [ ] 6. **Final Review**
-   1. Read all generated product docs in `.kanban/product/`
+- [ ] 7. **Final Review**
+   1. Read all generated product docs in `.kanban/product/` (including subdirectories)
    2. Check for completeness and consistency
    3. Update any docs that need adjustments based on later Q&A context
-   4. Verify all relationships (uses/related/extends) are accurate across docs
+   4. Verify all `related` fields are accurate across docs
+   5. Ensure all docs have proper `id` with domain prefix (e.g., `auth/login`)
 
-- [ ] 7. **Commit**
+- [ ] 8. **Commit**
    Format: `docs: map-product - {brief summary listing main features}`
 
    ```bash
@@ -128,13 +201,14 @@ N/A - This is a product discovery command, not a task workflow command.
 
    Example: `docs: map-product - authentication, user management, notifications, search`
 
-- [ ] 8. **Output next steps to user**
+- [ ] 9. **Output next steps to user**
 
 ## Validation
 
 - [ ] `.kanban/product/` directory exists
 - [ ] At least one product doc was created
-- [ ] Each product doc has valid frontmatter (id, title, summary, keywords, updated)
+- [ ] Each product doc has valid frontmatter (id with domain prefix, type, title, summary, keywords, updated)
+- [ ] `overview.md` exists with `type: overview`
 - [ ] Git log shows `docs: map-product -`
 - [ ] Next steps shown to user
 
@@ -145,10 +219,15 @@ User: `/kanban-map-product`
 ```
 I analyzed the codebase and found the following:
 
-**Features:**
-- User Authentication: JWT-based login with email/password
-- Task Management: CRUD operations for tasks with status tracking
-- Notifications: Email notifications for task updates
+**Features (grouped by domain):**
+- auth/
+  - login: JWT-based login with email/password
+  - registration: User signup with email verification
+- tasks/
+  - management: CRUD operations for tasks with status tracking
+  - assignment: Assign tasks to team members
+- notifications/
+  - email: Email notifications for task updates
 
 **Architecture:**
 - Express.js backend with PostgreSQL
@@ -160,7 +239,21 @@ I analyzed the codebase and found the following:
 
 Let me ask some questions to validate and expand on this understanding.
 
-I found User Authentication that appears to handle JWT-based login. Is this accurate?
+I found auth/login that appears to handle JWT-based login. Is this accurate?
+```
+
+**After Q&A completes, creates:**
+```
+.kanban/product/
+├── overview.md
+├── auth/
+│   ├── login.md
+│   └── registration.md
+├── tasks/
+│   ├── management.md
+│   └── assignment.md
+└── notifications/
+    └── email.md
 ```
 
 ## Socratic Q&A Best Practices

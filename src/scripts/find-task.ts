@@ -6,49 +6,13 @@
 
 import fs from 'fs';
 import path from 'path';
+import matter from 'gray-matter';
 
 const TASKS_DIR = '.kanban/tasks';
-
-interface Frontmatter {
-  title?: string;
-  status?: string;
-  priority?: string;
-  labels?: string[];
-  [key: string]: string | string[] | undefined;
-}
 
 interface FileMatch {
   filename: string;
   path: string;
-}
-
-function parseFrontmatter(content: string): Frontmatter {
-  const match = content.match(/^---\n([\s\S]*?)\n---/);
-  if (!match) return {};
-
-  const yaml = match[1];
-  const result: Frontmatter = {};
-
-  const lines = yaml.split('\n');
-  for (const line of lines) {
-    const kvMatch = line.match(/^(\w+):\s*(.*)$/);
-    if (kvMatch) {
-      let value: string | string[] = kvMatch[2].trim();
-      // Handle quoted strings
-      if (value.startsWith('"') && value.endsWith('"')) {
-        value = value.slice(1, -1);
-      } else if (value.startsWith("'") && value.endsWith("'")) {
-        value = value.slice(1, -1);
-      }
-      // Handle arrays like [item1, item2]
-      if (value.startsWith('[') && value.endsWith(']')) {
-        value = value.slice(1, -1).split(',').map(s => s.trim().replace(/^["']|["']$/g, ''));
-      }
-      result[kvMatch[1]] = value;
-    }
-  }
-
-  return result;
 }
 
 function findFiles(dir: string, pattern: string): FileMatch[] {
@@ -94,15 +58,15 @@ function main(): void {
 
   const file = matches[0];
   const content = fs.readFileSync(file.path, 'utf8');
-  const frontmatter = parseFrontmatter(content);
+  const { data: frontmatter } = matter(content);
 
   const result = {
     id: id,
     filename: file.filename,
     path: file.path,
-    title: frontmatter.title || '',
-    status: frontmatter.status || '',
-    priority: frontmatter.priority || '',
+    title: (frontmatter.title as string) || '',
+    status: (frontmatter.status as string) || '',
+    priority: (frontmatter.priority as string) || '',
     labels: Array.isArray(frontmatter.labels) ? frontmatter.labels : []
   };
 

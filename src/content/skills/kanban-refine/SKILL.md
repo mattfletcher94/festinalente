@@ -16,6 +16,8 @@ Refine vague tasks through **iterative conversational Q&A** focused on product/b
 
 {{> helper-scripts show_find_task=true show_find_spec=true show_find_plan=true show_get_date_time=true}}
 
+{{> product-docs-scripts show_search_product=true}}
+
 {{> column-transition from="backlog" to="refined"}}
 
 ## Steps
@@ -52,7 +54,17 @@ Refine vague tasks through **iterative conversational Q&A** focused on product/b
      - Contains ambiguous terms ("fix stuff", "improve things")?
    - Check description for completeness
    - Check acceptance criteria for specificity
-   - Read any related product docs from `.kanban/product/` for domain context
+
+   **Load product context:**
+   - If task has `affects` field with IDs:
+     - For each ID: Read `.kanban/product/{id}.md`
+     - Note current product behavior for context
+   - If task has empty/no `affects` field:
+     - Run: `node .claude/scripts/search-product.cjs {keywords from title}`
+     - If matches found (score ≥ 0.3):
+       - Read top matches for context
+       - Consider suggesting `affects` field update
+   - Reference product docs during Q&A to ensure alignment with existing product
 
 - [ ] 7. **Conduct iterative Q&A dialogue**
 

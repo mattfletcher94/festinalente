@@ -61,16 +61,23 @@ Move task from **Planned** to **In Progress** and execute the plan. Code remains
    - Get `spec` path from plan frontmatter
    - Read spec file for full context on requirements and patterns
 
-- [ ] 8. **Load user skills**
+- [ ] 8. **Load product context**
+   - If task has `affects` field:
+     - For each ID in affects:
+       - Read `.kanban/product/{id}.md`
+     - Understand current product behavior
+     - Implementation should maintain or extend documented behavior
+
+- [ ] 9. **Load user skills**
    {{> user-skills command="implement"}}
 
-- [ ] 9. **Parse plan checkboxes**
+- [ ] 10. **Parse plan checkboxes**
    - Find all unchecked items: `- [ ]` pattern
    - Find all checked items: `- [x]` pattern
    - Calculate: total items, completed items, remaining items
    - Display progress overview
 
-- [ ] 10. **Execute plan checkboxes**
+- [ ] 11. **Execute plan checkboxes**
    - For each unchecked item (`- [ ]`) in order:
      a. Display: "[{n}/{total}] {checkbox description}"
      b. Execute the implementation step described
@@ -83,7 +90,7 @@ Move task from **Planned** to **In Progress** and execute the plan. Code remains
      - Progress is saved (can resume later with same command)
      - Suggest: "Use /kanban-save to save progress"
 
-- [ ] 11. **On completion**
+- [ ] 12. **On completion**
    - After ALL checkboxes complete:
      - Keep status as `in-progress` (verification will move it)
      - Update `updated: {YYYY-MM-DD}`
@@ -93,7 +100,7 @@ Move task from **Planned** to **In Progress** and execute the plan. Code remains
      - Report: "Partial progress: {completed}/{total} items"
      - Suggest: "Use /kanban-save to save progress"
 
-- [ ] 12. **Output next steps to user**
+- [ ] 13. **Output next steps to user**
    - Display implementation summary
    - Show files modified (uncommitted)
    - Show status

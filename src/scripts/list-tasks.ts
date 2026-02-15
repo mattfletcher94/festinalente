@@ -6,6 +6,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import matter from 'gray-matter';
 
 const TASKS_DIR = '.kanban/tasks';
 
@@ -15,14 +16,6 @@ interface ParsedArgs {
   priority?: string;
   label?: string;
   [key: string]: string | string[] | boolean | undefined;
-}
-
-interface Frontmatter {
-  title?: string;
-  status?: string;
-  priority?: string;
-  labels?: string[];
-  [key: string]: string | string[] | undefined;
 }
 
 interface Task {
@@ -44,34 +37,6 @@ function parseArgs(args: string[]): ParsedArgs {
       result[key] = value || true;
     } else {
       result._.push(arg);
-    }
-  }
-
-  return result;
-}
-
-function parseFrontmatter(content: string): Frontmatter {
-  const match = content.match(/^---\n([\s\S]*?)\n---/);
-  if (!match) return {};
-
-  const yaml = match[1];
-  const result: Frontmatter = {};
-
-  const lines = yaml.split('\n');
-  for (const line of lines) {
-    const kvMatch = line.match(/^(\w+):\s*(.*)$/);
-    if (kvMatch) {
-      let value: string | string[] = kvMatch[2].trim();
-      if (value.startsWith('"') && value.endsWith('"')) {
-        value = value.slice(1, -1);
-      } else if (value.startsWith("'") && value.endsWith("'")) {
-        value = value.slice(1, -1);
-      }
-      // Handle arrays like [item1, item2]
-      if (value.startsWith('[') && value.endsWith(']')) {
-        value = value.slice(1, -1).split(',').map(s => s.trim().replace(/^["']|["']$/g, ''));
-      }
-      result[kvMatch[1]] = value;
     }
   }
 
@@ -103,7 +68,7 @@ function main(): void {
   for (const filename of files) {
     const filePath = path.join(TASKS_DIR, filename).replace(/\\/g, '/');
     const content = fs.readFileSync(filePath, 'utf8');
-    const frontmatter = parseFrontmatter(content);
+    const { data: frontmatter } = matter(content);
     const id = extractId(filename);
 
     if (!id) continue;

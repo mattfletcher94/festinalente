@@ -45,6 +45,14 @@ Create a functional specification through **iterative conversational Q&A** focus
    {{> user-skills command="scope"}}
 
 - [ ] 6. **Initial codebase research**
+
+   **Read product context first:**
+   - If task has `affects` field:
+     - For each ID: Read `.kanban/product/{id}.md`
+     - Note: current behavior, constraints, interactions
+     - This informs WHERE to look in codebase
+
+   **Then proceed with codebase research:**
    Based on task description and acceptance criteria, do preliminary research:
    - Use Glob to find potentially affected files
    - Use Grep to search for relevant patterns, functions, or components

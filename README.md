@@ -57,6 +57,19 @@ The AI asks "What problem are you trying to solve?" and guides you through defin
 
 Both create docs in `.kanban/product/` that give the AI context for future task work.
 
+Product docs are organized by domain:
+```
+.kanban/product/
+├── overview.md           # Product overview
+├── auth/                 # Domain folder
+│   ├── login.md         # Feature doc
+│   └── permissions.md   # Concept doc
+└── billing/
+    └── subscriptions.md
+```
+
+Each doc has an ID matching its path (e.g., `auth/login` for `.kanban/product/auth/login.md`).
+
 ### 3. Create Your First Task
 
 ```bash
@@ -397,6 +410,9 @@ Claude Kanban includes helper scripts that the AI uses to reliably find files:
 | `list-tasks.cjs` | List all tasks with optional filtering |
 | `next-id.cjs` | Get next available task ID |
 | `get-date-time.cjs` | Get formatted date/time strings |
+| `list-product.cjs` | List all product docs with metadata |
+| `search-product.cjs` | Search product docs by keywords |
+| `check-product.cjs` | Check if product docs exist by ID |
 
 Scripts are installed to `.claude/scripts/` and return JSON output.
 
@@ -534,6 +550,40 @@ pnpm run build
 # Publish (dist/ is included via package.json "files")
 npm publish
 ```
+
+---
+
+## Product Documentation
+
+Product documentation lives in `.kanban/product/` and represents the **current state** of your application. It serves as context for the AI when working on tasks.
+
+### How It Works
+
+1. **Task Creation:** When creating a task, the AI searches product docs for related features. Matching docs are linked via the `affects` field in the task.
+
+2. **Task Refinement & Scoping:** The AI reads affected product docs to understand current behavior before planning changes.
+
+3. **After Implementation:** During `/kanban-docs`, the AI updates existing docs or creates new ones based on what was built.
+
+### Document Types
+
+| Type | Purpose |
+|------|---------|
+| `overview` | Product overview (one per project) |
+| `feature` | How a specific feature works |
+| `concept` | Domain terms, business rules, mental models |
+
+### The `affects` Field
+
+Tasks link to product docs via the `affects` field in frontmatter:
+
+```yaml
+affects: [auth/login, auth/password-reset]  # Existing docs to UPDATE
+affects: [payments/stripe]                   # New doc to CREATE
+affects: []                                  # AI analyzes at doc time
+```
+
+When `affects` contains an ID for a doc that doesn't exist, the doc will be created during `/kanban-docs`.
 
 ---
 

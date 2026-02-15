@@ -55,7 +55,29 @@ The AI analyzes your code and asks questions to create documentation.
 ```
 The AI guides you through defining your vision before coding.
 
-Both create docs in `.kanban/product/` that help the AI understand your project.
+Both create docs in `.kanban/product/` organized by domain:
+
+```
+.kanban/product/
+├── overview.md           # Product overview (always created first)
+├── auth/                 # Domain folder
+│   ├── login.md         # Feature doc (id: auth/login)
+│   └── permissions.md   # Concept doc (id: auth/permissions)
+└── billing/
+    └── subscriptions.md  # Feature doc (id: billing/subscriptions)
+```
+
+Each doc has an ID matching its path (e.g., `auth/login` for `.kanban/product/auth/login.md`).
+
+### How Product Docs Work
+
+Product docs represent the **current state** of your application. They're updated after implementation, not before.
+
+**During task creation:** The AI searches product docs for related features and sets the `affects` field.
+
+**During refinement/scoping:** The AI reads affected docs for context.
+
+**After implementation:** During `/kanban-docs`, the AI updates existing docs or creates new ones.
 
 ---
 
@@ -119,12 +141,18 @@ Always run `/clear` before each kanban command. This resets the AI's context so 
 Task 001 created in Backlog
 - Title: Add password reset functionality
 - Labels: [feature]
+- Related product docs: auth/login (score 0.6)
+- Affects: [auth/login, auth/password-reset]
 - File: .kanban/tasks/001-add-password-reset-functionality.md
 
 Commit: docs(001): create - Add password reset functionality
 
 Next: /kanban-refine 001
 ```
+
+The `affects` field links this task to:
+- `auth/login` - existing doc that may need updates
+- `auth/password-reset` - new doc to be created during `/kanban-docs`
 
 ---
 
@@ -381,13 +409,22 @@ Task 001 moved to Update Docs
 
 **Example output:**
 ```
-Update documentation? [Y/n]
+Product Doc Analysis for Task 001:
+
+Will UPDATE (doc exists):
+- auth/login - User login via email/password and OAuth
+
+Will CREATE (new feature):
+- auth/password-reset - (new doc needed)
+
+Proceed with documentation? [Y/n]
 > Y
 
-What needs updating?
-> Add password reset section to auth docs
+Updating .kanban/product/auth/login.md...
+- Added reference to password reset flow
 
-Updating .kanban/product/authentication.md...
+Creating .kanban/product/auth/password-reset.md...
+- Documenting email-based reset flow
 
 Commit: docs(001): product - add password reset documentation
 
@@ -399,6 +436,8 @@ Task 001 moved to PR.
 Create PR on GitHub, then run:
 /kanban-merge 001
 ```
+
+The AI intelligently determines which docs to update and which to create based on the task's `affects` field.
 
 ---
 

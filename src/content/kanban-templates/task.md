@@ -10,7 +10,7 @@ updated: YYYY-MM-DD
 completed: YYYY-MM-DD
 spec: "specs/{id}-{slug}.spec.md"
 plan: "plans/{id}-{slug}.plan.md"
-product-docs: []
+affects: []
 ---
 
 # {Title}

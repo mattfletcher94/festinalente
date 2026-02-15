@@ -16,6 +16,8 @@ Create a new task file in `.kanban/tasks/` in the **Backlog** column and commit.
 
 {{> helper-scripts show_next_id=true show_get_date_time=true}}
 
+{{> product-docs-scripts show_search_product=true}}
+
 {{> column-transition from="[New Task]" to="backlog"}}
 
 ## Steps
@@ -36,14 +38,34 @@ Create a new task file in `.kanban/tasks/` in the **Backlog** column and commit.
    Run `node .claude/scripts/next-id.cjs`
    Use `nextId` from JSON output.
 
-- [ ] 6. **Get task details**
+- [ ] 6. **Search for related product docs**
+   Extract keywords from the task title (nouns, verbs, domain terms).
+
+   ```bash
+   node .claude/scripts/search-product.cjs {keyword1} {keyword2} ...
+   ```
+
+   **If docs with score ≥ 0.5 found:**
+   - These docs describe existing features this task relates to
+   - Set `affects: [{matched-ids}]` in task frontmatter
+   - Briefly note: "Related product docs: {ids}"
+
+   **If no docs with score ≥ 0.3 found:**
+   - This may be a NEW feature not yet documented
+   - Ask user: "This looks like a new feature. What domain should it belong to? (e.g., auth, billing, users)"
+   - Set `affects: [{domain}/{slug-from-title}]` - doc will be created during /kanban-docs
+
+   **If `.kanban/product/` is empty or doesn't exist:**
+   - Skip this step, note: "No product docs yet"
+
+- [ ] 7. **Get task details**
    - Title: Use $ARGUMENTS if provided, otherwise ask user
    - Ensure title follows best practices (suggest improvements if needed)
    - Generate initial description based on title
    - Status: Use first column ID from kanban-workflow.yaml (`backlog`)
    - Priority: Ask user (use priority IDs from kanban-workflow.yaml), default to `medium` if not specified
 
-- [ ] 7. **Detect vague tasks**
+- [ ] 8. **Detect vague tasks**
    - Check if task was created with ONLY a title (no $ARGUMENTS body/description provided)
    - Check if title is very short (<5 words) without clear action verb
    - Check if no description could be generated (title too ambiguous)
@@ -51,11 +73,11 @@ Create a new task file in `.kanban/tasks/` in the **Backlog** column and commit.
      - Add `needs-refinement` to labels array (from kanban-workflow.yaml)
      - Note to user: "Task marked as needs-refinement. Run `/kanban-refine {id}` to clarify before planning."
 
-- [ ] 8. **Determine label**
+- [ ] 9. **Determine label**
    - Use `labels[].detect-keywords` from kanban-workflow.yaml to auto-detect label from title/context
    - If unclear, ask user to confirm or skip
 
-- [ ] 9. **Create task file** at `.kanban/tasks/{id}-{slug}.md`
+- [ ] 10. **Create task file** at `.kanban/tasks/{id}-{slug}.md`
    - Follow template at `.claude/kanban-templates/task.md`
    - Fill sections for this phase:
      - Frontmatter: `id`, `title`, `status: backlog`, `priority`, `labels`, `created`
@@ -66,7 +88,7 @@ Create a new task file in `.kanban/tasks/` in the **Backlog** column and commit.
      - `## Acceptance Criteria`
      - Frontmatter: `spec`, `plan`, `updated`, `completed`
 
-- [ ] 10. **Commit the task file**
+- [ ] 11. **Commit the task file**
    Format: `docs({id}): create - {title}`
 
    ```bash
@@ -74,7 +96,7 @@ Create a new task file in `.kanban/tasks/` in the **Backlog** column and commit.
    git commit -m "docs({id}): create - {title}"
    ```
 
-- [ ] 11. **Output next steps to user**
+- [ ] 12. **Output next steps to user**
    - Print the created file path and task ID
    - Print commit hash
    - If `needs-refinement` label was added, note this

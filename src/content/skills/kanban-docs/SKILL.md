@@ -14,7 +14,11 @@ Update product documentation, commit the changes, and move task from **Update Do
 
 {{> directory-reference}}
 
-- **`.kanban/product/`** — Product documentation files (features.md, overview.md, etc.) — This is where user-facing docs live
+{{> helper-scripts show_get_date_time=true}}
+
+{{> product-docs-scripts show_search_product=true show_check_product=true}}
+
+- **`.kanban/product/`** — Product documentation files organized by domain (e.g., `auth/login.md`, `overview.md`) — This is where user-facing docs live
 
 {{> column-transition from="update-docs" to="pr"}}
 
@@ -45,54 +49,65 @@ Update product documentation, commit the changes, and move task from **Update Do
 - [ ] 5. **Load user skills**
    {{> user-skills command="docs"}}
 
-- [ ] 6. **Analyze documentation needs**
-   - Check task labels:
-     - `feature` -> likely needs feature docs
-     - `breaking` -> MUST update changelog/migration docs
-     - `api` -> needs API docs update
-     - `docs` -> already a docs task, may skip
-     - `refactor` -> internal change, may skip
-     - `bug` -> may need troubleshooting docs
-   - Check task description for user-facing changes
+- [ ] 6. **Analyze product doc impact**
 
-- [ ] 7. **Prompt for documentation updates**
-   ```
-   Task: {id} - {title}
-   Labels: {labels}
+   a. **Check affects field:**
+      - Read task's `affects` array from frontmatter
+      - If `affects` has IDs, run: `node .claude/scripts/check-product.cjs {affects IDs}`
+      - Categorize: existing docs vs missing docs
 
-   This task may require documentation updates.
-   Detected: {feature/api/breaking indicators}
+   b. **Analyze task for unlisted impacts:**
+      - Read task description, spec, and implementation context
+      - Run: `node .claude/scripts/search-product.cjs {keywords from title/description}`
+      - If high-scoring docs NOT in affects → suggest adding
 
-   Update documentation? [Y/n]
-   ```
+   c. **Determine action for each:**
+      - Existing docs → Will UPDATE
+      - Missing docs → Will CREATE (new feature)
 
-- [ ] 8. **If user confirms (Y)**
-   - **FIRST:** Read existing product documentation from `.kanban/product/`:
-     - List files in `.kanban/product/` directory
-     - Read `.kanban/product/features.md` (main feature documentation)
-     - Read `.kanban/product/overview.md` and any other relevant docs
+   d. **Present analysis to user:**
+      ```
+      Product Doc Analysis for Task {id}:
+
+      Will UPDATE (doc exists):
+      - {id} - {summary}
+
+      Will CREATE (new feature):
+      - {id} - (new doc needed)
+
+      Unaffected (internal change):
+      - {reason if applicable}
+
+      Proceed with documentation? [Y/n]
+      ```
+
+- [ ] 7. **For each doc to UPDATE:**
+   - Read current doc at `.kanban/product/{id}.md`
+   - Identify sections that need changes based on implementation
+   - Make minimal, focused updates (don't rewrite entire doc)
+   - Preserve existing content that's still accurate
    - **SCOPE RESTRICTION:** Only update docs to reflect what THIS task implemented
-   - **Do NOT:**
-     - Add "Planned" or "Not yet implemented" markers for unrelated features
-     - Modify documentation for features not touched by this task
-     - Document the entire product state - only this task's contribution
-     - Strike through or annotate features that weren't part of this task
-   - **Do:**
-     - Add/update docs for the specific feature this task built
-     - Mark this task's feature as implemented if appropriate
-     - Add any new documentation files needed for this task's feature
-   - Help identify which docs to update:
-     - For `feature`: update `.kanban/product/features.md`
-     - For `api`: update API documentation in `.kanban/product/`
-     - For `breaking`: update changelog in `.kanban/product/`
-   - Ask what documentation changes are needed
-   - Make documentation changes
-   - Generate commit message based on changes made
 
-- [ ] 9. **If user declines (n)**
-   - Log: "Documentation update skipped"
-   - Ask for reason (optional)
-   - Still proceed to move status
+- [ ] 8. **For each doc to CREATE:**
+   - Create domain folder if doesn't exist: `.kanban/product/{domain}/`
+   - Get current date: `node .claude/scripts/get-date-time.cjs` (use `date` field)
+
+   **For features** (use `.claude/kanban-templates/product-doc.md`):
+   - Fill frontmatter: `id: {domain}/{feature}`, `type: feature`, title, summary, keywords, updated
+   - Fill sections: Overview, How It Works, Limitations
+
+   **For concepts** (use `.claude/kanban-templates/concept-doc.md`):
+   - Fill frontmatter: `id: {domain}/{concept}`, `type: concept`, title, summary, keywords, updated
+   - Fill sections: Definition, Examples, Rules & Constraints
+
+   - Write content based on what was implemented
+   - Keep scope focused on THIS feature/concept only
+
+- [ ] 9. **For bug fixes / refactors with no user-facing changes:**
+   - If affects is empty AND task labels include [bug, refactor, chore]:
+     - Analyze if any product behavior actually changed
+     - If no user-facing changes: "No product doc updates needed - internal change"
+     - Log reason and proceed without doc changes
    - Use generic commit message: "docs({id}): product - no updates needed for {title}"
 
 - [ ] 10. **Commit documentation changes** (if any)

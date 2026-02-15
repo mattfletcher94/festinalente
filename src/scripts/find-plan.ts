@@ -6,44 +6,13 @@
 
 import fs from 'fs';
 import path from 'path';
+import matter from 'gray-matter';
 
 const PLANS_DIR = '.kanban/plans';
-
-interface Frontmatter {
-  task?: string;
-  spec?: string;
-  status?: string;
-  iteration?: string;
-  [key: string]: string | undefined;
-}
 
 interface FileMatch {
   filename: string;
   path: string;
-}
-
-function parseFrontmatter(content: string): Frontmatter {
-  const match = content.match(/^---\n([\s\S]*?)\n---/);
-  if (!match) return {};
-
-  const yaml = match[1];
-  const result: Frontmatter = {};
-
-  const lines = yaml.split('\n');
-  for (const line of lines) {
-    const kvMatch = line.match(/^(\w+):\s*(.*)$/);
-    if (kvMatch) {
-      let value = kvMatch[2].trim();
-      if (value.startsWith('"') && value.endsWith('"')) {
-        value = value.slice(1, -1);
-      } else if (value.startsWith("'") && value.endsWith("'")) {
-        value = value.slice(1, -1);
-      }
-      result[kvMatch[1]] = value;
-    }
-  }
-
-  return result;
 }
 
 function findFiles(dir: string, pattern: string): FileMatch[] {
@@ -89,16 +58,16 @@ function main(): void {
 
   const file = matches[0];
   const content = fs.readFileSync(file.path, 'utf8');
-  const frontmatter = parseFrontmatter(content);
+  const { data: frontmatter } = matter(content);
 
   const result = {
     id: id,
     filename: file.filename,
     path: file.path,
-    task: frontmatter.task || id,
-    spec: frontmatter.spec || '',
-    status: frontmatter.status || '',
-    iteration: parseInt(frontmatter.iteration || '1', 10) || 1
+    task: (frontmatter.task as string) || id,
+    spec: (frontmatter.spec as string) || '',
+    status: (frontmatter.status as string) || '',
+    iteration: parseInt((frontmatter.iteration as string) || '1', 10) || 1
   };
 
   console.log(JSON.stringify(result, null, 2));

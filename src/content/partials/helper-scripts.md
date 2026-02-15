@@ -34,5 +34,20 @@ node .claude/scripts/next-id.cjs
 {{#if show_get_date_time}}
 # Get current date/time (returns JSON with iso and date formats)
 node .claude/scripts/get-date-time.cjs
+
+{{/if}}
+{{#if show_get_user_skills}}
+# Get user-defined skills for a command (returns JSON with skill paths)
+node .claude/scripts/get-user-skills.cjs {command}
+
+# Example output:
+# {
+#   "command": "kanban-verify",
+#   "count": 2,
+#   "skills": [
+#     { "name": "check-typescript", "path": ".claude/skills/check-typescript/SKILL.md", "exists": true },
+#     { "name": "check-tests", "path": ".claude/skills/check-tests/SKILL.md", "exists": true }
+#   ]
+# }
 {{/if}}
 ```
