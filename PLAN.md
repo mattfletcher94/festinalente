@@ -197,13 +197,13 @@ user-skills:
 #### 7. `next-steps.md` (NO CHANGE)
 **Path:** `src/content/partials/next-steps.md`
 
-**Current content is correct:**
+**Content:**
 ```handlebars
 - **REQUIRED OUTPUT** - Print next steps EXACTLY like this:
       ```
       Next:
       /clear
-      /kanban:{{next_command}}{{#unless no_id}} \{id\}{{/unless}}
+      /kanban-{{next_command}}{{#unless no_id}} \{id\}{{/unless}}
       ```
     - Do NOT skip this output. The user needs these commands to continue.
 ```
@@ -334,6 +334,14 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 | kanban-status | ✗ | list_tasks, find_task, find_plan | validation-intro only |
 | kanban-view | ✗ | list_tasks, find_task, find_plan | validation-intro only |
 
+### Report Skills
+
+| Skill | dir-ref | helper-scripts | Other Partials |
+|-------|---------|----------------|----------------|
+| kanban-report-label | ✗ | list_tasks, find_task | validation-intro only |
+| kanban-report-task | ✗ | find_task, find_spec, find_plan | validation-intro only |
+| kanban-report-user | ✗ | list_tasks, find_task | validation-intro only |
+
 ### Setup/Discovery Skills
 
 | Skill | dir-ref | Other Partials |
@@ -344,552 +352,74 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 
 ---
 
-## Detailed Partial Usage Per Skill
-
-### kanban-create
-```handlebars
-{{> directory-reference}}
-
-{{> helper-scripts show_next_id=true show_get_date_time=true}}
-
-{{> column-transition from="[New Task]" to="backlog"}}
-
-## Commit
-
-{{> commit-format type="docs" action="create"}}
-
-## Steps
-
-1. **Load workflow schema**
-   {{> workflow-load}}
-
-2. **Verify on main branch**
-   {{> branch-verify-main}}
-
-...
-
-4. **User Skills** *(REQUIRED)*
-   {{> user-skills command="create"}}
-
-...
-
-## Validation
-
-{{> validation-intro}}
-
-- [ ] Task file exists...
-```
-
-### kanban-refine
-```handlebars
-{{> directory-reference}}
-
-{{> helper-scripts show_find_task=true show_find_spec=true show_find_plan=true show_get_date_time=true}}
-
-{{> column-transition from="backlog" to="refined"}}
-
-## Commit
-
-{{> commit-format type="docs" action="refine"}}
-
-## Steps
-
-1. **Load workflow schema**
-   {{> workflow-load}}
-
-2. **Verify on main branch**
-   {{> branch-verify-main}}
-
-...
-
-5. **User Skills** *(REQUIRED)*
-   {{> user-skills command="refine"}}
-
-...
-
-12. **Confirm refinement complete**
-    ...
-    {{> next-steps next_command="scope"}}
-
-## Validation
-
-{{> validation-intro}}
-
-- [ ] Task file exists...
-```
-
-### kanban-scope
-```handlebars
-{{> directory-reference}}
-
-{{> helper-scripts show_find_task=true show_get_date_time=true}}
-
-{{> column-transition from="refined" to="scoped"}}
-
-## Commit
-
-{{> commit-format type="docs" action="scope"}}
-
-## Steps
-
-1. **Load workflow schema**
-   {{> workflow-load}}
-
-2. **Verify on main branch**
-   {{> branch-verify-main reason="to create the task branch"}}
-
-...
-
-5. **User Skills** *(REQUIRED)*
-   {{> user-skills command="scope"}}
-
-...
-
-## Validation
-
-{{> validation-intro}}
-```
-
-### kanban-plan
-```handlebars
-{{> directory-reference}}
-
-{{> helper-scripts show_find_task=true show_find_spec=true show_get_date_time=true}}
-
-{{> column-transition from="scoped" to="planned"}}
-
-## Commit
-
-{{> commit-format type="docs" action="plan"}}
-
-## Steps
-
-1. **Load workflow schema**
-   {{> workflow-load}}
-
-...
-
-4. **Verify on task branch**
-   {{> branch-verify-task}}
-
-...
-
-7. **User Skills** *(REQUIRED)*
-   {{> user-skills command="plan"}}
-
-...
-
-## Validation
-
-{{> validation-intro}}
-```
-
-### kanban-implement
-```handlebars
-{{> directory-reference}}
-
-{{> helper-scripts show_find_task=true show_find_plan=true show_get_date_time=true}}
-
-{{> column-transition from="planned" to="in-progress"}}
-
-## Commit
-
-None - code stays uncommitted until QA passes. Use `/kanban:save` to save partial progress.
-
-## Steps
-
-1. **Load workflow schema**
-   {{> workflow-load}}
-
-...
-
-4. **Verify on task branch**
-   {{> branch-verify-task}}
-
-...
-
-8. **User Skills** *(REQUIRED)*
-   {{> user-skills command="implement"}}
-
-...
-
-12. **Report completion**
-    ...
-    {{> next-steps next_command="verify"}}
-
-## Validation
-
-{{> validation-intro}}
-```
-
-### kanban-verify
-```handlebars
-{{> directory-reference}}
-
-{{> helper-scripts show_find_task=true show_find_plan=true show_get_date_time=true}}
-
-{{> column-transition from="in-progress" to="checks → qa"}}
-
-## Commit
-
-{{> commit-format type="docs" action="verify-retry"}}
-
-## Steps
-
-1. **Load workflow schema**
-   {{> workflow-load}}
-
-...
-
-4. **Verify on task branch**
-   {{> branch-verify-task}}
-
-...
-
-(Note: verify has different user-skills pattern - loads from config differently)
-
-...
-
-8. **Handle success**
-   ...
-   {{> next-steps next_command="approve"}}
-
-## Validation
-
-{{> validation-intro}}
-```
-
-### kanban-save
-```handlebars
-{{> column-transition from="in-progress" to="in-progress (no change)"}}
-
-## Commit
-
-{{> commit-format type="wip" action="{summary}"}}
-
-## Steps
-
-1. **Load workflow schema**
-   {{> workflow-load}}
-
-...
-
-4. **Verify on task branch**
-   {{> branch-verify-task}}
-
-...
-
-6. **User Skills** *(REQUIRED)*
-   {{> user-skills command="save"}}
-
-...
-
-## Validation
-
-{{> validation-intro}}
-```
-
-### kanban-approve
-```handlebars
-{{> directory-reference}}
-
-{{> column-transition from="qa" to="update-docs"}}
-
-## Commit
-
-**Format:** `{type}({id}): {title}` where `{type}` comes from task label:
-- `bug` label → `fix({id}): {title}`
-- `feature` label → `feat({id}): {title}`
-- `refactor` label → `refactor({id}): {title}`
-- `docs` label → `docs({id}): {title}`
-- Default → `feat({id}): {title}`
-
-**CRITICAL:** Use EXACTLY these formats. Do NOT invent commit types like `kanban(...)`.
-
-## Steps
-
-1. **Load workflow schema**
-   {{> workflow-load}}
-
-...
-
-4. **Verify on task branch**
-   {{> branch-verify-task}}
-
-5. **User Skills** *(REQUIRED)*
-   {{> user-skills command="approve"}}
-
-...
-
-11. **Confirm**
-    ...
-    {{> next-steps next_command="docs"}}
-
-## Validation
-
-{{> validation-intro}}
-```
-
-### kanban-rework
-```handlebars
-{{> directory-reference}}
-
-{{> column-transition from="qa / pr" to="in-progress"}}
-
-## Commit
-
-{{> commit-format type="docs" action="rework"}}
-
-## Steps
-
-1. **Load workflow schema**
-   {{> workflow-load}}
-
-...
-
-4. **Verify on task branch**
-   {{> branch-verify-task}}
-
-...
-
-6. **User Skills** *(REQUIRED)*
-   {{> user-skills command="rework"}}
-
-...
-
-12. **Confirm**
-    ...
-    {{> next-steps next_command="implement"}}
-
-## Validation
-
-{{> validation-intro}}
-```
-
-### kanban-docs
-```handlebars
-{{> directory-reference}}
-
-{{> column-transition from="update-docs" to="pr"}}
-
-## Commit
-
-{{> commit-format type="docs" action="product"}}
-
-## Steps
-
-1. **Load workflow schema**
-   {{> workflow-load}}
-
-...
-
-4. **Verify on task branch**
-   {{> branch-verify-task}}
-
-5. **User Skills** *(REQUIRED)*
-   {{> user-skills command="docs"}}
-
-...
-
-## Validation
-
-{{> validation-intro}}
-```
-
-### kanban-merge
-```handlebars
-{{> directory-reference}}
-
-{{> column-transition from="pr" to="done"}}
-
-## Commit
-
-{{> commit-format type="docs" action="done"}}
-
-## Steps
-
-1. **Load workflow schema**
-   {{> workflow-load}}
-
-...
-
-4. **Verify on task branch**
-   {{> branch-verify-task}}
-
-5. **User Skills** *(REQUIRED)*
-   {{> user-skills command="merge"}}
-
-...
-
-11. **Confirm completion**
-    ...
-    {{> next-steps next_command="create" no_id=true}}
-
-## Validation
-
-{{> validation-intro}}
-```
-
-### kanban-status
-```handlebars
-{{> helper-scripts show_list_tasks=true show_find_task=true show_find_plan=true}}
-
-...
-
-## Validation
-
-{{> validation-intro}}
-```
-
-### kanban-view
-```handlebars
-{{> helper-scripts show_list_tasks=true show_find_task=true show_find_plan=true}}
-
-...
-
-## Validation
-
-{{> validation-intro}}
-```
-
-### kanban-init
-```handlebars
-{{> directory-reference}}
-
-...
-
-## Validation
-
-{{> validation-intro}}
-```
-
-### kanban-map-product
-```handlebars
-## Column Transition
-
-N/A - This is a product discovery command, not a task workflow command.
-
-## Commit
-
-{{> commit-format type="docs" action="map-product"}}
-
-...
-
-## Validation
-
-{{> validation-intro}}
-```
-
-### kanban-define-product
-```handlebars
-## Column Transition
-
-N/A - This is a product discovery command, not a task workflow command.
-
-## Commit
-
-{{> commit-format type="docs" action="define-product"}}
-
-...
-
-## Validation
-
-{{> validation-intro}}
-```
-
----
-
-## Implementation Steps
+## Implementation Checklist
 
 ### Phase 1: Preparation
 
-1. **Capture baseline**
-   ```bash
-   npm run build
-   cp -r dist dist-before
-   ```
-
-2. **Create backup branch**
-   ```bash
-   git checkout -b template-migration-backup
-   git checkout main
-   ```
+- [ ] Build current state: `npm run build`
+- [ ] Copy dist for comparison: `cp -r dist dist-before`
 
 ### Phase 2: Update/Create Partials
 
-Files to modify in `src/content/partials/`:
+**Modify existing (`src/content/partials/`):**
 
-1. `helper-scripts.md` - Add conditional show_* flags
-2. `workflow-load.md` - Remove title prefix
-3. `branch-verify-main.md` - Remove title prefix
-4. `branch-verify-task.md` - Remove title prefix
-5. `user-skills.md` - Remove title prefix
-6. `validation-intro.md` - Remove "## Validation" header
+- [ ] `helper-scripts.md` - Add conditional show_* flags
+- [ ] `workflow-load.md` - Remove title prefix
+- [ ] `branch-verify-main.md` - Remove title prefix
+- [ ] `branch-verify-task.md` - Remove title prefix
+- [ ] `user-skills.md` - Remove title prefix
+- [ ] `validation-intro.md` - Remove "## Validation" header
 
-Files to create in `src/content/partials/`:
+**Create new (`src/content/partials/`):**
 
-7. `column-transition.md` - New partial
-8. `commit-format.md` - New partial
-9. `commit-critical.md` - New partial (optional, for commit step boilerplate)
+- [ ] `column-transition.md`
+- [ ] `commit-format.md`
+- [ ] `commit-critical.md` (optional)
 
 ### Phase 3: Update Skills
 
-Update each skill in `src/content/skills/*/SKILL.md`:
+**Standard workflow skills:**
 
-**Standard workflow skills (11 files):**
-1. kanban-create
-2. kanban-refine (already using partials - update to new format)
-3. kanban-scope
-4. kanban-plan
-5. kanban-implement
-6. kanban-verify
-7. kanban-save
-8. kanban-approve
-9. kanban-rework
-10. kanban-docs
-11. kanban-merge
+- [ ] kanban-create
+- [ ] kanban-refine
+- [ ] kanban-scope
+- [ ] kanban-plan
+- [ ] kanban-implement
+- [ ] kanban-verify
+- [ ] kanban-save
+- [ ] kanban-approve
+- [ ] kanban-rework
+- [ ] kanban-docs
+- [ ] kanban-merge
 
-**Utility skills (2 files):**
-12. kanban-status
-13. kanban-view
+**Utility skills:**
 
-**Setup/discovery skills (3 files):**
-14. kanban-init
-15. kanban-map-product
-16. kanban-define-product
+- [ ] kanban-status
+- [ ] kanban-view
+
+**Report skills:**
+
+- [ ] kanban-report-label
+- [ ] kanban-report-task
+- [ ] kanban-report-user
+
+**Setup/discovery skills:**
+
+- [ ] kanban-init
+- [ ] kanban-map-product
+- [ ] kanban-define-product
 
 ### Phase 4: Verification
 
-1. **Rebuild**
-   ```bash
-   npm run build
-   ```
-
-2. **Diff output**
-   ```bash
-   diff -r dist-before dist
-   ```
-
-3. **Review diffs**
-   - No diff = correct replacement
-   - Expected diff = intentional consistency fix
-   - Unexpected diff = bug to fix
-
-4. **Fix any issues and repeat**
+- [ ] Rebuild: `npm run build`
+- [ ] Diff output: `diff -r dist-before dist`
+- [ ] Review and fix any unexpected diffs
+- [ ] All diffs are either "no change" or "intentional consistency fix"
 
 ### Phase 5: Cleanup
 
-1. **Remove backup**
-   ```bash
-   rm -rf dist-before
-   git branch -d template-migration-backup
-   ```
-
-2. **Commit**
-   ```bash
-   git add src/content/
-   git commit -m "refactor: migrate skills to use Handlebars partials"
-   ```
+- [ ] Remove backup: `rm -rf dist-before`
+- [ ] Commit: `git add src/content/ && git commit -m "refactor: migrate skills to use Handlebars partials"`
 
 ---
 
@@ -911,33 +441,26 @@ src/content/partials/
 └── commit-critical.md         (NEW - optional)
 ```
 
-### Skills
+### Skills (19 total)
 ```
 src/content/skills/
-├── kanban-create/SKILL.md
-├── kanban-refine/SKILL.md
-├── kanban-scope/SKILL.md
-├── kanban-plan/SKILL.md
-├── kanban-implement/SKILL.md
-├── kanban-save/SKILL.md
-├── kanban-verify/SKILL.md
 ├── kanban-approve/SKILL.md
-├── kanban-rework/SKILL.md
+├── kanban-create/SKILL.md
+├── kanban-define-product/SKILL.md
 ├── kanban-docs/SKILL.md
-├── kanban-merge/SKILL.md
-├── kanban-status/SKILL.md
-├── kanban-view/SKILL.md
+├── kanban-implement/SKILL.md
 ├── kanban-init/SKILL.md
 ├── kanban-map-product/SKILL.md
-└── kanban-define-product/SKILL.md
+├── kanban-merge/SKILL.md
+├── kanban-plan/SKILL.md
+├── kanban-refine/SKILL.md
+├── kanban-report-label/SKILL.md
+├── kanban-report-task/SKILL.md
+├── kanban-report-user/SKILL.md
+├── kanban-rework/SKILL.md
+├── kanban-save/SKILL.md
+├── kanban-scope/SKILL.md
+├── kanban-status/SKILL.md
+├── kanban-verify/SKILL.md
+└── kanban-view/SKILL.md
 ```
-
----
-
-## Change Log
-
-| Date | Change |
-|------|--------|
-| 2026-02-15 | Initial analysis of current state and patterns |
-| 2026-02-15 | Completed Socratic Q&A - all design decisions finalized |
-| 2026-02-15 | Full implementation plan with partial specs and skill mappings |
