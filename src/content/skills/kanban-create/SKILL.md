@@ -1,7 +1,7 @@
 ---
 name: kanban-create
 description: Create a new task in the kanban board and commit. Use when the user wants to add a task, ticket, bug, or feature to track.
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *), Grep
+allowed-tools: Read, Write, Bash(node *, git add *, git commit *, git status, git branch *)
 argument-hint: "[task title]"
 disable-model-invocation: true
 ---
@@ -9,6 +9,25 @@ disable-model-invocation: true
 # Create Kanban Task
 
 Create a new task file in `.kanban/tasks/` in the **Backlog** column and commit.
+
+## CRITICAL — Read Before Proceeding
+
+**You are creating a TASK, not a product doc.**
+
+- **Output location:** `.kanban/tasks/{id}-{slug}.md`
+- **Template:** `.claude/kanban-templates/task.md`
+- **NOT** `.kanban/product/` — that's for product documentation, not tasks
+
+**You MUST use the helper scripts. Do NOT:**
+- Use `Search()` or `Glob()` to find files manually
+- Read `.kanban/config.yaml` directly
+- Run `ls` commands to explore directories
+- Create files in `.kanban/product/`
+
+**Instead, use these scripts:**
+- `node .claude/scripts/next-id.cjs` — get next task ID
+- `node .claude/scripts/search-product.cjs {keywords}` — find related product docs
+- `node .claude/scripts/get-user-skills.cjs kanban-create` — load user skills
 
 ## Reference
 
@@ -78,15 +97,16 @@ Create a new task file in `.kanban/tasks/` in the **Backlog** column and commit.
    - If unclear, ask user to confirm or skip
 
 - [ ] 10. **Create task file** at `.kanban/tasks/{id}-{slug}.md`
-   - Follow template at `.claude/kanban-templates/task.md`
-   - Fill sections for this phase:
-     - Frontmatter: `id`, `title`, `status: backlog`, `priority`, `labels`, `created`
-     - Body: `## Description`, `## Notes`
-   - Leave empty (filled in later phases):
-     - `## What problem are you trying to solve?`
-     - `## What value would it provide if solved?`
-     - `## Acceptance Criteria`
-     - Frontmatter: `spec`, `plan`, `updated`, `completed`
+
+   **IMPORTANT:** Write to `.kanban/tasks/` — NOT `.kanban/product/`
+
+   - Read template from `.claude/kanban-templates/task.md`
+   - Create file at `.kanban/tasks/{id}-{slug}.md` where:
+     - `{id}` = the nextId from step 5 (e.g., "001")
+     - `{slug}` = lowercase title with hyphens (e.g., "add-priority-status")
+   - Fill frontmatter: `id`, `title`, `status: backlog`, `priority`, `labels`, `created`, `affects`
+   - Fill body: `## Description`, `## Notes`
+   - Leave empty (filled in later phases): other sections
 
 - [ ] 11. **Commit the task file**
    Format: `docs({id}): create - {title}`
