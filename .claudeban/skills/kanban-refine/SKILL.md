@@ -1,12 +1,12 @@
 ---
 name: kanban-refine
-description: Refine vague tasks through Socratic Q&A to add clarity and acceptance criteria, then commit
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *), Grep, AskUserQuestion
+description: Refine vague tasks through conversational Q&A to add clarity and acceptance criteria, then commit
+allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *), Grep, Glob, AskUserQuestion, WebSearch, WebFetch
 ---
 
 # Refine Kanban Task
 
-Refine vague tasks through Socratic Q&A dialogue to add clarity, acceptance criteria, and implementation hints. Task moves from **Backlog** to **Refined**. Commits the refinement.
+Refine vague tasks through **iterative conversational Q&A** focused on product/business concerns. The dialogue continues until you have enough information and the user confirms. Task moves from **Backlog** to **Refined**. Commits the refinement.
 
 ## Directory Reference
 - **`.claude/`** — System config (workflow, templates, skills) — READ ONLY
@@ -86,34 +86,61 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
          - coding-standards   # Reads .claude/skills/coding-standards/SKILL.md
    ```
 
-6. **Analyze vagueness indicators**:
+6. **Analyze initial context**:
    - Check title for clarity issues:
      - Title too short (<5 words)?
-     - Missing action verb (use `detect-keywords` from kanban-workflow.yaml labels)?
+     - Missing action verb?
      - Contains ambiguous terms ("fix stuff", "improve things")?
    - Check description for completeness
    - Check acceptance criteria for specificity
+   - Read any related product docs from `.kanban/product/` for domain context
 
-7. **Conduct Q&A dialogue for each section**:
-   Using AskUserQuestion tool, ask about each section ONE AT A TIME.
-   For each question, allow the user to:
-   - Provide an answer
-   - Skip (user says "skip")
-   - Have LLM fill it in (user says "you fill it in")
+7. **Conduct iterative Q&A dialogue**:
 
-   **Questions to ask:**
+   This is a **conversational session** focused on **product/business concerns**:
+   - What problem are we solving?
+   - What value does it provide?
+   - What does "done" look like?
+   - User context, constraints, preferences
 
-   a. **Problem section**: "What problem are you trying to solve with this task?"
-      - If user skips: Try to infer from title/description, or leave placeholder
-      - If user says "you fill it in": Generate from available context
+   **How the dialogue works:**
 
-   b. **Value section**: "What value would it provide if solved?"
-      - If user skips: Try to infer from problem statement, or leave placeholder
-      - If user says "you fill it in": Generate from available context
+   a. **Ask questions as needed** using AskUserQuestion:
+      - Start with the most important gaps (problem, value, acceptance criteria)
+      - Ask follow-up questions based on answers
+      - Don't follow a rigid script - adapt to the conversation
 
-   c. **Acceptance Criteria**: "What does 'done' look like for this task? (will be formatted as Given/When/Then)"
-      - Always fill this - generate from context if user skips
-      - Convert user's answer to Gherkin format
+   b. **User can volunteer information at any time**:
+      - User may provide context you didn't ask for
+      - User may request research (e.g., "research how other apps handle password reset")
+      - User may skip questions ("skip" or "you fill it in")
+
+   c. **Perform web research when requested or beneficial**:
+      - If user asks to research something, use WebSearch/WebFetch
+      - Research domain topics, best practices, how other products solve similar problems
+      - Share findings and ask if they influence requirements
+
+   d. **Continue until you have enough information**:
+      - You need enough to write: problem statement, value statement, acceptance criteria
+      - When you feel ready, signal to the user:
+
+        **"I think I have enough information to write the refinement. Here's what I understand:**
+        - **Problem:** {summary}
+        - **Value:** {summary}
+        - **Acceptance criteria:** {summary}
+
+        **Is there anything else you'd like to discuss before I finalize this?"**
+
+   e. **User confirms or continues**:
+      - If user says "that's good" / "go ahead" / similar → proceed to writing
+      - If user adds more context → incorporate and ask if anything else
+      - If user has corrections → update understanding and confirm again
+
+   **Key principles:**
+   - Focus on PRODUCT/BUSINESS concerns, not technical implementation
+   - Let the conversation flow naturally
+   - Research when it helps clarify requirements
+   - Don't rush - thoroughness now saves time later
 
 8. **Update task file**:
    - Follow template at `.claude/kanban-templates/task.md`
@@ -193,37 +220,67 @@ User: `/kanban:refine 003`
 ```
 Analyzing task 003 "Fix the thing"...
 
-Vagueness indicators found:
-- Title lacks specificity
-- Description is placeholder text
-- Acceptance criteria are unmeasurable
+Reading task context...
+- Title: "Fix the thing"
+- Description: (empty)
+- No acceptance criteria
 
-Q1: What problem are you trying to solve with this task?
-> The login form doesn't validate email format before submission.
+I see this task needs clarification. Let me ask some questions.
 
-Q2: What value would it provide if solved?
-> skip
+Q: What problem are you trying to solve with this task?
+> The login form doesn't validate email format before submission, so users
+> can submit invalid emails and only find out after server response.
 
-(Generating value statement from context...)
+Got it - client-side email validation is missing.
 
-Q3: What does 'done' look like for this task?
-> Email validated client-side with inline error message.
+Q: What value would this provide if solved?
+> Better user experience, faster feedback. Also research how other login
+> forms handle this - like inline validation patterns.
 
-Converting to Gherkin format...
+Let me research that...
 
-Refinement complete!
+[Researches inline validation patterns]
+
+Found some useful patterns:
+- Real-time validation as user types (after blur)
+- Inline error messages below the field
+- Visual indicators (red border, checkmark)
+
+Would you like to incorporate any of these patterns into the requirements?
+> Yes, inline error message below the field, validate on blur.
+
+Q: What does "done" look like for this task?
+> Email validated on blur, inline error shown if invalid, form submission
+> blocked until valid.
+
+I think I have enough information to write the refinement. Here's what I understand:
+
+- **Problem:** Login form lacks client-side email validation, causing poor UX
+- **Value:** Faster feedback, better user experience, reduced invalid submissions
+- **Acceptance criteria:** Email validated on blur, inline error message, blocked submission
+
+Is there anything else you'd like to discuss before I finalize this?
+> No, that's good.
+
+Writing refinement...
 
 Task 003 updated:
-- Title: "Fix login form email validation"
+- Title: "Add client-side email validation to login form"
 - Status: refined
 - Acceptance Criteria:
   Given a user is on the login form
-  And they have entered an invalid email format
-  When they attempt to submit
-  Then an inline error message is displayed
-  And form submission is prevented
+  When they enter an invalid email format
+  And they blur the email field
+  Then an inline error message is displayed below the field
+  And the submit button is disabled
 
-Commit: b2c3d4e docs(003): refine - Fix login form email validation
+  Given a user is on the login form
+  When they enter a valid email format
+  And they blur the email field
+  Then no error message is displayed
+  And the submit button is enabled
+
+Commit: b2c3d4e docs(003): refine - Add client-side email validation to login form
 
 Next:
 /clear

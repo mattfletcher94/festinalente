@@ -15,7 +15,10 @@
       "Bash(do sed -i 's/next-id\\\\.js/next-id.cjs/g; s/get-date-time\\\\.js/get-date-time.cjs/g; s/find-task\\\\.js/find-task.cjs/g; s/find-spec\\\\.js/find-spec.cjs/g; s/find-plan\\\\.js/find-plan.cjs/g; s/list-tasks\\\\.js/list-tasks.cjs/g' \"$file\")",
       "Bash(echo:*)",
       "Bash(done)",
-      "Bash(for file in *.cjs)"
+      "Bash(for file in *.cjs)",
+      "WebFetch(domain:gist.github.com)",
+      "WebFetch(domain:scuti.asia)",
+      "WebFetch(domain:deepwiki.com)"
     ]
   }
 }
