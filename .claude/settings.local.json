@@ -19,7 +19,10 @@
       "Bash(node dist/scripts/list-tasks.cjs:*)",
       "Bash(node dist/scripts/find-task.cjs:*)",
       "Bash(node:*)",
-      "Bash(git push)"
+      "Bash(git push)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(gh api:*)"
     ]
   }
 }
