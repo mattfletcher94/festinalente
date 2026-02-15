@@ -425,18 +425,19 @@ claudeban/
 │   │   ├── kanban-templates/    # Document templates (copied as-is)
 │   │   └── kanban-workflow.yaml # Workflow schema (copied as-is)
 │   │
-│   ├── scripts/                 # Runtime helper scripts (TypeScript → CJS)
-│   │   ├── find-task.ts
-│   │   ├── find-spec.ts
-│   │   └── ...
-│   │
-│   └── build/                   # Build tools (TypeScript)
-│       └── index.ts             # Handlebars compilation logic
+│   └── scripts/                 # Runtime helper scripts (TypeScript → CJS)
+│       ├── find-task.ts
+│       ├── find-spec.ts
+│       └── ...
+│
+├── tools/
+│   └── build.ts                 # Handlebars compilation build tool
 │
 ├── dist/                        # Build output (generated, .gitignored)
 │   ├── skills/                  # Compiled skills (no Handlebars syntax)
 │   ├── commands/                # Compiled commands
 │   ├── scripts/*.cjs            # Compiled helper scripts
+│   ├── tools/                   # Compiled build tools
 │   ├── kanban-templates/        # Copied templates
 │   └── kanban-workflow.yaml     # Copied schema
 │
@@ -462,7 +463,7 @@ pnpm run clean
 ```
 
 The build process:
-1. **build:tools** - Compiles `src/build/index.ts` to ESM
+1. **build:tools** - Compiles `tools/build.ts` to ESM in `dist/tools/`
 2. **build:scripts** - Compiles `src/scripts/*.ts` to CJS (for Claude to run)
 3. **build:content** - Runs Handlebars compilation on skills/commands, copies static files
 

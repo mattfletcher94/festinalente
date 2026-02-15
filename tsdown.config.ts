@@ -19,9 +19,9 @@ export default defineConfig([
   },
   // Build tools
   {
-    entry: ['src/build/index.ts'],
+    entry: ['tools/build.ts'],
     format: ['esm'],
-    outDir: 'src/build/dist',
+    outDir: 'dist/tools',
     clean: false,
     dts: false,
   }

@@ -19,8 +19,8 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Go up from src/build/dist to project root
-const PROJECT_ROOT = path.resolve(__dirname, '../../..');
+// Go up from dist/tools to project root
+const PROJECT_ROOT = path.resolve(__dirname, '../..');
 const SRC_CONTENT = path.join(PROJECT_ROOT, 'src/content');
 const DIST = path.join(PROJECT_ROOT, 'dist');
 

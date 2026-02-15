@@ -12,10 +12,10 @@
   ],
   "scripts": {
     "build": "turbo compile",
-    "build:tools": "tsdown -c tsdown.config.ts src/build/index.ts --format esm --out-dir src/build/dist",
+    "build:tools": "tsdown -c tsdown.config.ts tools/build.ts --format esm --out-dir dist/tools",
     "build:scripts": "tsdown -c tsdown.config.ts src/scripts/find-task.ts src/scripts/find-spec.ts src/scripts/find-plan.ts src/scripts/list-tasks.ts src/scripts/next-id.ts src/scripts/get-date-time.ts --format cjs --out-dir dist/scripts",
-    "build:content": "node src/build/dist/index.js",
-    "clean": "node -e \"fs=require('fs');fs.rmSync('dist',{recursive:true,force:true});fs.rmSync('src/build/dist',{recursive:true,force:true})\""
+    "build:content": "node dist/tools/build.js",
+    "clean": "node -e \"fs=require('fs');fs.rmSync('dist',{recursive:true,force:true})\""
   },
   "keywords": [
     "claude",
