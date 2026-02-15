@@ -181,9 +181,4 @@ Next:
 /kanban-implement 001
 ```
 
-## Next Steps
-
-```
-/clear
-/kanban-implement {id}
-```
+{{> final-next-steps next_command="implement"}}

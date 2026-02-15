@@ -236,9 +236,4 @@ Next:
 /kanban-scope 003
 ```
 
-## Next Steps
-
-```
-/clear
-/kanban-scope {id}
-```
+{{> final-next-steps next_command="scope"}}

@@ -188,9 +188,4 @@ I found User Authentication that appears to handle JWT-based login. Is this accu
 - Ask about edge cases, limitations, and known issues
 - Probe for undocumented features or tribal knowledge
 
-## Next Steps
-
-```
-/clear
-/kanban-create "Your task title"
-```
+{{> final-next-steps next_command="create" no_id=true arg="\"Your task title\""}}

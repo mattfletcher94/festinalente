@@ -150,9 +150,4 @@ How should Task Tracking work from the user's perspective?
 - Explore user journeys and workflows
 - Ask about constraints, priorities, and trade-offs
 
-## Next Steps
-
-```
-/clear
-/kanban-create "Your task title"
-```
+{{> final-next-steps next_command="create" no_id=true arg="\"Your task title\""}}

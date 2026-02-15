@@ -115,9 +115,4 @@ Next:
 /kanban-refine 002
 ```
 
-## Next Steps
-
-```
-/clear
-/kanban-refine {id}
-```
+{{> final-next-steps next_command="refine"}}

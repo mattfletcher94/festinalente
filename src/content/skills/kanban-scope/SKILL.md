@@ -333,9 +333,4 @@ Next:
 /kanban-plan 001
 ```
 
-## Next Steps
-
-```
-/clear
-/kanban-plan {id}
-```
+{{> final-next-steps next_command="plan"}}

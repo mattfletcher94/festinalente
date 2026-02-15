@@ -186,12 +186,7 @@ Next:
 /kanban-docs 002
 ```
 
-## Next Steps
-
-```
-/clear
-/kanban-docs {id}
-```
+{{> final-next-steps next_command="docs"}}
 
 Or if issues are found during QA:
 ```
