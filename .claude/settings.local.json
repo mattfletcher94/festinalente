@@ -3,7 +3,8 @@
     "allow": [
       "Bash(pnpm run clean:*)",
       "Bash(pnpm run build:*)",
-      "Bash(pnpm turbo build:*)"
+      "Bash(pnpm turbo build:*)",
+      "WebSearch"
     ]
   }
 }
