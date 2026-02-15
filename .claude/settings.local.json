@@ -4,7 +4,11 @@
       "Bash(pnpm run clean:*)",
       "Bash(pnpm run build:*)",
       "Bash(pnpm turbo build:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(npm run build:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(done)"
     ]
   }
 }
