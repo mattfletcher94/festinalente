@@ -27,10 +27,12 @@ N/A - This is a product discovery command, not a task workflow command.
 - [ ] 2. **Pre-flight Check**
    1. Verify `.kanban/` directory exists
       - If not: Error - "Please initialize kanban first with `kanban-init`"
-   2. Check if `.kanban/product/` has existing files
-      - If yes: Ask user using AskUserQuestion:
+   2. Check if `.kanban/product/` has files OTHER than `overview.md`
+      - Run `node .claude/scripts/list-product.cjs` to get all product docs
+      - If count > 1, OR if count == 1 and the doc is not `overview`: Ask user using AskUserQuestion:
         - "I found existing product docs. How should I proceed?"
         - Options: Preserve and extend / Merge with findings / Start fresh
+      - If only `overview.md` exists (or no docs): Proceed without prompting (this is expected from kanban-init)
 
 - [ ] 3. **Deep Codebase Research**
 
