@@ -15,15 +15,13 @@ N/A - This is a product discovery command, not a task workflow command.
 
 ## Commit
 
-**Format:** `docs: map-product - {brief summary listing main features}`
-
-**CRITICAL:** Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `docs`, not `kanban`.
+{{> commit-format type="docs" action="map-product - {brief summary listing main features}"}}
 
 ## Steps
 
 ### 0. Load Workflow Schema
 
-Read `.claude/kanban-workflow.yaml` for commit formats.
+{{> workflow-load}}
 
 ### 1. Pre-flight Check
 
@@ -129,7 +127,7 @@ Use AskUserQuestion tool for **one question at a time**.
 
 ### 6. CRITICAL: Commit
 
-**This step is MANDATORY. Do not proceed without committing.**
+{{> commit-critical}}
 
 ```bash
 git add .kanban/product/
@@ -138,13 +136,9 @@ git commit -m "docs: map-product - {brief summary listing main features}"
 
 Example: `docs: map-product - authentication, user management, notifications, search`
 
-**DO NOT skip this step. If the commit fails, stop and report the error.**
-
 ## Validation
 
-**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
-
-All must pass. If any fail, fix and retry.
+{{> validation-intro}}
 
 - [ ] `.kanban/product/` directory exists
 - [ ] At least one product doc was created

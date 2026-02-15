@@ -12,27 +12,21 @@ Refine vague tasks through **iterative conversational Q&A** focused on product/b
 
 {{> directory-reference}}
 
-{{> helper-scripts}}
+{{> helper-scripts show_find_task=true show_find_spec=true show_find_plan=true show_get_date_time=true}}
 
-## Column Transition
-
-```
-backlog → refined
-```
-
-See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
+{{> column-transition from="backlog" to="refined"}}
 
 ## Commit
 
-**Format:** `docs({id}): refine - {title}`
-
-**CRITICAL:** Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `docs`, not `kanban`.
+{{> commit-format type="docs" action="refine"}}
 
 ## Steps
 
-{{> workflow-load step_number="1"}}
+1. **Load workflow schema**
+   {{> workflow-load}}
 
-{{> branch-verify-main step_number="2"}}
+2. **Verify on main branch**
+   {{> branch-verify-main}}
 
 3. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks with `needs-refinement` label from `.kanban/tasks/`
@@ -49,7 +43,8 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    - Note current title, description, acceptance criteria (if any)
    - Error if task not found
 
-{{> user-skills command="refine" step_number="5"}}
+5. **User Skills** *(REQUIRED)*
+   {{> user-skills command="refine"}}
 
 6. **Analyze initial context**:
    - Check title for clarity issues:
@@ -138,9 +133,8 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 
 10. **Write updated task file**
 
-11. **CRITICAL: Commit the refinement**:
-
-    **This step is MANDATORY. Do not proceed without committing.**
+11. **CRITICAL: Commit the refinement**
+    {{> commit-critical}}
 
     - Use `commits.refine` format from kanban-workflow.yaml
     ```bash
@@ -148,13 +142,13 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
     git commit -m "docs({id}): refine - {title}"
     ```
 
-    **DO NOT skip this step. If the commit fails, stop and report the error.**
-
 12. **Confirm refinement complete**:
     - Print summary of changes made
     - Show updated acceptance criteria
     - Print commit hash
     {{> next-steps next_command="scope"}}
+
+## Validation
 
 {{> validation-intro}}
 

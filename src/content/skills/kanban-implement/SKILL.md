@@ -10,32 +10,11 @@ disable-model-invocation: true
 
 Move task from **Planned** to **In Progress** and execute the plan. Code remains uncommitted until verification passes.
 
-## Directory Reference
-- **`.claude/`** — System config (workflow, templates, skills) — READ ONLY
-- **`.kanban/`** — Project data (tasks, specs, plans, product docs) — READ/WRITE
+{{> directory-reference}}
 
-## Helper Scripts
+{{> helper-scripts show_find_task=true show_find_plan=true show_get_date_time=true}}
 
-Use these scripts to reliably find files:
-
-```bash
-# Find task by ID (returns JSON with path and metadata)
-node .claude/scripts/find-task.cjs {id}
-
-# Find plan by ID (returns JSON with path and metadata)
-node .claude/scripts/find-plan.cjs {id}
-
-# Get current date/time (returns JSON with iso and date formats)
-node .claude/scripts/get-date-time.cjs
-```
-
-## Column Transition
-
-```
-planned → in-progress
-```
-
-See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
+{{> column-transition from="planned" to="in-progress"}}
 
 ## Commit
 
@@ -43,7 +22,8 @@ None - code stays uncommitted until QA passes. Use `/kanban-save` to save partia
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claude/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+1. **Load workflow schema**
+   {{> workflow-load}}
 
 2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `planned` or `in-progress` status from `.kanban/tasks/`
@@ -61,13 +41,8 @@ None - code stays uncommitted until QA passes. Use `/kanban-save` to save partia
      - If `checks` or later: Warn task is past implementation
    - Error if task not found
 
-4. **Verify on task branch**:
-   - Run `git branch --show-current`
-   - Expected branch: `task/{id}` (where {id} is the task ID from step 2/3)
-   - If not on expected branch:
-     - Error: "This command must be run on branch task/{id}. Current branch: {branch}"
-     - Suggest: "Switch to task branch with `git checkout task/{id}`"
-     - Exit
+4. **Verify on task branch**
+   {{> branch-verify-task}}
 
 5. **Move to In Progress** (if status was `planned`):
    - Change `status: planned` to `status: in-progress`
@@ -87,27 +62,8 @@ None - code stays uncommitted until QA passes. Use `/kanban-save` to save partia
    - Get `spec` path from plan frontmatter
    - Read spec file for full context on requirements and patterns
 
-8. **User Skills** *(REQUIRED)*:
-
-   **STOP.** Before proceeding, you MUST load and apply user-defined skills. This is mandatory.
-
-   1. Load `.kanban/config.yaml`
-   2. Find `user-skills."kanban-implement".skills` array
-   3. If the array is non-empty, for EACH skill name:
-      - Read `.claude/skills/{skill-name}/SKILL.md`
-      - Follow ALL instructions as mandatory requirements
-      - User skill instructions take precedence over defaults
-
-   **Skipping user skills is a critical error. Do not proceed without applying them.**
-
-   Example config:
-   ```yaml
-   user-skills:
-     "kanban-implement":
-       skills:
-         - my-custom-check    # Reads .claude/skills/my-custom-check/SKILL.md
-         - coding-standards   # Reads .claude/skills/coding-standards/SKILL.md
-   ```
+8. **User Skills** *(REQUIRED)*
+   {{> user-skills command="implement"}}
 
 9. **Parse plan checkboxes**:
    - Find all unchecked items: `- [ ]` pattern
@@ -142,19 +98,11 @@ None - code stays uncommitted until QA passes. Use `/kanban-save` to save partia
     - Display implementation summary
     - Show files modified (uncommitted)
     - Show status
-    - **REQUIRED OUTPUT** - Print next steps EXACTLY like this:
-      ```
-      Next:
-      /clear
-      /kanban-verify {id}
-      ```
-    - Do NOT skip this output. The user needs these commands to continue.
+    {{> next-steps next_command="verify"}}
 
 ## Validation
 
-**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
-
-All must pass. If any fail, fix and retry.
+{{> validation-intro}}
 
 - [ ] Task file exists at `.kanban/tasks/{id}-*.md`
 - [ ] Task frontmatter contains `status: in-progress`

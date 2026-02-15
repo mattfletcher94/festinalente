@@ -10,32 +10,11 @@ disable-model-invocation: true
 
 Run AI code review using configured skills. On failure, AI fixes issues and retries automatically. On success, auto-advances to QA. Moves task from **In Progress** to **Checks** then **QA**.
 
-## Directory Reference
-- **`.claude/`** — System config (workflow, templates, skills) — READ ONLY
-- **`.kanban/`** — Project data (tasks, specs, plans, product docs) — READ/WRITE
+{{> directory-reference}}
 
-## Helper Scripts
+{{> helper-scripts show_find_task=true show_find_plan=true show_get_date_time=true}}
 
-Use these scripts to reliably find files:
-
-```bash
-# Find task by ID (returns JSON with path and metadata)
-node .claude/scripts/find-task.cjs {id}
-
-# Find plan by ID (returns JSON with path and metadata)
-node .claude/scripts/find-plan.cjs {id}
-
-# Get current date/time (returns JSON with iso and date formats)
-node .claude/scripts/get-date-time.cjs
-```
-
-## Column Transition
-
-```
-in-progress → checks → qa (automatic on success)
-```
-
-See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
+{{> column-transition from="in-progress" to="checks → qa (automatic on success)"}}
 
 ## Behavior
 
@@ -44,13 +23,12 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 
 ## Commit
 
-**Format (on retry):** `docs({id}): verify-retry - {title}`
-
-**CRITICAL:** Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `docs`, not `kanban`.
+{{> commit-format type="docs" action="verify-retry"}}
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claude/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+1. **Load workflow schema**
+   {{> workflow-load}}
 
 2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `in-progress` status from `.kanban/tasks/`
@@ -65,13 +43,8 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
      - If not, warn: "Task is in {status} status. Expected: in-progress. Continue anyway? (y/n)"
    - Error if task not found
 
-4. **Verify on task branch**:
-   - Run `git branch --show-current`
-   - Expected branch: `task/{id}` (where {id} is the task ID from step 2/3)
-   - If not on expected branch:
-     - Error: "This command must be run on branch task/{id}. Current branch: {branch}"
-     - Suggest: "Switch to task branch with `git checkout task/{id}`"
-     - Exit
+4. **Verify on task branch**
+   {{> branch-verify-task}}
 
 5. **Read plan file**:
    - Run `node .claude/scripts/find-plan.cjs {id}` to get exact path
@@ -160,19 +133,11 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 
    - Print summary of all passed checks
    - Print: "Task {id} moved to QA."
-   - **REQUIRED OUTPUT** - Print next steps EXACTLY like this:
-     ```
-     Next:
-     /clear
-     /kanban-approve {id}
-     ```
-   - Do NOT skip this output. The user needs these commands to continue.
+   {{> next-steps next_command="approve"}}
 
 ## Validation
 
-**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
-
-All must pass. If any fail, fix and retry.
+{{> validation-intro}}
 
 - [ ] Task exists at `.kanban/tasks/{id}-*.md`
 - [ ] Plan exists at `.kanban/plans/{id}-{slug}.plan.md`

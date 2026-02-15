@@ -10,6 +10,8 @@ disable-model-invocation: true
 
 Query what tasks a specific git user has worked on using natural language.
 
+{{> helper-scripts show_list_tasks=true show_find_task=true}}
+
 ## Usage
 
 `/kanban-report-user {name} [question]`

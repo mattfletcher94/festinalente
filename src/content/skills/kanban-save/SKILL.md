@@ -10,23 +10,16 @@ disable-model-invocation: true
 
 Save partial implementation progress when interrupted. Task stays in **In Progress**. Commits current code changes and ensures plan checkboxes are up to date.
 
-## Column Transition
-
-```
-in-progress → in-progress (no change)
-```
-
-See `.claude/kanban-workflow.yaml` for column definitions.
+{{> column-transition from="in-progress" to="in-progress (no change)"}}
 
 ## Commit
 
-**Format:** `wip({id}): {summary}`
-
-**CRITICAL:** Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `wip`, not `kanban`.
+{{> commit-format type="wip" action="{summary}"}}
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claude/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+1. **Load workflow schema**
+   {{> workflow-load}}
 
 2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `in-progress` status from `.kanban/tasks/`
@@ -41,13 +34,8 @@ See `.claude/kanban-workflow.yaml` for column definitions.
      - Exit
    - Error if task not found
 
-4. **Verify on task branch**:
-   - Run `git branch --show-current`
-   - Expected branch: `task/{id}` (where {id} is the task ID from step 2/3)
-   - If not on expected branch:
-     - Error: "This command must be run on branch task/{id}. Current branch: {branch}"
-     - Suggest: "Switch to task branch with `git checkout task/{id}`"
-     - Exit
+4. **Verify on task branch**
+   {{> branch-verify-task}}
 
 5. **Find and read plan file**:
    - Check for `.kanban/plans/{id}-{slug}.plan.md`
@@ -56,27 +44,8 @@ See `.claude/kanban-workflow.yaml` for column definitions.
      - Warn: "No plan found for task {id}"
      - Still proceed with WIP commit (code can still be committed)
 
-6. **User Skills** *(REQUIRED)*:
-
-   **STOP.** Before proceeding, you MUST load and apply user-defined skills. This is mandatory.
-
-   1. Load `.kanban/config.yaml`
-   2. Find `user-skills."kanban-save".skills` array
-   3. If the array is non-empty, for EACH skill name:
-      - Read `.claude/skills/{skill-name}/SKILL.md`
-      - Follow ALL instructions as mandatory requirements
-      - User skill instructions take precedence over defaults
-
-   **Skipping user skills is a critical error. Do not proceed without applying them.**
-
-   Example config:
-   ```yaml
-   user-skills:
-     "kanban-save":
-       skills:
-         - my-custom-check    # Reads .claude/skills/my-custom-check/SKILL.md
-         - coding-standards   # Reads .claude/skills/coding-standards/SKILL.md
-   ```
+6. **User Skills** *(REQUIRED)*
+   {{> user-skills command="save"}}
 
 7. **Verify plan checkboxes match reality**:
    - If plan exists:
@@ -112,9 +81,8 @@ See `.claude/kanban-workflow.yaml` for column definitions.
       - Still update plan if checkboxes changed
       - Exit early if nothing to commit
 
-11. **CRITICAL: Stage and commit**:
-
-    **This step is MANDATORY. Do not proceed without committing.**
+11. **CRITICAL: Stage and commit**
+    {{> commit-critical}}
 
     - Stage all relevant files (code + plan):
       ```bash
@@ -126,8 +94,6 @@ See `.claude/kanban-workflow.yaml` for column definitions.
       git commit -m "wip({id}): {progress summary}"
       ```
 
-    **DO NOT skip this step. If the commit fails, stop and report the error.**
-
 12. **Confirm WIP commit**:
     - Print commit hash
     - Print progress: "{completed}/{total} plan items complete"
@@ -136,9 +102,7 @@ See `.claude/kanban-workflow.yaml` for column definitions.
 
 ## Validation
 
-**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
-
-All must pass. If any fail, fix and retry.
+{{> validation-intro}}
 
 - [ ] Task file exists at `.kanban/tasks/{id}-*.md`
 - [ ] Task frontmatter contains `status: in-progress`

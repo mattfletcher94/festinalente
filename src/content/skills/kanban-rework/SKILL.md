@@ -10,9 +10,7 @@ disable-model-invocation: true
 
 Return a task to In Progress when human review finds issues. This consolidated command works from both **QA** and **PR** columns.
 
-## Directory Reference
-- **`.claude/`** — System config (workflow, templates, skills) — READ ONLY
-- **`.kanban/`** — Project data (tasks, specs, plans, product docs) — READ/WRITE
+{{> directory-reference}}
 
 ## Column Transitions
 
@@ -25,13 +23,12 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 
 ## Commit
 
-**Format:** `docs({id}): rework - {title}`
-
-**CRITICAL:** Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `docs`, not `kanban`.
+{{> commit-format type="docs" action="rework"}}
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claude/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+1. **Load workflow schema**
+   {{> workflow-load}}
 
 2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `qa` or `pr` status from `.kanban/tasks/`
@@ -46,40 +43,16 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    - Note current title, status, and acceptance criteria
    - Error if task not found
 
-4. **Verify on task branch**:
-   - Run `git branch --show-current`
-   - Expected branch: `task/{id}` (where {id} is the task ID from step 2/3)
-   - If not on expected branch:
-     - Error: "This command must be run on branch task/{id}. Current branch: {branch}"
-     - Suggest: "Switch to task branch with `git checkout task/{id}`"
-     - Exit
+4. **Verify on task branch**
+   {{> branch-verify-task}}
 
 5. **Find and read plan file**:
    - Check for `.kanban/plans/{id}-{slug}.plan.md`
    - If plan found: Read plan content
    - Plan will be updated with issues to address
 
-6. **User Skills** *(REQUIRED)*:
-
-   **STOP.** Before proceeding, you MUST load and apply user-defined skills. This is mandatory.
-
-   1. Load `.kanban/config.yaml`
-   2. Find `user-skills."kanban-rework".skills` array
-   3. If the array is non-empty, for EACH skill name:
-      - Read `.claude/skills/{skill-name}/SKILL.md`
-      - Follow ALL instructions as mandatory requirements
-      - User skill instructions take precedence over defaults
-
-   **Skipping user skills is a critical error. Do not proceed without applying them.**
-
-   Example config:
-   ```yaml
-   user-skills:
-     "kanban-rework":
-       skills:
-         - my-custom-check    # Reads .claude/skills/my-custom-check/SKILL.md
-         - coding-standards   # Reads .claude/skills/coding-standards/SKILL.md
-   ```
+6. **User Skills** *(REQUIRED)*
+   {{> user-skills command="rework"}}
 
 7. **If task was in PR column, close the PR**:
    - If status was `pr`:
@@ -121,9 +94,8 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
     - Add `updated: {YYYY-MM-DD}`
     - Write updated task file
 
-11. **CRITICAL: Commit the rework notes**:
-
-    **This step is MANDATORY. Do not proceed without committing.**
+11. **CRITICAL: Commit the rework notes**
+    {{> commit-critical}}
 
     ```bash
     git add .kanban/tasks/{id}-*.md
@@ -131,27 +103,17 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
     git commit -m "docs({id}): rework - {title}"
     ```
 
-    **DO NOT skip this step. If the commit fails, stop and report the error.**
-
 12. **Confirm**:
     - Print commit hash
     - Print: "Task {id} returned to In Progress for rework"
     - Print iteration number
     - Print number of issues to address
-    - **REQUIRED OUTPUT** - Print next steps EXACTLY like this:
-      ```
-      Next:
-      /clear
-      /kanban-implement {id}
-      ```
-    - Do NOT skip this output. The user needs these commands to continue.
+    {{> next-steps next_command="implement"}}
     - Also mention: "Then re-verify with /kanban-verify {id}"
 
 ## Validation
 
-**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
-
-All must pass. If any fail, fix and retry.
+{{> validation-intro}}
 
 - [ ] Task file exists at `.kanban/tasks/{id}-*.md`
 - [ ] Plan file exists at `.kanban/plans/{id}-{slug}.plan.md`

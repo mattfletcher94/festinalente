@@ -10,6 +10,8 @@ disable-model-invocation: true
 
 Query tasks filtered by label using natural language.
 
+{{> helper-scripts show_list_tasks=true show_find_task=true}}
+
 ## Usage
 
 `/kanban-report-label {label} [question]`

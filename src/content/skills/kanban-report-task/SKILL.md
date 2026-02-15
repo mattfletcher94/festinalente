@@ -10,6 +10,8 @@ disable-model-invocation: true
 
 Query a specific task's history and current state using natural language.
 
+{{> helper-scripts show_find_task=true show_find_spec=true show_find_plan=true}}
+
 ## Usage
 
 `/kanban-report-task {id} [question]`

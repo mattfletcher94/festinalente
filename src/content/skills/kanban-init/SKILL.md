@@ -9,9 +9,7 @@ disable-model-invocation: true
 
 Create the `.kanban/` directory structure for a new project.
 
-## Directory Reference
-- **`.claude/`** — System config (workflow, templates, skills) — READ ONLY
-- **`.kanban/`** — Project data (tasks, specs, plans, product docs) — READ/WRITE
+{{> directory-reference}}
 
 ## Steps
 
@@ -102,9 +100,7 @@ User-defined skills in `.kanban/skills/` are simple `.md` files (NOT directories
 
 ## Validation
 
-**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
-
-All must pass. If any fail, fix and retry.
+{{> validation-intro}}
 
 - [ ] `.kanban/` directory exists
 - [ ] `.kanban/tasks/` directory exists

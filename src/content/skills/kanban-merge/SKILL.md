@@ -10,27 +10,18 @@ disable-model-invocation: true
 
 Merge the task branch into main, clean up the branch, and move task to **Done**.
 
-## Directory Reference
-- **`.claude/`** — System config (workflow, templates, skills) — READ ONLY
-- **`.kanban/`** — Project data (tasks, specs, plans, product docs) — READ/WRITE
+{{> directory-reference}}
 
-## Column Transition
-
-```
-pr → done
-```
-
-See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
+{{> column-transition from="pr" to="done"}}
 
 ## Commit
 
-**Format:** `docs({id}): done - {title}`
-
-**CRITICAL:** Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `docs`, not `kanban`.
+{{> commit-format type="docs" action="done"}}
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claude/kanban-workflow.yaml` for column definitions and commit formats.
+1. **Load workflow schema**
+   {{> workflow-load}}
 
 2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `pr` status from `.kanban/tasks/`
@@ -45,34 +36,11 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
      - If earlier status: Suggest appropriate command
    - Error if task not found
 
-4. **Verify on task branch**:
-   - Run `git branch --show-current`
-   - Expected: `task/{id}`
-   - If not on expected branch:
-     - Error: "This command must be run on branch task/{id}. Current branch: {branch}"
-     - Exit
+4. **Verify on task branch**
+   {{> branch-verify-task}}
 
-5. **User Skills** *(REQUIRED)*:
-
-   **STOP.** Before proceeding, you MUST load and apply user-defined skills. This is mandatory.
-
-   1. Load `.kanban/config.yaml`
-   2. Find `user-skills."kanban-merge".skills` array
-   3. If the array is non-empty, for EACH skill name:
-      - Read `.claude/skills/{skill-name}/SKILL.md`
-      - Follow ALL instructions as mandatory requirements
-      - User skill instructions take precedence over defaults
-
-   **Skipping user skills is a critical error. Do not proceed without applying them.**
-
-   Example config:
-   ```yaml
-   user-skills:
-     "kanban-merge":
-       skills:
-         - my-custom-check    # Reads .claude/skills/my-custom-check/SKILL.md
-         - coding-standards   # Reads .claude/skills/coding-standards/SKILL.md
-   ```
+5. **User Skills** *(REQUIRED)*
+   {{> user-skills command="merge"}}
 
 6. **Verify branch is ready to merge**:
    - Run `git status` to ensure working tree is clean
@@ -101,9 +69,8 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    git branch -d task/{id}
    ```
 
-10. **CRITICAL: Move to Done and commit**:
-
-    **This step is MANDATORY. Do not proceed without committing.**
+10. **CRITICAL: Move to Done and commit**
+    {{> commit-critical}}
 
     - Change `status: pr` to `status: done`
     - Add `updated: {YYYY-MM-DD}`
@@ -115,25 +82,17 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
       git commit -m "docs({id}): done - {title}"
       ```
 
-    **DO NOT skip this step. If the commit fails, stop and report the error.**
-
 11. **Confirm completion**:
     - Print: "Branch merged successfully!"
     - Print: "Branch task/{id} deleted"
     - Print: "Task {id} completed!"
     - Print current branch (should be main)
     - Print: "Congratulations! Task complete."
-    - **REQUIRED OUTPUT** - Print next steps EXACTLY like this:
-      ```
-      Next:
-      /clear
-      /kanban-create "Your next task"
-      ```
-    - Do NOT skip this output. The user needs these commands to continue.
+    {{> next-steps next_command="create" no_id=true}}
 
 ## Validation
 
-**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
+{{> validation-intro}}
 
 All must pass:
 

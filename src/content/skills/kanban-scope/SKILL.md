@@ -10,46 +10,23 @@ disable-model-invocation: true
 
 Create a functional specification through **iterative conversational Q&A** focused on technical decisions. Research the codebase and web as topics arise. The dialogue continues until you have enough information and the user confirms. Creates spec at `.kanban/specs/{id}-{slug}.spec.md` and moves task from **Refined** to **Scoped**. Commits the scoping.
 
-## Directory Reference
-- **`.claude/`** — System config (workflow, templates, skills) — READ ONLY
-- **`.kanban/`** — Project data (tasks, specs, plans, product docs) — READ/WRITE
+{{> directory-reference}}
 
-## Helper Scripts
+{{> helper-scripts show_find_task=true show_get_date_time=true}}
 
-Use these scripts to reliably find files:
-
-```bash
-# Find task by ID (returns JSON with path and metadata)
-node .claude/scripts/find-task.cjs {id}
-
-# Get current date/time (returns JSON with iso and date formats)
-node .claude/scripts/get-date-time.cjs
-```
-
-## Column Transition
-
-```
-refined → scoped
-```
-
-See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
+{{> column-transition from="refined" to="scoped"}}
 
 ## Commit
 
-**Format:** `docs({id}): scope - {title}`
-
-**CRITICAL:** Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `docs`, not `kanban`.
+{{> commit-format type="docs" action="scope"}}
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claude/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+1. **Load workflow schema**
+   {{> workflow-load}}
 
-2. **Verify on main branch**:
-   - Run `git branch --show-current`
-   - If not on `main` (or `master`):
-     - Error: "This command must be run on the main branch to create the task branch. Current branch: {branch}"
-     - Suggest: "Switch to main with `git checkout main`"
-     - Exit
+2. **Verify on main branch**
+   {{> branch-verify-main reason="to create the task branch"}}
 
 3. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `refined` status from `.kanban/tasks/`
@@ -65,27 +42,8 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    - Extract problem, value, and acceptance criteria for reference
    - Error if task not found
 
-5. **User Skills** *(REQUIRED)*:
-
-   **STOP.** Before proceeding, you MUST load and apply user-defined skills. This is mandatory.
-
-   1. Load `.kanban/config.yaml`
-   2. Find `user-skills."kanban-scope".skills` array
-   3. If the array is non-empty, for EACH skill name:
-      - Read `.claude/skills/{skill-name}/SKILL.md`
-      - Follow ALL instructions as mandatory requirements
-      - User skill instructions take precedence over defaults
-
-   **Skipping user skills is a critical error. Do not proceed without applying them.**
-
-   Example config:
-   ```yaml
-   user-skills:
-     "kanban-scope":
-       skills:
-         - my-custom-check    # Reads .claude/skills/my-custom-check/SKILL.md
-         - coding-standards   # Reads .claude/skills/coding-standards/SKILL.md
-   ```
+5. **User Skills** *(REQUIRED)*
+   {{> user-skills command="scope"}}
 
 6. **Initial codebase research**:
    Based on task description and acceptance criteria, do preliminary research:
@@ -236,16 +194,13 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
     - Run `git checkout -b task/{id}`
     - Confirm: "Created branch task/{id}"
 
-12. **CRITICAL: Commit the scoping**:
-
-    **This step is MANDATORY. Do not proceed without committing.**
+12. **CRITICAL: Commit the scoping**
+    {{> commit-critical}}
 
     ```bash
     git add .kanban/specs/{id}-{slug}.spec.md .kanban/tasks/{id}-*.md
     git commit -m "docs({id}): scope - {title}"
     ```
-
-    **DO NOT skip this step. If the commit fails, stop and report the error.**
 
 13. **Confirm scoping complete**:
     - Print summary of affected files identified
@@ -253,19 +208,11 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
     - Print any research findings and decisions
     - Print any open questions
     - Print commit hash
-    - **REQUIRED OUTPUT** - Print next steps EXACTLY like this:
-      ```
-      Next:
-      /clear
-      /kanban-plan {id}
-      ```
-    - Do NOT skip this output. The user needs these commands to continue.
+    {{> next-steps next_command="plan"}}
 
 ## Validation
 
-**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
-
-All must pass. If any fail, fix and retry.
+{{> validation-intro}}
 
 - [ ] Task file exists at `.kanban/tasks/{id}-*.md`
 - [ ] Spec file exists at `.kanban/specs/{id}-{slug}.spec.md`

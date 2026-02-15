@@ -10,20 +10,7 @@ disable-model-invocation: true
 
 Display the Kanban board as a visual terminal output.
 
-## Helper Scripts
-
-Use these scripts to reliably find files and list tasks:
-
-```bash
-# List all tasks (returns JSON with count and tasks array)
-node .claude/scripts/list-tasks.cjs
-
-# Find task by ID (returns JSON with path and metadata)
-node .claude/scripts/find-task.cjs {id}
-
-# Find plan by ID (returns JSON with path and metadata)
-node .claude/scripts/find-plan.cjs {id}
-```
+{{> helper-scripts show_list_tasks=true show_find_task=true show_find_plan=true}}
 
 ## Steps
 
@@ -187,7 +174,7 @@ Done (2 tasks)
 
 ## Validation
 
-**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
+{{> validation-intro}}
 
 - [ ] Asked user for view preset before rendering
 - [ ] Board shows tasks grouped by status column

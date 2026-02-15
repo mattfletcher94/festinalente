@@ -10,18 +10,11 @@ disable-model-invocation: true
 
 Update product documentation, commit the changes, and move task from **Update Docs** to **PR**. User creates the pull request on GitHub.
 
-## Directory Reference
-- **`.claude/`** — System config (workflow, templates, skills) — READ ONLY
-- **`.kanban/`** — Project data (tasks, specs, plans, product docs) — READ/WRITE
+{{> directory-reference}}
+
 - **`.kanban/product/`** — Product documentation files (features.md, overview.md, etc.) — This is where user-facing docs live
 
-## Column Transition
-
-```
-update-docs → pr
-```
-
-See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
+{{> column-transition from="update-docs" to="pr"}}
 
 ## Commit
 
@@ -33,7 +26,8 @@ The description summarizes what documentation was updated (e.g., "add authentica
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claude/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+1. **Load workflow schema**
+   {{> workflow-load}}
 
 2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `update-docs` status from `.kanban/tasks/`
@@ -50,35 +44,11 @@ The description summarizes what documentation was updated (e.g., "add authentica
    - Note title, labels, description for documentation context
    - Error if task not found
 
-4. **Verify on task branch**:
-   - Run `git branch --show-current`
-   - Expected branch: `task/{id}` (where {id} is the task ID from step 2/3)
-   - If not on expected branch:
-     - Error: "This command must be run on branch task/{id}. Current branch: {branch}"
-     - Suggest: "Switch to task branch with `git checkout task/{id}`"
-     - Exit
+4. **Verify on task branch**
+   {{> branch-verify-task}}
 
-5. **User Skills** *(REQUIRED)*:
-
-   **STOP.** Before proceeding, you MUST load and apply user-defined skills. This is mandatory.
-
-   1. Load `.kanban/config.yaml`
-   2. Find `user-skills."kanban-docs".skills` array
-   3. If the array is non-empty, for EACH skill name:
-      - Read `.claude/skills/{skill-name}/SKILL.md`
-      - Follow ALL instructions as mandatory requirements
-      - User skill instructions take precedence over defaults
-
-   **Skipping user skills is a critical error. Do not proceed without applying them.**
-
-   Example config:
-   ```yaml
-   user-skills:
-     "kanban-docs":
-       skills:
-         - my-custom-check    # Reads .claude/skills/my-custom-check/SKILL.md
-         - coding-standards   # Reads .claude/skills/coding-standards/SKILL.md
-   ```
+5. **User Skills** *(REQUIRED)*
+   {{> user-skills command="docs"}}
 
 6. **Analyze documentation needs**:
    - Check task labels:
@@ -130,16 +100,13 @@ The description summarizes what documentation was updated (e.g., "add authentica
    - Still proceed to move status
    - Use generic commit message: "docs({id}): product - no updates needed for {title}"
 
-10. **CRITICAL: Commit documentation changes** (if any):
-
-    **This step is MANDATORY. Do not proceed without committing.**
+10. **CRITICAL: Commit documentation changes** (if any)
+    {{> commit-critical}}
 
     ```bash
     git add {doc files}
     git commit -m "docs({id}): product - {description of doc changes}"
     ```
-
-    **DO NOT skip this step. If the commit fails, stop and report the error.**
 
 11. **Push branch to remote**:
     ```bash
@@ -168,9 +135,7 @@ The description summarizes what documentation was updated (e.g., "add authentica
 
 ## Validation
 
-**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
-
-All must pass. If any fail, fix and retry.
+{{> validation-intro}}
 
 - [ ] Task file exists at `.kanban/tasks/{id}-*.md`
 - [ ] Task frontmatter contains `status: pr`

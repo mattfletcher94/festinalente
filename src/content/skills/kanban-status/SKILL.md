@@ -9,23 +9,7 @@ disable-model-invocation: true
 
 Show the current state of the board and suggest what command to run next. Helps users resume work after losing context.
 
-## Helper Scripts
-
-Use these scripts to reliably find files and list tasks:
-
-```bash
-# List all tasks (returns JSON with count and tasks array)
-node .claude/scripts/list-tasks.cjs
-
-# List tasks filtered by status
-node .claude/scripts/list-tasks.cjs --status=in-progress
-
-# Find task by ID (returns JSON with path and metadata)
-node .claude/scripts/find-task.cjs {id}
-
-# Find plan by ID (returns JSON with path and metadata)
-node .claude/scripts/find-plan.cjs {id}
-```
+{{> helper-scripts show_list_tasks=true show_find_task=true show_find_plan=true}}
 
 ## Steps
 
@@ -169,7 +153,7 @@ node .claude/scripts/find-plan.cjs {id}
 
 ## Validation
 
-**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
+{{> validation-intro}}
 
 - [ ] Output shows task(s) with current status
 - [ ] Output includes a suggested next command

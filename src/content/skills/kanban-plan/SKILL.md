@@ -10,42 +10,20 @@ disable-model-invocation: true
 
 Create a plan file in `.kanban/plans/` and move task from **Scoped** to **Planned**. Commits the plan.
 
-## Directory Reference
-- **`.claude/`** — System config (workflow, templates, skills) — READ ONLY
-- **`.kanban/`** — Project data (tasks, specs, plans, product docs) — READ/WRITE
+{{> directory-reference}}
 
-## Helper Scripts
+{{> helper-scripts show_find_task=true show_find_spec=true show_get_date_time=true}}
 
-Use these scripts to reliably find files:
-
-```bash
-# Find task by ID (returns JSON with path and metadata)
-node .claude/scripts/find-task.cjs {id}
-
-# Find spec by ID (returns JSON with path and metadata)
-node .claude/scripts/find-spec.cjs {id}
-
-# Get current date/time (returns JSON with iso and date formats)
-node .claude/scripts/get-date-time.cjs
-```
-
-## Column Transition
-
-```
-scoped → planned
-```
-
-See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
+{{> column-transition from="scoped" to="planned"}}
 
 ## Commit
 
-**Format:** `docs({id}): plan - {title}`
-
-**CRITICAL:** Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `docs`, not `kanban`.
+{{> commit-format type="docs" action="plan"}}
 
 ## Steps
 
-1. **Load workflow schema**: Read `.claude/kanban-workflow.yaml` for column definitions, labels, priorities, and commit formats. Use these values throughout this skill.
+1. **Load workflow schema**
+   {{> workflow-load}}
 
 2. **Get task ID**: Use $ARGUMENTS if provided (e.g., "001"), otherwise:
    - List tasks in `scoped` status from `.kanban/tasks/`
@@ -61,13 +39,8 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    - Get `spec` path from frontmatter
    - Error if task not found
 
-4. **Verify on task branch**:
-   - Run `git branch --show-current`
-   - Expected branch: `task/{id}` (where {id} is the task ID from step 2/3)
-   - If not on expected branch:
-     - Error: "This command must be run on branch task/{id}. Current branch: {branch}"
-     - Suggest: "Switch to task branch with `git checkout task/{id}`"
-     - Exit
+4. **Verify on task branch**
+   {{> branch-verify-task}}
 
 5. **Read functional specification**:
    - Run `node .claude/scripts/find-spec.cjs {id}` to get exact path
@@ -83,27 +56,8 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
    - Check if `.kanban/plans/{id}-{slug}.plan.md` exists
    - If exists, ask if user wants to overwrite or view existing
 
-7. **User Skills** *(REQUIRED)*:
-
-   **STOP.** Before proceeding, you MUST load and apply user-defined skills. This is mandatory.
-
-   1. Load `.kanban/config.yaml`
-   2. Find `user-skills."kanban-plan".skills` array
-   3. If the array is non-empty, for EACH skill name:
-      - Read `.claude/skills/{skill-name}/SKILL.md`
-      - Follow ALL instructions as mandatory requirements
-      - User skill instructions take precedence over defaults
-
-   **Skipping user skills is a critical error. Do not proceed without applying them.**
-
-   Example config:
-   ```yaml
-   user-skills:
-     "kanban-plan":
-       skills:
-         - my-custom-check    # Reads .claude/skills/my-custom-check/SKILL.md
-         - coding-standards   # Reads .claude/skills/coding-standards/SKILL.md
-   ```
+7. **User Skills** *(REQUIRED)*
+   {{> user-skills command="plan"}}
 
 8. **Create plan file** at `.kanban/plans/{id}-{slug}.plan.md`:
    - Follow template at `.claude/kanban-templates/plan.md`
@@ -162,35 +116,24 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
     - Write plan file
     - Write task file
 
-11. **CRITICAL: Commit the plan and task update**:
-
-    **This step is MANDATORY. Do not proceed without committing.**
+11. **CRITICAL: Commit the plan and task update**
+    {{> commit-critical}}
 
     ```bash
     git add .kanban/plans/{id}-{slug}.plan.md .kanban/tasks/{id}-*.md
     git commit -m "docs({id}): plan - {title}"
     ```
 
-    **DO NOT skip this step. If the commit fails, stop and report the error.**
-
 12. **Confirm**:
     - Print: "Task {id} moved to Planned"
     - Print plan file path
     - Print number of implementation steps created
     - Print commit hash
-    - **REQUIRED OUTPUT** - Print next steps EXACTLY like this:
-      ```
-      Next:
-      /clear
-      /kanban-implement {id}
-      ```
-    - Do NOT skip this output. The user needs these commands to continue.
+    {{> next-steps next_command="implement"}}
 
 ## Validation
 
-**STOP. You MUST verify ALL items pass before declaring success. Do not skip validation.**
-
-All must pass. If any fail, fix and retry.
+{{> validation-intro}}
 
 - [ ] Task file exists at `.kanban/tasks/{id}-*.md`
 - [ ] Task frontmatter contains `status: planned`
