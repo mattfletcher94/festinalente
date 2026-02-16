@@ -7,7 +7,8 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "clean": "turbo clean",
-    "typecheck": "turbo typecheck"
+    "typecheck": "turbo typecheck",
+    "gui:dev": "pnpm --filter claude-kanban-gui dev"
   },
   "devDependencies": {
     "turbo": "^2.4.0",
