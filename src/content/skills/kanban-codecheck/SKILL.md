@@ -1,6 +1,6 @@
 ---
 name: kanban-codecheck
-description: Run code checks using user-defined skills. Supports automated commands and AI-driven reviews.
+description: Run code checks using user-defined directives. Supports automated commands and AI-driven reviews.
 allowed-tools: Read, Write, Bash(*)
 argument-hint: "[task-id]"
 disable-model-invocation: true
@@ -9,7 +9,7 @@ disable-model-invocation: true
 # Code Check Kanban Task
 
 <purpose>
-Run code checks using user-configured skills. Skills can be automated commands (tests, lint) or AI-driven reviews (coding patterns, architecture). On failure, ask user whether to attempt a fix.
+Run code checks using user-configured directives. Directives can be automated commands (tests, lint) or AI-driven reviews (coding patterns, architecture). On failure, ask user whether to attempt a fix.
 </purpose>
 
 <context>
@@ -20,7 +20,7 @@ Run code checks using user-configured skills. Skills can be automated commands (
 {{> column-transition from="codecheck" to="qa"}}
 
 <note>
-**This skill is an orchestrator.** It runs whatever check skills the user has configured in `.kanban/config.yaml`. The user defines what gets checked - this skill just executes them.
+**This skill is an orchestrator.** It runs whatever check directives the user has configured in `.kanban/config.yaml`. The user defines what gets checked - this skill just executes them.
 </note>
 </context>
 
@@ -74,49 +74,49 @@ Run code checks using user-configured skills. Skills can be automated commands (
     </branch>
   </step>
 
-  <step name="load_check_skills" outputs="checkSkills, hasChecks">
+  <step name="load_check_directives" outputs="checkDirectives, hasChecks">
     <action>Read `.kanban/config.yaml`</action>
-    <action>Find `user-skills."kanban-codecheck".skills` array</action>
-    <branch condition="skills array is empty or not defined">
+    <action>Find `hooks.kanban-codecheck.directives` array</action>
+    <branch condition="directives array is empty or not defined">
       <action>Set hasChecks = false</action>
       <output>No code checks configured.</output>
       <note>Proceeding without checks - will move directly to QA</note>
     </branch>
-    <branch condition="skills array has entries">
+    <branch condition="directives array has entries">
       <action>Set hasChecks = true</action>
-      <action>For each skill name: read `.kanban/skills/{name}.md`</action>
+      <action>For each directive name: read `.kanban/directives/{name}/DIRECTIVE.md`</action>
     </branch>
   </step>
 
   <step name="run_checks">
     <note>
-**For each check skill, determine type and execute:**
+**For each check directive, determine type and execute:**
 
 ```
-for each skill in checkSkills:
-    Print: "Running check: {skill name}..."
+for each directive in checkDirectives:
+    Print: "Running check: {directive name}..."
 
     # Determine check type
-    if skill contains "Run `{command}`":
+    if directive contains "Run `{command}`":
         # COMMAND-BASED CHECK
         Execute the command
         if exit code == 0:
-            Print "PASS: {skill name}"
-            continue to next skill
+            Print "PASS: {directive name}"
+            continue to next directive
         else:
             issues = command error output
     else:
         # AI-DRIVEN REVIEW
-        Read the skill's guidelines/rules
+        Read the directive's guidelines/rules
         Review the code changes against guidelines
         if no violations:
-            Print "PASS: {skill name}"
-            continue to next skill
+            Print "PASS: {directive name}"
+            continue to next directive
         else:
             issues = list of violations found
 
     # Handle failure
-    Print "FAIL: {skill name}"
+    Print "FAIL: {directive name}"
     Print issues
 
     Prompt: "Should I try to fix this? (y/n)"
@@ -128,7 +128,7 @@ for each skill in checkSkills:
         # Log attempt to plan
         Add to ## Iterations section:
             ### Code Check Fix ({YYYY-MM-DD})
-            **Check:** {skill name}
+            **Check:** {directive name}
             **Issues:**
             {issues}
             **Fix applied:**
@@ -202,9 +202,9 @@ If you find issues that need fixing:
 </success_criteria>
 
 <note>
-**Check Skill Types:**
+**Check Directive Types:**
 
-Users create check skills in `.kanban/skills/`. There are two types:
+Users create check directives in `.kanban/directives/`. There are two types:
 
 **1. Command-based (automated)**
 ```markdown
@@ -234,7 +234,7 @@ Exit code 0, no errors in output.
 Look at new/modified files and check against the above patterns.
 ```
 
-The skill detects which type based on whether `Run \`command\`` is present.
+The directive is detected as command-based if `Run \`command\`` is present.
 </note>
 
 <example>
@@ -245,9 +245,9 @@ User: `/kanban-codecheck 001`
 ```
 Running code checks for task 001 "Add OAuth Login"...
 
-Loading check skills from config.yaml...
-- check-typescript.md
-- check-tests.md
+Loading check directives from config.yaml...
+- check-typescript
+- check-tests
 
 Running check: TypeScript...
 PASS: TypeScript
@@ -282,9 +282,9 @@ User: `/kanban-codecheck 001`
 ```
 Running code checks for task 001 "Add OAuth Login"...
 
-Loading check skills from config.yaml...
-- check-typescript.md
-- check-tests.md
+Loading check directives from config.yaml...
+- check-typescript
+- check-tests
 
 Running check: TypeScript...
 PASS: TypeScript
@@ -331,9 +331,9 @@ User: `/kanban-codecheck 002`
 ```
 Running code checks for task 002 "Add payment service"...
 
-Loading check skills from config.yaml...
-- check-typescript.md
-- coding-patterns.md
+Loading check directives from config.yaml...
+- check-typescript
+- coding-patterns
 
 Running check: TypeScript...
 PASS: TypeScript
@@ -399,7 +399,7 @@ User: `/kanban-codecheck 001`
 ```
 Running code checks for task 001 "Add spacing fix"...
 
-Loading check skills from config.yaml...
+Loading check directives from config.yaml...
 No code checks configured.
 
 Moving to QA...

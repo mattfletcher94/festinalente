@@ -36,10 +36,10 @@ This creates both `.claude/` (skills and scripts) and `.kanban/` (your board dat
 │       ├── spec.md   # Functional specification
 │       └── plan.md   # Implementation plan
 ├── product/       # Product documentation ({feature}.md)
-└── skills/        # Your verification checks ({name}.md)
+└── directives/    # Your custom directives ({name}/DIRECTIVE.md)
 ```
 
-**File structure:** Each task gets its own folder (e.g., `001/`) containing `task.md`, `spec.md`, and `plan.md`. User-defined skills in `.kanban/skills/` are simple `.md` files (not directories).
+**File structure:** Each task gets its own folder (e.g., `001/`) containing `task.md`, `spec.md`, and `plan.md`. User-defined directives in `.kanban/directives/` are folders containing `DIRECTIVE.md`.
 
 ### Document Your Product (Recommended)
 
@@ -322,7 +322,7 @@ This commits your work-in-progress so you don't lose it.
 ```
 
 **What happens:**
-- Runs your configured check skills (command-based or AI-driven reviews)
+- Runs your configured check directives (command-based or AI-driven reviews)
 - If checks fail: AI shows the issues and asks if you want it to attempt a fix
 - On success: Auto-advances to QA column
 
@@ -587,15 +587,17 @@ This saves your progress with notes on where to resume.
 
 ### 4. Configure Verification Checks
 
-Add your checks to `.kanban/config.yaml`:
+Add your check directives to `.kanban/config.yaml`:
 
 ```yaml
-user-skills:
-  "kanban-codecheck":
-    skills:
-      - check-typescript    # Reads .claude/skills/check-typescript/SKILL.md
-      - check-tests         # Reads .claude/skills/check-tests/SKILL.md
-      - check-lint          # Reads .claude/skills/check-lint/SKILL.md
+hooks:
+  kanban-codecheck:
+    directives:
+      - check-typescript    # Reads .kanban/directives/check-typescript/DIRECTIVE.md
+      - check-tests         # Reads .kanban/directives/check-tests/DIRECTIVE.md
+      - check-lint          # Reads .kanban/directives/check-lint/DIRECTIVE.md
+    product: []
+    engineering: []
 ```
 
 ### 5. Use Labels for Commit Types

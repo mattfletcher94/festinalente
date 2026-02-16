@@ -138,7 +138,7 @@ Run: /kanban-scope {taskId}
   </step>
 
   <step name="load_user_skills">
-    {{> user-skills command="plan"}}
+    {{> hook-config command="plan"}}
   </step>
 
   <step name="create_plan_file" outputs="planPath">

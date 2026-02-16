@@ -71,7 +71,7 @@ Approve implementation after human QA testing, commit the code with appropriate 
   </step>
 
   <step name="load_user_skills">
-    {{> user-skills command="approve"}}
+    {{> hook-config command="approve"}}
   </step>
 
   <step name="prompt_qa_confirmation">

@@ -25,15 +25,16 @@
 <command description="Get current date/time (returns JSON with iso and date formats)">node .kanban/scripts/get-date-time.cjs</command>
 {{/if}}
 
-{{#if show_get_user_skills}}
-<command description="Get user-defined skills for a command (returns JSON with skill paths)">node .kanban/scripts/get-user-skills.cjs {command}</command>
+{{#if show_get_hook_config}}
+<command description="Get hook configuration (returns JSON with directives and context docs)">node .kanban/scripts/get-hook-config.cjs {hook}</command>
 <example_code lang="json">
 {
-  "command": "kanban-codecheck",
-  "count": 2,
-  "skills": [
-    { "name": "check-typescript", "path": ".kanban/skills/check-typescript/SKILL.md", "exists": true }
-  ]
+  "hook": "kanban-codecheck",
+  "directives": [
+    { "name": "check-typescript", "path": ".kanban/directives/check-typescript/DIRECTIVE.md", "exists": true }
+  ],
+  "product": [],
+  "engineering": []
 }
 </example_code>
 {{/if}}

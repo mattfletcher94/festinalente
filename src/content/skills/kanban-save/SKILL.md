@@ -70,7 +70,7 @@ Save partial implementation progress when interrupted. Task stays in In Progress
   </step>
 
   <step name="load_user_skills">
-    {{> user-skills command="save"}}
+    {{> hook-config command="save"}}
   </step>
 
   <step name="verify_plan_checkboxes">

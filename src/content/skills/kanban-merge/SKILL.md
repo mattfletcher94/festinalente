@@ -67,7 +67,7 @@ Merge the task branch into main, clean up the branch, and move task to Done.
   </step>
 
   <step name="load_user_skills">
-    {{> user-skills command="merge"}}
+    {{> hook-config command="merge"}}
   </step>
 
   <step name="verify_ready_to_merge" outputs="commitsToMerge">

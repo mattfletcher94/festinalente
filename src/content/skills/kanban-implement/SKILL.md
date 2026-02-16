@@ -101,7 +101,7 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
   </step>
 
   <step name="load_user_skills">
-    {{> user-skills command="implement"}}
+    {{> hook-config command="implement"}}
   </step>
 
   <step name="parse_plan_checkboxes" outputs="totalItems, completedItems, remainingItems">

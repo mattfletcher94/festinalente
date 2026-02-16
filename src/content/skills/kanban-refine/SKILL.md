@@ -68,7 +68,7 @@ Refine vague tasks through iterative conversational Q&A focused on product/busin
   </step>
 
   <step name="load_user_skills">
-    {{> user-skills command="refine"}}
+    {{> hook-config command="refine"}}
   </step>
 
   <step name="analyze_initial_context">

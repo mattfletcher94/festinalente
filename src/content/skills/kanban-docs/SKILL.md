@@ -77,7 +77,7 @@ Update product documentation, commit the changes, push to remote, and move task 
   </step>
 
   <step name="load_user_skills">
-    {{> user-skills command="docs"}}
+    {{> hook-config command="docs"}}
   </step>
 
   <step name="analyze_product_doc_impact">

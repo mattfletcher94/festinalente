@@ -51,7 +51,7 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
   </step>
 
   <step name="load_user_skills">
-    {{> user-skills command="create"}}
+    {{> hook-config command="create"}}
   </step>
 
   <step name="get_next_id" outputs="nextId">

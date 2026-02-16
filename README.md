@@ -243,75 +243,109 @@ Claude Kanban uses a `task/{id}` branching strategy for code isolation and PR-ba
 
 ---
 
-## Custom Skills
+## Custom Directives
 
-Skills are markdown files that provide guidance to the AI during specific commands.
+Directives are custom instructions that the AI follows at specific hooks (extension points) in the workflow. Each kanban command can have directives attached to it.
 
-### Configuring Skills
+### Terminology
 
-Edit `.kanban/config.yaml` to attach skills to commands:
+- **Hook** = An extension point in the workflow (e.g., `kanban-codecheck`)
+- **Directive** = Custom instructions the AI follows at a hook (DIRECTIVE.md files)
+
+### Configuring Hooks
+
+Edit `.kanban/config.yaml` to attach directives to hooks:
 
 ```yaml
-user-skills:
-  "kanban-implement":
-    skills:
-      - coding-standards    # Reads .claude/skills/coding-standards/SKILL.md
-      - architecture        # Reads .claude/skills/architecture/SKILL.md
+hooks:
+  kanban-implement:
+    directives: [coding-standards, architecture]
+    product: []                              # Product docs for context
+    engineering: [patterns/error-handling]   # Engineering docs for context
 
-  "kanban-codecheck":
-    skills:
-      - check-typescript    # Reads .claude/skills/check-typescript/SKILL.md
-      - check-tests         # Reads .claude/skills/check-tests/SKILL.md
-      - check-lint          # Reads .claude/skills/check-lint/SKILL.md
+  kanban-codecheck:
+    directives: [check-typescript, check-tests, check-lint]
+    product: []
+    engineering: []
 
-  "kanban-approve":
-    skills:
-      - code-review-checklist  # Reads .claude/skills/code-review-checklist/SKILL.md
+  kanban-plan:
+    directives: [architecture-constraints]
+    product: [features/auth]
+    engineering: [systems/api]
 ```
 
-Each skill name resolves to `.claude/skills/{name}/SKILL.md`.
+Each directive name resolves to `.kanban/directives/{name}/DIRECTIVE.md`.
 
-### Creating Code Checks
+### Creating Directives
 
-Code checks run during `codecheck`. Create them in `.kanban/skills/`. There are two types:
+Directives live in `.kanban/directives/`. Create a folder per directive with a `DIRECTIVE.md` file:
 
-**1. Command-based (automated)**
+```
+.kanban/directives/
+├── check-typescript/
+│   └── DIRECTIVE.md
+├── coding-standards/
+│   └── DIRECTIVE.md
+└── architecture-constraints/
+    └── DIRECTIVE.md
+```
+
+**1. Command-based directive**
 
 Runs a command and checks the exit code:
 
-**`.kanban/skills/check-typescript.md`**
-```markdown
-# Check: TypeScript
+**`.kanban/directives/check-typescript/DIRECTIVE.md`**
+```yaml
+---
+name: "TypeScript Check"
+description: "Run TypeScript compiler to verify type safety"
+---
+
+# TypeScript Check
 
 Run `pnpm typecheck`
 
-### Pass criteria
+## Pass criteria
 Exit code 0, no errors in output.
 
-### Common failures
+## Common failures
 - "Cannot find module X" — missing dependency
 - "Type X is not assignable to Y" — type mismatch
 ```
 
-**2. AI-driven review (guidelines)**
+**2. Guideline directive**
 
 AI reviews code against your documented patterns:
 
-**`.kanban/skills/coding-patterns.md`**
-```markdown
-# Check: Coding Patterns
+**`.kanban/directives/coding-standards/DIRECTIVE.md`**
+```yaml
+---
+name: "Coding Standards"
+description: "Ensure code follows project conventions"
+---
 
-### Guidelines
+# Coding Standards
+
+When reviewing or writing code, follow these guidelines:
+
+## Architecture
 - Use factory functions instead of classes
-- API handlers belong in src/routes/
-- Use arrow functions for callbacks
-- Prefer composition over inheritance
+- Keep files under 300 lines
 
-### Review focus
-Check new/modified files against the above patterns.
+## Naming
+- camelCase for variables and functions
+- PascalCase for types and components
 ```
 
 When a check fails, the AI shows the issues and asks: "Should I try to fix this?" You decide whether to let it attempt a fix or handle it manually.
+
+### Context Docs
+
+Hooks can also specify product and engineering docs for context:
+
+- **directives** - MANDATORY instructions (must be followed)
+- **product** - Product doc IDs for guidance context
+- **engineering** - Engineering doc IDs for technical context
 
 ---
 
@@ -322,36 +356,56 @@ Your project's `.kanban/config.yaml`:
 ```yaml
 name: My Project
 
-# Skill names resolve to .claude/skills/{name}/SKILL.md
-user-skills:
-  "kanban-status":
-    skills:
-  "kanban-create":
-    skills:
-  "kanban-refine":
-    skills:
-  "kanban-scope":
-    skills:
-  "kanban-plan":
-    skills:
-  "kanban-implement":
-    skills:
-  "kanban-save":
-    skills:
-  "kanban-codecheck":
-    skills:
-  "kanban-approve":
-    skills:
-  "kanban-docs":
-    skills:
-  "kanban-merge":
-    skills:
-  "kanban-rework":
-    skills:
-  "kanban-map-product":
-    skills:
-  "kanban-define-product":
-    skills:
+hooks:
+  kanban-status:
+    directives: []
+    product: []
+    engineering: []
+  kanban-create:
+    directives: []
+    product: []
+    engineering: []
+  kanban-refine:
+    directives: []
+    product: []
+    engineering: []
+  kanban-scope:
+    directives: []
+    product: []
+    engineering: []
+  kanban-plan:
+    directives: []
+    product: []
+    engineering: []
+  kanban-implement:
+    directives: []
+    product: []
+    engineering: []
+  kanban-save:
+    directives: []
+    product: []
+    engineering: []
+  kanban-codecheck:
+    directives: []
+    product: []
+    engineering: []
+  kanban-approve:
+    directives: []
+    product: []
+    engineering: []
+  kanban-docs:
+    directives: []
+    product: []
+    engineering: []
+  kanban-merge:
+    directives: []
+    product: []
+    engineering: []
+  kanban-rework:
+    directives: []
+    product: []
+    engineering: []
+  # ... other hooks
 
 settings:
   version: "2.0"
@@ -410,9 +464,9 @@ Claude Kanban includes helper scripts that the AI uses to reliably find files:
 | `search-product.cjs` | Search product docs by keywords |
 | `check-product.cjs` | Check if product docs exist by ID |
 
-Scripts are installed to `.claude/kanban-scripts/` and return JSON output.
+Scripts are installed to `.kanban/scripts/` and return JSON output.
 
-See [scripts/README.md](.claude/kanban-scripts/README.md) for full documentation.
+See [scripts/README.md](.kanban/scripts/README.md) for full documentation.
 
 ---
 
@@ -487,7 +541,7 @@ Partials are shared template fragments in `src/content/partials/`. They reduce d
 ```handlebars
 {{> directory-reference}}
 
-{{> user-skills command="refine" step_number="5"}}
+{{> hook-config command="refine"}}
 
 {{> next-steps next_command="scope"}}
 ```
@@ -498,7 +552,7 @@ Partials are shared template fragments in `src/content/partials/`. They reduce d
 |---------|------------|---------|
 | `directory-reference` | none | Standard directory reference section |
 | `helper-scripts` | none | List of available helper scripts |
-| `user-skills` | `command`, `step_number` | User skills loading instructions |
+| `hook-config` | `command` | Hook configuration loading instructions |
 | `next-steps` | `next_command`, `no_id` | Required output format for next steps |
 | `validation-intro` | none | Validation section header |
 | `workflow-load` | `step_number` | Load workflow schema instruction |

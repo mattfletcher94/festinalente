@@ -1,50 +1,92 @@
 # Kanban Config Schema
 # ---------------------
-# This file has exactly THREE top-level keys: name, user-skills, settings
-# DO NOT add any other top-level keys (no 'verification', 'hooks', 'checks', 'commands', etc.)
-# The schema is fixed - only modify values within the existing structure.
+# This file has exactly THREE top-level keys: name, hooks, settings
 #
-# User Skills Resolution:
-# Each skill name in the skills array resolves to .kanban/skills/{name}/SKILL.md
-# Example: "coding-standards" -> .kanban/skills/coding-standards/SKILL.md
-#
-# To add skills to a command:
-#   "kanban-codecheck":
-#     skills:
-#       - check-typescript
-#       - check-tests
+# Hooks Configuration:
+# Each hook can specify directives, product docs, and engineering docs.
+# - directives: User-defined instructions from .kanban/directives/{name}/DIRECTIVE.md
+# - product: Product doc IDs for context (e.g., "features/auth")
+# - engineering: Engineering doc IDs for context (e.g., "patterns/validation")
 
 name: ""
 
-user-skills:
-  "kanban-status":
-    skills:
-  "kanban-create":
-    skills:
-  "kanban-refine":
-    skills:
-  "kanban-scope":
-    skills:
-  "kanban-plan":
-    skills:
-  "kanban-implement":
-    skills:
-  "kanban-save":
-    skills:
-  "kanban-codecheck":
-    skills:
-  "kanban-approve":
-    skills:
-  "kanban-docs":
-    skills:
-  "kanban-merge":
-    skills:
-  "kanban-rework":
-    skills:
-  "kanban-map-product":
-    skills:
-  "kanban-define-product":
-    skills:
+hooks:
+  kanban-status:
+    directives: []
+    product: []
+    engineering: []
+  kanban-create:
+    directives: []
+    product: []
+    engineering: []
+  kanban-refine:
+    directives: []
+    product: []
+    engineering: []
+  kanban-scope:
+    directives: []
+    product: []
+    engineering: []
+  kanban-plan:
+    directives: []
+    product: []
+    engineering: []
+  kanban-implement:
+    directives: []
+    product: []
+    engineering: []
+  kanban-save:
+    directives: []
+    product: []
+    engineering: []
+  kanban-codecheck:
+    directives: []
+    product: []
+    engineering: []
+  kanban-approve:
+    directives: []
+    product: []
+    engineering: []
+  kanban-docs:
+    directives: []
+    product: []
+    engineering: []
+  kanban-merge:
+    directives: []
+    product: []
+    engineering: []
+  kanban-rework:
+    directives: []
+    product: []
+    engineering: []
+  kanban-map-product:
+    directives: []
+    product: []
+    engineering: []
+  kanban-define-product:
+    directives: []
+    product: []
+    engineering: []
+  kanban-map-engineering:
+    directives: []
+    product: []
+    engineering: []
+  kanban-view:
+    directives: []
+    product: []
+    engineering: []
+  kanban-report-label:
+    directives: []
+    product: []
+    engineering: []
+  kanban-report-task:
+    directives: []
+    product: []
+    engineering: []
+  kanban-report-user:
+    directives: []
+    product: []
+    engineering: []
 
 settings:
   version: "2.0"

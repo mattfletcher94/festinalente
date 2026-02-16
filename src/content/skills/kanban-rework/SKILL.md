@@ -76,7 +76,7 @@ See `.kanban/workflow.yaml` for column definitions and valid transitions.
   </step>
 
   <step name="load_user_skills">
-    {{> user-skills command="rework"}}
+    {{> hook-config command="rework"}}
   </step>
 
   <step name="close_pr" when="status was `pr`">

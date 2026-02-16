@@ -90,7 +90,7 @@ Create a functional specification through iterative conversational Q&A focused o
   </step>
 
   <step name="load_user_skills">
-    {{> user-skills command="scope"}}
+    {{> hook-config command="scope"}}
   </step>
 
   <step name="initial_codebase_research">
