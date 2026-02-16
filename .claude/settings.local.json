@@ -30,7 +30,9 @@
       "Bash(dir:*)",
       "Bash(findstr:*)",
       "Bash(git restore:*)",
-      "WebFetch(domain:electron-vite.github.io)"
+      "WebFetch(domain:electron-vite.github.io)",
+      "Bash(pnpm install)",
+      "Bash(pnpm clean:*)"
     ]
   }
 }

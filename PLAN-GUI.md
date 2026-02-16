@@ -1,4 +1,4 @@
-# GUI App Plan
+# GUI App Plan (v1 - Terminal POC)
 
 ## Prerequisites
 
@@ -15,205 +15,93 @@ claudeban/
 
 ---
 
-## Project Vision
+## Project Vision (v1)
 
-Build a lightweight desktop application using Electron that provides a graphical interface for the Claude Kanban workflow. The app wraps the locally installed Claude CLI (not bundled), automating context management and providing a visual Kanban board with integrated command execution.
+Build a minimal Electron app that provides a fully functional terminal for running Claude commands. This proves out the core technical pieces (node-pty, xterm.js, native module packaging) before adding Kanban board UI in v2.
 
 ---
 
-## Current Pain Points (Why Build This)
+## What v1 Does
 
-- Manual `/clear` required between commands (context pollution)
-- No visual representation of the board
-- Must manually remember which command comes next
-- No session history or audit trail in the UI
+- Opens with a project folder picker (or accepts path via CLI arg)
+- Validates `.kanban/` folder exists
+- Spawns Claude directly in the project directory
+- User lands straight in an interactive Claude session
+- User types commands directly (e.g., `/kanban-status`, `/kanban-refine 001`)
+- Handles all Claude interactive prompts natively
+
+---
+
+## What v1 Does NOT Do
+
+- No Kanban board UI
+- No task cards or columns
+- No action buttons
+- No file watching / auto-refresh
+- No state management
 
 ---
 
 ## Design Decisions
 
-### Process Model
+### Terminal Implementation
 
-**Fresh process per command**
+**xterm.js + node-pty (full PTY)**
 
-Spawn a new `claude` process for each command, let it exit when done.
-- Clean state is automatic (no `/clear` needed)
-- Simpler error recovery (process crash = just spawn a new one)
-- No memory accumulation from previous commands
+- `node-pty`: Spawns Claude in a pseudo-terminal (PTY)
+- `xterm.js`: Renders terminal output and captures keyboard input
+- Bidirectional: stdout → xterm display, keyboard → stdin
+- User types `/kanban-refine 001` etc. directly to Claude
+- All Claude interactive features work (questions, confirmations, etc.)
 
----
+### Direct Claude Spawn
 
-### State Synchronization
+**Spawn Claude directly, not a shell**
 
-**Files are truth, auto-refresh via chokidar**
+On project open, immediately spawn `claude` in the project directory:
+- User lands straight in an interactive Claude session
+- They type `/kanban-status`, `/kanban-refine 001`, etc. directly
+- No shell overhead - this is a Claude app, not a general terminal
+- When Claude exits, offer to restart or pick a new project
 
-- `.kanban/` files are the source of truth (same as CLI)
-- Use `chokidar` to watch for file changes (more reliable than `fs.watch`)
-- On change: debounce (300ms), then re-read affected files and update UI
-- Handles: Claude modifying files, git pull, manual edits
+### Project Directory
 
-**Existing helper scripts can be reused**:
-- `list-tasks.cjs` — Get all tasks for board
-- `find-task.cjs` — Get single task details
-- Run these via Node.js in main process, send results to renderer via IPC
+**Set shell CWD to project path**
 
-**Important**: The helper scripts are located in the **user's project** at `.kanban/scripts/`, NOT in the GUI app. When the user opens a project folder, the GUI runs these scripts from `{projectPath}/.kanban/scripts/`.
-
----
-
-### Command Execution
-
-**Fully interactive embedded terminal (xterm.js + node-pty)**
-
-Use xterm.js paired with node-pty to create a fully interactive terminal.
-- **node-pty**: Spawns Claude in a pseudo-terminal (PTY), so Claude thinks it's in a real terminal
-- **xterm.js**: Renders output AND captures keyboard input
-- Bidirectional: stdout → xterm.js display, keyboard → stdin
-- Handles Claude's interactive questions natively (user types responses in the terminal)
-- No custom input handling needed — it's a real terminal experience
-- Same pattern VS Code uses for its integrated terminal
+- On launch, user picks a folder (or passes via CLI arg)
+- App validates `.kanban/` exists in that folder
+- Shell spawns with `cwd` set to the project path
+- All commands run in project context
 
 ---
 
-### UI Layout
-
-**Horizontal split — Board above, Terminal below**
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  Kanban Board (columns with task cards)                         │
-│  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐               │
-│  │ Backlog │ │ Refined │ │ Scoped  │ │ Planned │  ...          │
-│  │ ┌─────┐ │ │         │ │ ┌─────┐ │ │         │               │
-│  │ │Task1│ │ │         │ │ │Task2│ │ │         │               │
-│  │ └─────┘ │ │         │ │ └─────┘ │ │         │               │
-│  └─────────┘ └─────────┘ └─────────┘ └─────────┘               │
-├─────────────────────────────────────────────────────────────────┤
-│  Terminal (xterm.js + node-pty) - Interactive Claude session    │
-│  $ claude /kanban-refine 001                                    │
-│  What problem are you trying to solve?                          │
-│  > user types here...                                           │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-**Task details**: Opens as sidebar/drawer when clicking a task card (board still visible).
-The drawer shows task info + action buttons. Clicking an action starts the command in terminal.
-
----
-
-### Workflow Columns
-
-The board displays **10 columns** matching the kanban workflow:
-
-| Column (Display) | Status (in task.md) | Description |
-|------------------|---------------------|-------------|
-| Backlog | `backlog` | New tasks awaiting refinement |
-| Refined | `refined` | Problem/value/acceptance defined |
-| Scoped | `scoped` | Functional spec ready |
-| Planned | `planned` | Implementation plan ready |
-| In Progress | `in-progress` | Being implemented |
-| Code Check | `codecheck` | Automated checks running |
-| QA | `qa` | Awaiting human validation |
-| Update Docs | `update-docs` | Code committed, docs need update |
-| PR | `pr` | Awaiting PR review/merge |
-| Done | `done` | Complete |
-
----
-
-### Contextual Actions
-
-**Show all valid actions, primary action prominent**
-
-Display all valid actions for the task's current status, with the "move forward" action most prominent (larger button, primary color). Secondary actions are smaller/muted.
-
-| Status | Primary Action | Command | Secondary Actions |
-|--------|---------------|---------|-------------------|
-| backlog | **Refine** | `/kanban-refine {id}` | View, Delete |
-| refined | **Scope** | `/kanban-scope {id}` | View, Edit |
-| scoped | **Plan** | `/kanban-plan {id}` | View |
-| planned | **Implement** | `/kanban-implement {id}` | View |
-| in-progress | **Code Check** | `/kanban-codecheck {id}` | Save, View |
-| codecheck | **Approve** | `/kanban-approve {id}` | Rework, View |
-| qa | **Approve** | `/kanban-approve {id}` | Rework, View |
-| update-docs | **Docs** | `/kanban-docs {id}` | View |
-| pr | **Merge** | `/kanban-merge {id}` | View PR |
-| done | — | — | View, Archive |
-
----
-
-### Project Management
-
-**Single project per window, path-based**
-
-- App opens with a specific project path (repo folder)
-- Could be passed as CLI arg: `kanban-gui /path/to/repo`
-- Or selected via "Open Project" dialog on launch
-- App validates that `.kanban/` folder exists in the path
-- Working directory for Claude commands = the project path
-
----
-
-### Technology Stack
-
-**electron-vite + Vue**
+## Technology Stack
 
 **Scaffold**: [electron-vite-vue](https://github.com/electron-vite/electron-vite-vue)
+
 ```bash
 git clone https://github.com/electron-vite/electron-vite-vue.git apps/gui
 rm -rf apps/gui/.git
 ```
 
-**After cloning, update root tsconfig.json** to include the GUI app:
-```json
-{
-  "files": [],
-  "references": [
-    { "path": "./apps/kanban" },
-    { "path": "./apps/gui" }
-  ]
-}
-```
-
-**Update apps/gui/package.json**:
-- Set `"name": "claude-kanban-gui"`
-- Set `"private": true`
-
-**Update apps/gui/tsconfig.json** to extend base:
-```json
-{
-  "extends": "../../tsconfig.base.json",
-  // ... keep electron-vite specific options
-}
-```
-
-Then install and run:
-```bash
-cd apps/gui
-pnpm install
-pnpm dev
-```
-
 **Key dependencies**:
-- `node-pty` — Spawn Claude in pseudo-terminal
-- `xterm` + `xterm-addon-fit` — Terminal UI component
-- `chokidar` — File watching for `.kanban/` changes
-- `gray-matter` — Parse YAML frontmatter from task files
+- `node-pty` — Spawn shell in pseudo-terminal
+- `@xterm/xterm` + `@xterm/addon-fit` — Terminal UI component
 
 **Architecture**:
 ```
 ┌─────────────────────────────────────────────────────────┐
 │  Main Process (Electron)                                │
+│  ├── Window management                                  │
 │  ├── PTY management (node-pty)                          │
-│  ├── File system access (read .kanban/, watch changes)  │
-│  └── IPC handlers for renderer requests                 │
+│  ├── Project path validation                            │
+│  └── IPC handlers                                       │
 └─────────────────────────────────────────────────────────┘
            ▲ IPC (invoke/handle) ▼
 ┌─────────────────────────────────────────────────────────┐
 │  Renderer Process (Vue)                                 │
-│  ├── Kanban board UI                                    │
-│  ├── Task drawer component                              │
-│  ├── xterm.js terminal component                        │
-│  └── State management (Pinia or Vue reactivity)         │
+│  ├── Project picker (initial screen)                    │
+│  └── Full-screen xterm.js terminal                      │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -221,226 +109,201 @@ pnpm dev
 
 ## Implementation Plan
 
-### Phase 1: Project Scaffold & Basic UI
+### Phase 1: Scaffold & Basic Window
 
-**Goal**: Electron app that opens a project and displays the Kanban board.
+**Goal**: Electron app that opens and shows a window.
 
 **Steps**:
 1. Clone electron-vite-vue template into `apps/gui/`
-2. Install dependencies: `node-pty`, `xterm`, `xterm-addon-fit`, `chokidar`, `gray-matter`
-3. Create project structure:
-   ```
-   apps/gui/
-   ├── electron/
-   │   ├── main/
-   │   │   ├── index.ts          # Main process entry
-   │   │   ├── ipc-handlers.ts   # IPC handler registration
-   │   │   ├── kanban-service.ts # Read .kanban/ files, run helper scripts
-   │   │   ├── pty-service.ts    # PTY spawn/manage for Claude
-   │   │   └── file-watcher.ts   # Chokidar setup
-   │   └── preload/
-   │       └── index.ts          # Expose IPC to renderer
-   └── src/
-       ├── App.vue               # Root component
-       ├── components/
-       │   ├── KanbanBoard.vue   # Column layout with task cards
-       │   ├── TaskCard.vue      # Individual task card
-       │   ├── TaskDrawer.vue    # Slide-out task details + actions
-       │   ├── TerminalPanel.vue # xterm.js wrapper
-       │   └── ProjectPicker.vue # Initial project selection
-       ├── composables/
-       │   ├── useKanban.ts      # Reactive kanban state
-       │   └── useTerminal.ts    # Terminal connection logic
-       └── types/
-           └── kanban.ts         # TypeScript types for tasks, etc.
-   ```
-
-4. Implement IPC contract:
-   ```typescript
-   // Main → Renderer
-   'kanban:tasks-updated' (tasks: Task[])
-   'pty:data' (data: string)
-   'pty:exit' (code: number)
-
-   // Renderer → Main
-   'kanban:load-project' (path: string) → { success, tasks, error? }
-   'kanban:get-tasks' () → Task[]
-   'kanban:get-task' (id: string) → Task
-   'pty:spawn' (command: string, args: string[]) → void
-   'pty:write' (data: string) → void
-   'pty:kill' () → void
-   ```
-
-5. Define Task type (`src/types/kanban.ts`):
-   ```typescript
-   export type TaskStatus =
-     | 'backlog'
-     | 'refined'
-     | 'scoped'
-     | 'planned'
-     | 'in-progress'
-     | 'codecheck'
-     | 'qa'
-     | 'update-docs'
-     | 'pr'
-     | 'done';
-
-   export type TaskPriority = 'high' | 'medium' | 'low';
-
-   export type TaskLabel = 'bug' | 'feature' | 'docs' | 'refactor';
-
-   export interface Task {
-     id: string;
-     title: string;
-     status: TaskStatus;
-     priority: TaskPriority;
-     labels: TaskLabel[];
-     created: string;      // ISO date
-     updated: string;      // ISO date
-     completed?: string;   // ISO date (only if done)
-     spec?: string;        // Path to spec.md
-     plan?: string;        // Path to plan.md
-     affects: string[];    // Product doc IDs
-     engineering: string[];// Engineering doc IDs
+2. Update `package.json`:
+   - Set `"name": "claude-kanban-gui"`
+   - Set `"private": true`
+3. Update root `tsconfig.json` to include GUI app:
+   ```json
+   {
+     "files": [],
+     "references": [
+       { "path": "./apps/kanban" },
+       { "path": "./apps/gui" }
+     ]
    }
    ```
-
-6. Build minimal UI:
-   - Project picker on launch (or accept path from CLI arg)
-   - Kanban board with 10 columns
-   - Task cards showing: title, ID, priority badge
-   - Clicking card opens drawer with full details
-
-7. Implement `kanban-service.ts` (reads tasks from user's project):
-   ```typescript
-   import { spawn } from 'child_process';
-   import path from 'path';
-
-   let projectPath: string | null = null;
-
-   export function setProjectPath(p: string) {
-     projectPath = p;
-   }
-
-   export async function listTasks(): Promise<Task[]> {
-     if (!projectPath) throw new Error('No project loaded');
-
-     const scriptPath = path.join(projectPath, '.kanban', 'scripts', 'list-tasks.cjs');
-
-     return new Promise((resolve, reject) => {
-       const child = spawn('node', [scriptPath], { cwd: projectPath });
-       let stdout = '';
-
-       child.stdout.on('data', (data) => { stdout += data; });
-       child.on('close', (code) => {
-         if (code === 0) {
-           const result = JSON.parse(stdout);
-           resolve(result.tasks);
-         } else {
-           reject(new Error(`Script exited with code ${code}`));
-         }
-       });
-     });
-   }
-
-   export async function getTask(id: string): Promise<Task> {
-     if (!projectPath) throw new Error('No project loaded');
-
-     const scriptPath = path.join(projectPath, '.kanban', 'scripts', 'find-task.cjs');
-
-     return new Promise((resolve, reject) => {
-       const child = spawn('node', [scriptPath, id], { cwd: projectPath });
-       let stdout = '';
-
-       child.stdout.on('data', (data) => { stdout += data; });
-       child.on('close', (code) => {
-         if (code === 0) {
-           resolve(JSON.parse(stdout));
-         } else {
-           reject(new Error(`Task ${id} not found`));
-         }
-       });
-     });
-   }
+4. Install and verify basic app runs:
+   ```bash
+   cd apps/gui
+   pnpm install
+   pnpm dev
    ```
 
-**Deliverable**: App that displays the board from `.kanban/tasks/` files.
+**Deliverable**: Empty Electron window opens.
 
 ---
 
-### Phase 2: Terminal Integration
+### Phase 2: Project Picker
 
-**Goal**: Embedded terminal that can run Claude commands interactively.
+**Goal**: User can select a project folder on launch.
 
 **Steps**:
-1. Implement `pty-service.ts`:
+1. Create `ProjectPicker.vue` component:
+   - "Open Project" button
+   - Calls Electron's `dialog.showOpenDialog` via IPC
+   - Validates `.kanban/` folder exists
+   - Shows error if not a valid kanban project
+
+2. Implement IPC handlers in main process:
+   ```typescript
+   // Main process
+   ipcMain.handle('dialog:openProject', async () => {
+     const result = await dialog.showOpenDialog({
+       properties: ['openDirectory']
+     });
+     if (result.canceled) return { canceled: true };
+
+     const projectPath = result.filePaths[0];
+     const kanbanPath = path.join(projectPath, '.kanban');
+
+     if (!fs.existsSync(kanbanPath)) {
+       return { error: 'No .kanban folder found in selected directory' };
+     }
+
+     return { projectPath };
+   });
+   ```
+
+3. Store selected project path in main process state
+
+**Deliverable**: User can pick a folder, app validates it's a kanban project.
+
+---
+
+### Phase 3: Terminal Integration
+
+**Goal**: Fully functional terminal in the app.
+
+**Steps**:
+1. Install terminal dependencies:
+   ```bash
+   pnpm add node-pty @xterm/xterm @xterm/addon-fit
+   ```
+
+2. Run electron-rebuild for native modules:
+   ```bash
+   pnpm add -D electron-rebuild
+   npx electron-rebuild
+   ```
+
+3. Implement `pty-service.ts` in main process:
    ```typescript
    import * as pty from 'node-pty';
 
-   let currentPty: pty.IPty | null = null;
+   let ptyProcess: pty.IPty | null = null;
 
-   export function spawnClaude(cwd: string, args: string[]) {
-     currentPty = pty.spawn('claude', args, {
+   export function spawnClaude(cwd: string, onData: (data: string) => void, onExit: (code: number) => void) {
+     ptyProcess = pty.spawn('claude', [], {
        name: 'xterm-256color',
        cwd,
-       env: process.env,
+       env: process.env as Record<string, string>,
+       cols: 80,
+       rows: 24,
      });
 
-     currentPty.onData((data) => {
-       mainWindow.webContents.send('pty:data', data);
-     });
+     ptyProcess.onData(onData);
+     ptyProcess.onExit(({ exitCode }) => onExit(exitCode));
 
-     currentPty.onExit(({ exitCode }) => {
-       mainWindow.webContents.send('pty:exit', exitCode);
-       currentPty = null;
-     });
+     return ptyProcess;
    }
 
    export function writeToPty(data: string) {
-     currentPty?.write(data);
+     ptyProcess?.write(data);
+   }
+
+   export function resizePty(cols: number, rows: number) {
+     ptyProcess?.resize(cols, rows);
    }
 
    export function killPty() {
-     currentPty?.kill();
+     ptyProcess?.kill();
+     ptyProcess = null;
    }
    ```
 
-2. Implement `TerminalPanel.vue`:
+4. Set up IPC handlers:
+   ```typescript
+   // Renderer → Main
+   ipcMain.handle('pty:spawn', (_, cwd: string) => { ... });
+   ipcMain.on('pty:write', (_, data: string) => writeToPty(data));
+   ipcMain.on('pty:resize', (_, cols: number, rows: number) => resizePty(cols, rows));
+   ipcMain.on('pty:kill', () => killPty());
+
+   // Main → Renderer (via webContents.send)
+   // 'pty:data' (data: string)
+   // 'pty:exit' (code: number)
+   ```
+
+5. Implement `TerminalPanel.vue`:
    ```vue
    <script setup lang="ts">
-   import { Terminal } from 'xterm';
-   import { FitAddon } from 'xterm-addon-fit';
+   import { Terminal } from '@xterm/xterm';
+   import { FitAddon } from '@xterm/addon-fit';
    import { onMounted, onUnmounted, ref } from 'vue';
-   import 'xterm/css/xterm.css';  // Required for proper terminal rendering
+   import '@xterm/xterm/css/xterm.css';
 
+   const props = defineProps<{ projectPath: string }>();
    const terminalRef = ref<HTMLDivElement>();
+
    let terminal: Terminal;
    let fitAddon: FitAddon;
    let resizeObserver: ResizeObserver;
 
-   onMounted(() => {
-     terminal = new Terminal({ cursorBlink: true });
+   onMounted(async () => {
+     terminal = new Terminal({
+       cursorBlink: true,
+       fontSize: 14,
+       fontFamily: 'Consolas, "Courier New", monospace',
+       theme: {
+         background: '#1e1e1e',
+         foreground: '#d4d4d4',
+       },
+     });
+
      fitAddon = new FitAddon();
      terminal.loadAddon(fitAddon);
      terminal.open(terminalRef.value!);
      fitAddon.fit();
 
-     // Handle window/container resize
+     // Handle container resize
      resizeObserver = new ResizeObserver(() => {
        fitAddon.fit();
+       window.electronAPI.ptyResize(terminal.cols, terminal.rows);
      });
      resizeObserver.observe(terminalRef.value!);
 
      // Receive data from PTY
-     window.electron.onPtyData((data: string) => terminal.write(data));
+     window.electronAPI.onPtyData((data: string) => {
+       terminal.write(data);
+     });
+
+     // Handle Claude exit
+     window.electronAPI.onPtyExit((code: number) => {
+       terminal.write(`\r\n\x1b[90m[Claude exited with code ${code}. Press Enter to restart.]\x1b[0m\r\n`);
+     });
 
      // Send keystrokes to PTY
-     terminal.onData((data: string) => window.electron.ptyWrite(data));
+     terminal.onData((data: string) => {
+       window.electronAPI.ptyWrite(data);
+     });
+
+     // Spawn Claude in project directory
+     await window.electronAPI.ptySpawn(props.projectPath);
+
+     // Send initial resize
+     window.electronAPI.ptyResize(terminal.cols, terminal.rows);
    });
 
    onUnmounted(() => {
      resizeObserver?.disconnect();
      terminal?.dispose();
+     window.electronAPI.ptyKill();
    });
    </script>
 
@@ -452,139 +315,105 @@ pnpm dev
    .terminal-container {
      height: 100%;
      width: 100%;
+     padding: 8px;
+     box-sizing: border-box;
+     background: #1e1e1e;
    }
    </style>
    ```
 
-3. Wire up action buttons to spawn commands:
-   - "Refine" button → `spawnClaude(projectPath, ['/kanban-refine', taskId])`
-   - "Scope" button → `spawnClaude(projectPath, ['/kanban-scope', taskId])`
-   - etc.
-
-**Deliverable**: Click action button → Claude runs in terminal → user can interact.
-
----
-
-### Phase 3: File Watching & Auto-Refresh
-
-**Goal**: Board updates automatically when `.kanban/` files change.
-
-**Steps**:
-1. Implement `file-watcher.ts`:
+6. Update preload script to expose IPC:
    ```typescript
-   import chokidar from 'chokidar';
-   import { debounce } from './utils';
+   import { contextBridge, ipcRenderer } from 'electron';
 
-   let watcher: chokidar.FSWatcher | null = null;
+   contextBridge.exposeInMainWorld('electronAPI', {
+     // Dialog
+     openProject: () => ipcRenderer.invoke('dialog:openProject'),
 
-   export function watchProject(kanbanPath: string, onChange: () => void) {
-     const debouncedChange = debounce(onChange, 300);
+     // PTY
+     ptySpawn: (cwd: string) => ipcRenderer.invoke('pty:spawn', cwd),
+     ptyWrite: (data: string) => ipcRenderer.send('pty:write', data),
+     ptyResize: (cols: number, rows: number) => ipcRenderer.send('pty:resize', cols, rows),
+     ptyKill: () => ipcRenderer.send('pty:kill'),
 
-     watcher = chokidar.watch(kanbanPath, {
-       ignored: /(^|[\/\\])\../,  // ignore dotfiles
-       persistent: true,
-       ignoreInitial: true,
-     });
-
-     watcher.on('change', debouncedChange);
-     watcher.on('add', debouncedChange);
-     watcher.on('unlink', debouncedChange);
-   }
-
-   export function stopWatching() {
-     watcher?.close();
-   }
+     onPtyData: (callback: (data: string) => void) => {
+       ipcRenderer.on('pty:data', (_, data) => callback(data));
+     },
+     onPtyExit: (callback: (code: number) => void) => {
+       ipcRenderer.on('pty:exit', (_, code) => callback(code));
+     },
+   });
    ```
 
-2. On file change → re-run `list-tasks.cjs` → emit `kanban:tasks-updated` to renderer
+7. Wire up `App.vue` to show picker then terminal:
+   ```vue
+   <script setup lang="ts">
+   import { ref } from 'vue';
+   import ProjectPicker from './components/ProjectPicker.vue';
+   import TerminalPanel from './components/TerminalPanel.vue';
 
-3. Renderer updates reactive state → Vue re-renders board
+   const projectPath = ref<string | null>(null);
+   </script>
 
-**Deliverable**: Edit a task file externally → board updates within ~500ms.
+   <template>
+     <ProjectPicker v-if="!projectPath" @selected="projectPath = $event" />
+     <TerminalPanel v-else :projectPath="projectPath" />
+   </template>
 
----
+   <style>
+   html, body, #app {
+     margin: 0;
+     padding: 0;
+     height: 100%;
+     width: 100%;
+     overflow: hidden;
+   }
+   </style>
+   ```
 
-### Phase 4: Workflow Polish
-
-**Goal**: Smooth UX for the full workflow.
-
-**Steps**:
-1. **Command completion handling**:
-   - On `pty:exit` with code 0 → show success indicator
-   - Auto-scroll terminal to bottom during output
-   - Optional: collapse terminal when idle, expand when running
-
-2. **Task drawer improvements**:
-   - Show task.md content rendered as HTML
-   - Show spec.md and plan.md if they exist (tabs or accordion)
-   - Loading states while command runs
-
-3. **Board header**:
-   - Project name (from `.kanban/config.yaml`)
-   - "Create Task" button → prompts for title → runs `/kanban-create "title"`
-   - Refresh button (manual fallback)
-
-4. **Error handling**:
-   - Claude not installed → show helpful error
-   - Invalid project path → show error, allow re-select
-   - PTY crash → show error, allow retry
-
-5. **Keyboard shortcuts**:
-   - `Ctrl+N` — New task
-   - `Escape` — Close drawer
-   - `Ctrl+R` — Refresh board
+**Deliverable**: User opens project → lands in Claude session → types `/kanban-status` etc.
 
 ---
 
-### Phase 5: Packaging & Distribution
+### Phase 4: Polish & Packaging
 
-**Goal**: Installable app for Windows/Mac/Linux.
+**Goal**: Installable app.
 
 **Steps**:
-1. Configure electron-builder in `package.json`
-2. Set app icon and metadata
-3. Build for target platforms:
+1. Add app icon and metadata
+2. Handle edge cases:
+   - Claude CLI not installed (show helpful error)
+   - Claude exits (offer to restart or pick new project)
+   - Window close (clean up PTY)
+3. Configure electron-builder
+4. Build for target platform:
    ```bash
-   pnpm run build:win
-   pnpm run build:mac
-   pnpm run build:linux
+   pnpm run build
    ```
-4. Test on each platform (especially node-pty native module compilation)
-5. Document installation requirements (Claude CLI must be installed separately)
+5. Test packaged app works with native modules
+
+**Deliverable**: Distributable `.exe` / `.dmg` / `.AppImage`.
 
 ---
 
-## File Structure
+## File Structure (v1)
 
 ```
 apps/gui/
 ├── electron/
 │   ├── main/
-│   │   ├── index.ts
-│   │   ├── ipc-handlers.ts
-│   │   ├── kanban-service.ts
-│   │   ├── pty-service.ts
-│   │   └── file-watcher.ts
+│   │   ├── index.ts           # Main process entry, window creation
+│   │   └── pty-service.ts     # PTY spawn/manage
 │   └── preload/
-│       └── index.ts
+│       └── index.ts           # Expose IPC to renderer
 ├── src/
-│   ├── App.vue
+│   ├── App.vue                # Root - picker or terminal
 │   ├── components/
-│   │   ├── KanbanBoard.vue
-│   │   ├── KanbanColumn.vue
-│   │   ├── TaskCard.vue
-│   │   ├── TaskDrawer.vue
-│   │   ├── TerminalPanel.vue
-│   │   └── ProjectPicker.vue
-│   ├── composables/
-│   │   ├── useKanban.ts
-│   │   └── useTerminal.ts
-│   ├── types/
-│   │   └── kanban.ts
-│   └── styles/
-│       └── main.css
-├── package.json            # name: "claude-kanban-gui"
-├── tsconfig.json           # extends ../../tsconfig.base.json
+│   │   ├── ProjectPicker.vue  # Folder selection UI
+│   │   └── TerminalPanel.vue  # xterm.js wrapper
+│   └── env.d.ts               # Type declarations for electronAPI
+├── package.json
+├── tsconfig.json
 ├── electron-builder.json
 └── vite.config.ts
 ```
@@ -597,10 +426,8 @@ apps/gui/
 {
   "dependencies": {
     "node-pty": "^1.0.0",
-    "xterm": "^5.3.0",
-    "xterm-addon-fit": "^0.8.0",
-    "chokidar": "^3.5.3",
-    "gray-matter": "^4.0.3"
+    "@xterm/xterm": "^5.5.0",
+    "@xterm/addon-fit": "^0.10.0"
   },
   "devDependencies": {
     "electron-rebuild": "^3.0.0"
@@ -608,40 +435,17 @@ apps/gui/
 }
 ```
 
-**Important**: `node-pty` is a native module that must be compiled for Electron's Node version. After installing, run:
-```bash
-npx electron-rebuild
-```
-
-Or add to package.json scripts:
-```json
-{
-  "scripts": {
-    "postinstall": "electron-rebuild"
-  }
-}
-```
-
 ---
 
-## Risk Considerations
-
-| Risk | Mitigation |
-|------|------------|
-| node-pty native compilation fails on some systems | Provide prebuilt binaries via electron-rebuild, document Node version requirements |
-| Claude CLI not found | Check on startup, show clear error with install instructions |
-| Large task lists slow down UI | Virtualize the board columns if >100 tasks (unlikely in practice) |
-| File watcher misses changes | Debounce + manual refresh button as fallback |
-| Windows path handling issues | Use path.join consistently, test on Windows |
-
----
-
-## Success Criteria
+## Success Criteria (v1)
 
 - [ ] User can open a project folder containing `.kanban/`
-- [ ] Board displays all tasks in correct columns
-- [ ] Clicking a task shows its details and available actions
-- [ ] Clicking an action runs the Claude command in embedded terminal
-- [ ] User can type responses to Claude's questions
-- [ ] Board auto-refreshes when task files change
-- [ ] App can be packaged and distributed as installable
+- [ ] Terminal spawns with CWD set to project folder
+- [ ] User can type commands and see output
+- [ ] Claude interactive prompts work (user can answer questions)
+- [ ] Terminal handles resize properly
+- [ ] App can be packaged and runs standalone
+
+---
+
+Future versions may add a visual Kanban board UI above the terminal.
