@@ -1,52 +1,16 @@
 {
-  "name": "claude-kanban",
-  "version": "1.0.0",
-  "description": "A kanban-style task management system for Claude Code with spec-driven development workflow",
+  "name": "claude-kanban-monorepo",
+  "private": true,
   "type": "module",
-  "bin": {
-    "claude-kanban": "bin/install.cjs"
-  },
-  "files": [
-    "bin",
-    "dist"
-  ],
+  "packageManager": "pnpm@9.15.2",
   "scripts": {
-    "build": "turbo compile",
-    "build:tools": "tsdown -c tsdown.config.ts tools/build.ts --format esm --out-dir dist/tools",
-    "build:scripts": "tsdown -c tsdown.config.ts src/scripts/find-task.ts src/scripts/find-spec.ts src/scripts/find-plan.ts src/scripts/list-tasks.ts src/scripts/next-id.ts src/scripts/get-date-time.ts src/scripts/list-product.ts src/scripts/search-product.ts src/scripts/check-product.ts src/scripts/get-hook-config.ts src/scripts/search-engineering.ts src/scripts/list-engineering.ts src/scripts/check-engineering.ts --format cjs --out-dir dist/scripts",
-    "build:content": "node dist/tools/build.js",
-    "clean": "node -e \"fs=require('fs');fs.rmSync('dist',{recursive:true,force:true})\""
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "clean": "turbo clean",
+    "typecheck": "turbo typecheck"
   },
-  "keywords": [
-    "claude",
-    "claude-code",
-    "kanban",
-    "task-management",
-    "ai-workflow",
-    "spec-driven-development"
-  ],
-  "author": "Matt Fletcher",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/mattfletcher94/claude-kanban"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "packageManager": "pnpm@7.29.3",
   "devDependencies": {
-    "@types/js-yaml": "^4.0.9",
-    "@types/node": "^20.11.0",
-    "glob": "^10.3.10",
-    "handlebars": "^4.7.8",
-    "tsdown": "^0.11.4",
-    "turbo": "^2.3.3",
-    "typescript": "^5.3.3"
-  },
-  "dependencies": {
-    "fuse.js": "^7.1.0",
-    "gray-matter": "^4.0.3",
-    "js-yaml": "^4.1.1"
+    "turbo": "^2.4.0",
+    "typescript": "^5.7.0"
   }
 }
