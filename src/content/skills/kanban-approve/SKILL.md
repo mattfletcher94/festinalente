@@ -140,7 +140,7 @@ Approve implementation after human QA testing, commit the code with appropriate 
 </process>
 
 <success_criteria>
-- Task file exists at `.kanban/tasks/{taskId}-*.md`
+- Task file exists at `.kanban/tasks/{taskId}/task.md`
 - Task frontmatter contains `status: update-docs`
 - Git log shows appropriate commit type (`feat`, `fix`, `refactor`, or `docs`) with `({taskId}):`
 - Next steps shown to user
@@ -170,8 +170,8 @@ Staging files:
 - src/routes/auth.ts
 - src/middleware/jwt.ts
 - src/types/auth.ts
-- .kanban/tasks/001-add-user-authentication.md
-- .kanban/plans/001-add-user-authentication.plan.md
+- .kanban/tasks/001/task.md
+- .kanban/tasks/001/plan.md
 
 Commit type: feat (from feature label)
 
@@ -207,8 +207,8 @@ Task 002 moved to Update Docs
 
 Staging files:
 - src/routes/auth.ts
-- .kanban/tasks/002-fix-login-redirect-loop.md
-- .kanban/plans/002-fix-login-redirect-loop.plan.md
+- .kanban/tasks/002/task.md
+- .kanban/tasks/002/plan.md
 
 Commit type: fix (from bug label)
 

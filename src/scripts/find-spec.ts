@@ -8,22 +8,14 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 
-const SPECS_DIR = '.kanban/specs';
+const TASKS_DIR = '.kanban/tasks';
 
-interface FileMatch {
-  filename: string;
-  path: string;
-}
-
-function findFiles(dir: string, pattern: string): FileMatch[] {
-  if (!fs.existsSync(dir)) return [];
-
-  const files = fs.readdirSync(dir);
-  const regex = new RegExp(pattern);
-
-  return files
-    .filter(f => regex.test(f))
-    .map(f => ({ filename: f, path: path.join(dir, f).replace(/\\/g, '/') }));
+function findSpecFile(id: string): string | null {
+  const specPath = path.join(TASKS_DIR, id, 'spec.md');
+  if (fs.existsSync(specPath)) {
+    return specPath.replace(/\\/g, '/');
+  }
+  return null;
 }
 
 function main(): void {
@@ -36,34 +28,32 @@ function main(): void {
 
   const id = args[0];
 
-  if (!fs.existsSync(SPECS_DIR)) {
+  if (!fs.existsSync(TASKS_DIR)) {
     console.log(JSON.stringify({
       error: true,
-      message: `${SPECS_DIR}/ directory not found. Run npx claude-kanban first.`
+      message: `${TASKS_DIR}/ directory not found. Run npx claude-kanban first.`
     }));
     process.exit(1);
   }
 
-  // Find spec file matching the ID pattern
-  const pattern = `^${id}-.*\\.spec\\.md$`;
-  const matches = findFiles(SPECS_DIR, pattern);
+  // Find spec file in task folder
+  const specPath = findSpecFile(id);
 
-  if (matches.length === 0) {
+  if (!specPath) {
     console.log(JSON.stringify({
       error: true,
-      message: `Spec for task ${id} not found in ${SPECS_DIR}/`
+      message: `Spec for task ${id} not found in ${TASKS_DIR}/${id}/`
     }));
     process.exit(1);
   }
 
-  const file = matches[0];
-  const content = fs.readFileSync(file.path, 'utf8');
+  const content = fs.readFileSync(specPath, 'utf8');
   const { data: frontmatter } = matter(content);
 
   const result = {
     id: id,
-    filename: file.filename,
-    path: file.path,
+    filename: 'spec.md',
+    path: specPath,
     task: (frontmatter.task as string) || id,
     created: (frontmatter.created as string) || '',
     updated: (frontmatter.updated as string) || ''

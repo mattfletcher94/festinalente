@@ -150,10 +150,10 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
 </process>
 
 <success_criteria>
-- Task file exists at `.kanban/tasks/{taskId}-*.md`
+- Task file exists at `.kanban/tasks/{taskId}/task.md`
 - If all items complete: `status: codecheck`
 - If partial progress: `status: in-progress`
-- Plan file exists at `.kanban/plans/{taskId}-{slug}.plan.md`
+- Plan file exists at `.kanban/tasks/{taskId}/plan.md`
 - All plan checkboxes are marked complete (`- [x]`) for full implementation
 - Next steps shown to user
 </success_criteria>
@@ -168,8 +168,8 @@ Implementing task 001 "Add user auth"...
 
 Task 001 moved to In Progress
 
-Reading spec: .kanban/specs/001.spec.md
-Reading plan: .kanban/plans/001.plan.md
+Reading spec: .kanban/tasks/001/spec.md
+Reading plan: .kanban/tasks/001/plan.md
 Progress: 0/3 items
 
 [1/3] Create auth routes file `src/routes/auth.ts` (FR1)
@@ -208,8 +208,8 @@ Implementing task 002 "Setup database"...
 
 Column: in-progress (resuming)
 
-Reading spec: .kanban/specs/002.spec.md
-Reading plan: .kanban/plans/002.plan.md
+Reading spec: .kanban/tasks/002/spec.md
+Reading plan: .kanban/tasks/002/plan.md
 Progress: 2/5 items (resuming from item 3)
 
 [3/5] Create migration script `db/migrations/001_initial.sql` (FR2)

@@ -8,8 +8,8 @@ labels: []
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 completed: YYYY-MM-DD
-spec: "specs/{id}-{slug}.spec.md"
-plan: "plans/{id}-{slug}.plan.md"
+spec: "tasks/{id}/spec.md"
+plan: "tasks/{id}/plan.md"
 affects: []
 ---
 

@@ -179,8 +179,8 @@ for each skill in checkSkills:
 </process>
 
 <success_criteria>
-- Task exists at `.kanban/tasks/{taskId}-*.md`
-- Plan exists at `.kanban/plans/{taskId}-{slug}.plan.md`
+- Task exists at `.kanban/tasks/{taskId}/task.md`
+- Plan exists at `.kanban/tasks/{taskId}/plan.md`
 - If checks passed: task status is `qa`
 - If user declined fix: task status remains `codecheck`, user notified to fix manually
 - Any fix attempts are logged to plan's Iterations section

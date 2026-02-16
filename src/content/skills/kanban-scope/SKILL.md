@@ -151,9 +151,8 @@ Create a functional specification through iterative conversational Q&A focused o
 - Don't rush - thoroughness now saves time during implementation</note>
   </step>
 
-  <step name="create_spec_file" outputs="specPath, slug">
-    <action>Create at `.kanban/specs/{taskId}-{slug}.spec.md`</action>
-    <note>Derive slug from task title, same as task file</note>
+  <step name="create_spec_file" outputs="specPath">
+    <action>Create at `.kanban/tasks/{taskId}/spec.md`</action>
     <action>Follow template at `.claude/kanban-templates/spec.md`</action>
     <action>Link to spec in frontmatter</action>
     <action>Fill ALL sections</action>
@@ -217,12 +216,12 @@ updated: {YYYY-MM-DD}
 
   <step name="update_task_frontmatter">
     <action>Change `status: refined` to `status: scoped`</action>
-    <action>Add `spec: "specs/{taskId}-{slug}.spec.md"` to frontmatter</action>
+    <action>Add `spec: "tasks/{taskId}/spec.md"` to frontmatter</action>
     <action>Update `updated: {YYYY-MM-DD}`</action>
   </step>
 
   <step name="write_files">
-    <action>Write spec file at `.kanban/specs/{taskId}-{slug}.spec.md`</action>
+    <action>Write spec file at `.kanban/tasks/{taskId}/spec.md`</action>
     <action>Write updated task file</action>
   </step>
 
@@ -233,7 +232,7 @@ updated: {YYYY-MM-DD}
 
   <step name="commit">
     <note>Format: `docs({taskId}): scope - {title}`</note>
-    <command>git add .kanban/specs/{taskId}-{slug}.spec.md .kanban/tasks/{taskId}-*.md</command>
+    <command>git add .kanban/tasks/{taskId}/spec.md .kanban/tasks/{taskId}/task.md</command>
     <command>git commit -m "docs({taskId}): scope - {title}"</command>
   </step>
 
@@ -247,10 +246,10 @@ updated: {YYYY-MM-DD}
 </process>
 
 <success_criteria>
-- Task file exists at `.kanban/tasks/{taskId}-*.md`
-- Spec file exists at `.kanban/specs/{taskId}-{slug}.spec.md`
+- Task file exists at `.kanban/tasks/{taskId}/task.md`
+- Spec file exists at `.kanban/tasks/{taskId}/spec.md`
 - Task frontmatter contains `status: scoped`
-- Task frontmatter contains `spec: "specs/{taskId}-{slug}.spec.md"`
+- Task frontmatter contains `spec: "tasks/{taskId}/spec.md"`
 - Spec file contains `## Functional Requirements` section
 - Spec file contains `## Affected Files` section
 - Spec file contains `## Existing Patterns` section
@@ -346,7 +345,7 @@ Is there anything else you'd like to discuss before I write the spec?
 
 Writing functional specification...
 
-Spec created: .kanban/specs/001-add-localstorage-persistence.spec.md
+Spec created: .kanban/tasks/001/spec.md
 - 4 functional requirements
 - 2 files to modify, 1 new file
 - 1 external dependency (use-local-storage-state)
@@ -355,7 +354,7 @@ Spec created: .kanban/specs/001-add-localstorage-persistence.spec.md
 
 Task 001 scoped.
 - Status: scoped
-- Spec: specs/001-add-localstorage-persistence.spec.md
+- Spec: tasks/001/spec.md
 Commit: d4e5f6g docs(001): scope - Add localStorage persistence for app state
 
 Next:

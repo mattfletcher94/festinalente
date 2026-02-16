@@ -113,9 +113,9 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
   <step name="create_task_file">
     <warning>Write to `.kanban/tasks/` — NOT `.kanban/product/`</warning>
     <action>Read template from `.claude/kanban-templates/task.md`</action>
-    <action>Create file at `.kanban/tasks/{nextId}-{slug}.md`</action>
+    <action>Create folder `.kanban/tasks/{nextId}/`</action>
+    <action>Create file at `.kanban/tasks/{nextId}/task.md`</action>
     <note>`{nextId}` = the nextId from step get_next_id (e.g., "001")</note>
-    <note>`{slug}` = lowercase title with hyphens (e.g., "add-priority-status")</note>
     <action>Fill frontmatter: `id`, `title`, `status: backlog`, `priority`, `labels`, `created`, `affects`</action>
     <action>Fill body: `## Description`, `## Notes`</action>
     <note>Leave empty (filled in later phases): other sections</note>
@@ -123,7 +123,7 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
 
   <step name="commit">
     <note>Format: `docs({nextId}): create - {title}`</note>
-    <command>git add .kanban/tasks/{nextId}-{slug}.md</command>
+    <command>git add .kanban/tasks/{nextId}/task.md</command>
     <command>git commit -m "docs({nextId}): create - {title}"</command>
   </step>
 
@@ -137,7 +137,8 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
 </process>
 
 <success_criteria>
-- Task file exists at `.kanban/tasks/{nextId}-*.md`
+- Task folder exists at `.kanban/tasks/{nextId}/`
+- Task file exists at `.kanban/tasks/{nextId}/task.md`
 - Frontmatter contains `id: "{nextId}"`
 - Frontmatter contains `status: backlog`
 - Frontmatter contains `title: "{title}"`
@@ -149,13 +150,13 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
 <example>
 User: `/kanban-create Fix login redirect bug`
 
-Creates: `.kanban/tasks/002-fix-login-redirect-bug.md`
+Creates: `.kanban/tasks/002/task.md`
 
 ```
 Task 002 created in Backlog
 Title: Fix login redirect bug
 Labels: [bug]
-File: .kanban/tasks/002-fix-login-redirect-bug.md
+File: .kanban/tasks/002/task.md
 Commit: a1b2c3d docs(002): create - Fix login redirect bug
 
 Next:

@@ -105,7 +105,7 @@ Merge the task branch into main, clean up the branch, and move task to Done.
     <action>Add `updated: {YYYY-MM-DD}`</action>
     <action>Add `completed: {YYYY-MM-DD}`</action>
     <action>Write updated task file</action>
-    <command>git add .kanban/tasks/{taskId}-*.md</command>
+    <command>git add .kanban/tasks/{taskId}/task.md</command>
     <command>git commit -m "docs({taskId}): done - {title}"</command>
   </step>
 
@@ -119,7 +119,7 @@ Merge the task branch into main, clean up the branch, and move task to Done.
 </process>
 
 <success_criteria>
-- Task file exists at `.kanban/tasks/{taskId}-*.md`
+- Task file exists at `.kanban/tasks/{taskId}/task.md`
 - Task frontmatter contains `status: done`
 - Task frontmatter contains `completed:` date
 - Current branch is `main`

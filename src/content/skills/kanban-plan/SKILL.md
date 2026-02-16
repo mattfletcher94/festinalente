@@ -9,7 +9,7 @@ disable-model-invocation: true
 # Plan Kanban Task
 
 <purpose>
-Create a plan file in `.kanban/plans/` and move task from Scoped to Planned, then commit.
+Create a plan file in `.kanban/tasks/{id}/` and move task from Scoped to Planned, then commit.
 </purpose>
 
 <context>
@@ -104,7 +104,7 @@ Run: /kanban-scope {taskId}
   </step>
 
   <step name="check_existing_plan">
-    <validate>Check if `.kanban/plans/{taskId}-{slug}.plan.md` exists</validate>
+    <validate>Check if `.kanban/tasks/{taskId}/plan.md` exists</validate>
     <branch condition="plan exists">
       <prompt>Plan already exists. Overwrite or view existing?</prompt>
     </branch>
@@ -114,8 +114,8 @@ Run: /kanban-scope {taskId}
     {{> user-skills command="plan"}}
   </step>
 
-  <step name="create_plan_file" outputs="planPath, slug">
-    <action>Create at `.kanban/plans/{taskId}-{slug}.plan.md`</action>
+  <step name="create_plan_file" outputs="planPath">
+    <action>Create at `.kanban/tasks/{taskId}/plan.md`</action>
     <action>Follow template at `.claude/kanban-templates/plan.md`</action>
     <action>Link to spec in frontmatter</action>
     <action>Create implementation steps based on spec</action>
@@ -123,7 +123,7 @@ Run: /kanban-scope {taskId}
     <example_code lang="yaml">
 ---
 task: "{taskId}"
-spec: "specs/{taskId}-{slug}.spec.md"
+spec: "tasks/{taskId}/spec.md"
 status: approved
 created: {YYYY-MM-DD}
 generated_by: claude
@@ -137,7 +137,7 @@ iteration: 1
 ## Overview
 
 {Brief summary referencing functional spec}
-See full specification: specs/{taskId}-{slug}.spec.md
+See full specification: tasks/{taskId}/spec.md
 
 ## Implementation Steps
 
@@ -166,7 +166,7 @@ See full specification: specs/{taskId}-{slug}.spec.md
 
   <step name="update_task_file">
     <action>Change `status: scoped` to `status: planned`</action>
-    <action>Add `plan: "plans/{taskId}-{slug}.plan.md"` to frontmatter</action>
+    <action>Add `plan: "tasks/{taskId}/plan.md"` to frontmatter</action>
     <action>Add `updated: {YYYY-MM-DD}`</action>
   </step>
 
@@ -177,7 +177,7 @@ See full specification: specs/{taskId}-{slug}.spec.md
 
   <step name="commit">
     <note>Format: `docs({taskId}): plan - {title}`</note>
-    <command>git add .kanban/plans/{taskId}-{slug}.plan.md .kanban/tasks/{taskId}-*.md</command>
+    <command>git add .kanban/tasks/{taskId}/plan.md .kanban/tasks/{taskId}/task.md</command>
     <command>git commit -m "docs({taskId}): plan - {title}"</command>
   </step>
 
@@ -195,12 +195,12 @@ Next:
 </process>
 
 <success_criteria>
-- Task file exists at `.kanban/tasks/{taskId}-*.md`
+- Task file exists at `.kanban/tasks/{taskId}/task.md`
 - Task frontmatter contains `status: planned`
-- Task frontmatter contains `plan: "plans/{taskId}-{slug}.plan.md"`
-- Plan file exists at `.kanban/plans/{taskId}-{slug}.plan.md`
+- Task frontmatter contains `plan: "tasks/{taskId}/plan.md"`
+- Plan file exists at `.kanban/tasks/{taskId}/plan.md`
 - Plan frontmatter contains `task: "{taskId}"`
-- Plan frontmatter contains `spec: "specs/{taskId}-{slug}.spec.md"`
+- Plan frontmatter contains `spec: "tasks/{taskId}/spec.md"`
 - Plan frontmatter contains `status: approved`
 - Plan frontmatter contains `iteration: 1`
 - Plan contains `## Implementation Steps` section with checkboxes
@@ -215,7 +215,7 @@ User: `/kanban-plan 001`
 Planning task 001 "Add OAuth Login"...
 
 Reading functional specification...
-- Spec: .kanban/specs/001.spec.md
+- Spec: .kanban/tasks/001/spec.md
 - 4 functional requirements
 - 3 files to modify, 1 new file
 - Using Passport.js pattern from existing auth
@@ -229,15 +229,15 @@ Researching product documentation...
 
 Creating implementation plan...
 
-Plan created: .kanban/plans/001.plan.md
+Plan created: .kanban/tasks/001/plan.md
 - 8 implementation steps
 - References FR1-FR4
 - Includes verification step
 
 Task 001 moved to Planned
 - Status: planned
-- Spec: specs/001.spec.md
-- Plan: plans/001.plan.md
+- Spec: tasks/001/spec.md
+- Plan: tasks/001/plan.md
 Commit: g7h8i9j docs(001): plan - Add OAuth Login
 
 Next:

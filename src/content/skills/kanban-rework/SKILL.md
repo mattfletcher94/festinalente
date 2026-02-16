@@ -66,7 +66,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
   </step>
 
   <step name="read_plan_file" outputs="planPath">
-    <action>Check for `.kanban/plans/{taskId}-{slug}.plan.md`</action>
+    <action>Check for `.kanban/tasks/{taskId}/plan.md`</action>
     <branch condition="plan found">
       <action>Read plan content</action>
     </branch>
@@ -121,8 +121,8 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 
   <step name="commit">
     <note>Format: `docs({taskId}): rework - {title}`</note>
-    <command>git add .kanban/tasks/{taskId}-*.md</command>
-    <command>git add .kanban/plans/{taskId}-{slug}.plan.md</command>
+    <command>git add .kanban/tasks/{taskId}/task.md</command>
+    <command>git add .kanban/tasks/{taskId}/plan.md</command>
     <command>git commit -m "docs({taskId}): rework - {title}"</command>
   </step>
 
@@ -136,8 +136,8 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
 </process>
 
 <success_criteria>
-- Task file exists at `.kanban/tasks/{taskId}-*.md`
-- Plan file exists at `.kanban/plans/{taskId}-{slug}.plan.md`
+- Task file exists at `.kanban/tasks/{taskId}/task.md`
+- Plan file exists at `.kanban/tasks/{taskId}/plan.md`
 - Task frontmatter contains `status: in-progress`
 - Plan contains `## Iterations` section with rework entry
 - Git log shows `docs({taskId}): rework -`

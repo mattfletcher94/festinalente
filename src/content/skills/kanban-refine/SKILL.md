@@ -183,7 +183,7 @@ And their session is established
 
   <step name="commit">
     <note>Format: `docs({taskId}): refine - {title}`</note>
-    <command>git add .kanban/tasks/{taskId}-*.md</command>
+    <command>git add .kanban/tasks/{taskId}/task.md</command>
     <command>git commit -m "docs({taskId}): refine - {title}"</command>
   </step>
 
@@ -195,7 +195,7 @@ And their session is established
 </process>
 
 <success_criteria>
-- Task file exists at `.kanban/tasks/{taskId}-*.md`
+- Task file exists at `.kanban/tasks/{taskId}/task.md`
 - Frontmatter contains `status: refined`
 - Task file contains `## Acceptance Criteria` section with Gherkin format
 - Git log shows `docs({taskId}): refine -`

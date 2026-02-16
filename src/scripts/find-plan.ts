@@ -8,22 +8,14 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 
-const PLANS_DIR = '.kanban/plans';
+const TASKS_DIR = '.kanban/tasks';
 
-interface FileMatch {
-  filename: string;
-  path: string;
-}
-
-function findFiles(dir: string, pattern: string): FileMatch[] {
-  if (!fs.existsSync(dir)) return [];
-
-  const files = fs.readdirSync(dir);
-  const regex = new RegExp(pattern);
-
-  return files
-    .filter(f => regex.test(f))
-    .map(f => ({ filename: f, path: path.join(dir, f).replace(/\\/g, '/') }));
+function findPlanFile(id: string): string | null {
+  const planPath = path.join(TASKS_DIR, id, 'plan.md');
+  if (fs.existsSync(planPath)) {
+    return planPath.replace(/\\/g, '/');
+  }
+  return null;
 }
 
 function main(): void {
@@ -36,34 +28,32 @@ function main(): void {
 
   const id = args[0];
 
-  if (!fs.existsSync(PLANS_DIR)) {
+  if (!fs.existsSync(TASKS_DIR)) {
     console.log(JSON.stringify({
       error: true,
-      message: `${PLANS_DIR}/ directory not found. Run npx claude-kanban first.`
+      message: `${TASKS_DIR}/ directory not found. Run npx claude-kanban first.`
     }));
     process.exit(1);
   }
 
-  // Find plan file matching the ID pattern
-  const pattern = `^${id}-.*\\.plan\\.md$`;
-  const matches = findFiles(PLANS_DIR, pattern);
+  // Find plan file in task folder
+  const planPath = findPlanFile(id);
 
-  if (matches.length === 0) {
+  if (!planPath) {
     console.log(JSON.stringify({
       error: true,
-      message: `Plan for task ${id} not found in ${PLANS_DIR}/`
+      message: `Plan for task ${id} not found in ${TASKS_DIR}/${id}/`
     }));
     process.exit(1);
   }
 
-  const file = matches[0];
-  const content = fs.readFileSync(file.path, 'utf8');
+  const content = fs.readFileSync(planPath, 'utf8');
   const { data: frontmatter } = matter(content);
 
   const result = {
     id: id,
-    filename: file.filename,
-    path: file.path,
+    filename: 'plan.md',
+    path: planPath,
     task: (frontmatter.task as string) || id,
     spec: (frontmatter.spec as string) || '',
     status: (frontmatter.status as string) || '',

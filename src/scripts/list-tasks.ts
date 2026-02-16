@@ -43,11 +43,6 @@ function parseArgs(args: string[]): ParsedArgs {
   return result;
 }
 
-function extractId(filename: string): string | null {
-  const match = filename.match(/^(\d+)-/);
-  return match ? match[1] : null;
-}
-
 function main(): void {
   const args = parseArgs(process.argv.slice(2));
 
@@ -59,23 +54,25 @@ function main(): void {
     process.exit(1);
   }
 
-  const files = fs.readdirSync(TASKS_DIR)
-    .filter(f => f.endsWith('.md'))
+  // Read subdirectories (each is a task folder)
+  const folders = fs.readdirSync(TASKS_DIR, { withFileTypes: true })
+    .filter(f => f.isDirectory())
+    .map(f => f.name)
     .sort();
 
   const tasks: Task[] = [];
 
-  for (const filename of files) {
-    const filePath = path.join(TASKS_DIR, filename).replace(/\\/g, '/');
+  for (const folderId of folders) {
+    const filePath = path.join(TASKS_DIR, folderId, 'task.md').replace(/\\/g, '/');
+
+    if (!fs.existsSync(filePath)) continue;
+
     const content = fs.readFileSync(filePath, 'utf8');
     const { data: frontmatter } = matter(content);
-    const id = extractId(filename);
-
-    if (!id) continue;
 
     const task: Task = {
-      id: id,
-      filename: filename,
+      id: folderId,
+      filename: 'task.md',
       path: filePath,
       title: (frontmatter.title as string) || '',
       status: (frontmatter.status as string) || '',

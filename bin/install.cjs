@@ -36,8 +36,6 @@ const KANBAN_PATHS = [
 // .kanban directory structure to create
 const KANBAN_DIRS = [
   'tasks',
-  'specs',
-  'plans',
   'product',
   'skills'
 ];

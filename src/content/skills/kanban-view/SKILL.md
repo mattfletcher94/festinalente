@@ -55,7 +55,7 @@ Display the Kanban board as a visual terminal output with box-drawing characters
 
   <step name="get_plan_progress" when="tasks have status `planned`, `in-progress`, `verify`, or `review`">
     <note>For tasks with status `planned`, `in-progress`, `verify`, or `review`:</note>
-    <action>Read `.kanban/plans/{id}-{slug}.plan.md` if it exists</action>
+    <action>Read `.kanban/tasks/{id}/plan.md` if it exists</action>
     <action>Count checkboxes: `- [ ]` (incomplete) and `- [x]` (complete)</action>
     <action>Calculate progress as `{complete}/{total}`</action>
   </step>

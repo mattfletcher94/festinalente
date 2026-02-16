@@ -151,7 +151,7 @@ Update product documentation, commit the changes, push to remote, and move task 
     <note>The description summarizes what documentation was updated (e.g., "add authentication guide", "update API reference")</note>
     <warning>CRITICAL: Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `docs`, not `kanban`.</warning>
     <command>git add .kanban/product/</command>
-    <command>git add .kanban/tasks/{taskId}-*.md</command>
+    <command>git add .kanban/tasks/{taskId}/task.md</command>
     <branch condition="docs were changed">
       <command>git commit -m "docs({taskId}): product - {description of doc changes}"</command>
     </branch>
@@ -182,7 +182,7 @@ Create PR on GitHub, then run:
 </process>
 
 <success_criteria>
-- Task file exists at `.kanban/tasks/{taskId}-*.md`
+- Task file exists at `.kanban/tasks/{taskId}/task.md`
 - Task frontmatter contains `status: pr`
 - Branch has been pushed to remote
 - Next steps shown to user

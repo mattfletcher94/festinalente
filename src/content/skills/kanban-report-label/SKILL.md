@@ -30,8 +30,8 @@ Query tasks filtered by label using natural language.
   </step>
 
   <step name="find_matching_tasks" outputs="taskFiles">
-    <action>Search `.kanban/tasks/*.md` for files containing the label in frontmatter</action>
-    <command>grep -l "labels:.*{label}" .kanban/tasks/*.md</command>
+    <action>Search `.kanban/tasks/*/task.md` for files containing the label in frontmatter</action>
+    <command>grep -l "labels:.*{label}" .kanban/tasks/*/task.md</command>
   </step>
 
   <step name="read_task_details">
@@ -77,9 +77,9 @@ From `.claude/kanban-workflow.yaml`:
 
 | Source | Location | Contains |
 |--------|----------|----------|
-| Task files | `.kanban/tasks/*.md` | Status, priority, labels, description |
-| Spec files | `.kanban/specs/{id}-{slug}.spec.md` | Requirements for scoped tasks |
-| Plan files | `.kanban/plans/{id}-{slug}.plan.md` | Implementation plans |
+| Task files | `.kanban/tasks/{id}/task.md` | Status, priority, labels, description |
+| Spec files | `.kanban/tasks/{id}/spec.md` | Requirements for scoped tasks |
+| Plan files | `.kanban/tasks/{id}/plan.md` | Implementation plans |
 </note>
 
 <note>

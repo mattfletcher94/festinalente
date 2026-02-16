@@ -34,7 +34,7 @@ Query what tasks a specific git user has worked on using natural language.
   </step>
 
   <step name="read_task_files">
-    <action>For each task ID found, read the task file: `.kanban/tasks/{id}-*.md`</action>
+    <action>For each task ID found, read the task file: `.kanban/tasks/{id}/task.md`</action>
   </step>
 
   <step name="get_board_state">
@@ -66,7 +66,7 @@ Query what tasks a specific git user has worked on using natural language.
 | Source | How to Get | Contains |
 |--------|------------|----------|
 | User's commits | `git log --author="{name}"` | Task IDs touched |
-| Task files | `.kanban/tasks/{id}-*.md` | Current status, priority, labels |
+| Task files | `.kanban/tasks/{id}/task.md` | Current status, priority, labels |
 | Board columns | All task statuses | What's in-progress, done, etc. |
 </note>
 

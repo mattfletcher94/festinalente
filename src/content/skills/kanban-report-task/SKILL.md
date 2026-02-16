@@ -63,9 +63,9 @@ Query a specific task's history and current state using natural language.
 
 | Source | Location | Contains |
 |--------|----------|----------|
-| Task file | `.kanban/tasks/{id}-*.md` | Status, priority, labels, description |
-| Spec file | `.kanban/specs/{id}-{slug}.spec.md` | Requirements, acceptance criteria |
-| Plan file | `.kanban/plans/{id}-{slug}.plan.md` | Implementation steps, checkboxes |
+| Task file | `.kanban/tasks/{id}/task.md` | Status, priority, labels, description |
+| Spec file | `.kanban/tasks/{id}/spec.md` | Requirements, acceptance criteria |
+| Plan file | `.kanban/tasks/{id}/plan.md` | Implementation steps, checkboxes |
 | Git history | `git log --grep="({id})"` | Timeline, commits, state transitions |
 </note>
 

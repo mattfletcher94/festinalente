@@ -38,7 +38,7 @@ Show the current state of the board and suggest what command to run next. Helps 
   </step>
 
   <step name="get_plan_progress" when="$ARGUMENTS is not empty AND status is `planned`, `in-progress`, `checks`, or `qa`">
-    <action>Read `.kanban/plans/{id}-{slug}.plan.md`</action>
+    <action>Read `.kanban/tasks/{id}/plan.md`</action>
     <action>Count checkboxes: total, completed, remaining</action>
     <action>Check for WIP Notes section</action>
     <action>Check for Iterations section (previous failures)</action>

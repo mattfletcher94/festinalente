@@ -57,7 +57,7 @@ Save partial implementation progress when interrupted. Task stays in In Progress
   </step>
 
   <step name="read_plan_file" outputs="planPath, planContent">
-    <action>Check for `.kanban/plans/{taskId}-{slug}.plan.md`</action>
+    <action>Check for `.kanban/tasks/{taskId}/plan.md`</action>
     <branch condition="plan found">
       <action>Read plan content</action>
     </branch>
@@ -117,7 +117,7 @@ Save partial implementation progress when interrupted. Task stays in In Progress
     <note>Format: `wip({taskId}): {progress summary}`</note>
     <action>Stage all relevant files (code + plan)</action>
     <command>git add {changed files}</command>
-    <command>git add .kanban/plans/{taskId}-{slug}.plan.md</command>
+    <command>git add .kanban/tasks/{taskId}/plan.md</command>
     <command>git commit -m "wip({taskId}): {progress summary}"</command>
   </step>
 
@@ -130,7 +130,7 @@ Save partial implementation progress when interrupted. Task stays in In Progress
 </process>
 
 <success_criteria>
-- Task file exists at `.kanban/tasks/{taskId}-*.md`
+- Task file exists at `.kanban/tasks/{taskId}/task.md`
 - Task frontmatter contains `status: in-progress`
 - If changes existed: git log shows `wip({taskId}):`
 - Next steps shown to user
@@ -144,7 +144,7 @@ User: `/kanban-save 001`
 ```
 Saving WIP for task 001 "Add user authentication"...
 
-Reading plan: .kanban/plans/001.plan.md
+Reading plan: .kanban/tasks/001/plan.md
 Progress: 2/5 items complete
 
 Verifying checkboxes match actual progress...
@@ -159,7 +159,7 @@ Adding WIP notes to plan...
 Staging files:
 - src/routes/auth.ts
 - src/middleware/jwt.ts
-- .kanban/plans/001.plan.md
+- .kanban/tasks/001/plan.md
 
 Commit: d4e5f6g wip(001): completed auth routes and login endpoint
 
@@ -177,7 +177,7 @@ User: `/kanban-save 002`
 ```
 Saving WIP for task 002 "Setup database"...
 
-Reading plan: .kanban/plans/002.plan.md
+Reading plan: .kanban/tasks/002/plan.md
 Progress: 3/5 items complete
 
 Checking for uncommitted changes...

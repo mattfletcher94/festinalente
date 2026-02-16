@@ -10,20 +10,12 @@ import matter from 'gray-matter';
 
 const TASKS_DIR = '.kanban/tasks';
 
-interface FileMatch {
-  filename: string;
-  path: string;
-}
-
-function findFiles(dir: string, pattern: string): FileMatch[] {
-  if (!fs.existsSync(dir)) return [];
-
-  const files = fs.readdirSync(dir);
-  const regex = new RegExp(pattern);
-
-  return files
-    .filter(f => regex.test(f))
-    .map(f => ({ filename: f, path: path.join(dir, f).replace(/\\/g, '/') }));
+function findTaskFile(id: string): string | null {
+  const taskPath = path.join(TASKS_DIR, id, 'task.md');
+  if (fs.existsSync(taskPath)) {
+    return taskPath.replace(/\\/g, '/');
+  }
+  return null;
 }
 
 function main(): void {
@@ -44,26 +36,24 @@ function main(): void {
     process.exit(1);
   }
 
-  // Find task file matching the ID pattern
-  const pattern = `^${id}-.*\\.md$`;
-  const matches = findFiles(TASKS_DIR, pattern);
+  // Find task file in folder
+  const taskPath = findTaskFile(id);
 
-  if (matches.length === 0) {
+  if (!taskPath) {
     console.log(JSON.stringify({
       error: true,
-      message: `Task ${id} not found in ${TASKS_DIR}/`
+      message: `Task ${id} not found in ${TASKS_DIR}/${id}/`
     }));
     process.exit(1);
   }
 
-  const file = matches[0];
-  const content = fs.readFileSync(file.path, 'utf8');
+  const content = fs.readFileSync(taskPath, 'utf8');
   const { data: frontmatter } = matter(content);
 
   const result = {
     id: id,
-    filename: file.filename,
-    path: file.path,
+    filename: 'task.md',
+    path: taskPath,
     title: (frontmatter.title as string) || '',
     status: (frontmatter.status as string) || '',
     priority: (frontmatter.priority as string) || '',

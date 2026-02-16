@@ -30,14 +30,16 @@ This creates both `.claude/` (skills and scripts) and `.kanban/` (your board dat
 ```
 .kanban/
 ├── config.yaml    # Your board configuration
-├── tasks/         # Task files ({id}-{slug}.md)
-├── specs/         # Functional specifications ({id}-{slug}.spec.md)
-├── plans/         # Implementation plans ({id}-{slug}.plan.md)
+├── tasks/         # Task folders (each contains task.md, spec.md, plan.md)
+│   └── 001/       # Task folder (ID only, no slug)
+│       ├── task.md   # Task definition
+│       ├── spec.md   # Functional specification
+│       └── plan.md   # Implementation plan
 ├── product/       # Product documentation ({feature}.md)
 └── skills/        # Your verification checks ({name}.md)
 ```
 
-**File naming:** All kanban files use dashes (not dots) for readability. User-defined skills in `.kanban/skills/` are simple `.md` files (not directories).
+**File structure:** Each task gets its own folder (e.g., `001/`) containing `task.md`, `spec.md`, and `plan.md`. User-defined skills in `.kanban/skills/` are simple `.md` files (not directories).
 
 ### Document Your Product (Recommended)
 
@@ -143,7 +145,7 @@ Task 001 created in Backlog
 - Labels: [feature]
 - Related product docs: auth/login (score 0.6)
 - Affects: [auth/login, auth/password-reset]
-- File: .kanban/tasks/001-add-password-reset-functionality.md
+- File: .kanban/tasks/001/task.md
 
 Commit: docs(001): create - Add password reset functionality
 
@@ -214,7 +216,7 @@ Searching codebase for patterns...
 - Found auth patterns in src/auth/
 - Found email service in src/services/email.ts
 
-Creating spec: .kanban/specs/001-add-password-reset-functionality.spec.md
+Creating spec: .kanban/tasks/001/spec.md
 - 5 functional requirements
 - 4 files to modify
 
@@ -245,7 +247,7 @@ Commit: docs(001): scope - Add password reset functionality
 
 **Example output:**
 ```
-Creating plan: .kanban/plans/001-add-password-reset-functionality.plan.md
+Creating plan: .kanban/tasks/001/plan.md
 
 Implementation Steps:
 - [ ] Create password reset token model (FR1)

@@ -36,11 +36,6 @@ function parseSimpleYaml(content: string): SimpleYamlResult {
   return result;
 }
 
-function extractId(filename: string): number | null {
-  const match = filename.match(/^(\d+)-/);
-  return match ? parseInt(match[1], 10) : null;
-}
-
 function main(): void {
   // Read config for padding
   let padding = 3;
@@ -68,9 +63,12 @@ function main(): void {
     return;
   }
 
-  const files = fs.readdirSync(TASKS_DIR).filter(f => f.endsWith('.md'));
+  // Read folder names (each folder name IS the ID)
+  const folders = fs.readdirSync(TASKS_DIR, { withFileTypes: true })
+    .filter(f => f.isDirectory())
+    .map(f => f.name);
 
-  if (files.length === 0) {
+  if (folders.length === 0) {
     const result = {
       nextId: '1'.padStart(padding, '0'),
       currentHighest: null,
@@ -80,12 +78,12 @@ function main(): void {
     return;
   }
 
-  // Find highest ID
+  // Find highest ID (folder names are "001", "002", etc.)
   let highest = 0;
 
-  for (const filename of files) {
-    const id = extractId(filename);
-    if (id !== null && id > highest) {
+  for (const folderName of folders) {
+    const id = parseInt(folderName, 10);
+    if (!isNaN(id) && id > highest) {
       highest = id;
     }
   }
