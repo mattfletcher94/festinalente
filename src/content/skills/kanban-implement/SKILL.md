@@ -43,7 +43,7 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, status">
-    <command>node .claude/kanban-scripts/find-task.cjs {taskId}</command>
+    <command>node .kanban/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse YAML frontmatter</action>
     <branch condition="status is planned">
@@ -78,7 +78,7 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
   </step>
 
   <step name="read_plan_file" outputs="planPath, planContent">
-    <command>node .claude/kanban-scripts/find-plan.cjs {taskId}</command>
+    <command>node .kanban/scripts/find-plan.cjs {taskId}</command>
     <branch condition="plan found">
       <action>Read the plan at the `path` from JSON output</action>
     </branch>
@@ -130,7 +130,7 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
   <step name="on_completion">
     <important>This step MUST update the task status when all items are complete</important>
     <branch condition="ALL checkboxes complete">
-      <command description="Get current date">node .claude/kanban-scripts/get-date-time.cjs</command>
+      <command description="Get current date">node .kanban/scripts/get-date-time.cjs</command>
       <action>Read the task file at {taskPath}</action>
       <action>In the YAML frontmatter, change `status: in-progress` to `status: codecheck`</action>
       <action>Update `updated: {YYYY-MM-DD}` with date from command output</action>

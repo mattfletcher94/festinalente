@@ -50,7 +50,7 @@ Create a functional specification through iterative conversational Q&A focused o
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, acceptanceCriteria, status">
-    <command>node .claude/kanban-scripts/find-task.cjs {taskId}</command>
+    <command>node .kanban/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse YAML frontmatter</action>
     <validate>Verify status is `backlog` or `refined`</validate>
@@ -108,7 +108,7 @@ Create a functional specification through iterative conversational Q&A focused o
       <note>This informs HOW to implement and WHERE to look</note>
     </branch>
     <branch condition="no engineering field">
-      <command>node .claude/kanban-scripts/search-engineering.cjs {keywords from title/description}</command>
+      <command>node .kanban/scripts/search-engineering.cjs {keywords from title/description}</command>
       <branch condition="relevant patterns/systems found">
         <action>Read and note relevant patterns</action>
         <action>Suggest adding to `engineering` field</action>
@@ -194,7 +194,7 @@ Create a functional specification through iterative conversational Q&A focused o
 
   <step name="create_spec_file" outputs="specPath">
     <action>Create at `.kanban/tasks/{taskId}/spec.md`</action>
-    <action>Follow template at `.claude/kanban-templates/spec.md`</action>
+    <action>Follow template at `.kanban/templates/spec.md`</action>
     <action>Link to spec in frontmatter</action>
     <action>Fill ALL sections</action>
 

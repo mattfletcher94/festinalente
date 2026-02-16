@@ -48,7 +48,7 @@ Create a plan file in `.kanban/tasks/{id}/` and move task from Scoped to Planned
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, specPath">
-    <command>node .claude/kanban-scripts/find-task.cjs {taskId}</command>
+    <command>node .kanban/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse YAML frontmatter</action>
     <validate>Verify current status is `scoped`</validate>
@@ -67,7 +67,7 @@ Create a plan file in `.kanban/tasks/{id}/` and move task from Scoped to Planned
   </step>
 
   <step name="read_spec" outputs="functionalRequirements, affectedFiles, existingPatterns">
-    <command>node .claude/kanban-scripts/find-spec.cjs {taskId}</command>
+    <command>node .kanban/scripts/find-spec.cjs {taskId}</command>
     <branch condition="spec found">
       <action>Read the spec file at the `path` from JSON output</action>
     </branch>
@@ -92,11 +92,11 @@ Run: /kanban-scope {taskId}
 
     <action>Search for related product docs</action>
     <action>Extract key terms from spec (feature names, component names, domains)</action>
-    <command>node .claude/kanban-scripts/search-product.cjs {keywords}</command>
+    <command>node .kanban/scripts/search-product.cjs {keywords}</command>
     <action>Read any docs with score ≥ 0.3 that weren't already read</action>
 
     <action>List product docs if unsure</action>
-    <command>node .claude/kanban-scripts/list-product.cjs</command>
+    <command>node .kanban/scripts/list-product.cjs</command>
     <action>Identify any obviously relevant docs by domain/name</action>
 
     <note>Use this context to:
@@ -116,11 +116,11 @@ Run: /kanban-scope {taskId}
 
     <action>Search for related engineering docs</action>
     <action>Extract technical terms from spec (systems, patterns, components)</action>
-    <command>node .claude/kanban-scripts/search-engineering.cjs {keywords}</command>
+    <command>node .kanban/scripts/search-engineering.cjs {keywords}</command>
     <action>Read any docs with score ≥ 0.3 that weren't already read</action>
 
     <action>List engineering docs if unsure</action>
-    <command>node .claude/kanban-scripts/list-engineering.cjs</command>
+    <command>node .kanban/scripts/list-engineering.cjs</command>
     <action>Identify any obviously relevant docs by type/name</action>
 
     <note>Use this context to:
@@ -143,7 +143,7 @@ Run: /kanban-scope {taskId}
 
   <step name="create_plan_file" outputs="planPath">
     <action>Create at `.kanban/tasks/{taskId}/plan.md`</action>
-    <action>Follow template at `.claude/kanban-templates/plan.md`</action>
+    <action>Follow template at `.kanban/templates/plan.md`</action>
     <action>Link to spec in frontmatter</action>
     <action>Create implementation steps based on spec</action>
 

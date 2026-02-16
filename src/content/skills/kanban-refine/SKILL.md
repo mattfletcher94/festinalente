@@ -52,7 +52,7 @@ Refine vague tasks through iterative conversational Q&A focused on product/busin
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, currentLabels">
-    <command>node .claude/kanban-scripts/find-task.cjs {taskId}</command>
+    <command>node .kanban/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse YAML frontmatter</action>
     <validate>Verify task status is `backlog` (refinement moves to `refined`)</validate>
@@ -85,7 +85,7 @@ Refine vague tasks through iterative conversational Q&A focused on product/busin
       <action>Note current product behavior for context</action>
     </branch>
     <branch condition="task has empty/no `affects` field">
-      <command>node .claude/kanban-scripts/search-product.cjs {keywords from title}</command>
+      <command>node .kanban/scripts/search-product.cjs {keywords from title}</command>
       <branch condition="matches found (score ≥ 0.3)">
         <action>Read top matches for context</action>
         <action>Consider suggesting `affects` field update</action>
@@ -99,7 +99,7 @@ Refine vague tasks through iterative conversational Q&A focused on product/busin
       <action>Note: patterns to follow, conventions, constraints</action>
     </branch>
     <branch condition="task has empty/no `engineering` field">
-      <command>node .claude/kanban-scripts/search-engineering.cjs {keywords from title}</command>
+      <command>node .kanban/scripts/search-engineering.cjs {keywords from title}</command>
       <branch condition="matches found (score ≥ 0.3)">
         <action>Read top matches for context</action>
         <action>Consider suggesting `engineering` field update</action>
@@ -161,7 +161,7 @@ Refine vague tasks through iterative conversational Q&A focused on product/busin
   </step>
 
   <step name="update_task_file">
-    <action>Follow template at `.claude/kanban-templates/task.md`</action>
+    <action>Follow template at `.kanban/templates/task.md`</action>
     <action>Fill sections for this phase:</action>
     <note>`## What problem are you trying to solve?`</note>
     <note>`## What value would it provide if solved?`</note>

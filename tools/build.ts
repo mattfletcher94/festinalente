@@ -94,15 +94,16 @@ async function compileDirectory(dir: string): Promise<number> {
   return count;
 }
 
-async function copyDirectory(dir: string): Promise<number> {
-  const srcDir = path.join(SRC_CONTENT, dir);
+async function copyDirectory(srcDirName: string, destDirName?: string): Promise<number> {
+  const srcDir = path.join(SRC_CONTENT, srcDirName);
   const globPattern = toGlobPath(path.join(srcDir, '**/*'));
   const files = await glob(globPattern, { nodir: true });
 
+  const outputDirName = destDirName || srcDirName;
   let count = 0;
   for (const srcFile of files) {
-    const relativePath = path.relative(SRC_CONTENT, srcFile);
-    const distFile = path.join(DIST, relativePath);
+    const relativePath = path.relative(srcDir, srcFile);
+    const distFile = path.join(DIST, outputDirName, relativePath);
     await ensureDir(path.dirname(distFile));
     await fs.copyFile(srcFile, distFile);
     count++;
@@ -130,18 +131,18 @@ async function main(): Promise<void> {
   const skillCount = await compileDirectory('skills');
   console.log(`  Compiled ${skillCount} skill files`);
 
-  // Copy kanban-templates
-  console.log('\n3. Copying kanban-templates...');
-  const templateCount = await copyDirectory('kanban-templates');
+  // Copy kanban-templates to templates/
+  console.log('\n3. Copying templates...');
+  const templateCount = await copyDirectory('kanban-templates', 'templates');
   console.log(`  Copied ${templateCount} template files`);
 
-  // Copy kanban-workflow.yaml
-  console.log('\n4. Copying kanban-workflow.yaml...');
+  // Copy kanban-workflow.yaml to workflow.yaml
+  console.log('\n4. Copying workflow.yaml...');
   await copyFile(
     path.join(SRC_CONTENT, 'kanban-workflow.yaml'),
-    path.join(DIST, 'kanban-workflow.yaml')
+    path.join(DIST, 'workflow.yaml')
   );
-  console.log('  Copied kanban-workflow.yaml');
+  console.log('  Copied workflow.yaml');
 
   console.log('\n✓ Build complete!');
 }

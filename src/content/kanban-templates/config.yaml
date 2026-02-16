@@ -5,8 +5,8 @@
 # The schema is fixed - only modify values within the existing structure.
 #
 # User Skills Resolution:
-# Each skill name in the skills array resolves to .claude/skills/{name}/SKILL.md
-# Example: "coding-standards" -> .claude/skills/coding-standards/SKILL.md
+# Each skill name in the skills array resolves to .kanban/skills/{name}/SKILL.md
+# Example: "coding-standards" -> .kanban/skills/coding-standards/SKILL.md
 #
 # To add skills to a command:
 #   "kanban-codecheck":

@@ -55,13 +55,13 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
   </step>
 
   <step name="get_next_id" outputs="nextId">
-    <command>node .claude/kanban-scripts/next-id.cjs</command>
+    <command>node .kanban/scripts/next-id.cjs</command>
     <action>Use `nextId` from JSON output</action>
   </step>
 
   <step name="search_product_docs" when="`.kanban/product/` directory exists and is not empty">
     <action>Extract keywords from the task title (nouns, verbs, domain terms)</action>
-    <command>node .claude/kanban-scripts/search-product.cjs {keyword1} {keyword2} ...</command>
+    <command>node .kanban/scripts/search-product.cjs {keyword1} {keyword2} ...</command>
 
     <branch condition="docs with score ≥ 0.5 found">
       <note>These docs describe existing features this task relates to</note>
@@ -83,7 +83,7 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
 
   <step name="search_engineering_docs" when="`.kanban/engineering/` directory exists and is not empty">
     <action>Extract keywords from the task title (technical terms, patterns, system names)</action>
-    <command>node .claude/kanban-scripts/search-engineering.cjs {keyword1} {keyword2} ...</command>
+    <command>node .kanban/scripts/search-engineering.cjs {keyword1} {keyword2} ...</command>
 
     <branch condition="docs with score ≥ 0.5 found">
       <note>These docs describe existing patterns/systems this task relates to</note>
@@ -125,7 +125,7 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
 
   <step name="create_task_file">
     <warning>Write to `.kanban/tasks/` — NOT `.kanban/product/`</warning>
-    <action>Read template from `.claude/kanban-templates/task.md`</action>
+    <action>Read template from `.kanban/templates/task.md`</action>
     <action>Create folder `.kanban/tasks/{nextId}/`</action>
     <action>Create file at `.kanban/tasks/{nextId}/task.md`</action>
     <note>`{nextId}` = the nextId from step get_next_id (e.g., "001")</note>

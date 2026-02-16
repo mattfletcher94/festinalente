@@ -40,7 +40,7 @@ Save partial implementation progress when interrupted. Task stays in In Progress
   </step>
 
   <step name="read_task_file" outputs="taskPath, title">
-    <command>node .claude/kanban-scripts/find-task.cjs {taskId}</command>
+    <command>node .kanban/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse YAML frontmatter</action>
     <validate>Verify current status is `in-progress`</validate>
@@ -90,7 +90,7 @@ Save partial implementation progress when interrupted. Task stays in In Progress
 
   <step name="add_wip_notes_to_plan" when="plan exists">
     <action>Add or update `## WIP Notes` section</action>
-    <note>Follow template at `.claude/kanban-templates/plan.md`</note>
+    <note>Follow template at `.kanban/templates/plan.md`</note>
     <example_code lang="markdown">
 ## WIP Notes
 

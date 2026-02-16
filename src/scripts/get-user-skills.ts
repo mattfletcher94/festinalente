@@ -9,7 +9,7 @@ import fs from 'fs';
 import yaml from 'js-yaml';
 
 const CONFIG_FILE = '.kanban/config.yaml';
-const SKILLS_DIR = '.claude/skills';
+const SKILLS_DIR = '.kanban/skills';
 
 interface UserSkillConfig {
   skills?: string[];

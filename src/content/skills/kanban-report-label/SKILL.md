@@ -70,7 +70,7 @@ For more details on the board:
 <note>
 **Valid Labels:**
 
-From `.claude/kanban-workflow.yaml`:
+From `.kanban/workflow.yaml`:
 - `bug` - Bug fixes
 - `feature` - New features
 - `docs` - Documentation

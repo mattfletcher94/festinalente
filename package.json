@@ -13,7 +13,7 @@
   "scripts": {
     "build": "turbo compile",
     "build:tools": "tsdown -c tsdown.config.ts tools/build.ts --format esm --out-dir dist/tools",
-    "build:scripts": "tsdown -c tsdown.config.ts src/scripts/find-task.ts src/scripts/find-spec.ts src/scripts/find-plan.ts src/scripts/list-tasks.ts src/scripts/next-id.ts src/scripts/get-date-time.ts src/scripts/list-product.ts src/scripts/search-product.ts src/scripts/check-product.ts src/scripts/get-user-skills.ts src/scripts/search-engineering.ts src/scripts/list-engineering.ts src/scripts/check-engineering.ts --format cjs --out-dir dist/kanban-scripts",
+    "build:scripts": "tsdown -c tsdown.config.ts src/scripts/find-task.ts src/scripts/find-spec.ts src/scripts/find-plan.ts src/scripts/list-tasks.ts src/scripts/next-id.ts src/scripts/get-date-time.ts src/scripts/list-product.ts src/scripts/search-product.ts src/scripts/check-product.ts src/scripts/get-user-skills.ts src/scripts/search-engineering.ts src/scripts/list-engineering.ts src/scripts/check-engineering.ts --format cjs --out-dir dist/scripts",
     "build:content": "node dist/tools/build.js",
     "clean": "node -e \"fs=require('fs');fs.rmSync('dist',{recursive:true,force:true})\""
   },

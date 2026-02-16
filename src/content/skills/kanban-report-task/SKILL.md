@@ -30,11 +30,11 @@ Query a specific task's history and current state using natural language.
   </step>
 
   <step name="gather_task_data" outputs="taskFile, specFile, planFile, gitHistory">
-    <command description="Get task file path">node .claude/kanban-scripts/find-task.cjs {taskId}</command>
+    <command description="Get task file path">node .kanban/scripts/find-task.cjs {taskId}</command>
     <action>Read the task file at the returned path</action>
-    <command description="Get spec file path (if exists)">node .claude/kanban-scripts/find-spec.cjs {taskId}</command>
+    <command description="Get spec file path (if exists)">node .kanban/scripts/find-spec.cjs {taskId}</command>
     <action>Read the spec file if found</action>
-    <command description="Get plan file path (if exists)">node .claude/kanban-scripts/find-plan.cjs {taskId}</command>
+    <command description="Get plan file path (if exists)">node .kanban/scripts/find-plan.cjs {taskId}</command>
     <action>Read the plan file if found</action>
     <command description="Get git commits for this task">git log --oneline --all --grep="({taskId})"</command>
   </step>

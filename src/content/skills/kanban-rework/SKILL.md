@@ -22,7 +22,7 @@ Return a task to In Progress when human review finds issues. Works from both QA 
 qa → in-progress
 pr → in-progress
 ```
-See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
+See `.kanban/workflow.yaml` for column definitions and valid transitions.
 </note>
 </context>
 
@@ -49,7 +49,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, currentStatus">
-    <command>node .claude/kanban-scripts/find-task.cjs {taskId}</command>
+    <command>node .kanban/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse YAML frontmatter</action>
     <validate>Verify current status is `qa` or `pr`</validate>
@@ -91,7 +91,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
   </step>
 
   <step name="update_plan_with_iteration">
-    <note>Following template at `.claude/kanban-templates/plan.md`</note>
+    <note>Following template at `.kanban/templates/plan.md`</note>
     <action>Increment `iteration` in frontmatter</action>
     <action>Determine phase name based on original status:
 - `qa` → "QA Failed"

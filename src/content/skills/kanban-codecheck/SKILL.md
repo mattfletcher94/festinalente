@@ -48,7 +48,7 @@ Run code checks using user-configured skills. Skills can be automated commands (
   </step>
 
   <step name="read_task_file" outputs="taskPath, title">
-    <command>node .claude/kanban-scripts/find-task.cjs {taskId}</command>
+    <command>node .kanban/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse YAML frontmatter</action>
     <validate>Verify status is `codecheck`</validate>
@@ -66,7 +66,7 @@ Run code checks using user-configured skills. Skills can be automated commands (
   </step>
 
   <step name="read_plan_file" outputs="planPath">
-    <command>node .claude/kanban-scripts/find-plan.cjs {taskId}</command>
+    <command>node .kanban/scripts/find-plan.cjs {taskId}</command>
     <action>Read the plan at the `path` from JSON output</action>
     <validate>Verify all implementation checkboxes are marked complete</validate>
     <branch condition="any unchecked items">
@@ -163,7 +163,7 @@ for each skill in checkSkills:
     <output>Moving to QA...</output>
 
     <action>Update task status to `qa`</action>
-    <command description="Get current date">node .claude/kanban-scripts/get-date-time.cjs</command>
+    <command description="Get current date">node .kanban/scripts/get-date-time.cjs</command>
     <action>Add `updated: {YYYY-MM-DD}` from output</action>
     <action>Write task file</action>
 

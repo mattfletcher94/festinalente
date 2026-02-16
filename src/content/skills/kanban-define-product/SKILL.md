@@ -32,7 +32,7 @@ Define a new product through Socratic Q&A and generate product documentation.
 
   <step name="preflight_check">
     <action>Check if `.kanban/product/` has files OTHER than `overview.md`</action>
-    <command>node .claude/kanban-scripts/list-product.cjs</command>
+    <command>node .kanban/scripts/list-product.cjs</command>
     <branch condition="count > 1, OR if count == 1 and the doc is not `overview`">
       <prompt>I found existing product docs. How should I proceed?</prompt>
       <note>Options: Preserve and extend / Start fresh</note>
@@ -48,7 +48,7 @@ Define a new product through Socratic Q&A and generate product documentation.
     <prompt>Who are the target users?</prompt>
     <warning>IMMEDIATELY create overview.md:</warning>
     <action>Create `.kanban/product/overview.md`</action>
-    <action>Use template from `.claude/kanban-templates/overview.md`</action>
+    <action>Use template from `.kanban/templates/overview.md`</action>
     <action>Fill frontmatter: `id: overview`, `type: overview`, `title`, `summary`</action>
     <action>Fill body sections: What is this?, Key Capabilities, Target Users</action>
   </step>
@@ -70,11 +70,11 @@ Define a new product through Socratic Q&A and generate product documentation.
     <warning>IMMEDIATELY write the product doc:</warning>
     <action>Determine domain folder (e.g., `auth`, `billing`, `users`)</action>
     <action>Create domain folder if needed: `.kanban/product/{domain}/`</action>
-    <command description="Get current date">node .claude/kanban-scripts/get-date-time.cjs</command>
+    <command description="Get current date">node .kanban/scripts/get-date-time.cjs</command>
     <action>Use `date` field from output</action>
     <action>Create `.kanban/product/{domain}/{feature}.md`</action>
 
-    <note>**For features** (use `.claude/kanban-templates/product-doc.md`):</note>
+    <note>**For features** (use `.kanban/templates/product-doc.md`):</note>
     <example_code lang="yaml">
 ---
 id: {domain}/{feature}
@@ -98,7 +98,7 @@ updated: {YYYY-MM-DD from get-date-time}
 {Constraints mentioned during Q&A}
     </example_code>
 
-    <note>**For concepts** (use `.claude/kanban-templates/concept-doc.md`):</note>
+    <note>**For concepts** (use `.kanban/templates/concept-doc.md`):</note>
     <example_code lang="yaml">
 ---
 id: {domain}/{concept}

@@ -32,7 +32,7 @@ Analyze existing codebase and create engineering documentation through Socratic 
 
   <step name="preflight_check">
     <action>Check if `.kanban/engineering/` has files OTHER than `overview.md`</action>
-    <command>node .claude/kanban-scripts/list-engineering.cjs</command>
+    <command>node .kanban/scripts/list-engineering.cjs</command>
     <branch condition="count > 1, OR if count == 1 and the doc is not `overview`">
       <prompt>I found existing engineering docs. How should I proceed?</prompt>
       <note>Options: Preserve and extend / Merge with findings / Start fresh</note>
@@ -75,7 +75,7 @@ Analyze existing codebase and create engineering documentation through Socratic 
     <prompt>What's the high-level architecture approach?</prompt>
     <warning>IMMEDIATELY create overview.md:</warning>
     <action>Create `.kanban/engineering/overview.md`</action>
-    <action>Use template from `.claude/kanban-templates/engineering-overview.md`</action>
+    <action>Use template from `.kanban/templates/engineering-overview.md`</action>
     <action>Fill frontmatter: `id: overview`, `type: overview`, `title`, `summary`</action>
     <action>Fill body sections: Tech Stack, Architecture Summary, Directory Structure</action>
   </step>
@@ -103,20 +103,20 @@ Analyze existing codebase and create engineering documentation through Socratic 
 
     <warning>IMMEDIATELY write the engineering doc:</warning>
     <action>Create folder if needed: `.kanban/engineering/systems/{system}/`</action>
-    <command description="Get current date">node .claude/kanban-scripts/get-date-time.cjs</command>
+    <command description="Get current date">node .kanban/scripts/get-date-time.cjs</command>
     <action>Create `.kanban/engineering/systems/{system}/index.md`</action>
-    <action>Use template from `.claude/kanban-templates/engineering-system.md`</action>
+    <action>Use template from `.kanban/templates/engineering-system.md`</action>
 
     <note>**For patterns discovered:**</note>
     <prompt>I noticed a {pattern} pattern. Can you tell me more about when/how to apply it?</prompt>
     <action>Create `.kanban/engineering/patterns/{pattern}.md`</action>
-    <action>Use template from `.claude/kanban-templates/engineering-pattern.md`</action>
+    <action>Use template from `.kanban/templates/engineering-pattern.md`</action>
     <action>Include examples from the codebase</action>
 
     <note>**For conventions discovered:**</note>
     <prompt>I see a convention for {thing}. Are there specific rules to follow?</prompt>
     <action>Create `.kanban/engineering/conventions/{convention}.md`</action>
-    <action>Use template from `.claude/kanban-templates/engineering-convention.md`</action>
+    <action>Use template from `.kanban/templates/engineering-convention.md`</action>
 
     <note>**Exit:**</note>
     <prompt>Is there anything else about the engineering/architecture you'd like to document?</prompt>

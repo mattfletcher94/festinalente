@@ -2,53 +2,23 @@
 
 // Claude Kanban Installer
 //
-// SAFETY: This installer ONLY manages kanban-related files:
-//   - skills/kanban-*/
-//   - kanban-templates/
-//   - kanban-workflow.yaml
-//   - kanban-manifest.json
-//   - kanban-scripts/
-//
-// It will NEVER touch user files outside these paths.
-// The manifest tracks exactly which files were installed.
+// Installs kanban files to two locations:
+//   - .claude/skills/kanban-*  (skills)
+//   - .kanban/                  (scripts, templates, workflow, config, data)
 
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const readline = require('readline');
 
 const PACKAGE_NAME = 'claude-kanban';
 const SOURCE_DIR = 'dist';
-const TARGET_DIR = '.claude';
-const MANIFEST_FILE = 'kanban-manifest.json';
-const BACKUP_DIR = 'kanban-local-patches';
-
-// Files/directories that belong to kanban (safety check)
-const KANBAN_PATHS = [
-  'skills/kanban-',
-  'kanban-templates',
-  'kanban-workflow.yaml',
-  'kanban-manifest.json',
-  'kanban-local-patches',
-  'kanban-scripts/'
-];
-
-// .kanban directory structure to create
-const KANBAN_DIRS = [
-  'tasks',
-  'product',
-  'engineering',
-  'skills'
-];
 
 // ANSI colors
 const colors = {
   reset: '\x1b[0m',
   bright: '\x1b[1m',
-  dim: '\x1b[2m',
   green: '\x1b[32m',
   yellow: '\x1b[33m',
-  blue: '\x1b[34m',
   cyan: '\x1b[36m',
   red: '\x1b[31m'
 };
@@ -71,13 +41,6 @@ function logWarning(message) {
 
 function logError(message) {
   log(`${colors.red}✗${colors.reset} ${message}`);
-}
-
-// Check if a path belongs to kanban (safety check)
-function isKanbanPath(relativePath) {
-  // Normalize path separators for cross-platform compatibility
-  const normalized = relativePath.replace(/\\/g, '/');
-  return KANBAN_PATHS.some(prefix => normalized.startsWith(prefix));
 }
 
 // Get file hash for change detection
@@ -110,150 +73,36 @@ function getAllFiles(dirPath, arrayOfFiles = [], basePath = dirPath) {
   return arrayOfFiles;
 }
 
-// Remove orphaned files (files from previous install that aren't in new version)
-function cleanupOrphanedFiles(targetDir, existingManifest, newFiles) {
-  const removed = [];
-
-  // Normalize new files for comparison
-  const normalizedNewFiles = newFiles.map(f => f.replace(/\\/g, '/'));
-
-  for (const relativePath of Object.keys(existingManifest)) {
-    // Skip metadata keys
-    if (relativePath.startsWith('_')) continue;
-
-    // Normalize for comparison
-    const normalized = relativePath.replace(/\\/g, '/');
-
-    // Skip if file is in the new version
-    if (normalizedNewFiles.includes(normalized)) continue;
-
-    // Safety check: only remove kanban files
-    if (!isKanbanPath(relativePath)) {
-      logWarning(`Skipping non-kanban orphan (safety): ${relativePath}`);
-      continue;
-    }
-
-    const filePath = path.join(targetDir, relativePath);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-      removed.push(relativePath);
-
-      // Try to remove empty parent directories
-      let dir = path.dirname(filePath);
-      while (dir !== targetDir) {
-        try {
-          const contents = fs.readdirSync(dir);
-          if (contents.length === 0) {
-            fs.rmdirSync(dir);
-            dir = path.dirname(dir);
-          } else {
-            break;
-          }
-        } catch {
-          break;
-        }
-      }
-    }
+// Copy a single file, creating directories as needed
+function copyFile(srcFile, destFile) {
+  const destDir = path.dirname(destFile);
+  if (!fs.existsSync(destDir)) {
+    fs.mkdirSync(destDir, { recursive: true });
   }
 
-  return removed;
-}
+  const srcHash = getFileHash(srcFile);
+  const destHash = getFileHash(destFile);
 
-// Copy directory recursively
-function copyDir(src, dest, manifest = {}, existingManifest = {}, backupDir = null) {
-  const stats = { copied: 0, skipped: 0, backed: 0 };
+  fs.copyFileSync(srcFile, destFile);
 
-  if (!fs.existsSync(src)) {
-    logError(`Source directory not found: ${src}`);
-    return stats;
+  const normalized = destFile.replace(/\\/g, '/');
+  if (destHash && destHash !== srcHash) {
+    logSuccess(`Updated: ${normalized}`);
+  } else if (!destHash) {
+    logSuccess(`Added: ${normalized}`);
   }
 
-  const files = getAllFiles(src);
-
-  for (const relativePath of files) {
-    // Safety check: only copy kanban files
-    if (!isKanbanPath(relativePath)) {
-      logWarning(`Skipping non-kanban file (safety): ${relativePath}`);
-      continue;
-    }
-
-    const srcFile = path.join(src, relativePath);
-    const destFile = path.join(dest, relativePath);
-    const destDir = path.dirname(destFile);
-
-    // Ensure destination directory exists
-    if (!fs.existsSync(destDir)) {
-      fs.mkdirSync(destDir, { recursive: true });
-    }
-
-    const srcHash = getFileHash(srcFile);
-    const destHash = getFileHash(destFile);
-    const previousHash = existingManifest[relativePath];
-
-    // Check if destination file exists and has been modified by user
-    if (destHash && previousHash && destHash !== previousHash && destHash !== srcHash) {
-      // User has modified this file - back it up
-      if (backupDir) {
-        const backupFile = path.join(backupDir, relativePath);
-        const backupFileDir = path.dirname(backupFile);
-
-        if (!fs.existsSync(backupFileDir)) {
-          fs.mkdirSync(backupFileDir, { recursive: true });
-        }
-
-        fs.copyFileSync(destFile, backupFile);
-        logWarning(`Backed up modified file: ${relativePath}`);
-        stats.backed++;
-      }
-    }
-
-    // Copy the file
-    fs.copyFileSync(srcFile, destFile);
-    manifest[relativePath] = srcHash;
-    stats.copied++;
-
-    // Show what was copied
-    const normalized = relativePath.replace(/\\/g, '/');
-    if (destHash && destHash !== srcHash) {
-      logSuccess(`Updated: ${normalized}`);
-    } else if (!destHash) {
-      logSuccess(`Added: ${normalized}`);
-    }
-  }
-
-  return stats;
-}
-
-// Interactive prompt
-async function prompt(question, defaultValue = '') {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  });
-
-  return new Promise(resolve => {
-    const defaultStr = defaultValue ? ` (${defaultValue})` : '';
-    rl.question(`${question}${defaultStr}: `, answer => {
-      rl.close();
-      resolve(answer || defaultValue);
-    });
-  });
+  return srcHash;
 }
 
 // Parse command line arguments
 function parseArgs() {
   const args = process.argv.slice(2);
-  const options = {
-    help: false,
-    version: false
-  };
+  const options = { help: false, version: false };
 
   for (const arg of args) {
-    if (arg === '--help' || arg === '-h') {
-      options.help = true;
-    } else if (arg === '--version' || arg === '-v') {
-      options.version = true;
-    }
+    if (arg === '--help' || arg === '-h') options.help = true;
+    else if (arg === '--version' || arg === '-v') options.version = true;
   }
 
   return options;
@@ -307,94 +156,107 @@ async function main() {
     process.exit(1);
   }
 
-  // Always install locally to current directory
-  const targetBase = path.join(process.cwd(), TARGET_DIR);
+  const cwd = process.cwd();
+  const claudeDir = path.join(cwd, '.claude');
+  const kanbanDir = path.join(cwd, '.kanban');
 
-  logStep('1/6', `Installing to: ${targetBase}`);
+  logStep('1/4', 'Installing kanban skills to .claude/skills/...');
 
-  // Load existing manifest if present
-  const manifestPath = path.join(targetBase, MANIFEST_FILE);
-  let existingManifest = {};
+  // Copy skills to .claude/skills/
+  const skillsSource = path.join(sourceDir, 'skills');
+  const skillsDest = path.join(claudeDir, 'skills');
+  let skillsCopied = 0;
 
-  if (fs.existsSync(manifestPath)) {
-    try {
-      existingManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      logStep('2/6', 'Found existing installation, checking for modifications...');
-    } catch {
-      logWarning('Could not read existing manifest, will overwrite all files');
+  if (fs.existsSync(skillsSource)) {
+    const skillFiles = getAllFiles(skillsSource);
+    for (const relativePath of skillFiles) {
+      const srcFile = path.join(skillsSource, relativePath);
+      const destFile = path.join(skillsDest, relativePath);
+      copyFile(srcFile, destFile);
+      skillsCopied++;
     }
-  } else {
-    logStep('2/6', 'Fresh installation');
   }
 
-  // Create backup directory if needed
-  const backupDir = path.join(targetBase, BACKUP_DIR);
+  logStep('2/4', 'Installing scripts, templates, and workflow to .kanban/...');
 
-  // Get list of new files for orphan detection
-  const newFiles = getAllFiles(sourceDir);
-
-  // Clean up orphaned files from previous version
-  let orphansRemoved = [];
-  if (Object.keys(existingManifest).length > 0) {
-    logStep('3/6', 'Cleaning up orphaned files...');
-    orphansRemoved = cleanupOrphanedFiles(targetBase, existingManifest, newFiles);
-    if (orphansRemoved.length > 0) {
-      logSuccess(`Removed ${orphansRemoved.length} orphaned file(s)`);
-    }
-  } else {
-    logStep('3/6', 'No orphans to clean (fresh install)');
-  }
-
-  // Copy files
-  logStep('4/6', 'Copying files...');
-  const manifest = {};
-  const stats = copyDir(sourceDir, targetBase, manifest, existingManifest, backupDir);
-
-  // Save manifest
-  logStep('5/6', 'Saving manifest...');
-  manifest['_version'] = require('../package.json').version;
-  manifest['_installedAt'] = new Date().toISOString();
-  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-
-  // Create .kanban directory structure if it doesn't exist
-  logStep('6/6', 'Setting up .kanban directory...');
-  const kanbanDir = path.join(process.cwd(), '.kanban');
-  let kanbanCreated = false;
-
-  if (!fs.existsSync(kanbanDir)) {
-    // Create .kanban and subdirectories
-    for (const dir of KANBAN_DIRS) {
-      const dirPath = path.join(kanbanDir, dir);
+  // Ensure .kanban directory structure exists
+  const kanbanSubDirs = ['tasks', 'product', 'engineering', 'skills', 'scripts', 'templates'];
+  for (const dir of kanbanSubDirs) {
+    const dirPath = path.join(kanbanDir, dir);
+    if (!fs.existsSync(dirPath)) {
       fs.mkdirSync(dirPath, { recursive: true });
     }
-
-    // Copy config.yaml template
-    const configTemplatePath = path.join(targetBase, 'kanban-templates', 'config.yaml');
-    const configDestPath = path.join(kanbanDir, 'config.yaml');
-    if (fs.existsSync(configTemplatePath)) {
-      fs.copyFileSync(configTemplatePath, configDestPath);
-    }
-
-    kanbanCreated = true;
-    logSuccess('Created .kanban/ directory structure');
-  } else {
-    logSuccess('.kanban/ already exists, skipping');
   }
+
+  let kanbanCopied = 0;
+
+  // Copy scripts to .kanban/scripts/
+  const scriptsSource = path.join(sourceDir, 'scripts');
+  const scriptsDest = path.join(kanbanDir, 'scripts');
+  if (fs.existsSync(scriptsSource)) {
+    const scriptFiles = getAllFiles(scriptsSource);
+    for (const relativePath of scriptFiles) {
+      const srcFile = path.join(scriptsSource, relativePath);
+      const destFile = path.join(scriptsDest, relativePath);
+      copyFile(srcFile, destFile);
+      kanbanCopied++;
+    }
+  }
+
+  // Copy templates to .kanban/templates/
+  const templatesSource = path.join(sourceDir, 'templates');
+  const templatesDest = path.join(kanbanDir, 'templates');
+  if (fs.existsSync(templatesSource)) {
+    const templateFiles = getAllFiles(templatesSource);
+    for (const relativePath of templateFiles) {
+      const srcFile = path.join(templatesSource, relativePath);
+      const destFile = path.join(templatesDest, relativePath);
+      copyFile(srcFile, destFile);
+      kanbanCopied++;
+    }
+  }
+
+  // Copy workflow.yaml to .kanban/workflow.yaml
+  const workflowSource = path.join(sourceDir, 'workflow.yaml');
+  const workflowDest = path.join(kanbanDir, 'workflow.yaml');
+  if (fs.existsSync(workflowSource)) {
+    copyFile(workflowSource, workflowDest);
+    kanbanCopied++;
+  }
+
+  logStep('3/4', 'Setting up config...');
+
+  // Copy config.yaml if it doesn't exist (don't overwrite user config)
+  const configSource = path.join(templatesDest, 'config.yaml');
+  const configDest = path.join(kanbanDir, 'config.yaml');
+  if (!fs.existsSync(configDest) && fs.existsSync(configSource)) {
+    fs.copyFileSync(configSource, configDest);
+    logSuccess('Created .kanban/config.yaml');
+  } else if (fs.existsSync(configDest)) {
+    logSuccess('.kanban/config.yaml already exists, skipping');
+  }
+
+  logStep('4/4', 'Saving manifest...');
+
+  // Save manifest to .claude for tracking
+  const manifest = {
+    _version: require('../package.json').version,
+    _installedAt: new Date().toISOString(),
+    skillsDir: '.claude/skills/',
+    kanbanDir: '.kanban/'
+  };
+  const manifestPath = path.join(claudeDir, 'kanban-manifest.json');
+  if (!fs.existsSync(claudeDir)) {
+    fs.mkdirSync(claudeDir, { recursive: true });
+  }
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
 
   // Summary
   console.log();
-  logSuccess(`Installation complete!`);
+  logSuccess('Installation complete!');
   console.log();
-  console.log(`  Files copied: ${stats.copied}`);
-  if (orphansRemoved.length > 0) {
-    console.log(`  Files removed (orphaned): ${orphansRemoved.length}`);
-  }
-  if (stats.backed > 0) {
-    console.log(`  Files backed up: ${stats.backed} (see ${BACKUP_DIR}/)`);
-  }
-  if (kanbanCreated) {
-    console.log(`  .kanban/ created: Yes`);
-  }
+  console.log(`  Skills copied to .claude/skills/: ${skillsCopied}`);
+  console.log(`  Files copied to .kanban/: ${kanbanCopied}`);
   console.log();
   console.log(`${colors.bright}Next steps:${colors.reset}`);
   console.log(`  1. Open Claude Code in your project`);

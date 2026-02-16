@@ -1,6 +1,6 @@
 <warning>Before proceeding, you MUST load and apply user-defined skills. This is mandatory.</warning>
 
-<command>node .claude/kanban-scripts/get-user-skills.cjs kanban-{{command}}</command>
+<command>node .kanban/scripts/get-user-skills.cjs kanban-{{command}}</command>
 <action>Parse the JSON output</action>
 
 <branch condition="count > 0">
@@ -21,8 +21,8 @@
   "command": "kanban-{{command}}",
   "count": 2,
   "skills": [
-    { "name": "my-custom-check", "path": ".claude/skills/my-custom-check/SKILL.md", "exists": true },
-    { "name": "coding-standards", "path": ".claude/skills/coding-standards/SKILL.md", "exists": true }
+    { "name": "my-custom-check", "path": ".kanban/skills/my-custom-check/SKILL.md", "exists": true },
+    { "name": "coding-standards", "path": ".kanban/skills/coding-standards/SKILL.md", "exists": true }
   ]
 }
 </example_code>

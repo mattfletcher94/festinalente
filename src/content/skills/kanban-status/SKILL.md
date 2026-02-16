@@ -23,7 +23,7 @@ Show the current state of the board and suggest what command to run next. Helps 
 <process>
   <!-- If task ID provided -->
   <step name="find_task" when="$ARGUMENTS is not empty" outputs="taskPath">
-    <command>node .claude/kanban-scripts/find-task.cjs {id}</command>
+    <command>node .kanban/scripts/find-task.cjs {id}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse YAML frontmatter</action>
     <branch condition="task not found">
@@ -113,7 +113,7 @@ Show the current state of the board and suggest what command to run next. Helps 
 
   <!-- If no task ID provided (show full board) -->
   <step name="find_all_tasks" when="$ARGUMENTS is empty" outputs="tasks">
-    <command>node .claude/kanban-scripts/list-tasks.cjs</command>
+    <command>node .kanban/scripts/list-tasks.cjs</command>
     <branch condition="count is 0">
       <output>No tasks found.</output>
       <output>Next: `/kanban-create "Your task title"`</output>
