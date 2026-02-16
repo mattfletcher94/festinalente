@@ -100,7 +100,7 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
     <note>Implementation should maintain or extend documented behavior</note>
   </step>
 
-  <step name="load_user_skills">
+  <step name="load_hook_config">
     {{> hook-config command="implement"}}
   </step>
 

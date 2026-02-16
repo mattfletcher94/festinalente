@@ -69,7 +69,7 @@ Save partial implementation progress when interrupted. Task stays in In Progress
     </branch>
   </step>
 
-  <step name="load_user_skills">
+  <step name="load_hook_config">
     {{> hook-config command="save"}}
   </step>
 

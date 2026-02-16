@@ -70,7 +70,7 @@ Approve implementation after human QA testing, commit the code with appropriate 
     {{> branch-verify-task}}
   </step>
 
-  <step name="load_user_skills">
+  <step name="load_hook_config">
     {{> hook-config command="approve"}}
   </step>
 

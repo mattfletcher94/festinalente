@@ -76,7 +76,7 @@ Update product documentation, commit the changes, push to remote, and move task 
     {{> branch-verify-task}}
   </step>
 
-  <step name="load_user_skills">
+  <step name="load_hook_config">
     {{> hook-config command="docs"}}
   </step>
 

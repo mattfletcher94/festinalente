@@ -89,7 +89,7 @@ Create a functional specification through iterative conversational Q&A focused o
     <note>Tasks in `refined` status skip this check - they've already been through refinement</note>
   </step>
 
-  <step name="load_user_skills">
+  <step name="load_hook_config">
     {{> hook-config command="scope"}}
   </step>
 

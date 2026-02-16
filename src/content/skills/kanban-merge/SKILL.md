@@ -66,7 +66,7 @@ Merge the task branch into main, clean up the branch, and move task to Done.
     {{> branch-verify-task}}
   </step>
 
-  <step name="load_user_skills">
+  <step name="load_hook_config">
     {{> hook-config command="merge"}}
   </step>
 

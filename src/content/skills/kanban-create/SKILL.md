@@ -50,7 +50,7 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
     </branch>
   </step>
 
-  <step name="load_user_skills">
+  <step name="load_hook_config">
     {{> hook-config command="create"}}
   </step>
 

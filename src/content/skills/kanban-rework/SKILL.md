@@ -75,7 +75,7 @@ See `.kanban/workflow.yaml` for column definitions and valid transitions.
     <note>Plan will be updated with issues to address</note>
   </step>
 
-  <step name="load_user_skills">
+  <step name="load_hook_config">
     {{> hook-config command="rework"}}
   </step>
 
