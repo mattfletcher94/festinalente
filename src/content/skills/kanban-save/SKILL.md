@@ -13,6 +13,8 @@ Save partial implementation progress when interrupted. Task stays in In Progress
 </purpose>
 
 <context>
+{{> helper-scripts show_find_task=true show_find_plan=true}}
+
 {{> column-transition from="in-progress" to="in-progress (no change)"}}
 </context>
 
@@ -38,8 +40,8 @@ Save partial implementation progress when interrupted. Task stays in In Progress
   </step>
 
   <step name="read_task_file" outputs="taskPath, title">
-    <warning>NEVER guess filenames</warning>
-    <action>Glob for `.kanban/tasks/{taskId}-*.md` to find the exact filename</action>
+    <command>node .claude/scripts/find-task.cjs {taskId}</command>
+    <action>Read the file at the `path` from JSON output</action>
     <action>Parse YAML frontmatter</action>
     <validate>Verify current status is `in-progress`</validate>
     <branch condition="status is not in-progress">
@@ -124,8 +126,14 @@ Save partial implementation progress when interrupted. Task stays in In Progress
   <step name="output_result">
     <output>Print commit hash</output>
     <output>Print progress: "{completed}/{total} plan items complete"</output>
-    <output>Print continuation hint</output>
-    <output>Remind: "Resume with /kanban-implement {taskId}"</output>
+    <output>Print continuation hint from WIP Notes if present</output>
+    <output>
+**To resume implementation:**
+```
+/clear
+/kanban-implement {taskId}
+```
+    </output>
   </step>
 </process>
 

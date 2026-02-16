@@ -15,7 +15,7 @@ Update product documentation, commit the changes, push to remote, and move task 
 <context>
 {{> directory-reference}}
 
-{{> helper-scripts show_get_date_time=true}}
+{{> helper-scripts show_find_task=true show_get_date_time=true}}
 
 {{> product-docs-scripts show_search_product=true show_check_product=true}}
 
@@ -49,8 +49,8 @@ Update product documentation, commit the changes, push to remote, and move task 
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, labels, affects">
-    <warning>NEVER guess filenames. Task files are ALWAYS named `{id}-{slug}.md`, not `{id}.md`</warning>
-    <action>Glob for `.kanban/tasks/{taskId}-*.md` to find the exact filename</action>
+    <command>node .claude/scripts/find-task.cjs {taskId}</command>
+    <action>Read the file at the `path` from JSON output</action>
     <action>Parse YAML frontmatter</action>
     <validate>Verify current status is `update-docs`</validate>
     <branch condition="status is qa">

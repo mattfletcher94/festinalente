@@ -15,6 +15,8 @@ Approve implementation after human QA testing, commit the code with appropriate 
 <context>
 {{> directory-reference}}
 
+{{> helper-scripts show_find_task=true show_get_date_time=true}}
+
 {{> column-transition from="qa" to="update-docs"}}
 </context>
 
@@ -42,8 +44,8 @@ Approve implementation after human QA testing, commit the code with appropriate 
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, labels">
-    <warning>NEVER guess filenames</warning>
-    <action>Glob for `.kanban/tasks/{taskId}-*.md` to find the exact filename</action>
+    <command>node .claude/scripts/find-task.cjs {taskId}</command>
+    <action>Read the file at the `path` from JSON output</action>
     <action>Parse YAML frontmatter</action>
     <validate>Verify current status is `qa`</validate>
     <branch condition="status is in-progress">
@@ -136,6 +138,13 @@ Approve implementation after human QA testing, commit the code with appropriate 
     <output>Print commit hash and message</output>
     <output>Print: "Task {taskId} moved to Update Docs"</output>
     <output>Print: "QA passed! Code committed."</output>
+    <output>
+**Next: Update product documentation**
+```
+/clear
+/kanban-docs {taskId}
+```
+    </output>
   </step>
 </process>
 

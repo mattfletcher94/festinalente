@@ -267,6 +267,13 @@ updated: {YYYY-MM-DD}
     <output>Print any research findings and decisions</output>
     <output>Print any open questions</output>
     <output>Print commit hash</output>
+    <output>
+**Next: Plan the implementation**
+```
+/clear
+/kanban-plan {taskId}
+```
+    </output>
   </step>
 </process>
 

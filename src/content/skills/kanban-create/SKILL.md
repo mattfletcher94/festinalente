@@ -120,6 +120,13 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
   <step name="output_result">
     <output>Print the created file path and task ID</output>
     <output>Print commit hash</output>
+    <output>
+**Next: Refine the task**
+```
+/clear
+/kanban-refine {nextId}
+```
+    </output>
   </step>
 </process>
 

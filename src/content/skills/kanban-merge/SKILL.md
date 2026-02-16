@@ -15,6 +15,8 @@ Merge the task branch into main, clean up the branch, and move task to Done.
 <context>
 {{> directory-reference}}
 
+{{> helper-scripts show_find_task=true show_get_date_time=true}}
+
 {{> column-transition from="pr" to="done"}}
 </context>
 
@@ -42,8 +44,8 @@ Merge the task branch into main, clean up the branch, and move task to Done.
   </step>
 
   <step name="read_task_file" outputs="taskPath, title">
-    <warning>NEVER guess filenames</warning>
-    <action>Glob for `.kanban/tasks/{taskId}-*.md` to find the exact filename</action>
+    <command>node .claude/scripts/find-task.cjs {taskId}</command>
+    <action>Read the file at the `path` from JSON output</action>
     <action>Parse YAML frontmatter</action>
     <validate>Verify current status is `pr`</validate>
     <branch condition="status is update-docs">
@@ -115,6 +117,13 @@ Merge the task branch into main, clean up the branch, and move task to Done.
     <output>Print: "Task {taskId} completed!"</output>
     <output>Print current branch (should be main)</output>
     <output>Print: "Congratulations! Task complete."</output>
+    <output>
+**Ready for next task:**
+```
+/clear
+/kanban-status
+```
+    </output>
   </step>
 </process>
 

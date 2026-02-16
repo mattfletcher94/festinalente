@@ -15,6 +15,8 @@ Return a task to In Progress when human review finds issues. Works from both QA 
 <context>
 {{> directory-reference}}
 
+{{> helper-scripts show_find_task=true show_find_plan=true show_get_date_time=true}}
+
 <note>Column Transitions:
 ```
 qa → in-progress
@@ -47,8 +49,8 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, currentStatus">
-    <warning>NEVER guess filenames</warning>
-    <action>Glob for `.kanban/tasks/{taskId}-*.md` to find the exact filename</action>
+    <command>node .claude/scripts/find-task.cjs {taskId}</command>
+    <action>Read the file at the `path` from JSON output</action>
     <action>Parse YAML frontmatter</action>
     <validate>Verify current status is `qa` or `pr`</validate>
     <branch condition="status is not qa or pr">
@@ -131,7 +133,18 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
     <output>Print: "Task {taskId} returned to In Progress for rework"</output>
     <output>Print iteration number</output>
     <output>Print number of issues to address</output>
-    <output>Mention: "Then re-verify with /kanban-codecheck {taskId}"</output>
+    <output>**Next: Fix the issues, then re-verify**</output>
+    <output>
+```
+/clear
+/kanban-implement {taskId}
+```
+Then re-verify:
+```
+/clear
+/kanban-codecheck {taskId}
+```
+    </output>
   </step>
 </process>
 

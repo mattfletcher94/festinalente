@@ -174,7 +174,21 @@ for each skill in checkSkills:
   </step>
 
   <step name="output_result">
-    <output>Output next steps to user</output>
+    <output>**Your turn to QA:**</output>
+    <output>Now's your chance to manually test the implementation. Run the application, verify the feature works as expected, and check that nothing else broke.</output>
+    <output>
+When you're satisfied:
+```
+/clear
+/kanban-approve {taskId}
+```
+
+If you find issues that need fixing:
+```
+/clear
+/kanban-rework {taskId}
+```
+    </output>
   </step>
 </process>
 

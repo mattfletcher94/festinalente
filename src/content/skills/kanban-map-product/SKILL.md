@@ -200,7 +200,14 @@ updated: {YYYY-MM-DD from get-date-time}
   </step>
 
   <step name="output_result">
-    <output>Output next steps to user</output>
+    <output>Product documentation mapped!</output>
+    <output>
+Ready to start creating tasks:
+```
+/clear
+/kanban-create "Your task title"
+```
+    </output>
   </step>
 </process>
 

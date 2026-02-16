@@ -188,6 +188,13 @@ And their session is established
     <output>Print summary of changes made</output>
     <output>Show updated acceptance criteria</output>
     <output>Print commit hash</output>
+    <output>
+**Next: Scope the implementation**
+```
+/clear
+/kanban-scope {taskId}
+```
+    </output>
   </step>
 </process>
 

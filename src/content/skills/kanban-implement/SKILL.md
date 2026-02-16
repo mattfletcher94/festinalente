@@ -128,17 +128,19 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
   </step>
 
   <step name="on_completion">
+    <important>This step MUST update the task status when all items are complete</important>
     <branch condition="ALL checkboxes complete">
-      <action>Change `status: in-progress` to `status: codecheck`</action>
       <command description="Get current date">node .claude/scripts/get-date-time.cjs</command>
-      <action>Update `updated: {YYYY-MM-DD}` from output</action>
-      <action>Write updated task file</action>
+      <action>Read the task file at {taskPath}</action>
+      <action>In the YAML frontmatter, change `status: in-progress` to `status: codecheck`</action>
+      <action>Update `updated: {YYYY-MM-DD}` with date from command output</action>
+      <action>Write the updated task file back to {taskPath}</action>
+      <validate>Verify the task file now contains `status: codecheck`</validate>
       <output>Task moved to codecheck status.</output>
     </branch>
     <branch condition="some checkboxes remain">
       <action>Keep status as `in-progress`</action>
       <output>Partial progress: {completed}/{total} items</output>
-      <output>Suggest: Use /kanban-save to save progress</output>
     </branch>
   </step>
 
@@ -146,6 +148,25 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
     <output>Display implementation summary</output>
     <output>Show files modified (uncommitted)</output>
     <output>Show status</output>
+    <branch condition="ALL checkboxes complete">
+      <output>**Next: Run code checks**</output>
+      <output>Code check runs your configured checks (tests, typecheck, lint). If they pass, the task moves to QA for you to manually test the application.</output>
+      <output>
+```
+/clear
+/kanban-codecheck {taskId}
+```
+      </output>
+    </branch>
+    <branch condition="some checkboxes remain">
+      <output>**Next: Save progress or continue later**</output>
+      <output>
+```
+/clear
+/kanban-save {taskId}
+```
+      </output>
+    </branch>
   </step>
 </process>
 

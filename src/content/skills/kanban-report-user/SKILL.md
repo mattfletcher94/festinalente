@@ -50,7 +50,13 @@ Query what tasks a specific git user has worked on using natural language.
   </step>
 
   <step name="output_result">
-    <output>Output next steps to user</output>
+    <output>
+For more details on the board:
+```
+/clear
+/kanban-status
+```
+    </output>
   </step>
 </process>
 

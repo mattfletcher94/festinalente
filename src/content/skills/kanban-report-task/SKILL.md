@@ -48,7 +48,13 @@ Query a specific task's history and current state using natural language.
   </step>
 
   <step name="output_result">
-    <output>Output next steps to user</output>
+    <output>
+For task status details:
+```
+/clear
+/kanban-status {taskId}
+```
+    </output>
   </step>
 </process>
 
