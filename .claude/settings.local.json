@@ -32,7 +32,9 @@
       "Bash(git restore:*)",
       "WebFetch(domain:electron-vite.github.io)",
       "Bash(pnpm install)",
-      "Bash(pnpm clean:*)"
+      "Bash(pnpm clean:*)",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:vueuse.org)"
     ]
   }
 }
