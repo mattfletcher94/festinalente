@@ -83,7 +83,7 @@ function main(): void {
   if (!fs.existsSync(PRODUCT_DIR)) {
     console.log(JSON.stringify({
       error: true,
-      message: `${PRODUCT_DIR}/ directory not found. Run /kanban-init first.`
+      message: `${PRODUCT_DIR}/ directory not found. Run npx claude-kanban first.`
     }));
     process.exit(1);
   }

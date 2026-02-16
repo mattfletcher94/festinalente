@@ -42,7 +42,7 @@ function main(): void {
   if (!fs.existsSync(CONFIG_FILE)) {
     console.log(JSON.stringify({
       error: true,
-      message: `${CONFIG_FILE} not found. Run /kanban-init first.`
+      message: `${CONFIG_FILE} not found. Run npx claude-kanban first.`
     }));
     process.exit(1);
   }

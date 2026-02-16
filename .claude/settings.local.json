@@ -22,7 +22,9 @@
       "Bash(git push)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "Bash(ls:*)",
+      "Bash(dir /b \"C:\\\\Users\\\\MattF\\\\Documents\\\\Code\\\\claudeban\\\\*.md\")"
     ]
   }
 }

@@ -31,11 +31,6 @@ Define a new product through Socratic Q&A and generate product documentation.
   </step>
 
   <step name="preflight_check">
-    <validate>Verify `.kanban/` directory exists</validate>
-    <branch condition="directory not exists">
-      <output>Error - "Please initialize kanban first with `kanban-init`"</output>
-      <action>Exit</action>
-    </branch>
     <action>Check if `.kanban/product/` has files OTHER than `overview.md`</action>
     <command>node .claude/scripts/list-product.cjs</command>
     <branch condition="count > 1, OR if count == 1 and the doc is not `overview`">
@@ -43,7 +38,7 @@ Define a new product through Socratic Q&A and generate product documentation.
       <note>Options: Preserve and extend / Start fresh</note>
     </branch>
     <branch condition="only `overview.md` exists (or no docs)">
-      <action>Proceed without prompting (this is expected from kanban-init)</action>
+      <action>Proceed without prompting (this is expected for new installs)</action>
     </branch>
   </step>
 

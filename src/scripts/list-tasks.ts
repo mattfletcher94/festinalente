@@ -54,7 +54,7 @@ function main(): void {
   if (!fs.existsSync(TASKS_DIR)) {
     console.log(JSON.stringify({
       error: true,
-      message: `${TASKS_DIR}/ directory not found. Run /kanban-init first.`
+      message: `${TASKS_DIR}/ directory not found. Run npx claude-kanban first.`
     }));
     process.exit(1);
   }

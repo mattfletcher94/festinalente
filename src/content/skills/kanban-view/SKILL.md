@@ -25,7 +25,7 @@ Display the Kanban board as a visual terminal output with box-drawing characters
   <step name="check_kanban_exists">
     <validate>Check if `.kanban/tasks/` directory exists</validate>
     <branch condition="directory doesn't exist">
-      <output>No Kanban board found. Run `/kanban-init` to initialize.</output>
+      <output>No Kanban board found. Run `npx claude-kanban` to install.</output>
       <action>Exit</action>
     </branch>
   </step>

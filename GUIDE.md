@@ -17,15 +17,15 @@ This guide walks you through using Claude Kanban from start to finish. By the en
 
 ## Getting Started
 
-### Initialize Your Board
+### Install Claude Kanban
 
-Run this once per project to set up the kanban structure:
+Run this once per project:
 
 ```bash
-/kanban-init
+npx claude-kanban@latest
 ```
 
-This creates the `.kanban/` directory:
+This creates both `.claude/` (skills and scripts) and `.kanban/` (your board data):
 
 ```
 .kanban/
@@ -644,7 +644,8 @@ docs(001): create - Add password reset functionality
 You now know the complete workflow. Start with:
 
 ```bash
-/kanban-init
+npx claude-kanban@latest
+/kanban-define-product   # or /kanban-map-product for existing code
 /kanban-create "Your first task"
 ```
 

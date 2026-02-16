@@ -5,14 +5,10 @@ A file-based kanban board for AI-assisted development. Task and planning data li
 ## Installation
 
 ```bash
-# Install to current project
 npx claude-kanban@latest
-
-# Or install globally (shared across projects)
-npx claude-kanban@latest --global
 ```
 
-This installs the kanban commands and skills to your `.claude/` directory.
+This installs the kanban skills to `.claude/` and creates the `.kanban/` directory structure.
 
 **To update:**
 ```bash
@@ -23,25 +19,7 @@ The installer detects existing installations and backs up any files you've modif
 
 ## Quick Start
 
-### 1. Initialize
-
-```bash
-/kanban-init
-```
-
-This creates the `.kanban/` directory structure in your project:
-
-```
-.kanban/
-├── config.yaml    # Your board configuration
-├── tasks/         # Task files
-├── specs/         # Functional specifications
-├── plans/         # Implementation plans
-├── product/       # Product documentation
-└── skills/        # Your verification checks
-```
-
-### 2. Document Your Product (Optional but Recommended)
+### 1. Document Your Product (Recommended)
 
 For **existing codebases** with features but no documentation:
 ```bash
@@ -55,7 +33,7 @@ For **new projects** where you want to define vision first:
 ```
 The AI asks "What problem are you trying to solve?" and guides you through defining features.
 
-Both create docs in `.kanban/product/` that give the AI context for future task work.
+Both create docs in `.kanban/product/` that give the AI context for future task work. They will also ask for your project name and update the config.
 
 Product docs are organized by domain:
 ```
@@ -70,7 +48,7 @@ Product docs are organized by domain:
 
 Each doc has an ID matching its path (e.g., `auth/login` for `.kanban/product/auth/login.md`).
 
-### 3. Create Your First Task
+### 2. Create Your First Task
 
 ```bash
 /kanban-create "Add user authentication"
@@ -78,7 +56,7 @@ Each doc has an ID matching its path (e.g., `auth/login` for `.kanban/product/au
 
 This creates a task file, assigns it an ID (e.g., `001`), and commits it to git.
 
-### 4. Work Through the Workflow
+### 3. Work Through the Workflow
 
 Each task progresses through columns. Run `/clear` before each command to reset context:
 
@@ -198,7 +176,6 @@ That's it. Your PR is merged and git history tells the story of your task.
 
 | Command | From | To | Branch | Commits |
 |---------|------|-----|--------|---------|
-| `kanban-init` | — | — | any | No |
 | `kanban-status [id]` | — | — | any | No |
 | `kanban-create "title"` | (new) | Backlog | main | Yes |
 | `kanban-refine [id]` | Backlog | Refined | main | Yes |
@@ -326,8 +303,6 @@ name: My Project
 
 # Skill names resolve to .claude/skills/{name}/SKILL.md
 user-skills:
-  "kanban-init":
-    skills:
   "kanban-status":
     skills:
   "kanban-create":

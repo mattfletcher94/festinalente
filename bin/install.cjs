@@ -33,6 +33,15 @@ const KANBAN_PATHS = [
   'scripts/'
 ];
 
+// .kanban directory structure to create
+const KANBAN_DIRS = [
+  'tasks',
+  'specs',
+  'plans',
+  'product',
+  'skills'
+];
+
 // ANSI colors
 const colors = {
   reset: '\x1b[0m',
@@ -236,17 +245,12 @@ async function prompt(question, defaultValue = '') {
 function parseArgs() {
   const args = process.argv.slice(2);
   const options = {
-    location: null,  // 'local' or 'global'
     help: false,
     version: false
   };
 
   for (const arg of args) {
-    if (arg === '--local' || arg === '-l') {
-      options.location = 'local';
-    } else if (arg === '--global' || arg === '-g') {
-      options.location = 'global';
-    } else if (arg === '--help' || arg === '-h') {
+    if (arg === '--help' || arg === '-h') {
       options.help = true;
     } else if (arg === '--version' || arg === '-v') {
       options.version = true;
@@ -261,18 +265,14 @@ function showHelp() {
 ${colors.bright}${PACKAGE_NAME}${colors.reset} - Kanban task management for Claude Code
 
 ${colors.bright}Usage:${colors.reset}
-  npx ${PACKAGE_NAME}           Interactive installation
-  npx ${PACKAGE_NAME} --local   Install to current directory (./.claude)
-  npx ${PACKAGE_NAME} --global  Install globally (~/.claude)
+  npx ${PACKAGE_NAME}           Install to current directory
 
 ${colors.bright}Options:${colors.reset}
-  -l, --local     Install to current project directory
-  -g, --global    Install to home directory (shared across projects)
   -h, --help      Show this help message
   -v, --version   Show version number
 
 ${colors.bright}After installation:${colors.reset}
-  Run /kanban-init in Claude Code to initialize a project
+  Run /kanban-define-product or /kanban-map-product in Claude Code
 `);
 }
 
@@ -307,31 +307,10 @@ async function main() {
     process.exit(1);
   }
 
-  // Determine installation location
-  let installLocation = options.location;
+  // Always install locally to current directory
+  const targetBase = path.join(process.cwd(), TARGET_DIR);
 
-  if (!installLocation && process.stdin.isTTY) {
-    console.log('Where would you like to install?');
-    console.log('  1. Local (current directory) - for this project only');
-    console.log('  2. Global (home directory) - shared across all projects');
-    console.log();
-
-    const choice = await prompt('Enter choice', '1');
-    installLocation = choice === '2' ? 'global' : 'local';
-  } else if (!installLocation) {
-    // Non-interactive default to local
-    installLocation = 'local';
-  }
-
-  // Determine target directory
-  let targetBase;
-  if (installLocation === 'global') {
-    targetBase = path.join(require('os').homedir(), TARGET_DIR);
-  } else {
-    targetBase = path.join(process.cwd(), TARGET_DIR);
-  }
-
-  logStep('1/5', `Installing to: ${targetBase}`);
+  logStep('1/6', `Installing to: ${targetBase}`);
 
   // Load existing manifest if present
   const manifestPath = path.join(targetBase, MANIFEST_FILE);
@@ -340,12 +319,12 @@ async function main() {
   if (fs.existsSync(manifestPath)) {
     try {
       existingManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      logStep('2/5', 'Found existing installation, checking for modifications...');
+      logStep('2/6', 'Found existing installation, checking for modifications...');
     } catch {
       logWarning('Could not read existing manifest, will overwrite all files');
     }
   } else {
-    logStep('2/5', 'Fresh installation');
+    logStep('2/6', 'Fresh installation');
   }
 
   // Create backup directory if needed
@@ -357,25 +336,50 @@ async function main() {
   // Clean up orphaned files from previous version
   let orphansRemoved = [];
   if (Object.keys(existingManifest).length > 0) {
-    logStep('3/5', 'Cleaning up orphaned files...');
+    logStep('3/6', 'Cleaning up orphaned files...');
     orphansRemoved = cleanupOrphanedFiles(targetBase, existingManifest, newFiles);
     if (orphansRemoved.length > 0) {
       logSuccess(`Removed ${orphansRemoved.length} orphaned file(s)`);
     }
   } else {
-    logStep('3/5', 'No orphans to clean (fresh install)');
+    logStep('3/6', 'No orphans to clean (fresh install)');
   }
 
   // Copy files
-  logStep('4/5', 'Copying files...');
+  logStep('4/6', 'Copying files...');
   const manifest = {};
   const stats = copyDir(sourceDir, targetBase, manifest, existingManifest, backupDir);
 
   // Save manifest
-  logStep('5/5', 'Saving manifest...');
+  logStep('5/6', 'Saving manifest...');
   manifest['_version'] = require('../package.json').version;
   manifest['_installedAt'] = new Date().toISOString();
   fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+
+  // Create .kanban directory structure if it doesn't exist
+  logStep('6/6', 'Setting up .kanban directory...');
+  const kanbanDir = path.join(process.cwd(), '.kanban');
+  let kanbanCreated = false;
+
+  if (!fs.existsSync(kanbanDir)) {
+    // Create .kanban and subdirectories
+    for (const dir of KANBAN_DIRS) {
+      const dirPath = path.join(kanbanDir, dir);
+      fs.mkdirSync(dirPath, { recursive: true });
+    }
+
+    // Copy config.yaml template
+    const configTemplatePath = path.join(targetBase, 'kanban-templates', 'config.yaml');
+    const configDestPath = path.join(kanbanDir, 'config.yaml');
+    if (fs.existsSync(configTemplatePath)) {
+      fs.copyFileSync(configTemplatePath, configDestPath);
+    }
+
+    kanbanCreated = true;
+    logSuccess('Created .kanban/ directory structure');
+  } else {
+    logSuccess('.kanban/ already exists, skipping');
+  }
 
   // Summary
   console.log();
@@ -388,10 +392,13 @@ async function main() {
   if (stats.backed > 0) {
     console.log(`  Files backed up: ${stats.backed} (see ${BACKUP_DIR}/)`);
   }
+  if (kanbanCreated) {
+    console.log(`  .kanban/ created: Yes`);
+  }
   console.log();
   console.log(`${colors.bright}Next steps:${colors.reset}`);
   console.log(`  1. Open Claude Code in your project`);
-  console.log(`  2. Run ${colors.cyan}/kanban-init${colors.reset} to initialize the kanban board`);
+  console.log(`  2. Run ${colors.cyan}/kanban-define-product${colors.reset} (new projects) or ${colors.cyan}/kanban-map-product${colors.reset} (existing code)`);
   console.log();
 }
 

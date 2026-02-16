@@ -14,11 +14,9 @@
 #       - check-typescript
 #       - check-tests
 
-name: My Project
+name: ""
 
 user-skills:
-  "kanban-init":
-    skills:
   "kanban-status":
     skills:
   "kanban-create":
