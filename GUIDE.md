@@ -88,7 +88,7 @@ Product docs represent the **current state** of your application. They're update
 Tasks flow through these columns:
 
 ```
-Backlog → Refined → Scoped → Planned → In Progress → Pending Verify → Checks → QA → Update Docs → PR → Done
+Backlog → Refined → Scoped → Planned → In Progress → Code Check → QA → Update Docs → PR → Done
 ```
 
 ### Branch Strategy
@@ -98,7 +98,7 @@ Claude Kanban uses branch isolation to keep your main branch clean:
 ```
 main branch:     [create] → [refine] → [scope creates branch]
                                               ↓
-task/001 branch:                    [plan] → [implement] → [verify] → [QA] → [docs] → [PR]
+task/001 branch:                    [plan] → [implement] → [codecheck] → [QA] → [docs] → [PR]
                                                                                         ↓
 main branch:                                                                [merge] ← [PR merged]
 ```
@@ -299,7 +299,7 @@ Commit: docs(001): plan - Add password reset functionality
 Implementation complete!
 Files modified: 6 (uncommitted)
 
-Next: /kanban-verify 001
+Next: /kanban-codecheck 001
 ```
 
 **Save progress if interrupted:**
@@ -310,25 +310,25 @@ This commits your work-in-progress so you don't lose it.
 
 ---
 
-### Step 6: Verify the Task
+### Step 6: Run Code Checks
 
 **Branch:** `task/001`
 
 ```bash
 /clear
-/kanban-verify 001
+/kanban-codecheck 001
 ```
 
 **What happens:**
-- Runs your configured verification checks (tests, typecheck, lint)
-- If checks fail: AI automatically fixes issues and retries (max 3 attempts)
+- Runs your configured check skills (command-based or AI-driven reviews)
+- If checks fail: AI shows the issues and asks if you want it to attempt a fix
 - On success: Auto-advances to QA column
 
 **Example output (success):**
 ```
 Running check: TypeScript... PASS
 Running check: Tests... PASS
-Running check: Lint... PASS
+Running check: Coding Patterns... PASS
 
 All checks passed!
 Moving to QA...
@@ -338,19 +338,23 @@ Task 001 moved to QA
 Next: /kanban-approve 001
 ```
 
-**Example output (auto-retry):**
+**Example output (fix requested):**
 ```
-Attempt 1:
+Running check: TypeScript... PASS
 Running check: Tests... FAIL
 
 Error: Expected token to be defined
 
-Attempting to fix...
+Should I try to fix this? (y/n)
+> y
+
+Analyzing failure...
 Fixed: Added session token assignment
 
-Attempt 2:
+Restarting checks...
+
+Running check: TypeScript... PASS
 Running check: Tests... PASS
-Running check: Lint... PASS
 
 All checks passed!
 Task 001 moved to QA
@@ -480,17 +484,18 @@ Congratulations! Task complete.
 
 ## Handling Failures
 
-### Verify Auto-Retries
+### Code Check Failures
 
-If tests, typecheck, or lint fail during verification, the AI automatically:
-1. Analyzes the error
-2. Attempts to fix the issue
-3. Retries the checks (max 3 attempts)
+If a check fails during code check, the AI:
+1. Shows you the error or issues found
+2. Asks: "Should I try to fix this?"
+3. If you say yes: attempts the fix and re-runs all checks
+4. If you say no: exits so you can fix manually
 
-If all 3 attempts fail, you'll need to fix manually and re-run:
+To resume after manual fixes:
 ```bash
 /clear
-/kanban-verify 001
+/kanban-codecheck 001
 ```
 
 ### QA or PR Rejected
@@ -505,7 +510,7 @@ If human QA or PR review finds issues:
 This:
 - Documents the issues in the plan
 - Returns task to In Progress
-- You fix the issues and go through verify/QA again
+- You fix the issues and go through codecheck/QA again
 
 ---
 
@@ -584,7 +589,7 @@ Add your checks to `.kanban/config.yaml`:
 
 ```yaml
 user-skills:
-  "kanban-verify":
+  "kanban-codecheck":
     skills:
       - check-typescript    # Reads .claude/skills/check-typescript/SKILL.md
       - check-tests         # Reads .claude/skills/check-tests/SKILL.md
@@ -631,7 +636,7 @@ docs(001): create - Add password reset functionality
 | Scope | `/kanban-scope 001` | main → task/001 |
 | Plan | `/kanban-plan 001` | task/001 |
 | Implement | `/kanban-implement 001` | task/001 |
-| Verify | `/kanban-verify 001` | task/001 |
+| Code Check | `/kanban-codecheck 001` | task/001 |
 | Approve | `/kanban-approve 001` | task/001 |
 | Docs | `/kanban-docs 001` | task/001 |
 | Merge | `/kanban-merge 001` | task/001 → main |

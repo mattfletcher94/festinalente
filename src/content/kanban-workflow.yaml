@@ -18,12 +18,9 @@ columns:
   - id: in-progress
     name: In Progress
     description: Tasks currently being implemented (code uncommitted)
-  - id: pending-verify
-    name: Pending Verify
-    description: Implementation complete, awaiting verification checks
-  - id: checks
-    name: Checks
-    description: AI code review using skills (style, lint, tests)
+  - id: codecheck
+    name: Code Check
+    description: Implementation complete, ready for code checks
   - id: qa
     name: QA
     description: Human tests the application works as expected
@@ -72,9 +69,8 @@ transitions:
   refined: [scoped]
   scoped: [planned]
   planned: [in-progress]
-  in-progress: [pending-verify]
-  pending-verify: [checks]
-  checks: [qa]  # Auto-advance only (no manual fail - AI retries automatically)
+  in-progress: [codecheck]
+  codecheck: [qa]
   qa: [update-docs, in-progress]  # approve or rework
   update-docs: [pr]
   pr: [done, in-progress]  # merge or rework
@@ -86,7 +82,7 @@ commits:
   scope: "docs({id}): scope - {title}"
   plan: "docs({id}): plan - {title}"
   save: "wip({id}): {summary}"
-  verify-retry: "docs({id}): verify-retry - {title}"  # When AI retries verify
+  codecheck-retry: "docs({id}): codecheck-retry - {title}"  # When AI retries codecheck
   approve: "{commit-type}({id}): {title}"  # commit-type from label
   rework: "docs({id}): rework - {title}"  # Consolidated fail command
   docs: "docs({id}): product - {message}"

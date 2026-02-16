@@ -75,10 +75,10 @@ Show the current state of the board and suggest what command to run next. Helps 
       <output>Next: `/kanban-implement {id}`</output>
     </branch>
     <branch condition="status is in-progress">
-      <output>Next: `/kanban-implement {id}` (to resume) or `/kanban-verify {id}` (if all checkboxes done)</output>
+      <output>Next: `/kanban-implement {id}` (to resume)</output>
     </branch>
-    <branch condition="status is checks">
-      <output>Checks run automatically. Wait for auto-advance to QA.</output>
+    <branch condition="status is codecheck">
+      <output>Next: `/kanban-codecheck {id}`</output>
     </branch>
     <branch condition="status is qa">
       <output>Next: `/kanban-approve {id}` or `/kanban-rework {id}`</output>
@@ -140,7 +140,7 @@ Show the current state of the board and suggest what command to run next. Helps 
 **In Progress ({count})**
 - {id}: {title} — {completed}/{total} steps
 
-**Checks ({count})**
+**Code Check ({count})**
 - {id}: {title}
 
 **QA ({count})**
@@ -174,8 +174,8 @@ Show the current state of the board and suggest what command to run next. Helps 
     <branch condition="tasks in in-progress">
       <action>Suggest resuming that task</action>
     </branch>
-    <branch condition="tasks in checks">
-      <note>Checks run automatically - wait for completion</note>
+    <branch condition="tasks in codecheck">
+      <action>Suggest running code checks</action>
     </branch>
     <branch condition="tasks in qa">
       <action>Suggest approving or sending back for rework</action>

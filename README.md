@@ -77,7 +77,7 @@ Each task progresses through columns. Run `/clear` before each command to reset 
 /kanban-implement 001           # Write the code
 
 /clear
-/kanban-verify 001              # Run AI checks (auto-retries, auto-advances to QA)
+/kanban-codecheck 001              # Run AI checks (auto-retries, auto-advances to QA)
 
 # Human tests the application...
 
@@ -123,14 +123,11 @@ That's it. Your PR is merged and git history tells the story of your task.
 │                                              │ Planned │───▶│In Progress│◀──────────┐      │   │
 │                                              └─────────┘    └─────┬─────┘           │      │   │
 │                                                                   │                 │      │   │
-│                                                              verify                 │      │   │
-│                                                          (auto-loop)               │      │   │
-│                                                                   │                 │      │   │
 │                                                                   ▼                 │      │   │
-│                                                              ┌─────────┐            │      │   │
-│                                                              │ Checks  │            │      │   │
-│                                                              └────┬────┘            │      │   │
-│                                                           (auto-advance)            │      │   │
+│                                                            ┌────────────┐           │      │   │
+│                                                            │ Code Check │           │      │   │
+│                                                            └─────┬──────┘           │      │   │
+│                                                              codecheck              │      │   │
 │                                                                   │                 │      │   │
 │                                                                   ▼                 │      │   │
 │                                                              ┌─────────┐            │      │   │
@@ -167,8 +164,8 @@ That's it. Your PR is merged and git history tells the story of your task.
 - **PR-based review:** Code is merged via pull request for proper code review
 - **Each command is a stopping point:** You run a command, review the result, then decide to continue
 - **Commits happen at most phases:** Git history tells the complete story
-- **Verify auto-loops:** If checks fail, AI fixes and retries (max 3 times)
-- **Verify auto-advances:** Once checks pass, task moves to QA automatically
+- **Code check is interactive:** If checks fail, AI asks before attempting fixes
+- **Code check auto-advances:** Once checks pass, task moves to QA automatically
 
 ---
 
@@ -181,9 +178,9 @@ That's it. Your PR is merged and git history tells the story of your task.
 | `kanban-refine [id]` | Backlog | Refined | main | Yes |
 | `kanban-scope [id]` | Refined | Scoped | main → task/{id} | Yes |
 | `kanban-plan [id]` | Scoped | Planned | task/{id} | Yes |
-| `kanban-implement [id]` | Planned | Pending Verify | task/{id} | No |
+| `kanban-implement [id]` | Planned | Code Check | task/{id} | No |
 | `kanban-save [id]` | In Progress | In Progress | task/{id} | Yes |
-| `kanban-verify [id]` | Pending Verify | Checks → QA | task/{id} | On retry |
+| `kanban-codecheck [id]` | Code Check | QA | task/{id} | On retry |
 | `kanban-approve [id]` | QA | Update Docs | task/{id} | Yes |
 | `kanban-docs [id]` | Update Docs | PR | task/{id} | Yes |
 | `kanban-merge [id]` | PR | Done | task/{id} → main | Yes |
@@ -213,7 +210,7 @@ That's it. Your PR is merged and git history tells the story of your task.
 /kanban-scope 001                         # → Scoped (creates task branch)
 /kanban-plan 001                          # → Planned
 /kanban-implement 001                     # → In Progress
-/kanban-verify 001                        # → Checks (AI review, auto-loops, auto-advances to QA)
+/kanban-codecheck 001                        # → QA (runs checks, asks before fixing)
 # Human tests the application...
 /kanban-approve 001                       # → Update Docs (commits code)
 /kanban-docs 001                          # → PR (commits docs, pushes)
@@ -261,7 +258,7 @@ user-skills:
       - coding-standards    # Reads .claude/skills/coding-standards/SKILL.md
       - architecture        # Reads .claude/skills/architecture/SKILL.md
 
-  "kanban-verify":
+  "kanban-codecheck":
     skills:
       - check-typescript    # Reads .claude/skills/check-typescript/SKILL.md
       - check-tests         # Reads .claude/skills/check-tests/SKILL.md
@@ -274,9 +271,13 @@ user-skills:
 
 Each skill name resolves to `.claude/skills/{name}/SKILL.md`.
 
-### Creating Verification Checks
+### Creating Code Checks
 
-Verification checks run during `verify`. Create them in `.kanban/skills/`:
+Code checks run during `codecheck`. Create them in `.kanban/skills/`. There are two types:
+
+**1. Command-based (automated)**
+
+Runs a command and checks the exit code:
 
 **`.kanban/skills/check-typescript.md`**
 ```markdown
@@ -288,9 +289,29 @@ Run `pnpm typecheck`
 Exit code 0, no errors in output.
 
 ### Common failures
-- "Cannot find module X" — missing dependency, run `pnpm install`
-- "Type X is not assignable to Y" — type mismatch, fix the code
+- "Cannot find module X" — missing dependency
+- "Type X is not assignable to Y" — type mismatch
 ```
+
+**2. AI-driven review (guidelines)**
+
+AI reviews code against your documented patterns:
+
+**`.kanban/skills/coding-patterns.md`**
+```markdown
+# Check: Coding Patterns
+
+### Guidelines
+- Use factory functions instead of classes
+- API handlers belong in src/routes/
+- Use arrow functions for callbacks
+- Prefer composition over inheritance
+
+### Review focus
+Check new/modified files against the above patterns.
+```
+
+When a check fails, the AI shows the issues and asks: "Should I try to fix this?" You decide whether to let it attempt a fix or handle it manually.
 
 ---
 
@@ -317,7 +338,7 @@ user-skills:
     skills:
   "kanban-save":
     skills:
-  "kanban-verify":
+  "kanban-codecheck":
     skills:
   "kanban-approve":
     skills:
@@ -353,7 +374,7 @@ git log --grep="(001)"
 git log --grep="^feat"
 
 # All verification retries
-git log --grep="verify-retry"
+git log --grep="codecheck-retry"
 ```
 
 Complete task lifecycle in git:
@@ -363,7 +384,7 @@ docs(001): refine - Add user authentication     # on main
 docs(001): scope - Add user authentication      # creates task/001 branch
 docs(001): plan - Add user authentication       # on task/001
 wip(001): completed auth routes                 # optional, on task/001
-docs(001): verify-retry - Add user auth...      # optional, if verify failed
+docs(001): codecheck-retry - Add user auth...      # optional, if codecheck failed
 docs(001): rework - Add user authentication     # optional, if QA/PR failed
 feat(001): Add user authentication              # when QA passes, on task/001
 docs(001): product - add authentication guide   # on task/001

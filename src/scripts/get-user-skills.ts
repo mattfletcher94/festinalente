@@ -2,7 +2,7 @@
 
 // Get user-defined skills for a specific kanban command
 // Usage: node get-user-skills.cjs <command>
-// Example: node get-user-skills.cjs kanban-verify
+// Example: node get-user-skills.cjs kanban-codecheck
 // Returns JSON with skill names and paths
 
 import fs from 'fs';
@@ -32,7 +32,7 @@ function main(): void {
   if (args.length === 0) {
     console.log(JSON.stringify({
       error: true,
-      message: 'Usage: get-user-skills.cjs <command> (e.g., kanban-verify)'
+      message: 'Usage: get-user-skills.cjs <command> (e.g., kanban-codecheck)'
     }));
     process.exit(1);
   }

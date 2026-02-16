@@ -131,7 +131,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
     <output>Print: "Task {taskId} returned to In Progress for rework"</output>
     <output>Print iteration number</output>
     <output>Print number of issues to address</output>
-    <output>Mention: "Then re-verify with /kanban-verify {taskId}"</output>
+    <output>Mention: "Then re-verify with /kanban-codecheck {taskId}"</output>
   </step>
 </process>
 
@@ -172,7 +172,7 @@ Next:
 /clear
 /kanban-implement 001
 
-Then re-verify: /kanban-verify 001
+Then re-verify: /kanban-codecheck 001
 ```
 </example>
 
@@ -186,6 +186,6 @@ Fix the issues (see plan's Iterations for checkboxes):
 Then re-verify:
 ```
 /clear
-/kanban-verify {id}
+/kanban-codecheck {id}
 ```
 </next_steps>

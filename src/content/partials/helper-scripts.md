@@ -29,7 +29,7 @@
 <command description="Get user-defined skills for a command (returns JSON with skill paths)">node .claude/scripts/get-user-skills.cjs {command}</command>
 <example_code lang="json">
 {
-  "command": "kanban-verify",
+  "command": "kanban-codecheck",
   "count": 2,
   "skills": [
     { "name": "check-typescript", "path": ".claude/skills/check-typescript/SKILL.md", "exists": true }

@@ -9,7 +9,7 @@
 # Example: "coding-standards" -> .claude/skills/coding-standards/SKILL.md
 #
 # To add skills to a command:
-#   "kanban-verify":
+#   "kanban-codecheck":
 #     skills:
 #       - check-typescript
 #       - check-tests
@@ -31,7 +31,7 @@ user-skills:
     skills:
   "kanban-save":
     skills:
-  "kanban-verify":
+  "kanban-codecheck":
     skills:
   "kanban-approve":
     skills:
