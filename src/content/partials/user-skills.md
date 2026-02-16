@@ -1,6 +1,6 @@
 <warning>Before proceeding, you MUST load and apply user-defined skills. This is mandatory.</warning>
 
-<command>node .claude/scripts/get-user-skills.cjs kanban-{{command}}</command>
+<command>node .claude/kanban-scripts/get-user-skills.cjs kanban-{{command}}</command>
 <action>Parse the JSON output</action>
 
 <branch condition="count > 0">

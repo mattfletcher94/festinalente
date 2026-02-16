@@ -44,7 +44,7 @@ Approve implementation after human QA testing, commit the code with appropriate 
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, labels">
-    <command>node .claude/scripts/find-task.cjs {taskId}</command>
+    <command>node .claude/kanban-scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse YAML frontmatter</action>
     <validate>Verify current status is `qa`</validate>

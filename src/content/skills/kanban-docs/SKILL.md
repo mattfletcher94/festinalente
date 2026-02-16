@@ -53,7 +53,7 @@ Update product documentation, commit the changes, push to remote, and move task 
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, labels, affects">
-    <command>node .claude/scripts/find-task.cjs {taskId}</command>
+    <command>node .claude/kanban-scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse YAML frontmatter</action>
     <validate>Verify current status is `update-docs`</validate>
@@ -84,13 +84,13 @@ Update product documentation, commit the changes, push to remote, and move task 
     <note>a. **Check affects field:**</note>
     <action>Read task's `affects` array from frontmatter</action>
     <branch condition="affects has IDs">
-      <command>node .claude/scripts/check-product.cjs {affects IDs}</command>
+      <command>node .claude/kanban-scripts/check-product.cjs {affects IDs}</command>
     </branch>
     <action>Categorize: existing docs vs missing docs</action>
 
     <note>b. **Analyze task for unlisted impacts:**</note>
     <action>Read task description, spec, and implementation context</action>
-    <command>node .claude/scripts/search-product.cjs {keywords from title/description}</command>
+    <command>node .claude/kanban-scripts/search-product.cjs {keywords from title/description}</command>
     <branch condition="high-scoring docs NOT in affects">
       <output>Suggest adding to affects</output>
     </branch>
@@ -111,13 +111,13 @@ Update product documentation, commit the changes, push to remote, and move task 
     <note>a. **Check engineering field:**</note>
     <action>Read task's `engineering` array from frontmatter</action>
     <branch condition="engineering has IDs">
-      <command>node .claude/scripts/check-engineering.cjs {engineering IDs}</command>
+      <command>node .claude/kanban-scripts/check-engineering.cjs {engineering IDs}</command>
     </branch>
     <action>Categorize: existing docs vs missing docs</action>
 
     <note>b. **Analyze task for unlisted impacts:**</note>
     <action>Read task description, spec, and implementation context</action>
-    <command>node .claude/scripts/search-engineering.cjs {technical keywords}</command>
+    <command>node .claude/kanban-scripts/search-engineering.cjs {technical keywords}</command>
     <branch condition="high-scoring docs NOT in engineering">
       <output>Suggest adding to engineering</output>
     </branch>
@@ -144,7 +144,7 @@ Update product documentation, commit the changes, push to remote, and move task 
 
   <step name="create_new_docs" when="new docs needed">
     <action>Create domain folder if doesn't exist: `.kanban/product/{domain}/`</action>
-    <command description="Get current date">node .claude/scripts/get-date-time.cjs</command>
+    <command description="Get current date">node .claude/kanban-scripts/get-date-time.cjs</command>
     <action>Use `date` field from output</action>
 
     <note>**For features** (use `.claude/kanban-templates/product-doc.md`):</note>
@@ -180,14 +180,14 @@ Update product documentation, commit the changes, push to remote, and move task 
   <step name="create_new_engineering_docs" when="new engineering docs needed">
     <action>Determine doc type (system, component, pattern, convention)</action>
     <action>Create appropriate folder structure</action>
-    <command description="Get current date">node .claude/scripts/get-date-time.cjs</command>
+    <command description="Get current date">node .claude/kanban-scripts/get-date-time.cjs</command>
     <action>Use appropriate template from `.claude/kanban-templates/engineering-*.md`</action>
     <action>Fill content based on what was implemented</action>
   </step>
 
   <step name="move_to_pr">
     <action>Change `status: update-docs` to `status: pr`</action>
-    <command description="Get current date">node .claude/scripts/get-date-time.cjs</command>
+    <command description="Get current date">node .claude/kanban-scripts/get-date-time.cjs</command>
     <action>Add `updated: {YYYY-MM-DD}` from output</action>
     <action>Write updated task file</action>
   </step>

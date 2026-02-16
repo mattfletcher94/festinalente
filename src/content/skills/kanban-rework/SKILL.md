@@ -49,7 +49,7 @@ See `.claude/kanban-workflow.yaml` for column definitions and valid transitions.
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, currentStatus">
-    <command>node .claude/scripts/find-task.cjs {taskId}</command>
+    <command>node .claude/kanban-scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse YAML frontmatter</action>
     <validate>Verify current status is `qa` or `pr`</validate>

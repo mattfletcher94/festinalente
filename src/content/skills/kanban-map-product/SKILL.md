@@ -32,7 +32,7 @@ Analyze existing codebase and create product documentation through Socratic Q&A.
 
   <step name="preflight_check">
     <action>Check if `.kanban/product/` has files OTHER than `overview.md`</action>
-    <command>node .claude/scripts/list-product.cjs</command>
+    <command>node .claude/kanban-scripts/list-product.cjs</command>
     <branch condition="count > 1, OR if count == 1 and the doc is not `overview`">
       <prompt>I found existing product docs. How should I proceed?</prompt>
       <note>Options: Preserve and extend / Merge with findings / Start fresh</note>
@@ -112,7 +112,7 @@ Analyze existing codebase and create product documentation through Socratic Q&A.
     <warning>IMMEDIATELY write the product doc:</warning>
     <action>Determine domain folder (e.g., `auth`, `billing`, `users`)</action>
     <action>Create domain folder if needed: `.kanban/product/{domain}/`</action>
-    <command description="Get current date">node .claude/scripts/get-date-time.cjs</command>
+    <command description="Get current date">node .claude/kanban-scripts/get-date-time.cjs</command>
     <action>Use `date` field from output</action>
     <action>Create `.kanban/product/{domain}/{feature}.md`</action>
 

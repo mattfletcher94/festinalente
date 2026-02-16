@@ -32,7 +32,7 @@ Analyze existing codebase and create engineering documentation through Socratic 
 
   <step name="preflight_check">
     <action>Check if `.kanban/engineering/` has files OTHER than `overview.md`</action>
-    <command>node .claude/scripts/list-engineering.cjs</command>
+    <command>node .claude/kanban-scripts/list-engineering.cjs</command>
     <branch condition="count > 1, OR if count == 1 and the doc is not `overview`">
       <prompt>I found existing engineering docs. How should I proceed?</prompt>
       <note>Options: Preserve and extend / Merge with findings / Start fresh</note>
@@ -103,7 +103,7 @@ Analyze existing codebase and create engineering documentation through Socratic 
 
     <warning>IMMEDIATELY write the engineering doc:</warning>
     <action>Create folder if needed: `.kanban/engineering/systems/{system}/`</action>
-    <command description="Get current date">node .claude/scripts/get-date-time.cjs</command>
+    <command description="Get current date">node .claude/kanban-scripts/get-date-time.cjs</command>
     <action>Create `.kanban/engineering/systems/{system}/index.md`</action>
     <action>Use template from `.claude/kanban-templates/engineering-system.md`</action>
 

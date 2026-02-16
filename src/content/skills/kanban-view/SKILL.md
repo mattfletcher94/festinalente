@@ -48,7 +48,7 @@ Display the Kanban board as a visual terminal output with box-drawing characters
   </step>
 
   <step name="read_all_tasks" outputs="tasks">
-    <command>node .claude/scripts/list-tasks.cjs</command>
+    <command>node .claude/kanban-scripts/list-tasks.cjs</command>
     <note>The JSON output includes `id`, `title`, `status`, `labels` for each task</note>
     <action>Group tasks by `status`</action>
   </step>

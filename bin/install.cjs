@@ -7,7 +7,7 @@
 //   - kanban-templates/
 //   - kanban-workflow.yaml
 //   - kanban-manifest.json
-//   - scripts/
+//   - kanban-scripts/
 //
 // It will NEVER touch user files outside these paths.
 // The manifest tracks exactly which files were installed.
@@ -30,7 +30,7 @@ const KANBAN_PATHS = [
   'kanban-workflow.yaml',
   'kanban-manifest.json',
   'kanban-local-patches',
-  'scripts/'
+  'kanban-scripts/'
 ];
 
 // .kanban directory structure to create

@@ -410,9 +410,9 @@ Claude Kanban includes helper scripts that the AI uses to reliably find files:
 | `search-product.cjs` | Search product docs by keywords |
 | `check-product.cjs` | Check if product docs exist by ID |
 
-Scripts are installed to `.claude/scripts/` and return JSON output.
+Scripts are installed to `.claude/kanban-scripts/` and return JSON output.
 
-See [scripts/README.md](.claude/scripts/README.md) for full documentation.
+See [scripts/README.md](.claude/kanban-scripts/README.md) for full documentation.
 
 ---
 
