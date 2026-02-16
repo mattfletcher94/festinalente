@@ -87,3 +87,5 @@ commits:
   # Product discovery commands (not part of task workflow)
   map-product: "docs: map-product - {features}"
   define-product: "docs: define-product - {description}"
+  # Engineering documentation commands
+  map-engineering: "docs: map-engineering - {systems}"

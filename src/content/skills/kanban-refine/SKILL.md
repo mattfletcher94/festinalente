@@ -19,6 +19,8 @@ Refine vague tasks through iterative conversational Q&A focused on product/busin
 
 {{> product-docs-scripts show_search_product=true}}
 
+{{> engineering-docs-scripts show_search_engineering=true}}
+
 {{> column-transition from="backlog" to="refined"}}
 </context>
 
@@ -90,6 +92,20 @@ Refine vague tasks through iterative conversational Q&A focused on product/busin
       </branch>
     </branch>
     <note>Reference product docs during Q&A to ensure alignment with existing product</note>
+
+    <note>Load engineering context:</note>
+    <branch condition="task has `engineering` field with IDs">
+      <action>For each ID: Read `.kanban/engineering/{path}` (use ID→path rules)</action>
+      <action>Note: patterns to follow, conventions, constraints</action>
+    </branch>
+    <branch condition="task has empty/no `engineering` field">
+      <command>node .claude/scripts/search-engineering.cjs {keywords from title}</command>
+      <branch condition="matches found (score ≥ 0.3)">
+        <action>Read top matches for context</action>
+        <action>Consider suggesting `engineering` field update</action>
+      </branch>
+    </branch>
+    <note>Reference engineering docs during Q&A for technical context</note>
   </step>
 
   <step name="conduct_qa_dialogue">

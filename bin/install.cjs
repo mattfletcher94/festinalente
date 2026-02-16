@@ -37,6 +37,7 @@ const KANBAN_PATHS = [
 const KANBAN_DIRS = [
   'tasks',
   'product',
+  'engineering',
   'skills'
 ];
 
@@ -271,6 +272,7 @@ ${colors.bright}Options:${colors.reset}
 
 ${colors.bright}After installation:${colors.reset}
   Run /kanban-define-product or /kanban-map-product in Claude Code
+  Optionally run /kanban-map-engineering to document codebase architecture
 `);
 }
 
@@ -397,6 +399,7 @@ async function main() {
   console.log(`${colors.bright}Next steps:${colors.reset}`);
   console.log(`  1. Open Claude Code in your project`);
   console.log(`  2. Run ${colors.cyan}/kanban-define-product${colors.reset} (new projects) or ${colors.cyan}/kanban-map-product${colors.reset} (existing code)`);
+  console.log(`  3. Optionally run ${colors.cyan}/kanban-map-engineering${colors.reset} to document architecture`);
   console.log();
 }
 

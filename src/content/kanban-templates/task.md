@@ -11,6 +11,7 @@ completed: YYYY-MM-DD
 spec: "tasks/{id}/spec.md"
 plan: "tasks/{id}/plan.md"
 affects: []
+engineering: []
 ---
 
 # {Title}

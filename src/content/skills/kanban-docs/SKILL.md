@@ -19,7 +19,11 @@ Update product documentation, commit the changes, push to remote, and move task 
 
 {{> product-docs-scripts show_search_product=true show_check_product=true}}
 
+{{> engineering-docs-scripts show_search_engineering=true show_check_engineering=true}}
+
 <note>**`.kanban/product/`** — Product documentation files organized by domain (e.g., `auth/login.md`, `overview.md`) — This is where user-facing docs live</note>
+
+<note>**`.kanban/engineering/`** — Engineering documentation files (systems, patterns, conventions)</note>
 
 {{> column-transition from="update-docs" to="pr"}}
 </context>
@@ -100,7 +104,34 @@ Update product documentation, commit the changes, push to remote, and move task 
     <output>Will UPDATE (doc exists): {id} - {summary}</output>
     <output>Will CREATE (new feature): {id} - (new doc needed)</output>
     <output>Unaffected (internal change): {reason if applicable}</output>
-    <prompt>Proceed with documentation? [Y/n]</prompt>
+    <prompt>Proceed with product documentation? [Y/n]</prompt>
+  </step>
+
+  <step name="analyze_engineering_doc_impact">
+    <note>a. **Check engineering field:**</note>
+    <action>Read task's `engineering` array from frontmatter</action>
+    <branch condition="engineering has IDs">
+      <command>node .claude/scripts/check-engineering.cjs {engineering IDs}</command>
+    </branch>
+    <action>Categorize: existing docs vs missing docs</action>
+
+    <note>b. **Analyze task for unlisted impacts:**</note>
+    <action>Read task description, spec, and implementation context</action>
+    <command>node .claude/scripts/search-engineering.cjs {technical keywords}</command>
+    <branch condition="high-scoring docs NOT in engineering">
+      <output>Suggest adding to engineering</output>
+    </branch>
+
+    <note>c. **Determine action for each:**</note>
+    <action>Existing docs → Will UPDATE if implementation changed patterns</action>
+    <action>Missing docs → Will CREATE (new pattern/system)</action>
+
+    <note>d. **Present analysis to user:**</note>
+    <output>Engineering Doc Analysis for Task {taskId}:</output>
+    <output>Will UPDATE: {id} - {summary}</output>
+    <output>Will CREATE: {id} - (new doc needed)</output>
+    <output>No changes needed: {reason if applicable}</output>
+    <prompt>Proceed with engineering documentation? [Y/n]</prompt>
   </step>
 
   <step name="update_existing_docs" when="docs need updating">
@@ -139,6 +170,21 @@ Update product documentation, commit the changes, push to remote, and move task 
     <note>Use generic commit message: "docs({taskId}): product - no updates needed for {title}"</note>
   </step>
 
+  <step name="update_engineering_docs" when="engineering docs need updating">
+    <action>Read current doc (use ID→path rules from check-engineering)</action>
+    <action>Identify sections that need changes based on implementation</action>
+    <action>Make minimal, focused updates</action>
+    <warning>SCOPE RESTRICTION: Only update docs to reflect what THIS task implemented</warning>
+  </step>
+
+  <step name="create_new_engineering_docs" when="new engineering docs needed">
+    <action>Determine doc type (system, component, pattern, convention)</action>
+    <action>Create appropriate folder structure</action>
+    <command description="Get current date">node .claude/scripts/get-date-time.cjs</command>
+    <action>Use appropriate template from `.claude/kanban-templates/engineering-*.md`</action>
+    <action>Fill content based on what was implemented</action>
+  </step>
+
   <step name="move_to_pr">
     <action>Change `status: update-docs` to `status: pr`</action>
     <command description="Get current date">node .claude/scripts/get-date-time.cjs</command>
@@ -147,13 +193,20 @@ Update product documentation, commit the changes, push to remote, and move task 
   </step>
 
   <step name="commit_docs_and_task">
-    <note>Format: `docs({taskId}): product - {description}`</note>
+    <note>Format: `docs({taskId}): product+engineering - {description}` or `docs({taskId}): product - {description}` if no engineering changes</note>
     <note>The description summarizes what documentation was updated (e.g., "add authentication guide", "update API reference")</note>
     <warning>CRITICAL: Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `docs`, not `kanban`.</warning>
     <command>git add .kanban/product/</command>
+    <command>git add .kanban/engineering/</command>
     <command>git add .kanban/tasks/{taskId}/task.md</command>
-    <branch condition="docs were changed">
+    <branch condition="both product and engineering docs were changed">
+      <command>git commit -m "docs({taskId}): product+engineering - {description of doc changes}"</command>
+    </branch>
+    <branch condition="only product docs were changed">
       <command>git commit -m "docs({taskId}): product - {description of doc changes}"</command>
+    </branch>
+    <branch condition="only engineering docs were changed">
+      <command>git commit -m "docs({taskId}): engineering - {description of doc changes}"</command>
     </branch>
     <branch condition="no docs changed">
       <command>git commit -m "docs({taskId}): product - no updates needed"</command>

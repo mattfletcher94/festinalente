@@ -19,6 +19,8 @@ Create a plan file in `.kanban/tasks/{id}/` and move task from Scoped to Planned
 
 {{> product-docs-scripts show_search_product=true show_list_product=true}}
 
+{{> engineering-docs-scripts show_search_engineering=true show_list_engineering=true}}
+
 {{> column-transition from="scoped" to="planned"}}
 </context>
 
@@ -101,6 +103,31 @@ Run: /kanban-scope {taskId}
 - Understand existing user-facing behavior that may constrain implementation
 - Identify UI patterns and terminology to maintain consistency
 - Ensure plan steps account for documented feature interactions</note>
+  </step>
+
+  <step name="research_engineering_docs" outputs="engineeringContext">
+    <note>Read engineering documentation for implementation patterns:</note>
+
+    <action>Check task's engineering field</action>
+    <branch condition="task has `engineering` field in frontmatter">
+      <action>For each engineering doc ID: Read doc (use ID→path rules)</action>
+      <action>Note: patterns to follow, conventions, system interactions</action>
+    </branch>
+
+    <action>Search for related engineering docs</action>
+    <action>Extract technical terms from spec (systems, patterns, components)</action>
+    <command>node .claude/scripts/search-engineering.cjs {keywords}</command>
+    <action>Read any docs with score ≥ 0.3 that weren't already read</action>
+
+    <action>List engineering docs if unsure</action>
+    <command>node .claude/scripts/list-engineering.cjs</command>
+    <action>Identify any obviously relevant docs by type/name</action>
+
+    <note>Use this context to:
+- Follow established architectural patterns
+- Reference existing implementations as guides
+- Ensure plan steps align with codebase conventions
+- Identify relevant systems and components to consider</note>
   </step>
 
   <step name="check_existing_plan">

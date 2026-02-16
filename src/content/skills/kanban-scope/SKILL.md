@@ -17,6 +17,8 @@ Create a functional specification through iterative conversational Q&A focused o
 
 {{> helper-scripts show_find_task=true show_get_date_time=true}}
 
+{{> engineering-docs-scripts show_search_engineering=true}}
+
 {{> column-transition from="backlog OR refined" to="scoped"}}
 </context>
 
@@ -97,6 +99,20 @@ Create a functional specification through iterative conversational Q&A focused o
       <action>For each ID: Read `.kanban/product/{id}.md`</action>
       <action>Note: current behavior, constraints, interactions</action>
       <note>This informs WHERE to look in codebase</note>
+    </branch>
+
+    <note>Read engineering context:</note>
+    <branch condition="task has `engineering` field">
+      <action>For each ID: Read engineering doc (overview, system, pattern, or convention)</action>
+      <action>Note: patterns to follow, existing implementations, constraints</action>
+      <note>This informs HOW to implement and WHERE to look</note>
+    </branch>
+    <branch condition="no engineering field">
+      <command>node .claude/scripts/search-engineering.cjs {keywords from title/description}</command>
+      <branch condition="relevant patterns/systems found">
+        <action>Read and note relevant patterns</action>
+        <action>Suggest adding to `engineering` field</action>
+      </branch>
     </branch>
 
     <note>Then proceed with codebase research:</note>

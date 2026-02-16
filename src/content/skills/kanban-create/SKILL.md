@@ -19,6 +19,8 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
 
 {{> product-docs-scripts show_search_product=true}}
 
+{{> engineering-docs-scripts show_search_engineering=true}}
+
 {{> column-transition from="[New Task]" to="backlog"}}
 </context>
 
@@ -79,6 +81,27 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
     </branch>
   </step>
 
+  <step name="search_engineering_docs" when="`.kanban/engineering/` directory exists and is not empty">
+    <action>Extract keywords from the task title (technical terms, patterns, system names)</action>
+    <command>node .claude/scripts/search-engineering.cjs {keyword1} {keyword2} ...</command>
+
+    <branch condition="docs with score ≥ 0.5 found">
+      <note>These docs describe existing patterns/systems this task relates to</note>
+      <action>Set `engineering: [{matched-ids}]` in task frontmatter</action>
+      <output>Related engineering docs: {ids}</output>
+    </branch>
+
+    <branch condition="no docs with score ≥ 0.3 found">
+      <note>This may involve new patterns/systems not yet documented</note>
+      <action>Leave `engineering: []` empty - docs will be created during /kanban-docs if needed</action>
+    </branch>
+
+    <branch condition="`.kanban/engineering/` is empty or doesn't exist">
+      <action>Skip this step</action>
+      <output>No engineering docs yet</output>
+    </branch>
+  </step>
+
   <step name="get_task_details" outputs="title, slug, priority, labels">
     <branch condition="$ARGUMENTS provided">
       <action>Use $ARGUMENTS as title</action>
@@ -106,7 +129,7 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
     <action>Create folder `.kanban/tasks/{nextId}/`</action>
     <action>Create file at `.kanban/tasks/{nextId}/task.md`</action>
     <note>`{nextId}` = the nextId from step get_next_id (e.g., "001")</note>
-    <action>Fill frontmatter: `id`, `title`, `status: backlog`, `priority`, `labels`, `created`, `affects`</action>
+    <action>Fill frontmatter: `id`, `title`, `status: backlog`, `priority`, `labels`, `created`, `affects`, `engineering`</action>
     <action>Fill body: `## Description`, `## Notes`</action>
     <note>Leave empty (filled in later phases): other sections</note>
   </step>
