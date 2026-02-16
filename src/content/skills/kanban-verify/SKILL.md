@@ -17,7 +17,7 @@ Run AI code review using configured skills. On failure, AI fixes issues and retr
 
 {{> helper-scripts show_find_task=true show_find_plan=true show_get_date_time=true}}
 
-{{> column-transition from="in-progress" to="checks → qa (automatic on success)"}}
+{{> column-transition from="pending-verify" to="checks → qa (automatic on success)"}}
 
 <note>
 **Behavior:**
@@ -43,7 +43,7 @@ Run AI code review using configured skills. On failure, AI fixes issues and retr
       <action>Use $ARGUMENTS as taskId</action>
     </branch>
     <branch condition="$ARGUMENTS not provided">
-      <action>List tasks in `in-progress` status from `.kanban/tasks/`</action>
+      <action>List tasks in `pending-verify` status from `.kanban/tasks/`</action>
       <output>Show task IDs and titles</output>
       <prompt>Which task to verify?</prompt>
     </branch>
@@ -53,9 +53,9 @@ Run AI code review using configured skills. On failure, AI fixes issues and retr
     <command>node .claude/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse YAML frontmatter</action>
-    <validate>Verify status is `in-progress`</validate>
-    <branch condition="status is not in-progress">
-      <prompt>Task is in {status} status. Expected: in-progress. Continue anyway? (y/n)</prompt>
+    <validate>Verify status is `pending-verify`</validate>
+    <branch condition="status is not pending-verify">
+      <prompt>Task is in {status} status. Expected: pending-verify. Continue anyway? (y/n)</prompt>
     </branch>
     <branch condition="task not found">
       <output>Error: Task not found</output>
@@ -92,11 +92,12 @@ Run AI code review using configured skills. On failure, AI fixes issues and retr
   </step>
 
   <step name="update_status_to_checks">
-    <action>Update task status to `checks`</action>
+    <output>Moving to checks status...</output>
+    <action>Update task frontmatter: change `status: pending-verify` to `status: checks`</action>
     <command description="Get current date">node .claude/scripts/get-date-time.cjs</command>
-    <action>Add `updated: {YYYY-MM-DD}` from output</action>
-    <action>Write task file</action>
-    <note>Task is now in `checks` status while verification runs</note>
+    <action>Update `updated: {YYYY-MM-DD}` from output</action>
+    <action>Write the updated task file to disk</action>
+    <output>Task {taskId} is now in `checks` status.</output>
   </step>
 
   <step name="run_verification_loop">

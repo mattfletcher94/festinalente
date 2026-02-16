@@ -18,6 +18,9 @@ columns:
   - id: in-progress
     name: In Progress
     description: Tasks currently being implemented (code uncommitted)
+  - id: pending-verify
+    name: Pending Verify
+    description: Implementation complete, awaiting verification checks
   - id: checks
     name: Checks
     description: AI code review using skills (style, lint, tests)
@@ -69,7 +72,8 @@ transitions:
   refined: [scoped]
   scoped: [planned]
   planned: [in-progress]
-  in-progress: [checks]
+  in-progress: [pending-verify]
+  pending-verify: [checks]
   checks: [qa]  # Auto-advance only (no manual fail - AI retries automatically)
   qa: [update-docs, in-progress]  # approve or rework
   update-docs: [pr]

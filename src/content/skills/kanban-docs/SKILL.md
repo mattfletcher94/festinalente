@@ -139,23 +139,30 @@ Update product documentation, commit the changes, push to remote, and move task 
     <note>Use generic commit message: "docs({taskId}): product - no updates needed for {title}"</note>
   </step>
 
-  <step name="commit_docs" when="docs were changed">
+  <step name="move_to_pr">
+    <action>Change `status: update-docs` to `status: pr`</action>
+    <command description="Get current date">node .claude/scripts/get-date-time.cjs</command>
+    <action>Add `updated: {YYYY-MM-DD}` from output</action>
+    <action>Write updated task file</action>
+  </step>
+
+  <step name="commit_docs_and_task">
     <note>Format: `docs({taskId}): product - {description}`</note>
     <note>The description summarizes what documentation was updated (e.g., "add authentication guide", "update API reference")</note>
     <warning>CRITICAL: Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `docs`, not `kanban`.</warning>
-    <command>git add {doc files}</command>
-    <command>git commit -m "docs({taskId}): product - {description of doc changes}"</command>
+    <command>git add .kanban/product/</command>
+    <command>git add .kanban/tasks/{taskId}-*.md</command>
+    <branch condition="docs were changed">
+      <command>git commit -m "docs({taskId}): product - {description of doc changes}"</command>
+    </branch>
+    <branch condition="no docs changed">
+      <command>git commit -m "docs({taskId}): product - no updates needed"</command>
+    </branch>
   </step>
 
   <step name="push_branch">
     <command>git push -u origin task/{taskId}</command>
     <output>Branch pushed to remote</output>
-  </step>
-
-  <step name="move_to_pr">
-    <action>Change `status: update-docs` to `status: pr`</action>
-    <action>Add `updated: {YYYY-MM-DD}`</action>
-    <action>Write updated task file</action>
   </step>
 
   <step name="output_result">

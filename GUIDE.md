@@ -88,7 +88,7 @@ Product docs represent the **current state** of your application. They're update
 Tasks flow through these columns:
 
 ```
-Backlog → Refined → Scoped → Planned → In Progress → Checks → QA → Update Docs → PR → Done
+Backlog → Refined → Scoped → Planned → In Progress → Pending Verify → Checks → QA → Update Docs → PR → Done
 ```
 
 ### Branch Strategy

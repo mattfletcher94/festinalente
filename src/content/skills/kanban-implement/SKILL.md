@@ -129,9 +129,11 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
 
   <step name="on_completion">
     <branch condition="ALL checkboxes complete">
-      <action>Keep status as `in-progress` (verification will move it)</action>
-      <action>Update `updated: {YYYY-MM-DD}`</action>
+      <action>Change `status: in-progress` to `status: pending-verify`</action>
+      <command description="Get current date">node .claude/scripts/get-date-time.cjs</command>
+      <action>Update `updated: {YYYY-MM-DD}` from output</action>
       <action>Write updated task file</action>
+      <output>Task moved to pending-verify status.</output>
     </branch>
     <branch condition="some checkboxes remain">
       <action>Keep status as `in-progress`</action>
@@ -149,9 +151,10 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
 
 <success_criteria>
 - Task file exists at `.kanban/tasks/{taskId}-*.md`
-- Task frontmatter contains `status: in-progress`
+- If all items complete: `status: pending-verify`
+- If partial progress: `status: in-progress`
 - Plan file exists at `.kanban/plans/{taskId}-{slug}.plan.md`
-- All plan checkboxes are marked complete (`- [x]`)
+- All plan checkboxes are marked complete (`- [x]`) for full implementation
 - Next steps shown to user
 </success_criteria>
 
@@ -184,11 +187,14 @@ Progress: 0/3 items
 Implementation complete!
 All 3 plan items executed.
 
-Task 001 ready for verification
-- Status: in-progress
+Task 001 ready for verification.
+- Status: pending-verify
 - Files modified: 3 (uncommitted)
 
-Next:
+**Next: Run automated checks**
+Verify runs your configured checks (tests, lint, typecheck).
+If checks pass, you'll manually QA the application before code is committed.
+
 /clear
 /kanban-verify 001
 ```
@@ -221,26 +227,33 @@ Progress: 2/5 items (resuming from item 3)
 Implementation complete!
 All 5 plan items executed (3 this session).
 
-Task 002 ready for verification
-- Status: in-progress
+Task 002 ready for verification.
+- Status: pending-verify
 - Files modified: 5 (uncommitted)
 
-Next:
+**Next: Run automated checks**
+Verify runs your configured checks (tests, lint, typecheck).
+If checks pass, you'll manually QA the application before code is committed.
+
 /clear
 /kanban-verify 002
 ```
 </example>
 
 <next_steps>
-If interrupted:
+If interrupted mid-implementation:
 ```
 /clear
 /kanban-save {id}
 ```
+This commits your work-in-progress so you don't lose it.
 
 When implementation complete:
 ```
 /clear
 /kanban-verify {id}
 ```
+Verification runs your automated checks (tests, typecheck, lint). If they pass, the task moves to QA for you to manually test the application.
+
+Code stays uncommitted until you approve after QA.
 </next_steps>

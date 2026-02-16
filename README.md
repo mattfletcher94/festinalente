@@ -181,9 +181,9 @@ That's it. Your PR is merged and git history tells the story of your task.
 | `kanban-refine [id]` | Backlog | Refined | main | Yes |
 | `kanban-scope [id]` | Refined | Scoped | main → task/{id} | Yes |
 | `kanban-plan [id]` | Scoped | Planned | task/{id} | Yes |
-| `kanban-implement [id]` | Planned | In Progress | task/{id} | No |
+| `kanban-implement [id]` | Planned | Pending Verify | task/{id} | No |
 | `kanban-save [id]` | In Progress | In Progress | task/{id} | Yes |
-| `kanban-verify [id]` | In Progress | Checks → QA | task/{id} | On retry |
+| `kanban-verify [id]` | Pending Verify | Checks → QA | task/{id} | On retry |
 | `kanban-approve [id]` | QA | Update Docs | task/{id} | Yes |
 | `kanban-docs [id]` | Update Docs | PR | task/{id} | Yes |
 | `kanban-merge [id]` | PR | Done | task/{id} → main | Yes |
