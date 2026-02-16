@@ -76,15 +76,27 @@ Run AI code review using configured skills. On failure, AI fixes issues and retr
     </branch>
   </step>
 
-  <step name="load_verification_checks" outputs="checkSkills">
+  <step name="load_verification_checks" outputs="checkSkills, hasChecks">
     <action>Read `.kanban/config.yaml`</action>
     <action>Find `user-skills."kanban-verify".skills` array</action>
-    <branch condition="skills array is empty">
-      <output>No verification checks configured. Add check skills to config.yaml</output>
-      <prompt>Continue without checks? (y/n)</prompt>
+    <branch condition="skills array is empty or not defined">
+      <action>Set hasChecks = false</action>
+      <output>No verification checks configured.</output>
+      <note>Proceeding without automated checks - will move directly to QA</note>
     </branch>
-    <action>For each skill path in the array: read the skill file</action>
-    <action>Extract the check command and pass criteria</action>
+    <branch condition="skills array has entries">
+      <action>Set hasChecks = true</action>
+      <action>For each skill path in the array: read the skill file</action>
+      <action>Extract the check command and pass criteria</action>
+    </branch>
+  </step>
+
+  <step name="update_status_to_checks">
+    <action>Update task status to `checks`</action>
+    <command description="Get current date">node .claude/scripts/get-date-time.cjs</command>
+    <action>Add `updated: {YYYY-MM-DD}` from output</action>
+    <action>Write task file</action>
+    <note>Task is now in `checks` status while verification runs</note>
   </step>
 
   <step name="run_verification_loop">
@@ -140,20 +152,26 @@ while attempt <= 3:
     </note>
   </step>
 
-  <step name="handle_success" when="all checks passed">
-    <action>Update task status to `checks`</action>
-    <action>Write task file</action>
-    <output>All checks passed. Moving to QA...</output>
+  <step name="advance_to_qa">
+    <note>This step ALWAYS runs after verification loop completes (or immediately if no checks configured)</note>
 
-    <note>Auto-advance to QA:</note>
+    <branch condition="hasChecks is true">
+      <output>All checks passed!</output>
+    </branch>
+    <branch condition="hasChecks is false">
+      <output>No automated checks configured.</output>
+    </branch>
+
+    <output>Moving to QA...</output>
+
     <action>Update task status to `qa`</action>
-    <action>Add `updated: {YYYY-MM-DD}`</action>
+    <command description="Get current date">node .claude/scripts/get-date-time.cjs</command>
+    <action>Add `updated: {YYYY-MM-DD}` from output</action>
     <action>Write task file</action>
 
     <warning>Task file changes are ONLY: `status: qa` and `updated: {YYYY-MM-DD}`</warning>
     <warning>DO NOT add verification results, check names, pass/fail logs, or any other content to the task file</warning>
 
-    <output>Print summary of all passed checks</output>
     <output>Task {taskId} moved to QA.</output>
   </step>
 
@@ -226,6 +244,39 @@ Exit code 0, all tests pass.
 </note>
 
 <example>
+**No Checks Configured:**
+
+User: `/kanban-verify 001`
+
+```
+Verifying task 001 "Add spacing fix"...
+
+Loading verification checks from config.yaml...
+No verification checks configured.
+
+Moving to checks status...
+
+No automated checks configured.
+Moving to QA...
+
+Task 001 moved to QA.
+- Status: qa
+
+**Your turn to QA:**
+Now's your chance to manually test the implementation. Run the application,
+verify the feature works as expected, and check that nothing else broke.
+
+When you're satisfied:
+/clear
+/kanban-approve 001
+
+If you find issues:
+/clear
+/kanban-rework 001
+```
+</example>
+
+<example>
 **All Checks Pass First Try:**
 
 User: `/kanban-verify 001`
@@ -237,6 +288,8 @@ Loading verification checks from config.yaml...
 - check-typescript.md
 - check-tests.md
 - check-lint.md
+
+Moving to checks status...
 
 Running check: TypeScript...
 PASS: TypeScript
@@ -254,9 +307,17 @@ Task 001 moved to QA.
 - Status: qa
 - All 3 checks passed on first attempt
 
-Next:
+**Your turn to QA:**
+Now's your chance to manually test the implementation. Run the application,
+verify the feature works as expected, and check that nothing else broke.
+
+When you're satisfied:
 /clear
 /kanban-approve 001
+
+If you find issues:
+/clear
+/kanban-rework 001
 ```
 
 **Auto-Retry on Failure:**
@@ -307,9 +368,17 @@ Task 001 moved to QA.
 - Status: qa
 - Passed on attempt 2
 
-Next:
+**Your turn to QA:**
+Now's your chance to manually test the implementation. Run the application,
+verify the feature works as expected, and check that nothing else broke.
+
+When you're satisfied:
 /clear
 /kanban-approve 001
+
+If you find issues:
+/clear
+/kanban-rework 001
 ```
 
 **Max Retries Exceeded:**
@@ -347,13 +416,16 @@ Fix issues manually and re-run:
 </example>
 
 <next_steps>
-After verification passes and moves to QA:
+**Your turn to QA:**
+Now's your chance to manually test the implementation. Run the application, verify the feature works as expected, and check that nothing else broke.
+
+When you're satisfied:
 ```
 /clear
 /kanban-approve {id}
 ```
 
-If human QA finds issues:
+If you find issues that need fixing:
 ```
 /clear
 /kanban-rework {id}
