@@ -26,7 +26,11 @@
       "Bash(ls:*)",
       "Bash(dir /b \"C:\\\\Users\\\\MattF\\\\Documents\\\\Code\\\\claudeban\\\\*.md\")",
       "Bash(tree:*)",
-      "Bash(pnpm build)"
+      "Bash(pnpm build)",
+      "Bash(dir:*)",
+      "Bash(findstr:*)",
+      "Bash(git restore:*)",
+      "WebFetch(domain:electron-vite.github.io)"
     ]
   }
 }
