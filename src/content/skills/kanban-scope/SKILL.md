@@ -9,7 +9,7 @@ disable-model-invocation: true
 # Scope Kanban Task
 
 <purpose>
-Create a functional specification through iterative conversational Q&A focused on technical decisions, then move from Refined to Scoped and commit.
+Create a functional specification through iterative conversational Q&A focused on technical decisions, then move to Scoped and commit. Accepts tasks from either Backlog or Refined status.
 </purpose>
 
 <context>
@@ -17,7 +17,7 @@ Create a functional specification through iterative conversational Q&A focused o
 
 {{> helper-scripts show_find_task=true show_get_date_time=true}}
 
-{{> column-transition from="refined" to="scoped"}}
+{{> column-transition from="backlog OR refined" to="scoped"}}
 </context>
 
 <prohibited>
@@ -41,25 +41,50 @@ Create a functional specification through iterative conversational Q&A focused o
       <action>Use $ARGUMENTS as taskId</action>
     </branch>
     <branch condition="$ARGUMENTS not provided">
-      <action>List tasks in `refined` status from `.kanban/tasks/`</action>
-      <output>Show task IDs and titles</output>
+      <action>List tasks in `backlog` or `refined` status from `.kanban/tasks/`</action>
+      <output>Show task IDs, titles, and status</output>
       <prompt>Which task to scope?</prompt>
     </branch>
   </step>
 
-  <step name="read_task_file" outputs="taskPath, title, acceptanceCriteria">
+  <step name="read_task_file" outputs="taskPath, title, acceptanceCriteria, status">
     <command>node .claude/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse YAML frontmatter</action>
-    <validate>Verify status is `refined`</validate>
-    <branch condition="status is not refined">
-      <prompt>Task is in {status} status. Expected: refined. Continue anyway? (y/n)</prompt>
+    <validate>Verify status is `backlog` or `refined`</validate>
+    <branch condition="status is not backlog and not refined">
+      <output>Task is in {status} status. Expected: backlog or refined.</output>
+      <prompt>Continue anyway? (y/n)</prompt>
     </branch>
     <action>Extract problem, value, and acceptance criteria for reference</action>
     <branch condition="task not found">
       <output>Error: Task not found</output>
       <action>Exit</action>
     </branch>
+  </step>
+
+  <step name="check_readiness" when="status is backlog">
+    <note>Tasks coming directly from backlog (skipping refinement) need a readiness check</note>
+    <validate>Check if `## Description` section has content (not empty/placeholder)</validate>
+    <validate>Check if `## What problem are you trying to solve?` has content OR description provides clear context</validate>
+
+    <branch condition="criteria met">
+      <action>Proceed to scoping</action>
+    </branch>
+
+    <branch condition="criteria NOT met">
+      <output>This task is not well refined. I recommend running `/kanban-refine {taskId}` first.</output>
+      <prompt>Proceed anyway? (Y/N)</prompt>
+      <branch condition="user says Y">
+        <action>Proceed to scoping (user accepts risk of incomplete requirements)</action>
+      </branch>
+      <branch condition="user says N">
+        <output>Run `/kanban-refine {taskId}` to clarify the task requirements first.</output>
+        <action>Exit</action>
+      </branch>
+    </branch>
+
+    <note>Tasks in `refined` status skip this check - they've already been through refinement</note>
   </step>
 
   <step name="load_user_skills">
@@ -215,7 +240,7 @@ updated: {YYYY-MM-DD}
   </step>
 
   <step name="update_task_frontmatter">
-    <action>Change `status: refined` to `status: scoped`</action>
+    <action>Change status to `scoped` (from either `backlog` or `refined`)</action>
     <action>Add `spec: "tasks/{taskId}/spec.md"` to frontmatter</action>
     <action>Update `updated: {YYYY-MM-DD}`</action>
   </step>

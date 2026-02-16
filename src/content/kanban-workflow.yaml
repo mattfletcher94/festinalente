@@ -51,9 +51,6 @@ labels:
     name: Refactor
     commit-type: refactor
     detect-keywords: [refactor, restructure, reorganize, cleanup]
-  - id: needs-refinement
-    name: Needs Refinement
-    description: Task is vague and requires Q&A refinement before planning
 
 priorities:
   - id: high
@@ -65,7 +62,7 @@ priorities:
 
 transitions:
   # Format: source -> [valid destinations]
-  backlog: [refined]
+  backlog: [refined, scoped]
   refined: [scoped]
   scoped: [planned]
   planned: [in-progress]

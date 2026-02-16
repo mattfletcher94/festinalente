@@ -24,7 +24,9 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(gh api:*)",
       "Bash(ls:*)",
-      "Bash(dir /b \"C:\\\\Users\\\\MattF\\\\Documents\\\\Code\\\\claudeban\\\\*.md\")"
+      "Bash(dir /b \"C:\\\\Users\\\\MattF\\\\Documents\\\\Code\\\\claudeban\\\\*.md\")",
+      "Bash(tree:*)",
+      "Bash(pnpm build)"
     ]
   }
 }

@@ -93,16 +93,6 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
     <note>Default to `medium` if not specified</note>
   </step>
 
-  <step name="detect_vague" when="task has vagueness indicators">
-    <validate>Check if task was created with ONLY a title (no $ARGUMENTS body/description provided)</validate>
-    <validate>Check if title is very short (&lt;5 words) without clear action verb</validate>
-    <validate>Check if no description could be generated (title too ambiguous)</validate>
-    <branch condition="ANY vagueness indicator detected">
-      <action>Add `needs-refinement` to labels array (from kanban-workflow.yaml)</action>
-      <output>Task marked as needs-refinement. Run `/kanban-refine {id}` to clarify before planning.</output>
-    </branch>
-  </step>
-
   <step name="determine_label">
     <action>Use `labels[].detect-keywords` from kanban-workflow.yaml to auto-detect label from title/context</action>
     <branch condition="label unclear">
@@ -130,9 +120,6 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
   <step name="output_result">
     <output>Print the created file path and task ID</output>
     <output>Print commit hash</output>
-    <branch condition="needs-refinement label was added">
-      <output>Note: Task marked as needs-refinement</output>
-    </branch>
   </step>
 </process>
 

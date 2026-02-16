@@ -69,7 +69,6 @@ From `.claude/kanban-workflow.yaml`:
 - `feature` - New features
 - `docs` - Documentation
 - `refactor` - Code refactoring
-- `needs-refinement` - Tasks requiring more detail
 </note>
 
 <note>

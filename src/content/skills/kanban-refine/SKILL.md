@@ -43,8 +43,8 @@ Refine vague tasks through iterative conversational Q&A focused on product/busin
       <action>Use $ARGUMENTS as taskId</action>
     </branch>
     <branch condition="$ARGUMENTS not provided">
-      <action>List tasks with `needs-refinement` label from `.kanban/tasks/`</action>
-      <output>Show task IDs, titles, and current vagueness indicators</output>
+      <action>List tasks in `backlog` status from `.kanban/tasks/`</action>
+      <output>Show task IDs and titles</output>
       <prompt>Which task to refine?</prompt>
     </branch>
   </step>
@@ -53,12 +53,10 @@ Refine vague tasks through iterative conversational Q&A focused on product/busin
     <command>node .claude/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse YAML frontmatter</action>
-    <validate>Check if task has `needs-refinement` label (from kanban-workflow.yaml)</validate>
-    <branch condition="needs-refinement label present">
-      <action>Proceed with refinement</action>
-    </branch>
-    <branch condition="needs-refinement label not present">
-      <prompt>Task does not have needs-refinement label. Refine anyway? (y/n)</prompt>
+    <validate>Verify task status is `backlog` (refinement moves to `refined`)</validate>
+    <branch condition="status is not backlog">
+      <output>Task is already in {status} status. Refinement is for tasks in backlog.</output>
+      <prompt>Refine anyway? (y/n)</prompt>
     </branch>
     <action>Note current title, description, acceptance criteria (if any)</action>
     <branch condition="task not found">
@@ -155,7 +153,6 @@ Refine vague tasks through iterative conversational Q&A focused on product/busin
     <action>Update frontmatter:</action>
     <action>Change status per `transitions.backlog` in kanban-workflow.yaml (`backlog` → `refined`)</action>
     <action>Add `updated: {YYYY-MM-DD}`</action>
-    <action>Remove `needs-refinement` from labels if present</action>
   </step>
 
   <step name="format_acceptance_criteria">
