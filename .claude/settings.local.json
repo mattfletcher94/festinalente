@@ -43,7 +43,8 @@
       "WebFetch(domain:www.shadcn-vue.com)",
       "Bash(pnpm dlx shadcn-vue@latest add:*)",
       "Bash(curl:*)",
-      "WebFetch(domain:addyosmani.com)"
+      "WebFetch(domain:addyosmani.com)",
+      "Bash(if not exist \".kanban\\\\product\" mkdir \".kanban\\\\product\")"
     ]
   }
 }

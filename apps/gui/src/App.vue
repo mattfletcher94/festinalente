@@ -22,7 +22,8 @@ const settingsLoaded = ref(false);
 // Load settings on mount
 onMounted(async () => {
   const settings = await window.electronAPI.getAllSettings();
-  if (settings.projectPath) {
+  // Only use projectPath if it's a valid string
+  if (typeof settings.projectPath === 'string') {
     projectPath.value = settings.projectPath;
   }
   if (settings.panelSizes) {
@@ -42,6 +43,22 @@ function handleCreateTask() {
 async function handleProjectSelected(path: string) {
   projectPath.value = path;
   await window.electronAPI.setSetting('projectPath', path);
+}
+
+async function handleChangeProject() {
+  // Kill any running terminal process
+  await window.electronAPI.ptyKill();
+
+  // Open folder picker
+  const result = await window.electronAPI.openProject();
+  if (result.canceled || result.error) return;
+
+  // Reset state
+  selectedTask.value = null;
+  isTerminalReady.value = true;
+
+  // Update project path
+  await handleProjectSelected(result.projectPath!);
 }
 
 async function handlePanelResize(sizes: number[]) {
@@ -101,6 +118,7 @@ function handleTerminalExit() {
               :project-path="projectPath"
               @select-task="handleSelectTask"
               @create-task="handleCreateTask"
+              @change-project="handleChangeProject"
             />
           </ResizablePanel>
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { Plus, ChevronDown, ChevronRight } from 'lucide-vue-next';
+import { Plus, ChevronDown, ChevronRight, FolderOpen } from 'lucide-vue-next';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
@@ -29,6 +29,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   selectTask: [task: Task];
   createTask: [];
+  changeProject: [];
 }>();
 
 const tasks = ref<Task[]>([]);
@@ -102,9 +103,14 @@ onMounted(() => {
     <!-- Header -->
     <div class="flex items-center justify-between px-4 h-14 border-b border-border">
       <h2 class="text-sm font-semibold">Tasks</h2>
-      <Button variant="ghost" size="icon" class="h-7 w-7" @click="emit('createTask')">
-        <Plus class="h-4 w-4" />
-      </Button>
+      <div class="flex items-center gap-1">
+        <Button variant="ghost" size="icon" class="h-7 w-7" title="Change project" @click="emit('changeProject')">
+          <FolderOpen class="h-4 w-4" />
+        </Button>
+        <Button variant="ghost" size="icon" class="h-7 w-7" title="Create task" @click="emit('createTask')">
+          <Plus class="h-4 w-4" />
+        </Button>
+      </div>
     </div>
 
     <!-- Task List -->
