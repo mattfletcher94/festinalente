@@ -24,6 +24,7 @@ The GUI system is an Electron + Vue 3 desktop application that provides a visual
 | App | Application-level orchestrator and settings |
 | Tasks | Task listing, selection, and content display |
 | Terminal | PTY integration with xterm.js |
+| Hook Config | Read directive configuration from `.kanban/config.yaml` |
 | Settings | Persistent settings via electron-store |
 | UI | Reusable UI components (shadcn-vue style) |
 
@@ -90,9 +91,15 @@ apps/gui/
     │   └── (same pattern)
     ├── settings/
     │   └── (same pattern)
+    ├── hook-config/
+    │   ├── hook-config-types.ts
+    │   ├── hook-config.capability.ts
+    │   ├── hook-config.provider.ts
+    │   └── index.ts
     └── components/
         ├── TaskList.vue
         ├── TaskDetail.vue
+        ├── TaskDetailNextUp.vue
         ├── TerminalPanel.vue
         ├── ProjectPicker.vue
         └── ui/           # Reusable components

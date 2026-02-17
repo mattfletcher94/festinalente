@@ -1,7 +1,7 @@
 ---
 id: "001"
 title: "Expand 'Next Up' button to full section with directive hooks display"
-status: "update-docs"
+status: "pr"
 priority: "medium"
 labels: [feature]
 created: 2026-02-17
