@@ -1,100 +1,40 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { onMounted } from 'vue';
 import { Plus, ChevronDown, ChevronRight, FolderOpen } from 'lucide-vue-next';
+
+import { injectApp } from '@/app';
+import { injectSettings } from '@/settings';
+import { injectTasks, type Task } from '@/tasks';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from './ui/collapsible';
 import { cn } from '@/lib/utils';
 
-interface Task {
-  id: string;
-  title: string;
-  status: string;
-  priority?: string;
-  labels?: string[];
-  path: string;
+// Inject orchestrators
+const app = injectApp();
+const settings = injectSettings();
+const tasks = injectTasks();
+
+// Actions
+function handleSelectTask(task: Task) {
+  tasks.selectTask(task);
 }
 
-interface Column {
-  id: string;
-  name: string;
-  open: boolean;
+function handleCreateTask() {
+  app.createTask();
 }
 
-const props = defineProps<{
-  projectPath: string;
-}>();
+function handleChangeProject() {
+  app.changeProject();
+}
 
-const emit = defineEmits<{
-  selectTask: [task: Task];
-  createTask: [];
-  changeProject: [];
-}>();
-
-const tasks = ref<Task[]>([]);
-const selectedTaskId = ref<string | null>(null);
-const loading = ref(true);
-
-// Column order matching kanban workflow
-const columns = ref<Column[]>([
-  { id: 'in-progress', name: 'In Progress', open: true },
-  { id: 'codecheck', name: 'Code Check', open: true },
-  { id: 'qa', name: 'QA', open: true },
-  { id: 'update-docs', name: 'Update Docs', open: true },
-  { id: 'pr', name: 'PR', open: true },
-  { id: 'planned', name: 'Planned', open: true },
-  { id: 'scoped', name: 'Scoped', open: true },
-  { id: 'refined', name: 'Refined', open: true },
-  { id: 'backlog', name: 'Backlog', open: true },
-  { id: 'done', name: 'Done', open: false },
-]);
-
-// Group tasks by status
-const tasksByColumn = computed(() => {
-  const grouped: Record<string, Task[]> = {};
-  for (const col of columns.value) {
-    grouped[col.id] = tasks.value.filter(t => t.status === col.id);
+// Load tasks on mount
+onMounted(async () => {
+  const projectPath = settings.projectPath.value;
+  if (projectPath) {
+    await tasks.loadTasks(projectPath);
   }
-  return grouped;
-});
-
-// Only show columns that have tasks
-const visibleColumns = computed(() => {
-  return columns.value.filter(col => tasksByColumn.value[col.id]?.length > 0);
-});
-
-function selectTask(task: Task) {
-  selectedTaskId.value = task.id;
-  emit('selectTask', task);
-}
-
-function getLabelVariant(label: string): 'default' | 'secondary' | 'destructive' | 'outline' {
-  switch (label) {
-    case 'bug': return 'destructive';
-    case 'feature': return 'default';
-    default: return 'secondary';
-  }
-}
-
-async function loadTasks() {
-  loading.value = true;
-  try {
-    const result = await window.electronAPI.listTasks(props.projectPath);
-    tasks.value = result;
-  } catch (err) {
-    console.error('Failed to load tasks:', err);
-  }
-  loading.value = false;
-}
-
-// Expose refresh method
-defineExpose({
-  refresh: loadTasks,
-});
-
-onMounted(() => {
-  loadTasks();
 });
 </script>
 
@@ -104,10 +44,22 @@ onMounted(() => {
     <div class="flex items-center justify-between px-4 h-14 border-b border-border">
       <h2 class="text-sm font-semibold">Tasks</h2>
       <div class="flex items-center gap-1">
-        <Button variant="ghost" size="icon" class="h-7 w-7" title="Change project" @click="emit('changeProject')">
+        <Button
+          variant="ghost"
+          size="icon"
+          class="h-7 w-7"
+          title="Change project"
+          @click="handleChangeProject"
+        >
           <FolderOpen class="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="icon" class="h-7 w-7" title="Create task" @click="emit('createTask')">
+        <Button
+          variant="ghost"
+          size="icon"
+          class="h-7 w-7"
+          title="Create task"
+          @click="handleCreateTask"
+        >
           <Plus class="h-4 w-4" />
         </Button>
       </div>
@@ -115,17 +67,20 @@ onMounted(() => {
 
     <!-- Task List -->
     <ScrollArea class="flex-1">
-      <div v-if="loading" class="p-4 text-sm text-muted-foreground">
+      <div v-if="tasks.loading.value" class="p-4 text-sm text-muted-foreground">
         Loading tasks...
       </div>
 
-      <div v-else-if="visibleColumns.length === 0" class="p-4 text-sm text-muted-foreground">
+      <div
+        v-else-if="tasks.visibleColumns.value.length === 0"
+        class="p-4 text-sm text-muted-foreground"
+      >
         No tasks yet. Click + to create one.
       </div>
 
       <template v-else>
         <Collapsible
-          v-for="column in visibleColumns"
+          v-for="column in tasks.visibleColumns.value"
           :key="column.id"
           v-model:open="column.open"
           class="border-b border-border last:border-b-0"
@@ -140,7 +95,9 @@ onMounted(() => {
                 class="h-3 w-3"
               />
               <span>{{ column.name }}</span>
-              <span class="ml-auto opacity-60">{{ tasksByColumn[column.id].length }}</span>
+              <span class="ml-auto opacity-60">
+                {{ tasks.tasksByColumn.value[column.id].length }}
+              </span>
             </button>
           </CollapsibleTrigger>
 
@@ -148,13 +105,13 @@ onMounted(() => {
           <CollapsibleContent>
             <div>
               <button
-                v-for="task in tasksByColumn[column.id]"
+                v-for="task in tasks.tasksByColumn.value[column.id]"
                 :key="task.id"
                 :class="cn(
                   'w-full text-left px-4 py-2 hover:bg-accent hover:text-accent-foreground transition-colors',
-                  selectedTaskId === task.id && 'bg-accent text-accent-foreground'
+                  tasks.selectedTaskId.value === task.id && 'bg-accent text-accent-foreground'
                 )"
-                @click="selectTask(task)"
+                @click="handleSelectTask(task)"
               >
                 <div class="flex items-start gap-2">
                   <!-- Task ID -->
@@ -169,7 +126,7 @@ onMounted(() => {
                       <Badge
                         v-for="label in task.labels.slice(0, 2)"
                         :key="label"
-                        :variant="getLabelVariant(label)"
+                        :variant="tasks.actionsComputer.getLabelVariant(label)"
                         class="text-[10px] px-1.5 py-0"
                       >
                         {{ label }}

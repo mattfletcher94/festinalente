@@ -57,21 +57,23 @@ Capability   <- Orchestrator
 
 When checking architecture:
 
-1. **Verify module classification**:
+1. **Run automated circular dependency check**: `pnpm check:dpdm` (must report zero circular dependencies)
+
+2. **Verify module classification**:
    - Every module has correct suffix (`.computer.ts`, `.capability.ts`, `.orchestrator.ts`)
    - Factory functions follow `create{Name}{Category}` pattern
 
-2. **Check dependency direction**:
+3. **Check dependency direction**:
    - Computers only import other computers
    - Capabilities only import computers (direct, no DI needed)
    - Orchestrators inject capabilities via explicit DI
 
-3. **Verify policy/mechanism separation**:
+4. **Verify policy/mechanism separation**:
    - No `ensureX`, `getOrCreateX`, `maybeDoX` in capabilities
    - Cache/pool policy in orchestrators only
    - Lazy initialization in orchestrators only
 
-4. **Check naming conventions**:
+5. **Check naming conventions**:
    - No `*Manager`, `*Service`, `*Helper`, `*Utils` names
    - Return types follow `Create{Name}{Category}Return` pattern
 

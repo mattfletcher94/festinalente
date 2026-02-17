@@ -8,6 +8,7 @@
     "build": "turbo build",
     "clean": "turbo clean",
     "typecheck": "turbo typecheck",
+    "check:dpdm": "npx dpdm -T --no-warning --exit-code circular:1 apps/gui/src/main.ts",
     "kanban:build": "pnpm --filter claude-kanban build",
     "gui:dev": "pnpm --filter claude-kanban-gui dev"
   },

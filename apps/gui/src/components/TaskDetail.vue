@@ -1,195 +1,55 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
 import { FileText, Play, RotateCcw } from 'lucide-vue-next';
+
+import { injectApp } from '@/app';
+import { injectTasks } from '@/tasks';
+import { injectTerminal } from '@/terminal';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
 
-interface Task {
-  id: string;
-  title: string;
-  status: string;
-  priority?: string;
-  labels?: string[];
-  path: string;
-}
+// Inject orchestrators
+const app = injectApp();
+const tasks = injectTasks();
+const terminal = injectTerminal();
 
-interface Action {
-  label: string;
-  command: string;
-  variant: 'default' | 'secondary' | 'destructive' | 'outline';
-  description: string;
-}
-
-const props = defineProps<{
-  task: Task | null;
-  projectPath: string;
-  disabled?: boolean;
-}>();
-
-const emit = defineEmits<{
-  runCommand: [command: string];
-}>();
-
+// Local state for active tab
 const activeTab = ref<'task' | 'spec' | 'plan'>('task');
-const taskContent = ref<string>('');
-const specContent = ref<string>('');
-const planContent = ref<string>('');
-const loading = ref(false);
-const availableFiles = ref({ task: false, spec: false, plan: false });
 
-// Get the next action(s) based on task status
-const actions = computed<Action[]>(() => {
-  if (!props.task) return [];
-
-  const id = props.task.id;
-
-  switch (props.task.status) {
-    case 'backlog':
-      return [
-        { label: 'Refine', command: `/kanban-refine ${id}`, variant: 'default', description: 'Clarify requirements through Q&A' },
-      ];
-    case 'refined':
-      return [
-        { label: 'Scope', command: `/kanban-scope ${id}`, variant: 'default', description: 'Research codebase and create spec' },
-      ];
-    case 'scoped':
-      return [
-        { label: 'Plan', command: `/kanban-plan ${id}`, variant: 'default', description: 'Create implementation plan' },
-      ];
-    case 'planned':
-      return [
-        { label: 'Implement', command: `/kanban-implement ${id}`, variant: 'default', description: 'Execute the plan' },
-      ];
-    case 'in-progress':
-      return [
-        { label: 'Continue', command: `/kanban-implement ${id}`, variant: 'default', description: 'Resume implementation' },
-        { label: 'Save WIP', command: `/kanban-save ${id}`, variant: 'outline', description: 'Commit progress and pause' },
-      ];
-    case 'codecheck':
-      return [
-        { label: 'Run Checks', command: `/kanban-codecheck ${id}`, variant: 'default', description: 'Run tests and linting' },
-      ];
-    case 'qa':
-      return [
-        { label: 'Approve', command: `/kanban-approve ${id}`, variant: 'default', description: 'QA passed, commit code' },
-        { label: 'Rework', command: `/kanban-rework ${id}`, variant: 'outline', description: 'Send back for fixes' },
-      ];
-    case 'update-docs':
-      return [
-        { label: 'Update Docs', command: `/kanban-docs ${id}`, variant: 'default', description: 'Update documentation' },
-      ];
-    case 'pr':
-      return [
-        { label: 'Merge', command: `/kanban-merge ${id}`, variant: 'default', description: 'Merge to main' },
-        { label: 'Rework', command: `/kanban-rework ${id}`, variant: 'outline', description: 'Send back for fixes' },
-      ];
-    case 'done':
-      return [];
-    default:
-      return [];
-  }
+// Get actions for the selected task
+const actions = computed(() => {
+  const task = tasks.selectedTask.value;
+  if (!task) return [];
+  return tasks.actionsComputer.getActions(task);
 });
 
-function getStatusVariant(status: string): 'default' | 'secondary' | 'destructive' | 'outline' {
-  switch (status) {
-    case 'in-progress':
-    case 'codecheck':
-    case 'qa':
-      return 'default';
-    case 'done':
-      return 'secondary';
-    default:
-      return 'outline';
+// Reset tab when task changes
+watch(
+  () => tasks.selectedTask.value,
+  () => {
+    activeTab.value = 'task';
   }
-}
+);
 
-function getLabelVariant(label: string): 'default' | 'secondary' | 'destructive' | 'outline' {
-  switch (label) {
-    case 'bug': return 'destructive';
-    case 'feature': return 'default';
-    default: return 'secondary';
-  }
-}
-
-function getPriorityClasses(priority: string): string {
-  switch (priority.toLowerCase()) {
-    case 'critical':
-    case 'high':
-      return 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 border-red-200 dark:border-red-800';
-    case 'medium':
-      return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800';
-    case 'low':
-      return 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 border-green-200 dark:border-green-800';
-    default:
-      return 'bg-muted text-muted-foreground';
-  }
-}
-
-async function loadAllContent() {
-  if (!props.task) {
-    taskContent.value = '';
-    specContent.value = '';
-    planContent.value = '';
-    availableFiles.value = { task: false, spec: false, plan: false };
-    return;
-  }
-
-  loading.value = true;
-  try {
-    // Check which files exist
-    availableFiles.value = await window.electronAPI.getAvailableTaskFiles(props.projectPath, props.task.id);
-
-    // Load task content
-    if (availableFiles.value.task) {
-      taskContent.value = await window.electronAPI.readTaskFile(props.projectPath, props.task.id);
-    }
-
-    // Load spec content if exists
-    if (availableFiles.value.spec) {
-      const spec = await window.electronAPI.readSpecFile(props.projectPath, props.task.id);
-      specContent.value = spec || '';
-    } else {
-      specContent.value = '';
-    }
-
-    // Load plan content if exists
-    if (availableFiles.value.plan) {
-      const plan = await window.electronAPI.readPlanFile(props.projectPath, props.task.id);
-      planContent.value = plan || '';
-    } else {
-      planContent.value = '';
-    }
-
-    // Reset to task tab if current tab isn't available
-    if (activeTab.value === 'spec' && !availableFiles.value.spec) {
+// Reset tab if current tab becomes unavailable
+watch(
+  () => tasks.availableFiles.value,
+  (files) => {
+    if (activeTab.value === 'spec' && !files.spec) {
       activeTab.value = 'task';
-    } else if (activeTab.value === 'plan' && !availableFiles.value.plan) {
+    } else if (activeTab.value === 'plan' && !files.plan) {
       activeTab.value = 'task';
     }
-  } catch (err) {
-    console.error('Failed to load task content:', err);
-    taskContent.value = 'Failed to load task content.';
   }
-  loading.value = false;
-}
-
-watch(() => props.task, () => {
-  activeTab.value = 'task';
-  loadAllContent();
-}, { immediate: true });
-
-// Expose refresh method
-defineExpose({
-  refresh: loadAllContent,
-});
+);
 </script>
 
 <template>
   <div class="h-full flex flex-col bg-card text-card-foreground">
     <!-- Empty State -->
-    <div v-if="!task" class="flex-1 flex items-center justify-center">
+    <div v-if="!tasks.selectedTask.value" class="flex-1 flex items-center justify-center">
       <div class="text-center text-muted-foreground">
         <FileText class="h-12 w-12 mx-auto mb-3 opacity-50" />
         <p class="text-sm">Select a task to view details</p>
@@ -203,8 +63,10 @@ defineExpose({
         <!-- Title Row -->
         <div class="flex items-start justify-between gap-3 mb-3">
           <h2 class="text-base font-semibold leading-tight">
-            {{ task.title }}
-            <span class="font-mono text-muted-foreground text-sm font-normal ml-1.5">{{ task.id }}</span>
+            {{ tasks.selectedTask.value.title }}
+            <span class="font-mono text-muted-foreground text-sm font-normal ml-1.5">
+              {{ tasks.selectedTask.value.id }}
+            </span>
           </h2>
         </div>
 
@@ -212,21 +74,24 @@ defineExpose({
         <div class="flex items-center justify-between gap-4">
           <!-- Meta (left) -->
           <div class="flex items-center gap-1.5 flex-wrap">
-            <Badge :variant="getStatusVariant(task.status)" class="text-xs">
-              {{ task.status }}
-            </Badge>
             <Badge
-              v-if="task.priority"
-              variant="outline"
-              :class="getPriorityClasses(task.priority)"
+              :variant="tasks.actionsComputer.getStatusVariant(tasks.selectedTask.value.status)"
               class="text-xs"
             >
-              {{ task.priority }}
+              {{ tasks.selectedTask.value.status }}
             </Badge>
             <Badge
-              v-for="label in task.labels"
+              v-if="tasks.selectedTask.value.priority"
+              variant="outline"
+              :class="tasks.actionsComputer.getPriorityClasses(tasks.selectedTask.value.priority)"
+              class="text-xs"
+            >
+              {{ tasks.selectedTask.value.priority }}
+            </Badge>
+            <Badge
+              v-for="label in tasks.selectedTask.value.labels"
               :key="label"
-              :variant="getLabelVariant(label)"
+              :variant="tasks.actionsComputer.getLabelVariant(label)"
               class="text-xs"
             >
               {{ label }}
@@ -240,17 +105,17 @@ defineExpose({
               :key="action.command"
               :variant="action.variant"
               size="sm"
-              :disabled="disabled"
+              :disabled="!terminal.isReady.value"
               :title="action.description"
-              @click="emit('runCommand', action.command)"
               class="h-7 text-xs"
+              @click="app.runCommand(action.command)"
             >
               <Play v-if="action.variant === 'default'" class="h-3 w-3 mr-1" />
               <RotateCcw v-else class="h-3 w-3 mr-1" />
               {{ action.label }}
             </Button>
           </div>
-          <div v-else-if="task.status === 'done'" class="flex-shrink-0">
+          <div v-else-if="tasks.selectedTask.value.status === 'done'" class="flex-shrink-0">
             <Badge variant="secondary" class="text-xs">Complete</Badge>
           </div>
         </div>
@@ -260,13 +125,19 @@ defineExpose({
       <Tabs v-model="activeTab" class="flex-1 flex flex-col min-h-0">
         <div class="flex items-center h-10 px-4 border-b border-border">
           <TabsList class="h-8">
-            <TabsTrigger value="task" class="text-xs px-3">
-              Task
-            </TabsTrigger>
-            <TabsTrigger value="spec" :disabled="!availableFiles.spec" class="text-xs px-3">
+            <TabsTrigger value="task" class="text-xs px-3">Task</TabsTrigger>
+            <TabsTrigger
+              value="spec"
+              :disabled="!tasks.availableFiles.value.spec"
+              class="text-xs px-3"
+            >
               Spec
             </TabsTrigger>
-            <TabsTrigger value="plan" :disabled="!availableFiles.plan" class="text-xs px-3">
+            <TabsTrigger
+              value="plan"
+              :disabled="!tasks.availableFiles.value.plan"
+              class="text-xs px-3"
+            >
               Plan
             </TabsTrigger>
           </TabsList>
@@ -277,8 +148,13 @@ defineExpose({
           <TabsContent value="task" class="h-full m-0">
             <ScrollArea class="h-full">
               <div class="p-4">
-                <div v-if="loading" class="text-sm text-muted-foreground">Loading...</div>
-                <pre v-else class="text-sm whitespace-pre-wrap font-mono leading-relaxed text-foreground/80">{{ taskContent }}</pre>
+                <div v-if="tasks.contentLoading.value" class="text-sm text-muted-foreground">
+                  Loading...
+                </div>
+                <pre
+                  v-else
+                  class="text-sm whitespace-pre-wrap font-mono leading-relaxed text-foreground/80"
+                >{{ tasks.taskContent.value }}</pre>
               </div>
             </ScrollArea>
           </TabsContent>
@@ -286,8 +162,13 @@ defineExpose({
           <TabsContent value="spec" class="h-full m-0">
             <ScrollArea class="h-full">
               <div class="p-4">
-                <div v-if="loading" class="text-sm text-muted-foreground">Loading...</div>
-                <pre v-else class="text-sm whitespace-pre-wrap font-mono leading-relaxed text-foreground/80">{{ specContent }}</pre>
+                <div v-if="tasks.contentLoading.value" class="text-sm text-muted-foreground">
+                  Loading...
+                </div>
+                <pre
+                  v-else
+                  class="text-sm whitespace-pre-wrap font-mono leading-relaxed text-foreground/80"
+                >{{ tasks.specContent.value }}</pre>
               </div>
             </ScrollArea>
           </TabsContent>
@@ -295,8 +176,13 @@ defineExpose({
           <TabsContent value="plan" class="h-full m-0">
             <ScrollArea class="h-full">
               <div class="p-4">
-                <div v-if="loading" class="text-sm text-muted-foreground">Loading...</div>
-                <pre v-else class="text-sm whitespace-pre-wrap font-mono leading-relaxed text-foreground/80">{{ planContent }}</pre>
+                <div v-if="tasks.contentLoading.value" class="text-sm text-muted-foreground">
+                  Loading...
+                </div>
+                <pre
+                  v-else
+                  class="text-sm whitespace-pre-wrap font-mono leading-relaxed text-foreground/80"
+                >{{ tasks.planContent.value }}</pre>
               </div>
             </ScrollArea>
           </TabsContent>
