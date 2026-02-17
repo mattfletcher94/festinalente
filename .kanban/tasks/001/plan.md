@@ -6,7 +6,7 @@ created: 2026-02-17
 generated_by: claude
 model: claude-opus-4-5-20251101
 version: 1
-iteration: 1
+iteration: 2
 complexity: complex
 ---
 
@@ -76,11 +76,11 @@ Graph is acyclic - computers have no dependencies, capability imports nothing fr
 **Requirements:** FR6
 **Pattern:** IPC handler at `apps/gui/electron/main/index.ts:136`
 
-- [ ] Import `js-yaml` (already available)
-- [ ] Add `ipcMain.handle('hooks:getConfig', ...)` handler
-- [ ] Read `.kanban/config.yaml` from project path
-- [ ] Parse YAML and return `hooks` object
-- [ ] Return empty object if file missing or malformed
+- [x] Import `js-yaml` (already available)
+- [x] Add `ipcMain.handle('hooks:getConfig', ...)` handler
+- [x] Read `.kanban/config.yaml` from project path
+- [x] Parse YAML and return `hooks` object
+- [x] Return empty object if file missing or malformed
 
 **Snippet:**
 ```typescript
@@ -101,8 +101,8 @@ ipcMain.handle('hooks:getConfig', async (_, projectPath: string, hookName: strin
 **Requirements:** FR6
 **Pattern:** Preload pattern at `apps/gui/electron/preload/index.ts:22`
 
-- [ ] Add `getHookConfig` method to electronAPI
-- [ ] Takes `projectPath` and `hookName` parameters
+- [x] Add `getHookConfig` method to electronAPI
+- [x] Takes `projectPath` and `hookName` parameters
 
 **Verify:** `window.electronAPI.getHookConfig` is available in renderer
 
@@ -113,8 +113,8 @@ ipcMain.handle('hooks:getConfig', async (_, projectPath: string, hookName: strin
 **Requirements:** FR4, FR5
 **Pattern:** Type definitions following `apps/gui/src/tasks/task-types.ts`
 
-- [ ] Define `HookConfig` interface with `directives: string[]`
-- [ ] Export types
+- [x] Define `HookConfig` interface with `directives: string[]`
+- [x] Export types
 
 **Snippet:**
 ```typescript
@@ -130,10 +130,10 @@ export interface HookConfig {
 **Requirements:** FR6
 **Pattern:** Capability at `apps/gui/src/tasks/tasks-api.capability.ts`
 
-- [ ] Define `CreateHookConfigCapabilityReturn` interface
-- [ ] Implement `createHookConfigCapability()` factory
-- [ ] Add `getConfig(projectPath, hookName)` method
-- [ ] Include TSDoc on all exports
+- [x] Define `CreateHookConfigCapabilityReturn` interface
+- [x] Implement `createHookConfigCapability()` factory
+- [x] Add `getConfig(projectPath, hookName)` method
+- [x] Include TSDoc on all exports
 
 **Verify:** Capability can be imported and instantiated
 
@@ -142,8 +142,8 @@ export interface HookConfig {
 **Requirements:** FR6
 **Pattern:** Provider at `apps/gui/src/tasks/tasks.provider.ts`
 
-- [ ] Use `createContext<CreateHookConfigCapabilityReturn>('HookConfig')`
-- [ ] Export `injectHookConfig`, `provideHookConfig`
+- [x] Use `createContext<CreateHookConfigCapabilityReturn>('HookConfig')`
+- [x] Export `injectHookConfig`, `provideHookConfig`
 
 **Verify:** Provider exports compile correctly
 
@@ -151,7 +151,7 @@ export interface HookConfig {
 **Files:** `apps/gui/src/hook-config/index.ts` (create)
 **Requirements:** FR6
 
-- [ ] Export all from capability, provider, types
+- [x] Export all from capability, provider, types
 
 **Verify:** `import { ... } from '@/hook-config'` works
 
@@ -162,10 +162,10 @@ export interface HookConfig {
 **Requirements:** FR2, FR4
 **Pattern:** Computer method pattern in same file
 
-- [ ] Add `getHookName(command: string): string` method
-- [ ] Extract hook name from command (e.g., `/kanban-scope 001` → `kanban-scope`)
-- [ ] Update `CreateTaskActionsComputerReturn` interface
-- [ ] Add TSDoc for new method
+- [x] Add `getHookName(command: string): string` method
+- [x] Extract hook name from command (e.g., `/kanban-scope 001` → `kanban-scope`)
+- [x] Update `CreateTaskActionsComputerReturn` interface
+- [x] Add TSDoc for new method
 
 **Snippet:**
 ```typescript
@@ -185,9 +185,9 @@ function getHookName(command: string): string {
 **Requirements:** FR6
 **Pattern:** Composition root at `apps/gui/src/App.vue`
 
-- [ ] Import `createHookConfigCapability`, `provideHookConfig`
-- [ ] Create capability instance
-- [ ] Provide to Vue tree
+- [x] Import `createHookConfigCapability`, `provideHookConfig`
+- [x] Create capability instance
+- [x] Provide to Vue tree
 
 **Verify:** Capability is available via `injectHookConfig()`
 
@@ -195,14 +195,14 @@ function getHookName(command: string): string {
 **Files:** `apps/gui/src/components/TaskDetail.vue` (modify)
 **Requirements:** FR1, FR2, FR3, FR4, FR5, FR7
 
-- [ ] Import `injectHookConfig`
-- [ ] Add `hookConfigs` ref to store config per action
-- [ ] Add watcher to load hook configs when actions change
-- [ ] Replace inline action buttons with Next Up section
-- [ ] Display action explanation text (from `action.description`)
-- [ ] Display directive names as comma-separated list when present
-- [ ] Hide directives list when empty
-- [ ] Style section with flex layout for auto-sizing
+- [x] Import `injectHookConfig`
+- [x] Add `hookConfigs` ref to store config per action
+- [x] Add watcher to load hook configs when actions change
+- [x] Replace inline action buttons with Next Up section
+- [x] Display action explanation text (from `action.description`)
+- [x] Display directive names as comma-separated list when present
+- [x] Hide directives list when empty
+- [x] Style section with flex layout for auto-sizing
 
 **Snippet (template structure):**
 ```vue
@@ -225,13 +225,13 @@ function getHookName(command: string): string {
 
 ### Phase 5: Final Verification
 
-- [ ] All acceptance criteria from task met
-- [ ] Section appears below header, above tabs
-- [ ] Action explanation displays correctly
-- [ ] Directives show when configured, hidden when empty
-- [ ] Run button executes command in terminal
-- [ ] No regressions in existing task detail functionality
-- [ ] Acyclic dependencies verified (`pnpm check:dpdm`)
+- [x] All acceptance criteria from task met
+- [x] Section appears below header, above tabs
+- [x] Action explanation displays correctly
+- [x] Directives show when configured, hidden when empty
+- [x] Run button executes command in terminal
+- [x] No regressions in existing task detail functionality
+- [x] Acyclic dependencies verified (`pnpm check:dpdm`)
 
 ## Testing Strategy
 
@@ -257,3 +257,17 @@ function getHookName(command: string): string {
 - Hook name extraction — ensure regex handles all command formats correctly; test with commands that have flags or no args
 - Async hook config loading — load configs when actions change, not on every render; use watcher pattern
 - Template rendering order — ensure hookConfigs ref is initialized before template accesses it; use optional chaining
+
+## Iterations
+
+### Attempt 1 — QA Failed (2026-02-17)
+**Phase:** qa
+**Result:** failed
+
+**Issues:**
+- [ ] Remove file-level TSDoc comments from `hook-config.capability.ts` (line 1-3) — forbidden pattern per TSDoc directive
+- [ ] Check all new files in `apps/gui/src/hook-config/` for file-level TSDoc comments and remove them
+
+**Action:** Address issues above, then re-verify
+
+---

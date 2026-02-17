@@ -89,6 +89,27 @@ Validate that all public APIs have proper TSDoc documentation following codebase
 
 ## Common Violations
 
+### File-Level Comments (REJECT)
+
+```ts
+// WRONG: TSDoc at line 1 describing the file/module
+/**
+ * Hook config capability - handles Electron IPC for hook configuration.
+ */
+
+import type { HookConfig } from './hook-config-types';
+
+export interface CreateHookConfigCapabilityReturn { ... }
+
+// CORRECT: No file-level comment, TSDoc only on exports
+import type { HookConfig } from './hook-config-types';
+
+/**
+ * Return type for the hook config capability.
+ */
+export interface CreateHookConfigCapabilityReturn { ... }
+```
+
 ### Missing Multi-line Format (REJECT)
 
 ```ts
