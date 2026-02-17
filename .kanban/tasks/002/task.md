@@ -1,7 +1,7 @@
 ---
 id: "002"
 title: "Inconsistent keyboard navigation for Q&A prompts in kanban skills"
-status: "update-docs"
+status: "pr"
 priority: "high"
 labels: [bug]
 created: 2026-02-17
