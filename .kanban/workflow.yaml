@@ -1,0 +1,91 @@
+# Claude Kanban Workflow Schema
+# This file defines the fixed workflow elements. Not user-configurable.
+# Skills, commands, and templates reference these definitions.
+
+columns:
+  - id: backlog
+    name: Backlog
+    description: New tasks awaiting refinement
+  - id: refined
+    name: Refined
+    description: Tasks refined with problem, value, and acceptance criteria
+  - id: scoped
+    name: Scoped
+    description: Tasks with functional specification ready for planning
+  - id: planned
+    name: Planned
+    description: Tasks with a plan ready for implementation
+  - id: in-progress
+    name: In Progress
+    description: Tasks currently being implemented (code uncommitted)
+  - id: codecheck
+    name: Code Check
+    description: Implementation complete, ready for code checks
+  - id: qa
+    name: QA
+    description: Human tests the application works as expected
+  - id: update-docs
+    name: Update Docs
+    description: QA passed, code committed, documentation needs updating
+  - id: pr
+    name: PR
+    description: Awaiting GitHub PR review and merge
+  - id: done
+    name: Done
+    description: PR merged, task complete
+
+labels:
+  - id: bug
+    name: Bug
+    commit-type: fix
+    detect-keywords: [fix, bug, error, crash, broken]
+  - id: feature
+    name: Feature
+    commit-type: feat
+    detect-keywords: [add, implement, feature, new, create]
+  - id: docs
+    name: Docs
+    commit-type: docs
+    detect-keywords: [doc, readme, guide, "update docs"]
+  - id: refactor
+    name: Refactor
+    commit-type: refactor
+    detect-keywords: [refactor, restructure, reorganize, cleanup]
+
+priorities:
+  - id: high
+    name: High
+  - id: medium
+    name: Medium
+  - id: low
+    name: Low
+
+transitions:
+  # Format: source -> [valid destinations]
+  backlog: [refined, scoped]
+  refined: [scoped]
+  scoped: [planned]
+  planned: [in-progress]
+  in-progress: [codecheck]
+  codecheck: [qa]
+  qa: [update-docs, in-progress]  # approve or rework
+  update-docs: [pr]
+  pr: [done, in-progress]  # merge or rework
+
+commits:
+  # Commit message formats by phase
+  create: "docs({id}): create - {title}"
+  refine: "docs({id}): refine - {title}"
+  scope: "docs({id}): scope - {title}"
+  plan: "docs({id}): plan - {title}"
+  save: "wip({id}): {summary}"
+  codecheck-retry: "docs({id}): codecheck-retry - {title}"  # When AI retries codecheck
+  approve: "{commit-type}({id}): {title}"  # commit-type from label
+  rework: "docs({id}): rework - {title}"  # Consolidated fail command
+  docs: "docs({id}): product - {message}"
+  done: "docs({id}): done - {title}"
+  # Product discovery commands (not part of task workflow)
+  map-product: "docs: map-product - {features}"
+  define-product: "docs: define-product - {description}"
+  # Engineering documentation commands
+  map-engineering: "docs: map-engineering - {systems}"

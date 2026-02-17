@@ -1,0 +1,232 @@
+---
+name: kanban-merge
+description: Merge task branch to main, delete task branch, and complete the task.
+allowed-tools: Read, Write, Bash(ls *, git *)
+argument-hint: "[task-id]"
+disable-model-invocation: true
+---
+
+# Merge Task Branch
+
+<purpose>
+Merge the task branch into main, clean up the branch, and move task to Done.
+</purpose>
+
+<context>
+<note>
+- **`.claude/skills/kanban-*/`** — Installed kanban skills — READ ONLY
+- **`.kanban/`** — Project data and config — READ/WRITE
+- **`.kanban/tasks/{id}/`** — Task folder containing `task.md`, `spec.md`, `plan.md`
+- **`.kanban/scripts/`** — Helper scripts for kanban operations
+- **`.kanban/templates/`** — Document templates
+- **`.kanban/workflow.yaml`** — Workflow config (columns, labels, transitions)
+- **`.kanban/directives/`** — User-defined directives (custom instructions for hooks)
+</note>
+
+<note>Use these scripts to reliably find files:</note>
+
+<command description="Find task by ID (returns JSON with path and metadata)">node .kanban/scripts/find-task.cjs {id}</command>
+
+
+
+
+
+<command description="Get current date/time (returns JSON with iso and date formats)">node .kanban/scripts/get-date-time.cjs</command>
+
+
+<note>Column transition: pr → done</note>
+<note>See `.kanban/workflow.yaml` for column definitions and valid transitions</note>
+</context>
+
+<prohibited>
+- Do not merge with a dirty working tree
+- Do not force push
+- Do not delete branch before merge is complete
+- Do not skip the final commit marking task as done
+</prohibited>
+
+<process>
+  <step name="load_workflow">
+    <action>Read `.kanban/workflow.yaml` for column definitions, labels, priorities, and commit formats</action>
+    <note>Use these values throughout this skill</note>
+  </step>
+
+  <step name="get_task_id" outputs="taskId">
+    <branch condition="$ARGUMENTS provided">
+      <action>Use $ARGUMENTS as taskId</action>
+    </branch>
+    <branch condition="$ARGUMENTS not provided">
+      <action>List tasks in `pr` status from `.kanban/tasks/`</action>
+      <output>Show task IDs and titles</output>
+      <prompt>Which task to merge?</prompt>
+    </branch>
+  </step>
+
+  <step name="read_task_file" outputs="taskPath, title">
+    <command>node .kanban/scripts/find-task.cjs {taskId}</command>
+    <action>Read the file at the `path` from JSON output</action>
+    <action>Parse YAML frontmatter</action>
+    <validate>Verify current status is `pr`</validate>
+    <branch condition="status is update-docs">
+      <output>Suggest `/kanban-docs {taskId}` first</output>
+      <action>Exit</action>
+    </branch>
+    <branch condition="status is earlier">
+      <output>Suggest appropriate command</output>
+      <action>Exit</action>
+    </branch>
+    <branch condition="task not found">
+      <output>Error: Task not found</output>
+      <action>Exit</action>
+    </branch>
+  </step>
+
+  <step name="verify_branch">
+    <command>git branch --show-current</command>
+    <validate>Must be on branch `task/{id}` where {id} is the task ID</validate>
+    <branch condition="not on expected branch">
+      <output>Error: This command must be run on branch task/{id}. Current branch: {branch}</output>
+      <output>Suggest: Switch to task branch with `git checkout task/{id}`</output>
+      <action>Exit</action>
+    </branch>
+  </step>
+
+  <step name="load_hook_config">
+    <step name="load_hook_config">
+      <command>node .kanban/scripts/get-hook-config.cjs kanban-merge</command>
+      <action>Parse the JSON output</action>
+    
+      <branch condition="directives.length > 0">
+        <warning>Directives are MANDATORY. You MUST follow them.</warning>
+        <action>For EACH directive where `exists` is `true`:</action>
+        <action>Read the directive file at `path`</action>
+        <action>Follow ALL instructions as mandatory requirements</action>
+      </branch>
+    
+      <branch condition="product.length > 0 OR engineering.length > 0">
+        <note>Context docs are for guidance, not mandatory.</note>
+        <action>Read any product/engineering docs where `exists` is `true`</action>
+        <action>Use these for additional context as needed</action>
+      </branch>
+    </step>
+    
+    <example_code lang="json">
+    {
+      "hook": "kanban-merge",
+      "directives": [
+        { "name": "my-directive", "path": ".kanban/directives/my-directive/DIRECTIVE.md", "exists": true }
+      ],
+      "product": [],
+      "engineering": []
+    }
+    </example_code>
+  </step>
+
+  <step name="verify_ready_to_merge" outputs="commitsToMerge">
+    <command>git status</command>
+    <validate>Ensure working tree is clean</validate>
+    <command>git log main..HEAD --oneline</command>
+    <output>Show commits to be merged</output>
+    <branch condition="working tree is dirty">
+      <output>Error: "Please commit or stash changes first"</output>
+      <action>Exit</action>
+    </branch>
+  </step>
+
+  <step name="prompt_merge_confirmation">
+    <output>Task: {taskId} - {title}</output>
+    <output>Branch: task/{taskId}</output>
+    <output>Commits to merge: {list from step verify_ready_to_merge}</output>
+    <prompt>Ready to merge this branch into main? [Y/n]</prompt>
+    <branch condition="user declines">
+      <action>Exit</action>
+    </branch>
+  </step>
+
+  <step name="merge_branch">
+    <command>git checkout main</command>
+    <command>git merge task/{taskId} --no-ff -m "Merge branch 'task/{taskId}'"</command>
+    <note>Use `--no-ff` to preserve branch history</note>
+  </step>
+
+  <step name="cleanup_branch">
+    <command>git branch -d task/{taskId}</command>
+  </step>
+
+  <step name="move_to_done_and_commit">
+    <note>Format: `docs({taskId}): done - {title}`</note>
+    <action>Change `status: pr` to `status: done`</action>
+    <action>Add `updated: {YYYY-MM-DD}`</action>
+    <action>Add `completed: {YYYY-MM-DD}`</action>
+    <action>Write updated task file</action>
+    <command>git add .kanban/tasks/{taskId}/task.md</command>
+    <command>git commit -m "docs({taskId}): done - {title}"</command>
+  </step>
+
+  <step name="output_result">
+    <output>Print: "Branch merged successfully!"</output>
+    <output>Print: "Branch task/{taskId} deleted"</output>
+    <output>Print: "Task {taskId} completed!"</output>
+    <output>Print current branch (should be main)</output>
+    <output>Print: "Congratulations! Task complete."</output>
+    <output>
+**Ready for next task:**
+```
+/clear
+/kanban-status
+```
+    </output>
+    <output>[KANBAN_COMPLETE]</output>
+  </step>
+</process>
+
+<success_criteria>
+- Task file exists at `.kanban/tasks/{taskId}/task.md`
+- Task frontmatter contains `status: done`
+- Task frontmatter contains `completed:` date
+- Current branch is `main`
+- Branch `task/{taskId}` no longer exists locally
+- Next steps shown to user
+</success_criteria>
+
+<example>
+User: `/kanban-merge 001`
+
+```
+Merging task 001 "Add user authentication"...
+
+Task: 001 - Add user authentication
+Branch: task/001
+Commits to merge:
+  abc1234 Add login form
+  def5678 Add authentication service
+
+Ready to merge this branch into main? [Y/n]
+> Y
+
+Merging branch into main...
+Branch merged successfully!
+
+Deleting branch task/001...
+Branch task/001 deleted.
+
+Task 001 completed!
+- Status: done
+- Completed: 2025-01-15
+- Current branch: main
+
+Congratulations! Task complete.
+
+Next:
+/clear
+/kanban-create "Your next task"
+```
+</example>
+
+<next_steps>
+Task complete! To start a new task:
+```
+/clear
+/kanban-create "Task title"
+```
+</next_steps>
