@@ -1,3 +1,8 @@
+---
+name: "Vue Integration"
+description: "Rules for integrating the Computer/Capability/Orchestrator architecture with Vue 3"
+---
+
 # Vue Integration
 
 Rules for integrating the Computer/Capability/Orchestrator architecture with Vue 3.

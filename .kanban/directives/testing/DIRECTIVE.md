@@ -1,3 +1,8 @@
+---
+name: "Testing Standards"
+description: "Validate test quality, safety, and coverage against codebase standards"
+---
+
 # Testing Standards
 
 Validate test quality, safety, and coverage against codebase standards.

@@ -1,3 +1,8 @@
+---
+name: "TSDoc Standards"
+description: "Validate that all public APIs have proper TSDoc documentation"
+---
+
 # TSDoc Standards
 
 Validate that all public APIs have proper TSDoc documentation following codebase standards.

@@ -1,3 +1,8 @@
+---
+name: "Acyclic Architecture"
+description: "Validate that the codebase's dependency graph is a DAG with clear layering"
+---
+
 # Acyclic Architecture
 
 Validate that the codebase's dependency graph is a **Directed Acyclic Graph (DAG)** with clear layering, predictable data flow, and no hidden coupling.

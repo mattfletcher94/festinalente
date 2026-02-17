@@ -1,3 +1,8 @@
+---
+name: "Planning"
+description: "Create implementation plans that build in compliance from the start"
+---
+
 # Planning
 
 Create implementation plans that build in compliance from the start, not as an afterthought.

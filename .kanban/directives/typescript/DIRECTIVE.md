@@ -1,3 +1,8 @@
+---
+name: "TypeScript Standards"
+description: "Type safety, domain modeling, and API design requirements"
+---
+
 # TypeScript Standards
 
 Type safety, domain modeling, and API design requirements.

@@ -1,3 +1,8 @@
+---
+name: "Code Review"
+description: "Perform strict architectural code review for this codebase"
+---
+
 # Code Review
 
 Perform **strict architectural code review** for this codebase.
