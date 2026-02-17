@@ -5,6 +5,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import os from 'node:os';
 import matter from 'gray-matter';
+import yaml from 'js-yaml';
 import Store from 'electron-store';
 import { spawnClaude, runClaudeCommand, writeToPty, resizePty, killPty } from './pty-service';
 
@@ -227,6 +228,24 @@ ipcMain.handle('settings:set', (_, key: keyof StoreSchema, value: unknown) => {
 
 ipcMain.handle('settings:getAll', () => {
   return store.store;
+});
+
+// IPC: Get hook config from .kanban/config.yaml
+ipcMain.handle('hooks:getConfig', async (_, projectPath: string, hookName: string) => {
+  const configPath = path.join(projectPath, '.kanban', 'config.yaml');
+
+  if (!fs.existsSync(configPath)) {
+    return { directives: [] };
+  }
+
+  try {
+    const content = fs.readFileSync(configPath, 'utf-8');
+    const config = yaml.load(content) as { hooks?: Record<string, { directives?: string[] }> };
+    const hookConfig = config?.hooks?.[hookName];
+    return { directives: hookConfig?.directives ?? [] };
+  } catch {
+    return { directives: [] };
+  }
 });
 
 app.whenReady().then(createWindow);

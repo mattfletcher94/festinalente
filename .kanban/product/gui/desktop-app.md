@@ -25,16 +25,20 @@ The Desktop Application is an optional Electron app that provides a visual inter
 ### Key Workflows
 
 **Running a command:**
-1. Select a task from the list (optional)
-2. Click a workflow action button in task detail
-3. Command runs in embedded terminal
-4. Task list auto-refreshes when command completes
+1. Select a task from the list
+2. View the "Next Up" section showing available workflow actions
+3. Each action shows an explanation of what it does
+4. If directives are configured for the action, they appear as a comma-separated list
+5. Click "Run" to execute the action in the embedded terminal
+6. Task list auto-refreshes when command completes
 
 ## Key Concepts
 
 - **Project path**: Directory containing `.kanban/` folder
 - **Resizable panels**: Three-panel layout with draggable dividers
 - **Embedded terminal**: xterm.js terminal running Claude Code via node-pty
+- **Next Up section**: Shows available workflow actions with explanations and associated directives
+- **Directives**: Custom instructions configured in `.kanban/config.yaml` that influence workflow actions
 
 ## Configuration
 

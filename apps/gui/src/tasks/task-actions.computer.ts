@@ -1,7 +1,3 @@
-/**
- * Task actions computer - determines available actions based on task status.
- */
-
 import type { Task, TaskAction, TaskId } from './task-types';
 
 /**
@@ -39,6 +35,14 @@ export interface CreateTaskActionsComputerReturn {
    * @returns CSS class string.
    */
   getPriorityClasses(priority: string): string;
+
+  /**
+   * Extract the hook name from a command string.
+   *
+   * @param command - The command string (e.g., '/kanban-scope 001').
+   * @returns The hook name (e.g., 'kanban-scope'), or empty string if not found.
+   */
+  getHookName(command: string): string;
 }
 
 /**
@@ -212,10 +216,17 @@ export function createTaskActionsComputer(): CreateTaskActionsComputerReturn {
     }
   }
 
+  function getHookName(command: string): string {
+    // "/kanban-scope 001" -> "kanban-scope"
+    const match = command.match(/^\/([^\s]+)/);
+    return match ? match[1] : '';
+  }
+
   return {
     getActions,
     getStatusVariant,
     getLabelVariant,
     getPriorityClasses,
+    getHookName,
   };
 }

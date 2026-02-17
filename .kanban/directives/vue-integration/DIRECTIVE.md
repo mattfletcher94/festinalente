@@ -184,13 +184,11 @@ Orchestrators are the **only** layer that should use Vue reactivity:
 
 ```ts
 // orchestrators/app.orchestrator.ts
-import { ref, shallowRef, computed, triggerRef } from 'vue';
+import { ref, computed } from 'vue';
 
 export function createAppOrchestrator(options: CreateAppOrchestratorOptions): AppOrchestratorReturn {
-  // Use shallowRef for complex objects (performance)
-  const tasks = shallowRef<Task[]>([]);
-
-  // Use ref for primitives
+  // Use ref for all state
+  const tasks = ref<Task[]>([]);
   const selectedTaskId = ref<TaskId | null>(null);
 
   // Computed for derived state
@@ -198,13 +196,10 @@ export function createAppOrchestrator(options: CreateAppOrchestratorOptions): Ap
     tasks.value.find(t => t.id === selectedTaskId.value) ?? null
   );
 
-  // Manual trigger after mutations
   function updateTask(id: TaskId, updates: Partial<Task>) {
-    const task = tasks.value.find(t => t.id === id);
-    if (task) {
-      Object.assign(task, updates);
-      triggerRef(tasks);  // Notify watchers
-    }
+    tasks.value = tasks.value.map(t =>
+      t.id === id ? { ...t, ...updates } : t
+    );
   }
 
   return { tasks, selectedTaskId, selectedTask, updateTask };

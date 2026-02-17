@@ -29,4 +29,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getSetting: <T>(key: string) => ipcRenderer.invoke('settings:get', key) as Promise<T>,
   setSetting: (key: string, value: unknown) => ipcRenderer.invoke('settings:set', key, value),
   getAllSettings: () => ipcRenderer.invoke('settings:getAll'),
+
+  // Hooks
+  getHookConfig: (projectPath: string, hookName: string) =>
+    ipcRenderer.invoke('hooks:getConfig', projectPath, hookName) as Promise<{ directives: string[] }>,
 });

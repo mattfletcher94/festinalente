@@ -2,6 +2,7 @@
 import { onMounted } from 'vue';
 
 import { createAppOrchestrator, provideApp } from '@/app';
+import { createHookConfigCapability, provideHookConfig } from '@/hook-config';
 import {
   createSettingsCapability,
   createSettingsOrchestrator,
@@ -37,6 +38,7 @@ const terminalCommandComputer = createTerminalCommandComputer();
 const settingsCapability = createSettingsCapability();
 const tasksApiCapability = createTasksApiCapability();
 const ptyCapability = createPtyCapability();
+const hookConfigCapability = createHookConfigCapability();
 
 const settings = createSettingsOrchestrator({
   settings: settingsCapability,
@@ -63,6 +65,7 @@ provideApp(app);
 provideSettings(settings);
 provideTasks(tasks);
 provideTerminal(terminal);
+provideHookConfig(hookConfigCapability);
 
 onMounted(async () => {
   await app.initialize();
