@@ -218,6 +218,7 @@ Next:
 /clear
 /kanban-implement {taskId}
     </output>
+    {{> skill-complete}}
   </step>
 </process>
 

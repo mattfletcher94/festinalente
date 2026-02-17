@@ -116,6 +116,7 @@ No tasks on the board.
     <branch condition="Done recent 3 (Custom)">
       <output>Done (5 tasks) — recent: 005, 004, 003</output>
     </branch>
+    {{> skill-complete}}
   </step>
 </process>
 

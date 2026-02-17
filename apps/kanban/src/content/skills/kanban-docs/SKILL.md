@@ -231,6 +231,7 @@ Create PR on GitHub, then run:
     </example_code>
     <warning>Do NOT skip this output. The user needs these commands to continue.</warning>
     <output>Also mention: "Or if PR needs changes: /kanban-rework {taskId}"</output>
+    {{> skill-complete}}
   </step>
 </process>
 

@@ -6,38 +6,53 @@ import { useResizeObserver } from '@vueuse/core';
 import '@xterm/xterm/css/xterm.css';
 
 const props = defineProps<{ projectPath: string }>();
+const emit = defineEmits<{
+  exit: [code: number];
+  ready: [];
+}>();
+
 const terminalRef = ref<HTMLDivElement>();
+const isRunning = ref(false);
 
 let terminal: Terminal;
 let fitAddon: FitAddon;
-let isExited = false;
 
-async function spawnClaude() {
-  isExited = false;
-  await window.electronAPI.ptySpawn(props.projectPath);
+// Run a command - spawns Claude, runs command, exits when complete
+async function runCommand(command: string) {
+  terminal.clear();
+  terminal.write(`\x1b[90m> Running: ${command}\x1b[0m\r\n\r\n`);
+
+  isRunning.value = true;
+  await window.electronAPI.ptyRunCommand(props.projectPath, command);
   window.electronAPI.ptyResize(terminal.cols, terminal.rows);
 }
 
-// Handle container resize (auto-cleanup via vueuse)
+// Expose methods to parent
+defineExpose({
+  runCommand,
+  isRunning,
+});
+
+// Handle container resize
 useResizeObserver(terminalRef, () => {
   if (terminal && fitAddon) {
     fitAddon.fit();
-    if (!isExited) {
+    if (isRunning.value) {
       window.electronAPI.ptyResize(terminal.cols, terminal.rows);
     }
   }
 });
 
-onMounted(async () => {
+onMounted(() => {
   terminal = new Terminal({
     cursorBlink: true,
     fontSize: 14,
     fontFamily: 'Consolas, "Courier New", monospace',
     theme: {
-      background: '#09090b',  // zinc-950
-      foreground: '#fafafa',  // zinc-50
+      background: '#09090b',
+      foreground: '#fafafa',
       cursor: '#fafafa',
-      selectionBackground: '#3f3f46',  // zinc-700
+      selectionBackground: '#3f3f46',
     },
   });
 
@@ -46,6 +61,9 @@ onMounted(async () => {
   terminal.open(terminalRef.value!);
   fitAddon.fit();
 
+  // Show initial message
+  terminal.write('\x1b[90mReady. Click a button to run a command.\x1b[0m\r\n');
+
   // Receive data from PTY
   window.electronAPI.onPtyData((data: string) => {
     terminal.write(data);
@@ -53,22 +71,21 @@ onMounted(async () => {
 
   // Handle Claude exit
   window.electronAPI.onPtyExit((code: number) => {
-    isExited = true;
-    terminal.write(`\r\n\x1b[90m[Claude exited with code ${code}. Press Enter to restart.]\x1b[0m\r\n`);
+    isRunning.value = false;
+    emit('exit', code);
+    terminal.write(`\r\n\x1b[90m[Task complete]\x1b[0m\r\n`);
+    emit('ready');
   });
 
-  // Send keystrokes to PTY (or restart if exited)
+  // Forward keystrokes to PTY when running
   terminal.onData((data: string) => {
-    if (isExited && data === '\r') {
-      terminal.write('\r\n');
-      spawnClaude();
-    } else if (!isExited) {
+    if (isRunning.value) {
       window.electronAPI.ptyWrite(data);
     }
   });
 
-  // Initial spawn
-  await spawnClaude();
+  // Emit ready immediately since we don't need to wait for Claude
+  emit('ready');
 });
 
 onUnmounted(() => {

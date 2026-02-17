@@ -211,6 +211,7 @@ And their session is established
 /kanban-scope {taskId}
 ```
     </output>
+    {{> skill-complete}}
   </step>
 </process>
 

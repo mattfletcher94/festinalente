@@ -189,6 +189,7 @@ If you find issues that need fixing:
 /kanban-rework {taskId}
 ```
     </output>
+    {{> skill-complete}}
   </step>
 </process>
 

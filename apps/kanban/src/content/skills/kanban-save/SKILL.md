@@ -134,6 +134,7 @@ Save partial implementation progress when interrupted. Task stays in In Progress
 /kanban-implement {taskId}
 ```
     </output>
+    {{> skill-complete}}
   </step>
 </process>
 

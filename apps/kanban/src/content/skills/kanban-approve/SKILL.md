@@ -145,6 +145,7 @@ Approve implementation after human QA testing, commit the code with appropriate 
 /kanban-docs {taskId}
 ```
     </output>
+    {{> skill-complete}}
   </step>
 </process>
 

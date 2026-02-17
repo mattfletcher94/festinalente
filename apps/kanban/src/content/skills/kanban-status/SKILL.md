@@ -211,6 +211,7 @@ Show the current state of the board and suggest what command to run next. Helps 
 
 {Brief explanation of why this is suggested}
     </output>
+    {{> skill-complete}}
   </step>
 </process>
 

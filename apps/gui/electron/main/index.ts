@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import fs from 'node:fs';
 import os from 'node:os';
-import { spawnClaude, writeToPty, resizePty, killPty } from './pty-service';
+import { spawnClaude, runClaudeCommand, writeToPty, resizePty, killPty } from './pty-service';
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -91,6 +91,15 @@ ipcMain.handle('dialog:openProject', async () => {
 ipcMain.handle('pty:spawn', (_, cwd: string) => {
   spawnClaude(
     cwd,
+    (data) => win?.webContents.send('pty:data', data),
+    (code) => win?.webContents.send('pty:exit', code)
+  );
+});
+
+ipcMain.handle('pty:runCommand', (_, cwd: string, command: string) => {
+  runClaudeCommand(
+    cwd,
+    command,
     (data) => win?.webContents.send('pty:data', data),
     (code) => win?.webContents.send('pty:exit', code)
   );

@@ -150,6 +150,7 @@ Analyze existing codebase and create engineering documentation through Socratic 
 /kanban-create "Your task title"
 ```
     </output>
+    {{> skill-complete}}
   </step>
 </process>
 

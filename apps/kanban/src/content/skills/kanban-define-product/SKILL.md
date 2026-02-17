@@ -168,6 +168,7 @@ Ready to start creating tasks:
 /kanban-create "Your task title"
 ```
     </output>
+    {{> skill-complete}}
   </step>
 </process>
 

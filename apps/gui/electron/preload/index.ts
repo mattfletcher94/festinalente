@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // PTY
   ptySpawn: (cwd: string) => ipcRenderer.invoke('pty:spawn', cwd),
+  ptyRunCommand: (cwd: string, command: string) => ipcRenderer.invoke('pty:runCommand', cwd, command),
   ptyWrite: (data: string) => ipcRenderer.send('pty:write', data),
   ptyResize: (cols: number, rows: number) => ipcRenderer.send('pty:resize', cols, rows),
   ptyKill: () => ipcRenderer.send('pty:kill'),

@@ -150,6 +150,7 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
 /kanban-refine {nextId}
 ```
     </output>
+    {{> skill-complete}}
   </step>
 </process>
 

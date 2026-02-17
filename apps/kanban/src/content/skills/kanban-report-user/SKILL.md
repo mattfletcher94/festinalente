@@ -57,6 +57,7 @@ For more details on the board:
 /kanban-status
 ```
     </output>
+    {{> skill-complete}}
   </step>
 </process>
 

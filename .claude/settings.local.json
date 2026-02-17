@@ -34,7 +34,13 @@
       "Bash(pnpm install)",
       "Bash(pnpm clean:*)",
       "WebFetch(domain:www.npmjs.com)",
-      "WebFetch(domain:vueuse.org)"
+      "WebFetch(domain:vueuse.org)",
+      "Bash(git clone:*)",
+      "Bash(npx electron-rebuild)",
+      "Bash(pnpm dev)",
+      "Bash(npx shadcn-vue@latest add:*)",
+      "Bash(npx shadcn-vue@latest init --defaults)",
+      "WebFetch(domain:www.shadcn-vue.com)"
     ]
   }
 }

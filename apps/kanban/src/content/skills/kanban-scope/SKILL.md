@@ -290,6 +290,7 @@ updated: {YYYY-MM-DD}
 /kanban-plan {taskId}
 ```
     </output>
+    {{> skill-complete}}
   </step>
 </process>
 

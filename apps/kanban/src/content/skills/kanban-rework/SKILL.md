@@ -145,6 +145,7 @@ Then re-verify:
 /kanban-codecheck {taskId}
 ```
     </output>
+    {{> skill-complete}}
   </step>
 </process>
 

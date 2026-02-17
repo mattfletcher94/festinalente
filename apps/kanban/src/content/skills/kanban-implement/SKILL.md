@@ -167,6 +167,7 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
 ```
       </output>
     </branch>
+    {{> skill-complete}}
   </step>
 </process>
 

@@ -3,6 +3,7 @@
 interface ElectronAPI {
   openProject: () => Promise<{ canceled?: boolean; error?: string; projectPath?: string }>;
   ptySpawn: (cwd: string) => Promise<void>;
+  ptyRunCommand: (cwd: string, command: string) => Promise<void>;
   ptyWrite: (data: string) => void;
   ptyResize: (cols: number, rows: number) => void;
   ptyKill: () => void;

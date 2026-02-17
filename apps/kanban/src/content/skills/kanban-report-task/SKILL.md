@@ -55,6 +55,7 @@ For task status details:
 /kanban-status {taskId}
 ```
     </output>
+    {{> skill-complete}}
   </step>
 </process>
 

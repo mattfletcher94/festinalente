@@ -124,6 +124,7 @@ Merge the task branch into main, clean up the branch, and move task to Done.
 /kanban-status
 ```
     </output>
+    {{> skill-complete}}
   </step>
 </process>
 
