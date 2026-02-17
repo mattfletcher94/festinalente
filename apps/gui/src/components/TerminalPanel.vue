@@ -61,6 +61,10 @@ onMounted(() => {
       foreground: '#fafafa',
       cursor: '#fafafa',
       selectionBackground: '#3f3f46',
+      // Scrollbar colors to match shadcn ScrollArea
+      scrollbarSliderBackground: 'rgba(255, 255, 255, 0.1)',
+      scrollbarSliderHoverBackground: 'rgba(255, 255, 255, 0.2)',
+      scrollbarSliderActiveBackground: 'rgba(255, 255, 255, 0.3)',
     },
   });
 
@@ -111,12 +115,12 @@ onUnmounted(() => {
 <template>
   <div class="h-full flex flex-col bg-background text-foreground">
     <!-- Header -->
-    <div class="flex items-center justify-between px-4 py-3 border-b border-border">
+    <div class="flex items-center justify-between px-4 h-14 border-b border-border">
       <h2 class="text-sm font-semibold">
         Terminal
-        <span v-if="currentTaskId" class="font-mono text-muted-foreground ml-1">({{ currentTaskId }})</span>
+        <span v-if="currentTaskId" class="font-mono text-muted-foreground font-normal ml-1.5">{{ currentTaskId }}</span>
       </h2>
-      <span v-if="isRunning" class="text-xs text-muted-foreground">Running...</span>
+      <span v-if="isRunning" class="text-xs text-muted-foreground animate-pulse">Running...</span>
     </div>
     <!-- Terminal -->
     <div ref="terminalRef" class="flex-1 p-2 bg-[#09090b]"></div>

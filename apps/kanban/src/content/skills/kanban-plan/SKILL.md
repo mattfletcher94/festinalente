@@ -1,6 +1,6 @@
 ---
 name: kanban-plan
-description: Create a plan document for a scoped task. Transforms functional specification into executable implementation checkboxes.
+description: Create a plan document for a scoped task. Transforms functional specification into executable implementation steps with appropriate detail based on complexity.
 allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *)
 argument-hint: "[task-id]"
 disable-model-invocation: true
@@ -9,7 +9,7 @@ disable-model-invocation: true
 # Plan Kanban Task
 
 <purpose>
-Create a plan file in `.kanban/tasks/{id}/` and move task from Scoped to Planned, then commit.
+Create a plan file in `.kanban/tasks/{id}/` and move task from Scoped to Planned, then commit. Plans are self-contained documents with enough context to implement without constantly re-reading the spec. Detail scales with complexity.
 </purpose>
 
 <context>
@@ -29,6 +29,8 @@ Create a plan file in `.kanban/tasks/{id}/` and move task from Scoped to Planned
 - Do not create vague or non-atomic steps
 - Do not skip the commit step
 - Do not plan tasks that haven't been scoped
+- Do not create steps that mix multiple concerns (refactoring + features)
+- Do not omit verification criteria for steps
 </prohibited>
 
 <process>
@@ -66,7 +68,7 @@ Create a plan file in `.kanban/tasks/{id}/` and move task from Scoped to Planned
     {{> branch-verify-task}}
   </step>
 
-  <step name="read_spec" outputs="functionalRequirements, affectedFiles, existingPatterns">
+  <step name="read_spec" outputs="functionalRequirements, affectedFiles, existingPatterns, risks, technicalConstraints, dependencies">
     <command>node .kanban/scripts/find-spec.cjs {taskId}</command>
     <branch condition="spec found">
       <action>Read the spec file at the `path` from JSON output</action>
@@ -78,7 +80,28 @@ Run: /kanban-scope {taskId}
       </output>
       <action>Exit</action>
     </branch>
-    <action>Extract functional requirements, affected files, and existing patterns</action>
+    <action>Extract all sections: functional requirements, affected files, existing patterns, risks, technical constraints, dependencies</action>
+  </step>
+
+  <step name="assess_complexity" outputs="complexity">
+    <note>Determine complexity to scale plan detail appropriately:</note>
+
+    <action>Count affected files from spec</action>
+    <action>Count functional requirements from spec</action>
+    <action>Count new files to create</action>
+    <action>Count new external dependencies</action>
+
+    <note>Complexity matrix (use highest level indicated):</note>
+    <table>
+      | Criteria              | Simple | Medium | Complex |
+      |-----------------------|--------|--------|---------|
+      | Affected files        | 1-2    | 3-5    | 6+      |
+      | Functional requirements | ≤3   | 4-6    | 7+      |
+      | New files created     | 0      | 1-2    | 3+      |
+      | External dependencies | 0      | 0-1    | 2+      |
+    </table>
+
+    <output>Complexity: {simple|medium|complex}</output>
   </step>
 
   <step name="research_product_docs" outputs="productContext">
@@ -141,13 +164,47 @@ Run: /kanban-scope {taskId}
     {{> hook-config command="plan"}}
   </step>
 
+  <step name="derive_plan_sections" outputs="technicalApproach, testingStrategy, edgeCases, pitfalls">
+    <note>Derive plan sections from spec content:</note>
+
+    <action name="technical_approach">
+      <note>Synthesize from spec's Existing Patterns, Technical Constraints, and Research Findings:</note>
+      - What patterns are being followed and why
+      - Key architectural decisions made during scoping
+      - Trade-offs that were considered
+    </action>
+
+    <action name="testing_strategy">
+      <note>Derive from functional requirements and affected files:</note>
+      - Automated: What tests to write (unit, integration) based on FRs
+      - Manual: What to verify by hand based on acceptance criteria
+      - Regression: What existing behavior to confirm still works based on affected files
+    </action>
+
+    <action name="edge_cases">
+      <note>Extract from spec's Risks section and acceptance criteria:</note>
+      - Boundary conditions implied by requirements
+      - Empty states, error states, limits
+      - Each edge case with how to handle it
+    </action>
+
+    <action name="pitfalls">
+      <note>Derive from spec's Risks & Mitigations and Technical Constraints:</note>
+      - Known gotchas with mitigations
+      - Order-dependent operations
+      - Common mistakes to avoid
+    </action>
+  </step>
+
   <step name="create_plan_file" outputs="planPath">
     <action>Create at `.kanban/tasks/{taskId}/plan.md`</action>
-    <action>Follow template at `.kanban/templates/plan.md`</action>
+    <action>Use complexity-appropriate format (see templates in this skill)</action>
     <action>Link to spec in frontmatter</action>
-    <action>Create implementation steps based on spec</action>
+    <action>Include all derived sections</action>
 
-    <example_code lang="yaml">
+    <note>Plan must be self-contained: include enough context that the implementer doesn't need to constantly re-read the spec.</note>
+
+    <example_code lang="yaml" label="Plan Template">
 ---
 task: "{taskId}"
 spec: "tasks/{taskId}/spec.md"
@@ -157,38 +214,134 @@ generated_by: claude
 model: {current model}
 version: 1
 iteration: 1
+complexity: {simple|medium|complex}
 ---
 
 # Plan: {task title}
 
 ## Overview
 
-{Brief summary referencing functional spec}
+{2-3 sentence summary of the implementation approach - NOT just "see spec"}
+{Key architectural decision or pattern being followed}
+
 See full specification: tasks/{taskId}/spec.md
+
+## Technical Approach
+
+{Why this approach - derived from spec's Existing Patterns and Research Findings}
+{Key patterns being followed with file:line references}
+{Any trade-offs considered during scoping}
 
 ## Implementation Steps
 
-<!-- Step Guidelines:
-1. ATOMIC: Each step = one logical change that leaves codebase working
-2. COMPLETE: Understand desired change, definition of done, all sub-steps, all info needed
-3. TRACEABLE: Reference specific file(s) and/or FR from spec
-4. SEPARABLE: Don't mix concerns - refactoring separate from features
-5. TESTABLE: The change can be verified (test, type-check, manual)
--->
+{Format varies by complexity - see below}
+
+## Testing Strategy
+
+- **Automated:** {what tests to write, if any - derived from FRs}
+- **Manual:** {what to verify by hand - derived from acceptance criteria}
+- **Regression:** {what existing behavior to confirm still works}
+
+## Edge Cases
+
+- {edge case 1} — {how to handle}
+- {edge case 2} — {how to handle}
+- {edge case 3} — {how to handle}
+
+## Potential Pitfalls
+
+- {pitfall 1} — {mitigation}
+- {pitfall 2} — {mitigation}
+    </example_code>
+
+    <note>Step format by complexity:</note>
+
+    <example_code lang="markdown" label="Simple (1-2 files, ≤3 FRs): Flat checkboxes">
+## Implementation Steps
 
 - [ ] Step 1: {description} `path/to/file.ts` (FR1)
-- [ ] Step 2: {description} `path/to/file.ts` (FR1)
-- [ ] Step 3: {description} `path/to/new.ts` (FR2)
-- [ ] Step N: Verify acceptance criteria are met
+- [ ] Step 2: {description} `path/to/file.ts` (FR2)
+- [ ] Step 3: {description} `path/to/file.ts` (FR3)
+- [ ] Step 4: Verify acceptance criteria — {what to check}
+    </example_code>
+
+    <example_code lang="markdown" label="Medium (3-5 files, 4-6 FRs): Structured steps with sub-tasks">
+## Implementation Steps
+
+### Step 1: {description}
+**Files:** `path/to/file.ts`
+**Requirements:** FR1, FR2
+**Pattern:** {pattern name} at `path/to/example.ts:42`
+
+- [ ] {sub-task 1}
+- [ ] {sub-task 2}
+- [ ] {sub-task 3}
+
+**Verify:** {how to confirm this step is complete}
+
+### Step 2: {description}
+**Files:** `path/to/file.ts`, `path/to/other.ts`
+**Requirements:** FR3
+
+- [ ] {sub-task 1}
+- [ ] {sub-task 2}
+
+**Verify:** {how to confirm this step is complete}
+
+### Step N: Final verification
+- [ ] All acceptance criteria from task met
+- [ ] No regressions in {affected area}
+    </example_code>
+
+    <example_code lang="markdown" label="Complex (6+ files, 7+ FRs): Phased steps with code snippets">
+## Implementation Steps
+
+### Phase 1: {phase name}
+
+#### Step 1.1: {description}
+**Files:** `path/to/file.ts` (create)
+**Requirements:** FR1, FR2
+**Pattern:** {pattern name} at `path/to/example.ts:42`
+
+- [ ] {sub-task 1}
+- [ ] {sub-task 2}
+
+**Snippet:**
+```typescript
+// Expected implementation pattern
+const example = usePattern({
+  option: 'value'
+})
+```
+
+**Verify:** {success criteria for this step}
+
+#### Step 1.2: {description}
+**Files:** `path/to/file.ts`
+**Requirements:** FR3
+
+- [ ] {sub-task 1}
+
+**Verify:** {success criteria for this step}
+
+### Phase 2: {phase name}
+
+#### Step 2.1: {description}
+...
+
+### Phase N: Final verification
+- [ ] All acceptance criteria from task met
+- [ ] Integration testing complete
+- [ ] No regressions in {affected areas}
     </example_code>
 
     <note>Step creation guidelines:
-- Each step should be atomic and independently verifiable
-- Reference specific files from spec's Affected Files section
-- Map steps to Functional Requirements (FR1, FR2, etc.)
-- Include testing/verification as explicit steps
-- Order steps logically (dependencies first)
-- Don't mix refactoring with feature work</note>
+1. ATOMIC: Each step = one logical change that leaves codebase working
+2. COMPLETE: Include all sub-tasks, pattern references, and verification criteria
+3. TRACEABLE: Reference specific file(s) and FR(s) from spec
+4. SEPARABLE: Don't mix concerns — refactoring separate from features
+5. VERIFIABLE: Every step has explicit success criteria
+6. SELF-CONTAINED: Include enough context to implement without re-reading spec</note>
   </step>
 
   <step name="update_task_file">
@@ -210,6 +363,7 @@ See full specification: tasks/{taskId}/spec.md
 
   <step name="output_result">
     <output>Print: "Task {taskId} moved to Planned"</output>
+    <output>Print complexity level</output>
     <output>Print plan file path</output>
     <output>Print number of implementation steps created</output>
     <output>Print commit hash</output>
@@ -230,8 +384,14 @@ Next:
 - Plan frontmatter contains `task: "{taskId}"`
 - Plan frontmatter contains `spec: "tasks/{taskId}/spec.md"`
 - Plan frontmatter contains `status: approved`
+- Plan frontmatter contains `complexity: {simple|medium|complex}`
 - Plan frontmatter contains `iteration: 1`
-- Plan contains `## Implementation Steps` section with checkboxes
+- Plan contains `## Overview` with implementation summary (not just "see spec")
+- Plan contains `## Technical Approach` section
+- Plan contains `## Implementation Steps` section with complexity-appropriate format
+- Plan contains `## Testing Strategy` section
+- Plan contains `## Edge Cases` section
+- Plan contains `## Potential Pitfalls` section
 - Git log shows `docs({taskId}): plan -`
 - Next steps shown to user
 </success_criteria>
@@ -240,39 +400,147 @@ Next:
 User: `/kanban-plan 001`
 
 ```
-Planning task 001 "Add OAuth Login"...
+Planning task 001 "Add localStorage persistence for app state"...
 
 Reading functional specification...
 - Spec: .kanban/tasks/001/spec.md
 - 4 functional requirements
-- 3 files to modify, 1 new file
-- Using Passport.js pattern from existing auth
+- 2 files to modify, 1 new file
+- Using use-local-storage-state pattern
+
+Assessing complexity...
+- Affected files: 3
+- Functional requirements: 4
+- New files: 1
+- External dependencies: 1
+- Complexity: medium
 
 Researching product documentation...
-- Task affects: auth/login, auth/session
-- Reading .kanban/product/auth/login.md
-- Reading .kanban/product/auth/session.md
-- Searched for "oauth provider" - found auth/providers.md
-- Product context: Login page has email/password fields, session expires after 24h
+- Task affects: state/persistence
+- Reading .kanban/product/state/persistence.md
+- Product context: App currently loses state on refresh
+
+Researching engineering documentation...
+- Found: patterns/state-management
+- Pattern: Zustand hydration at src/store/settings.ts:42
+
+Deriving plan sections...
+- Technical approach: use-local-storage-state + Zustand hydration
+- Testing strategy: manual verification of persistence
+- Edge cases: localStorage unavailable, quota exceeded
+- Pitfalls: hydration timing, key collisions
 
 Creating implementation plan...
 
 Plan created: .kanban/tasks/001/plan.md
-- 8 implementation steps
-- References FR1-FR4
-- Includes verification step
+- Complexity: medium
+- 4 implementation steps (structured format)
+- Testing strategy defined
+- 3 edge cases identified
+- 2 pitfalls documented
 
 Task 001 moved to Planned
 - Status: planned
 - Spec: tasks/001/spec.md
 - Plan: tasks/001/plan.md
-Commit: g7h8i9j docs(001): plan - Add OAuth Login
+Commit: g7h8i9j docs(001): plan - Add localStorage persistence for app state
 
 Next:
 /clear
 /kanban-implement 001
 ```
 </example>
+
+<example_plan label="Example Medium-Complexity Plan Output">
+```markdown
+---
+task: "001"
+spec: "tasks/001/spec.md"
+status: approved
+created: 2026-02-17
+generated_by: claude
+model: claude-opus-4-5-20251101
+version: 1
+iteration: 1
+complexity: medium
+---
+
+# Plan: Add localStorage persistence for app state
+
+## Overview
+
+Implement state persistence using `use-local-storage-state` for reactive localStorage with cross-tab sync. State hydrates into Zustand on mount following the existing pattern in `src/store/settings.ts`. This approach was chosen over Zustand's built-in persist middleware because it provides tab synchronization.
+
+See full specification: tasks/001/spec.md
+
+## Technical Approach
+
+Following two existing patterns:
+- **State persistence:** `use-local-storage-state` hook (new dependency, chosen during scoping for tab sync)
+- **Hydration:** Pattern at `src/store/settings.ts:42-58` for loading external state into Zustand
+
+The localStorage key uses the `app_` prefix convention found in `src/utils/config.ts`.
+
+## Implementation Steps
+
+### Step 1: Add persistence hook
+**Files:** `src/hooks/usePersistedState.ts` (create)
+**Requirements:** FR1, FR2
+**Pattern:** Custom hook pattern from `src/hooks/useSettings.ts`
+
+- [ ] Create hook wrapping `use-local-storage-state`
+- [ ] Add TypeScript types for persisted state shape
+- [ ] Use `app_state` as localStorage key
+
+**Verify:** Hook exports correctly, TypeScript compiles
+
+### Step 2: Integrate with Zustand store
+**Files:** `src/store/index.ts`
+**Requirements:** FR3
+**Pattern:** Hydration at `src/store/settings.ts:42-58`
+
+- [ ] Import persistence hook
+- [ ] Add hydration effect on mount
+- [ ] Subscribe to store changes for persistence
+
+**Verify:** State persists after page refresh
+
+### Step 3: Add sync subscription
+**Files:** `src/store/index.ts`
+**Requirements:** FR4
+
+- [ ] Subscribe to localStorage changes from other tabs
+- [ ] Update Zustand state when external changes detected
+
+**Verify:** Change in one tab reflects in another tab
+
+### Step 4: Final verification
+- [ ] All acceptance criteria from task met
+- [ ] State persists across refresh
+- [ ] State syncs across tabs
+- [ ] No regressions in existing store functionality
+
+## Testing Strategy
+
+- **Automated:** None required (state management, manual verification sufficient)
+- **Manual:**
+  - Modify state, refresh page, verify state restored
+  - Open two tabs, modify state in one, verify sync in other
+  - Clear localStorage, verify app loads with defaults
+- **Regression:** Verify existing Zustand actions still work correctly
+
+## Edge Cases
+
+- localStorage unavailable (private browsing) — fall back to in-memory state, no persistence
+- localStorage quota exceeded — catch error, log warning, continue without persistence
+- Corrupted localStorage data — validate on load, reset to defaults if invalid
+
+## Potential Pitfalls
+
+- Hydration timing — must hydrate before first render to avoid flash; use Zustand's `persist` subscribe pattern
+- Key collision — use unique `app_state` key with version prefix for future migrations
+```
+</example_plan>
 
 <next_steps>
 ```

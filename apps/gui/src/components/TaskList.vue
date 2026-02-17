@@ -100,7 +100,7 @@ onMounted(() => {
 <template>
   <div class="h-full flex flex-col bg-background text-foreground">
     <!-- Header -->
-    <div class="flex items-center justify-between px-4 py-3 border-b border-border">
+    <div class="flex items-center justify-between px-4 h-14 border-b border-border">
       <h2 class="text-sm font-semibold">Tasks</h2>
       <Button variant="ghost" size="icon" class="h-7 w-7" @click="emit('createTask')">
         <Plus class="h-4 w-4" />
@@ -127,7 +127,7 @@ onMounted(() => {
           <!-- Column Header -->
           <CollapsibleTrigger as-child>
             <button
-              class="w-full flex items-center gap-2 px-4 py-2 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+              class="w-full flex items-center gap-2 px-4 py-2 text-xs font-medium text-muted-foreground bg-muted/50 hover:bg-muted transition-colors"
             >
               <component
                 :is="column.open ? ChevronDown : ChevronRight"
@@ -140,7 +140,7 @@ onMounted(() => {
 
           <!-- Tasks in Column -->
           <CollapsibleContent>
-            <div class="pb-1">
+            <div>
               <button
                 v-for="task in tasksByColumn[column.id]"
                 :key="task.id"

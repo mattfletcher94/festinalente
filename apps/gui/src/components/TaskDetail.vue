@@ -199,77 +199,74 @@ defineExpose({
     <!-- Task Content -->
     <template v-else>
       <!-- Header -->
-      <div class="border-b border-border p-4">
-        <div class="flex items-start gap-3">
-          <span class="text-sm font-mono text-muted-foreground mt-0.5">{{ task.id }}</span>
-          <div class="flex-1">
-            <h1 class="text-lg font-medium">{{ task.title }}</h1>
+      <div class="px-4 py-4 border-b border-border">
+        <!-- Title Row -->
+        <div class="flex items-start justify-between gap-3 mb-3">
+          <h2 class="text-base font-semibold leading-tight">
+            {{ task.title }}
+            <span class="font-mono text-muted-foreground text-sm font-normal ml-1.5">{{ task.id }}</span>
+          </h2>
+        </div>
 
-            <!-- Meta row -->
-            <div class="flex flex-wrap items-center gap-2 mt-2">
-              <!-- Status -->
-              <Badge :variant="getStatusVariant(task.status)">
-                {{ task.status }}
-              </Badge>
+        <!-- Meta + Actions Row -->
+        <div class="flex items-center justify-between gap-4">
+          <!-- Meta (left) -->
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <Badge :variant="getStatusVariant(task.status)" class="text-xs">
+              {{ task.status }}
+            </Badge>
+            <Badge
+              v-if="task.priority"
+              variant="outline"
+              :class="getPriorityClasses(task.priority)"
+              class="text-xs"
+            >
+              {{ task.priority }}
+            </Badge>
+            <Badge
+              v-for="label in task.labels"
+              :key="label"
+              :variant="getLabelVariant(label)"
+              class="text-xs"
+            >
+              {{ label }}
+            </Badge>
+          </div>
 
-              <!-- Priority -->
-              <Badge
-                v-if="task.priority"
-                variant="outline"
-                :class="getPriorityClasses(task.priority)"
-              >
-                {{ task.priority }}
-              </Badge>
-
-              <!-- Labels -->
-              <Badge
-                v-for="label in task.labels"
-                :key="label"
-                :variant="getLabelVariant(label)"
-              >
-                {{ label }}
-              </Badge>
-            </div>
+          <!-- Actions (right) -->
+          <div v-if="actions.length > 0" class="flex items-center gap-1.5 flex-shrink-0">
+            <Button
+              v-for="action in actions"
+              :key="action.command"
+              :variant="action.variant"
+              size="sm"
+              :disabled="disabled"
+              :title="action.description"
+              @click="emit('runCommand', action.command)"
+              class="h-7 text-xs"
+            >
+              <Play v-if="action.variant === 'default'" class="h-3 w-3 mr-1" />
+              <RotateCcw v-else class="h-3 w-3 mr-1" />
+              {{ action.label }}
+            </Button>
+          </div>
+          <div v-else-if="task.status === 'done'" class="flex-shrink-0">
+            <Badge variant="secondary" class="text-xs">Complete</Badge>
           </div>
         </div>
       </div>
 
-      <!-- Action Bar -->
-      <div v-if="actions.length > 0" class="border-b border-border px-4 py-3 bg-muted/50">
-        <div class="flex items-center gap-2">
-          <span class="text-xs text-muted-foreground mr-2">Next:</span>
-          <Button
-            v-for="action in actions"
-            :key="action.command"
-            :variant="action.variant"
-            size="sm"
-            :disabled="disabled"
-            :title="action.description"
-            @click="emit('runCommand', action.command)"
-          >
-            <Play v-if="action.variant === 'default'" class="h-3 w-3 mr-1.5" />
-            <RotateCcw v-else class="h-3 w-3 mr-1.5" />
-            {{ action.label }}
-          </Button>
-        </div>
-      </div>
-
-      <!-- Done state -->
-      <div v-else-if="task.status === 'done'" class="border-b border-border px-4 py-3 bg-muted/50">
-        <span class="text-xs text-muted-foreground">Task complete</span>
-      </div>
-
       <!-- Tabs -->
       <Tabs v-model="activeTab" class="flex-1 flex flex-col min-h-0">
-        <div class="border-b border-border px-4 pt-2">
+        <div class="flex items-center h-10 px-4 border-b border-border">
           <TabsList class="h-8">
-            <TabsTrigger value="task" class="text-xs px-3 py-1">
+            <TabsTrigger value="task" class="text-xs px-3">
               Task
             </TabsTrigger>
-            <TabsTrigger value="spec" :disabled="!availableFiles.spec" class="text-xs px-3 py-1">
+            <TabsTrigger value="spec" :disabled="!availableFiles.spec" class="text-xs px-3">
               Spec
             </TabsTrigger>
-            <TabsTrigger value="plan" :disabled="!availableFiles.plan" class="text-xs px-3 py-1">
+            <TabsTrigger value="plan" :disabled="!availableFiles.plan" class="text-xs px-3">
               Plan
             </TabsTrigger>
           </TabsList>
@@ -281,7 +278,7 @@ defineExpose({
             <ScrollArea class="h-full">
               <div class="p-4">
                 <div v-if="loading" class="text-sm text-muted-foreground">Loading...</div>
-                <pre v-else class="text-sm whitespace-pre-wrap font-mono leading-relaxed text-foreground/90">{{ taskContent }}</pre>
+                <pre v-else class="text-sm whitespace-pre-wrap font-mono leading-relaxed text-foreground/80">{{ taskContent }}</pre>
               </div>
             </ScrollArea>
           </TabsContent>
@@ -290,7 +287,7 @@ defineExpose({
             <ScrollArea class="h-full">
               <div class="p-4">
                 <div v-if="loading" class="text-sm text-muted-foreground">Loading...</div>
-                <pre v-else class="text-sm whitespace-pre-wrap font-mono leading-relaxed text-foreground/90">{{ specContent }}</pre>
+                <pre v-else class="text-sm whitespace-pre-wrap font-mono leading-relaxed text-foreground/80">{{ specContent }}</pre>
               </div>
             </ScrollArea>
           </TabsContent>
@@ -299,7 +296,7 @@ defineExpose({
             <ScrollArea class="h-full">
               <div class="p-4">
                 <div v-if="loading" class="text-sm text-muted-foreground">Loading...</div>
-                <pre v-else class="text-sm whitespace-pre-wrap font-mono leading-relaxed text-foreground/90">{{ planContent }}</pre>
+                <pre v-else class="text-sm whitespace-pre-wrap font-mono leading-relaxed text-foreground/80">{{ planContent }}</pre>
               </div>
             </ScrollArea>
           </TabsContent>
