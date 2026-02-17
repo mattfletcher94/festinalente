@@ -1,87 +1,130 @@
 ---
 id: "conventions/component-structure"
-title: "Vue Component Structure"
+title: "Component Structure Convention"
 type: convention
-summary: "Vue 3 Composition API with script setup pattern"
-keywords: [vue, composition-api, script-setup, components]
-related: ["systems/gui"]
-paths: ["apps/gui/src/components/"]
+summary: "Structure conventions for Vue components and feature modules"
+keywords: [vue, components, structure, conventions]
+related: ["systems/gui", "conventions/file-naming"]
+paths: ["apps/gui/src/components/", "apps/gui/src/"]
 updated: 2026-02-17
 ---
 
-# Vue Component Structure
+# Component Structure Convention
 
 ## Rules
 
-1. **Use `<script setup lang="ts">`**: All components use Composition API with script setup
-2. **Order**: `<script setup>` → `<template>` (no `<style>` block - use Tailwind)
-3. **Imports first**: Vue imports, then component imports, then other imports
-4. **Refs over reactive**: Prefer `ref()` for primitive values
-5. **Props via defineProps**: Use TypeScript interface for prop types
-6. **Emits via defineEmits**: Explicitly declare events
+1. **Feature modules** are organized by domain (tasks, terminal, settings, app)
+2. **Each feature** exports from `index.ts`:
+   - The provider injection function
+   - The orchestrator creation function
+   - Types needed by consumers
+3. **UI components** follow shadcn-vue structure:
+   - Each component in its own folder
+   - Main component as `ComponentName.vue`
+   - Exports from `index.ts`
+4. **Orchestrators** receive dependencies via options object
+5. **Providers** use `createContext()` utility for typed injection
+
+## Feature Module Structure
+
+```typescript
+// tasks/index.ts
+export { injectTasks, provideTasks } from './tasks.provider';
+export { createTasksOrchestrator } from './tasks.orchestrator';
+export type { Task, TaskStatus, TaskId } from './task-types';
+```
+
+## Provider Pattern
+
+```typescript
+// tasks/tasks.provider.ts
+import { createContext } from '@/lib/utils';
+import type { CreateTasksOrchestratorReturn } from './tasks.orchestrator';
+
+export const [injectTasks, provideTasks, TASKS_KEY] =
+  createContext<CreateTasksOrchestratorReturn>('Tasks');
+```
+
+## Orchestrator Pattern
+
+```typescript
+// tasks/tasks.orchestrator.ts
+export interface CreateTasksOrchestratorOptions {
+  readonly tasksApi: CreateTasksApiCapabilityReturn;
+  readonly actionsComputer: CreateTaskActionsComputerReturn;
+  readonly groupingComputer: CreateTaskGroupingComputerReturn;
+}
+
+export function createTasksOrchestrator(
+  options: CreateTasksOrchestratorOptions
+): CreateTasksOrchestratorReturn {
+  const { tasksApi, actionsComputer, groupingComputer } = options;
+
+  // State
+  const tasks = shallowRef<readonly Task[]>([]);
+
+  // Actions
+  async function loadTasks(projectPath: string) { ... }
+
+  return {
+    tasks,
+    loadTasks,
+    // ...
+  };
+}
+```
+
+## UI Component Structure
+
+```
+components/ui/button/
+├── Button.vue      # Main component
+└── index.ts        # export { default as Button } from './Button.vue';
+
+components/ui/card/
+├── Card.vue
+├── CardHeader.vue
+├── CardTitle.vue
+├── CardContent.vue
+├── CardFooter.vue
+└── index.ts        # Export all card-related components
+```
 
 ## Examples
 
 ### Good
 
-```vue
-<script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import TaskCard from './TaskCard.vue';
-import { Button } from '@/components/ui/button';
-
-interface Props {
-  projectPath: string;
-}
-
-const props = defineProps<Props>();
-const emit = defineEmits<{
-  selectTask: [task: Task];
-  createTask: [];
-}>();
-
-const tasks = ref<Task[]>([]);
-
-onMounted(async () => {
-  tasks.value = await window.electronAPI.listTasks(props.projectPath);
+```typescript
+// App.vue setup
+const settingsOrchestrator = createSettingsOrchestrator({
+  settingsApi: createSettingsCapability(),
 });
+provideSettings(settingsOrchestrator);
 
-function handleSelect(task: Task) {
-  emit('selectTask', task);
-}
-</script>
-
-<template>
-  <div class="p-4">
-    <TaskCard
-      v-for="task in tasks"
-      :key="task.id"
-      :task="task"
-      @click="handleSelect(task)"
-    />
-  </div>
-</template>
+// Consuming component
+const settings = injectSettings();
+const projectPath = computed(() => settings.projectPath.value);
 ```
 
 ### Bad
 
-```vue
-<!-- BAD: Using Options API -->
-<script>
-export default {
-  data() {
-    return { tasks: [] }
-  }
-}
-</script>
+```typescript
+// BAD: Direct Vue provide/inject (not typed)
+provide('settings', settingsOrchestrator);
+const settings = inject('settings');  // any type
 
-<!-- BAD: Inline styles instead of Tailwind -->
-<style scoped>
-.container { padding: 16px; }
-</style>
+// BAD: Creating capability inside orchestrator
+function createTasksOrchestrator() {
+  const tasksApi = createTasksApiCapability();  // Should be injected
+}
+
+// BAD: Exposing internal state directly
+return {
+  _internalState,  // Prefix with _ but still exposed
+};
 ```
 
 ## Exceptions
 
-- UI library components (Reka UI wrappers) may have different patterns
-- Third-party component adapters may need different structures
+- Root `App.vue` creates and provides all orchestrators
+- Simple utility functions don't need the full pattern
