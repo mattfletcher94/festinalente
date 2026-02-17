@@ -44,8 +44,15 @@ Create a functional specification through iterative conversational Q&A focused o
     </branch>
     <branch condition="$ARGUMENTS not provided">
       <action>List tasks in `backlog` or `refined` status from `.kanban/tasks/`</action>
-      <output>Show task IDs, titles, and status</output>
-      <prompt>Which task to scope?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Task"
+        - question: "Which task would you like to scope?"
+        - options: Build from task list (up to 4 most relevant tasks), each with:
+          - label: "{taskId}: {short title}" (truncate title if needed)
+          - description: "Status: {status} | {first ~50 chars of description}"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to type a task ID directly</note>
     </branch>
   </step>
 
@@ -56,7 +63,14 @@ Create a functional specification through iterative conversational Q&A focused o
     <validate>Verify status is `backlog` or `refined`</validate>
     <branch condition="status is not backlog and not refined">
       <output>Task is in {status} status. Expected: backlog or refined.</output>
-      <prompt>Continue anyway? (y/n)</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Continue?"
+        - question: "Task is in {status} status. Continue with scoping anyway?"
+        - options:
+          - label: "Yes", description: "Proceed with scoping despite unexpected status"
+          - label: "No", description: "Cancel and check task status first"
+        - multiSelect: false
+      </action>
     </branch>
     <action>Extract problem, value, and acceptance criteria for reference</action>
     <branch condition="task not found">
@@ -76,11 +90,18 @@ Create a functional specification through iterative conversational Q&A focused o
 
     <branch condition="criteria NOT met">
       <output>This task is not well refined. I recommend running `/kanban-refine {taskId}` first.</output>
-      <prompt>Proceed anyway? (Y/N)</prompt>
-      <branch condition="user says Y">
+      <action>Use AskUserQuestion tool with:
+        - header: "Proceed?"
+        - question: "Task is not well refined. Proceed with scoping anyway?"
+        - options:
+          - label: "Yes", description: "Proceed with scoping (accepts risk of incomplete requirements)"
+          - label: "No (Recommended)", description: "Run /kanban-refine first to clarify requirements"
+        - multiSelect: false
+      </action>
+      <branch condition="user selects Yes">
         <action>Proceed to scoping (user accepts risk of incomplete requirements)</action>
       </branch>
-      <branch condition="user says N">
+      <branch condition="user selects No">
         <output>Run `/kanban-refine {taskId}` to clarify the task requirements first.</output>
         <action>Exit</action>
       </branch>

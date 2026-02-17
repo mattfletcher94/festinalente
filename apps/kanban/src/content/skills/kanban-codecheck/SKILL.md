@@ -1,7 +1,7 @@
 ---
 name: kanban-codecheck
 description: Run code checks using user-defined directives. Supports automated commands and AI-driven reviews.
-allowed-tools: Read, Write, Bash(*)
+allowed-tools: Read, Write, Bash(*), AskUserQuestion
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---
@@ -42,8 +42,15 @@ Run code checks using user-configured directives. Directives can be automated co
     </branch>
     <branch condition="$ARGUMENTS not provided">
       <action>List tasks in `codecheck` status from `.kanban/tasks/`</action>
-      <output>Show task IDs and titles</output>
-      <prompt>Which task to check?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Task"
+        - question: "Which task would you like to run code checks on?"
+        - options: Build from task list (up to 4 tasks in codecheck status), each with:
+          - label: "{taskId}: {short title}" (truncate title if needed)
+          - description: "Ready for code checks"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to type a task ID directly</note>
     </branch>
   </step>
 
@@ -53,7 +60,14 @@ Run code checks using user-configured directives. Directives can be automated co
     <action>Parse YAML frontmatter</action>
     <validate>Verify status is `codecheck`</validate>
     <branch condition="status is not codecheck">
-      <prompt>Task is in {status} status. Expected: codecheck. Continue anyway? (y/n)</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Continue?"
+        - question: "Task is in {status} status. Expected: codecheck. Continue with checks anyway?"
+        - options:
+          - label: "Yes", description: "Proceed with code checks despite unexpected status"
+          - label: "No", description: "Cancel and check task status first"
+        - multiSelect: false
+      </action>
     </branch>
     <branch condition="task not found">
       <output>Error: Task not found</output>
@@ -70,7 +84,14 @@ Run code checks using user-configured directives. Directives can be automated co
     <action>Read the plan at the `path` from JSON output</action>
     <validate>Verify all implementation checkboxes are marked complete</validate>
     <branch condition="any unchecked items">
-      <prompt>Plan has incomplete items. Run checks anyway? (y/n)</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Incomplete"
+        - question: "Plan has incomplete items. Run checks anyway?"
+        - options:
+          - label: "Yes", description: "Proceed with code checks despite incomplete plan items"
+          - label: "No", description: "Cancel and complete remaining plan items first"
+        - multiSelect: false
+      </action>
     </branch>
   </step>
 
@@ -119,9 +140,15 @@ for each directive in checkDirectives:
     Print "FAIL: {directive name}"
     Print issues
 
-    Prompt: "Should I try to fix this? (y/n)"
+    Use AskUserQuestion tool with:
+        - header: "Fix?"
+        - question: "Check failed. Should I try to fix these issues?"
+        - options:
+          - label: "Yes (Recommended)", description: "Attempt to fix the issues automatically"
+          - label: "No", description: "Exit and fix manually"
+        - multiSelect: false
 
-    if user says yes:
+    if user selects Yes:
         Analyze the issues
         Make code changes to fix
 
@@ -141,7 +168,7 @@ for each directive in checkDirectives:
         # Restart all checks from beginning
         break and restart loop
 
-    if user says no:
+    if user selects No:
         Print: "Exiting. Fix issues manually and re-run /kanban-codecheck {taskId}"
         Exit
 
@@ -299,8 +326,7 @@ Error output:
     Expected: token defined
     Received: undefined
 
-Should I try to fix this? (y/n)
-> y
+[User selects "Yes" to fix issues]
 
 Analyzing failure...
 Found issue: Missing `req.session.token = token` in oauth callback handler.
@@ -346,8 +372,7 @@ Issues found:
 - src/services/payment.ts uses a class instead of factory function
 - src/services/payment.ts imports directly instead of using dependency injection
 
-Should I try to fix this? (y/n)
-> y
+[User selects "Yes" to fix issues]
 
 Refactoring PaymentService class to factory function...
 Adding dependency injection for Stripe client...
@@ -384,8 +409,7 @@ FAIL: Tests
 Error output:
   Connection timeout: Database not responding
 
-Should I try to fix this? (y/n)
-> n
+[User selects "No" to decline fix]
 
 Exiting. Fix issues manually and re-run:
 /kanban-codecheck 003

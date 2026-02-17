@@ -1,7 +1,7 @@
 ---
 name: kanban-docs
 description: Update product documentation and commit. Move task to PR column.
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *, git push *), Grep
+allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *, git push *), Grep, AskUserQuestion
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---
@@ -47,8 +47,15 @@ Update product documentation, commit the changes, push to remote, and move task 
     </branch>
     <branch condition="$ARGUMENTS not provided">
       <action>List tasks in `update-docs` status from `.kanban/tasks/`</action>
-      <output>Show task IDs and titles</output>
-      <prompt>Which task needs documentation?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Task"
+        - question: "Which task needs documentation?"
+        - options: Build from task list (up to 4 tasks in update-docs status), each with:
+          - label: "{taskId}: {short title}" (truncate title if needed)
+          - description: "Status: update-docs | Ready for documentation"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to type a task ID directly</note>
     </branch>
   </step>
 
@@ -104,7 +111,14 @@ Update product documentation, commit the changes, push to remote, and move task 
     <output>Will UPDATE (doc exists): {id} - {summary}</output>
     <output>Will CREATE (new feature): {id} - (new doc needed)</output>
     <output>Unaffected (internal change): {reason if applicable}</output>
-    <prompt>Proceed with product documentation? [Y/n]</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Product docs"
+      - question: "Proceed with product documentation updates?"
+      - options:
+        - label: "Yes (Recommended)", description: "Update/create product docs as analyzed"
+        - label: "No", description: "Skip product documentation updates"
+      - multiSelect: false
+    </action>
   </step>
 
   <step name="analyze_engineering_doc_impact">
@@ -131,7 +145,14 @@ Update product documentation, commit the changes, push to remote, and move task 
     <output>Will UPDATE: {id} - {summary}</output>
     <output>Will CREATE: {id} - (new doc needed)</output>
     <output>No changes needed: {reason if applicable}</output>
-    <prompt>Proceed with engineering documentation? [Y/n]</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Eng docs"
+      - question: "Proceed with engineering documentation updates?"
+      - options:
+        - label: "Yes (Recommended)", description: "Update/create engineering docs as analyzed"
+        - label: "No", description: "Skip engineering documentation updates"
+      - multiSelect: false
+    </action>
   </step>
 
   <step name="update_existing_docs" when="docs need updating">
@@ -256,8 +277,7 @@ Labels: [feature, api]
 This task may require documentation updates.
 Detected: feature, api labels
 
-Update documentation? [Y/n]
-> Y
+[User selects "Yes" to proceed with documentation]
 
 What documentation needs to be updated?
 > Add authentication section to README and create docs/auth.md
@@ -301,8 +321,7 @@ Labels: [refactor]
 This task may require documentation updates.
 Detected: internal change (refactor)
 
-Update documentation? [Y/n]
-> n
+[User selects "No" to skip documentation]
 
 Reason (optional):
 > Internal optimization, no user-facing changes

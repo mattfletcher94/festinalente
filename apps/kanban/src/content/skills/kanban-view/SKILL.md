@@ -1,7 +1,7 @@
 ---
 name: kanban-view
 description: Visualize the Kanban board in the terminal with box-drawing characters
-allowed-tools: Read, Glob, Grep
+allowed-tools: Read, Glob, Grep, AskUserQuestion
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---
@@ -31,20 +31,35 @@ Display the Kanban board as a visual terminal output with box-drawing characters
   </step>
 
   <step name="ask_view_preset" outputs="preset">
-    <prompt>Which view?
-- **Quick** — Hide empty columns, Done as count only (recommended for daily use)
-- **Full** — Show all 10 columns, all tasks
-- **Custom** — Choose your own settings</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "View type"
+      - question: "Which view would you like?"
+      - options:
+        - label: "Quick (Recommended)", description: "Hide empty columns, Done as count only"
+        - label: "Full", description: "Show all 10 columns, all tasks"
+        - label: "Custom", description: "Choose your own display settings"
+      - multiSelect: false
+    </action>
   </step>
 
   <step name="ask_custom_settings" when="Custom selected">
-    <prompt>Show empty columns?
-- Yes — Show all 10 columns even if empty
-- No — Only show columns with tasks</prompt>
-    <prompt>How to display Done tasks?
-- All — Show every completed task
-- Count only — Just show `Done (N tasks)`
-- Recent 3 — Show count plus last 3 completed</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Empty cols"
+      - question: "Show empty columns?"
+      - options:
+        - label: "Yes", description: "Show all 10 columns even if empty"
+        - label: "No", description: "Only show columns with tasks"
+      - multiSelect: false
+    </action>
+    <action>Use AskUserQuestion tool with:
+      - header: "Done tasks"
+      - question: "How to display Done tasks?"
+      - options:
+        - label: "Count only", description: "Just show 'Done (N tasks)'"
+        - label: "Recent 3", description: "Show count plus last 3 completed"
+        - label: "All", description: "Show every completed task"
+      - multiSelect: false
+    </action>
   </step>
 
   <step name="read_all_tasks" outputs="tasks">

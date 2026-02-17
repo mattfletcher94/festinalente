@@ -46,8 +46,15 @@ Refine vague tasks through iterative conversational Q&A focused on product/busin
     </branch>
     <branch condition="$ARGUMENTS not provided">
       <action>List tasks in `backlog` status from `.kanban/tasks/`</action>
-      <output>Show task IDs and titles</output>
-      <prompt>Which task to refine?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Task"
+        - question: "Which task would you like to refine?"
+        - options: Build from task list (up to 4 most relevant tasks), each with:
+          - label: "{taskId}: {short title}" (truncate title if needed)
+          - description: "Priority: {priority} | {first ~50 chars of description}"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to type a task ID directly</note>
     </branch>
   </step>
 
@@ -58,7 +65,14 @@ Refine vague tasks through iterative conversational Q&A focused on product/busin
     <validate>Verify task status is `backlog` (refinement moves to `refined`)</validate>
     <branch condition="status is not backlog">
       <output>Task is already in {status} status. Refinement is for tasks in backlog.</output>
-      <prompt>Refine anyway? (y/n)</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Continue?"
+        - question: "Task is in {status} status. Refine anyway?"
+        - options:
+          - label: "Yes", description: "Proceed with refinement despite unexpected status"
+          - label: "No", description: "Cancel and check task status first"
+        - multiSelect: false
+      </action>
     </branch>
     <action>Note current title, description, acceptance criteria (if any)</action>
     <branch condition="task not found">

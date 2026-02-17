@@ -1,11 +1,13 @@
 ---
 id: "002"
 title: "Inconsistent keyboard navigation for Q&A prompts in kanban skills"
-status: "refined"
+status: "pr"
 priority: "high"
 labels: [bug]
 created: 2026-02-17
 updated: 2026-02-17
+implemented: 2026-02-17
+planned: 2026-02-17
 completed:
 spec: "tasks/002/spec.md"
 plan: "tasks/002/plan.md"

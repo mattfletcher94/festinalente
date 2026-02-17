@@ -1,7 +1,7 @@
 ---
 name: kanban-merge
 description: Merge task branch to main, delete task branch, and complete the task.
-allowed-tools: Read, Write, Bash(ls *, git *)
+allowed-tools: Read, Write, Bash(ls *, git *), AskUserQuestion
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---
@@ -38,8 +38,15 @@ Merge the task branch into main, clean up the branch, and move task to Done.
     </branch>
     <branch condition="$ARGUMENTS not provided">
       <action>List tasks in `pr` status from `.kanban/tasks/`</action>
-      <output>Show task IDs and titles</output>
-      <prompt>Which task to merge?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Task"
+        - question: "Which task would you like to merge?"
+        - options: Build from task list (up to 4 tasks in pr status), each with:
+          - label: "{taskId}: {short title}" (truncate title if needed)
+          - description: "Status: pr | Ready to merge"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to type a task ID directly</note>
     </branch>
   </step>
 
@@ -85,8 +92,15 @@ Merge the task branch into main, clean up the branch, and move task to Done.
     <output>Task: {taskId} - {title}</output>
     <output>Branch: task/{taskId}</output>
     <output>Commits to merge: {list from step verify_ready_to_merge}</output>
-    <prompt>Ready to merge this branch into main? [Y/n]</prompt>
-    <branch condition="user declines">
+    <action>Use AskUserQuestion tool with:
+      - header: "Merge?"
+      - question: "Ready to merge this branch into main?"
+      - options:
+        - label: "Yes", description: "Merge branch task/{taskId} into main"
+        - label: "No", description: "Cancel merge operation"
+      - multiSelect: false
+    </action>
+    <branch condition="user selects No">
       <action>Exit</action>
     </branch>
   </step>
@@ -149,8 +163,7 @@ Commits to merge:
   abc1234 Add login form
   def5678 Add authentication service
 
-Ready to merge this branch into main? [Y/n]
-> Y
+[User selects "Yes" to proceed with merge]
 
 Merging branch into main...
 Branch merged successfully!

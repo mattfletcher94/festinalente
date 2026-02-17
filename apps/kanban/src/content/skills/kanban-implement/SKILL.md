@@ -1,7 +1,7 @@
 ---
 name: kanban-implement
 description: Implement a planned task. Moves task to In Progress, executes the plan, then moves to Checks. No commit - code stays uncommitted.
-allowed-tools: Read, Write, Edit, Bash(*)
+allowed-tools: Read, Write, Edit, Bash(*), AskUserQuestion
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---
@@ -37,8 +37,15 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
     </branch>
     <branch condition="$ARGUMENTS not provided">
       <action>List tasks in `planned` or `in-progress` status from `.kanban/tasks/`</action>
-      <output>Show task IDs and titles</output>
-      <prompt>Which task to implement?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Task"
+        - question: "Which task would you like to implement?"
+        - options: Build from task list (up to 4 tasks in planned or in-progress status), each with:
+          - label: "{taskId}: {short title}" (truncate title if needed)
+          - description: "Status: {status} | Ready to implement"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to type a task ID directly</note>
     </branch>
   </step>
 
