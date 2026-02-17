@@ -3,6 +3,8 @@ import { ref, watch, computed } from 'vue';
 import { FileText, Play, RotateCcw } from 'lucide-vue-next';
 
 import { injectApp } from '@/app';
+import { injectHookConfig, type HookConfig } from '@/hook-config';
+import { injectSettings } from '@/settings';
 import { injectTasks } from '@/tasks';
 import { injectTerminal } from '@/terminal';
 import { Button } from './ui/button';
@@ -10,13 +12,18 @@ import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
 
-// Inject orchestrators
+// Inject dependencies
 const app = injectApp();
+const hookConfig = injectHookConfig();
+const settings = injectSettings();
 const tasks = injectTasks();
 const terminal = injectTerminal();
 
 // Local state for active tab
 const activeTab = ref<'task' | 'spec' | 'plan'>('task');
+
+// Hook configs keyed by command string
+const hookConfigs = ref<Record<string, HookConfig>>({});
 
 // Get actions for the selected task
 const actions = computed(() => {
@@ -24,6 +31,28 @@ const actions = computed(() => {
   if (!task) return [];
   return tasks.actionsComputer.getActions(task);
 });
+
+// Load hook configs when actions change
+watch(
+  actions,
+  async (newActions) => {
+    const projectPath = settings.projectPath.value;
+    if (!projectPath || newActions.length === 0) {
+      hookConfigs.value = {};
+      return;
+    }
+
+    const configs: Record<string, HookConfig> = {};
+    for (const action of newActions) {
+      const hookName = tasks.actionsComputer.getHookName(action.command);
+      if (hookName) {
+        configs[action.command] = await hookConfig.getConfig(projectPath, hookName);
+      }
+    }
+    hookConfigs.value = configs;
+  },
+  { immediate: true }
+);
 
 // Reset tab when task changes
 watch(
@@ -70,53 +99,73 @@ watch(
           </h2>
         </div>
 
-        <!-- Meta + Actions Row -->
-        <div class="flex items-center justify-between gap-4">
-          <!-- Meta (left) -->
-          <div class="flex items-center gap-1.5 flex-wrap">
-            <Badge
-              :variant="tasks.actionsComputer.getStatusVariant(tasks.selectedTask.value.status)"
-              class="text-xs"
-            >
-              {{ tasks.selectedTask.value.status }}
-            </Badge>
-            <Badge
-              v-if="tasks.selectedTask.value.priority"
-              variant="outline"
-              :class="tasks.actionsComputer.getPriorityClasses(tasks.selectedTask.value.priority)"
-              class="text-xs"
-            >
-              {{ tasks.selectedTask.value.priority }}
-            </Badge>
-            <Badge
-              v-for="label in tasks.selectedTask.value.labels"
-              :key="label"
-              :variant="tasks.actionsComputer.getLabelVariant(label)"
-              class="text-xs"
-            >
-              {{ label }}
-            </Badge>
-          </div>
+        <!-- Meta Row -->
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <Badge
+            :variant="tasks.actionsComputer.getStatusVariant(tasks.selectedTask.value.status)"
+            class="text-xs"
+          >
+            {{ tasks.selectedTask.value.status }}
+          </Badge>
+          <Badge
+            v-if="tasks.selectedTask.value.priority"
+            variant="outline"
+            :class="tasks.actionsComputer.getPriorityClasses(tasks.selectedTask.value.priority)"
+            class="text-xs"
+          >
+            {{ tasks.selectedTask.value.priority }}
+          </Badge>
+          <Badge
+            v-for="label in tasks.selectedTask.value.labels"
+            :key="label"
+            :variant="tasks.actionsComputer.getLabelVariant(label)"
+            class="text-xs"
+          >
+            {{ label }}
+          </Badge>
+          <Badge
+            v-if="tasks.selectedTask.value.status === 'done'"
+            variant="secondary"
+            class="text-xs"
+          >
+            Complete
+          </Badge>
+        </div>
+      </div>
 
-          <!-- Actions (right) -->
-          <div v-if="actions.length > 0" class="flex items-center gap-1.5 flex-shrink-0">
+      <!-- Next Up Section -->
+      <div v-if="actions.length > 0" class="px-4 py-3 border-b border-border bg-muted/30">
+        <div class="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+          Next Up
+        </div>
+        <div class="space-y-2">
+          <div
+            v-for="action in actions"
+            :key="action.command"
+            class="flex items-center justify-between gap-4"
+          >
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium">{{ action.label }}</div>
+              <div class="text-xs text-muted-foreground">{{ action.description }}</div>
+              <div
+                v-if="hookConfigs[action.command]?.directives?.length"
+                class="text-xs text-muted-foreground mt-0.5"
+              >
+                <span class="text-muted-foreground/70">Directives:</span>
+                {{ hookConfigs[action.command].directives.join(', ') }}
+              </div>
+            </div>
             <Button
-              v-for="action in actions"
-              :key="action.command"
               :variant="action.variant"
               size="sm"
               :disabled="!terminal.isReady.value"
-              :title="action.description"
-              class="h-7 text-xs"
+              class="h-7 text-xs flex-shrink-0"
               @click="app.runCommand(action.command)"
             >
               <Play v-if="action.variant === 'default'" class="h-3 w-3 mr-1" />
               <RotateCcw v-else class="h-3 w-3 mr-1" />
-              {{ action.label }}
+              Run
             </Button>
-          </div>
-          <div v-else-if="tasks.selectedTask.value.status === 'done'" class="flex-shrink-0">
-            <Badge variant="secondary" class="text-xs">Complete</Badge>
           </div>
         </div>
       </div>

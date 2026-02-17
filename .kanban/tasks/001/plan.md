@@ -265,8 +265,8 @@ function getHookName(command: string): string {
 **Result:** failed
 
 **Issues:**
-- [ ] Remove file-level TSDoc comments from `hook-config.capability.ts` (line 1-3) — forbidden pattern per TSDoc directive
-- [ ] Check all new files in `apps/gui/src/hook-config/` for file-level TSDoc comments and remove them
+- [x] Remove file-level TSDoc comments from `hook-config.capability.ts` (line 1-3) — forbidden pattern per TSDoc directive
+- [x] Check all new files in `apps/gui/src/hook-config/` for file-level TSDoc comments and remove them
 
 **Action:** Address issues above, then re-verify
 

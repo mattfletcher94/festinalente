@@ -43,6 +43,7 @@ interface ElectronAPI {
   getSetting: <T>(key: string) => Promise<T>;
   setSetting: (key: string, value: unknown) => Promise<void>;
   getAllSettings: () => Promise<AppSettings>;
+  getHookConfig: (projectPath: string, hookName: string) => Promise<{ directives: string[] }>;
 }
 
 interface Window {
