@@ -1,4 +1,6 @@
 import * as pty from 'node-pty';
+import { homedir } from 'os';
+import { join } from 'path';
 
 let ptyProcess: pty.IPty | null = null;
 let commandMode = false;
@@ -9,6 +11,33 @@ let intentionalKill = false;
 // Strip ANSI escape codes from text
 function stripAnsi(text: string): string {
   return text.replace(/\x1b\[[0-9;]*m/g, '');
+}
+
+// Get environment with augmented PATH for macOS
+// Electron apps launched from GUI don't inherit shell PATH
+function getSpawnEnv(): Record<string, string> {
+  const env = { ...process.env } as Record<string, string>;
+
+  if (process.platform === 'darwin') {
+    const home = homedir();
+    const extraPaths = [
+      '/usr/local/bin',
+      '/opt/homebrew/bin',
+      join(home, '.npm-global/bin'),
+      join(home, '.local/bin'),
+      join(home, '.nvm/versions/node'),  // nvm installs
+      '/opt/local/bin',  // MacPorts
+    ];
+
+    const currentPath = env.PATH || '';
+    const pathsToAdd = extraPaths.filter(p => !currentPath.includes(p));
+
+    if (pathsToAdd.length > 0) {
+      env.PATH = [...pathsToAdd, currentPath].join(':');
+    }
+  }
+
+  return env;
 }
 
 export function spawnClaude(cwd: string, onData: (data: string) => void, onExit: (code: number) => void) {
@@ -23,7 +52,7 @@ export function spawnClaude(cwd: string, onData: (data: string) => void, onExit:
     ptyProcess = pty.spawn('claude', [], {
       name: 'xterm-256color',
       cwd,
-      env: process.env as Record<string, string>,
+      env: getSpawnEnv(),
       cols: 80,
       rows: 24,
     });
@@ -68,7 +97,7 @@ export function runClaudeCommand(
     ptyProcess = pty.spawn('claude', [trimmedCommand], {
       name: 'xterm-256color',
       cwd,
-      env: process.env as Record<string, string>,
+      env: getSpawnEnv(),
       cols: 80,
       rows: 24,
     });
