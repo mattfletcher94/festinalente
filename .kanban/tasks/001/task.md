@@ -1,13 +1,13 @@
 ---
 id: "001"
 title: "Expand 'Next Up' button to full section with directive hooks display"
-status: "pr"
+status: "done"
 priority: "medium"
 labels: [feature]
 created: 2026-02-17
 updated: 2026-02-17
 planned: 2026-02-17
-completed:
+completed: 2026-02-17
 spec: "tasks/001/spec.md"
 plan: "tasks/001/plan.md"
 affects: [gui/desktop-app]
