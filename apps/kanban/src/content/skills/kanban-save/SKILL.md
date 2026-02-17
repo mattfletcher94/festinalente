@@ -1,7 +1,7 @@
 ---
 name: kanban-save
 description: Save partial implementation progress with WIP commit. Use when implementation is interrupted and you need to save work.
-allowed-tools: Read, Write, Edit, Bash(ls *, git add *, git commit *, git status, git diff *, git branch *)
+allowed-tools: Read, Write, Edit, Bash(ls *, git add *, git commit *, git status, git diff *, git branch *), AskUserQuestion
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---
@@ -34,8 +34,15 @@ Save partial implementation progress when interrupted. Task stays in In Progress
     </branch>
     <branch condition="$ARGUMENTS not provided">
       <action>List tasks in `in-progress` status from `.kanban/tasks/`</action>
-      <output>Show task IDs and titles</output>
-      <prompt>Which task to commit WIP for?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Task"
+        - question: "Which task would you like to save WIP for?"
+        - options: Build from task list (up to 4 tasks in in-progress status), each with:
+          - label: "{taskId}: {short title}" (truncate title if needed)
+          - description: "Status: in-progress | Has uncommitted work"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to type a task ID directly</note>
     </branch>
   </step>
 

@@ -39,9 +39,9 @@ See full specification: tasks/002/spec.md
 **Files:** `apps/kanban/src/content/skills/kanban-scope/SKILL.md`
 **Requirements:** FR1, FR2, FR5
 
-- [ ] Add `AskUserQuestion` to `allowed-tools` frontmatter
-- [ ] Convert "Continue anyway? (y/n)" to AskUserQuestion instruction with Yes/No options
-- [ ] Convert "Proceed anyway? (Y/N)" to AskUserQuestion instruction with Yes/No options
+- [x] Add `AskUserQuestion` to `allowed-tools` frontmatter
+- [x] Convert "Continue anyway? (y/n)" to AskUserQuestion instruction with Yes/No options
+- [x] Convert "Proceed anyway? (Y/N)" to AskUserQuestion instruction with Yes/No options
 
 **Verify:** Skill file has updated frontmatter and explicit AskUserQuestion instructions
 
@@ -49,8 +49,8 @@ See full specification: tasks/002/spec.md
 **Files:** `apps/kanban/src/content/skills/kanban-refine/SKILL.md`
 **Requirements:** FR1, FR2, FR5
 
-- [ ] Add `AskUserQuestion` to `allowed-tools` frontmatter
-- [ ] Convert "Refine anyway? (y/n)" to AskUserQuestion instruction
+- [x] Add `AskUserQuestion` to `allowed-tools` frontmatter
+- [x] Convert "Refine anyway? (y/n)" to AskUserQuestion instruction
 
 **Verify:** Skill file has updated frontmatter and explicit AskUserQuestion instructions
 
@@ -58,9 +58,9 @@ See full specification: tasks/002/spec.md
 **Files:** `apps/kanban/src/content/skills/kanban-plan/SKILL.md`
 **Requirements:** FR1, FR2, FR5
 
-- [ ] Add `AskUserQuestion` to `allowed-tools` frontmatter
-- [ ] Convert "Continue anyway? (y/n)" to AskUserQuestion instruction
-- [ ] Convert "Overwrite or view existing?" to AskUserQuestion instruction with two options
+- [x] Add `AskUserQuestion` to `allowed-tools` frontmatter
+- [x] Convert "Continue anyway? (y/n)" to AskUserQuestion instruction
+- [x] Convert "Overwrite or view existing?" to AskUserQuestion instruction with two options
 
 **Verify:** Skill file has updated frontmatter and explicit AskUserQuestion instructions
 
@@ -68,9 +68,9 @@ See full specification: tasks/002/spec.md
 **Files:** `apps/kanban/src/content/skills/kanban-codecheck/SKILL.md`
 **Requirements:** FR1, FR2, FR5
 
-- [ ] Add `AskUserQuestion` to `allowed-tools` frontmatter
-- [ ] Convert "Continue anyway? (y/n)" to AskUserQuestion instruction
-- [ ] Convert "Run checks anyway? (y/n)" to AskUserQuestion instruction
+- [x] Add `AskUserQuestion` to `allowed-tools` frontmatter
+- [x] Convert "Continue anyway? (y/n)" to AskUserQuestion instruction
+- [x] Convert "Run checks anyway? (y/n)" to AskUserQuestion instruction
 
 **Verify:** Skill file has updated frontmatter and explicit AskUserQuestion instructions
 
@@ -78,8 +78,8 @@ See full specification: tasks/002/spec.md
 **Files:** `apps/kanban/src/content/skills/kanban-rework/SKILL.md`
 **Requirements:** FR1, FR2, FR5
 
-- [ ] Add `AskUserQuestion` to `allowed-tools` frontmatter
-- [ ] Convert "Continue anyway? (y/n)" to AskUserQuestion instruction
+- [x] Add `AskUserQuestion` to `allowed-tools` frontmatter
+- [x] Convert "Continue anyway? (y/n)" to AskUserQuestion instruction
 
 **Verify:** Skill file has updated frontmatter and explicit AskUserQuestion instructions
 
@@ -87,9 +87,9 @@ See full specification: tasks/002/spec.md
 **Files:** `apps/kanban/src/content/skills/kanban-approve/SKILL.md`
 **Requirements:** FR1, FR2, FR5
 
-- [ ] Add `AskUserQuestion` to `allowed-tools` frontmatter
-- [ ] Convert "[Y/n]" prompts to AskUserQuestion instruction
-- [ ] Convert "Proceed anyway?" to AskUserQuestion instruction
+- [x] Add `AskUserQuestion` to `allowed-tools` frontmatter
+- [x] Convert "[Y/n]" prompts to AskUserQuestion instruction
+- [x] Convert "Proceed anyway?" to AskUserQuestion instruction
 
 **Verify:** Skill file has updated frontmatter and explicit AskUserQuestion instructions
 
@@ -97,8 +97,8 @@ See full specification: tasks/002/spec.md
 **Files:** `apps/kanban/src/content/skills/kanban-docs/SKILL.md`
 **Requirements:** FR1, FR2, FR5
 
-- [ ] Add `AskUserQuestion` to `allowed-tools` frontmatter
-- [ ] Convert "[Y/n]" prompts to AskUserQuestion instruction
+- [x] Add `AskUserQuestion` to `allowed-tools` frontmatter
+- [x] Convert "[Y/n]" prompts to AskUserQuestion instruction
 
 **Verify:** Skill file has updated frontmatter and explicit AskUserQuestion instructions
 
@@ -106,8 +106,8 @@ See full specification: tasks/002/spec.md
 **Files:** `apps/kanban/src/content/skills/kanban-merge/SKILL.md`
 **Requirements:** FR1, FR2, FR5
 
-- [ ] Add `AskUserQuestion` to `allowed-tools` frontmatter
-- [ ] Convert "[Y/n]" prompt to AskUserQuestion instruction
+- [x] Add `AskUserQuestion` to `allowed-tools` frontmatter
+- [x] Convert "[Y/n]" prompt to AskUserQuestion instruction
 
 **Verify:** Skill file has updated frontmatter and explicit AskUserQuestion instructions
 
@@ -117,10 +117,10 @@ See full specification: tasks/002/spec.md
 **Files:** `apps/kanban/src/content/skills/kanban-view/SKILL.md`
 **Requirements:** FR1, FR3, FR5
 
-- [ ] Add `AskUserQuestion` to `allowed-tools` frontmatter
-- [ ] Convert "Which view?" (Quick/Full/Custom) to AskUserQuestion instruction with 3 options
-- [ ] Convert "Show empty columns?" to AskUserQuestion instruction with Yes/No options
-- [ ] Convert "How to display Done tasks?" to AskUserQuestion instruction with 3 options
+- [x] Add `AskUserQuestion` to `allowed-tools` frontmatter
+- [x] Convert "Which view?" (Quick/Full/Custom) to AskUserQuestion instruction with 3 options
+- [x] Convert "Show empty columns?" to AskUserQuestion instruction with Yes/No options
+- [x] Convert "How to display Done tasks?" to AskUserQuestion instruction with 3 options
 
 **Verify:** Skill file has updated frontmatter and explicit AskUserQuestion instructions for all prompts
 
@@ -128,10 +128,10 @@ See full specification: tasks/002/spec.md
 **Files:** `apps/kanban/src/content/skills/kanban-create/SKILL.md`
 **Requirements:** FR1, FR3, FR4, FR5
 
-- [ ] Add `AskUserQuestion` to `allowed-tools` frontmatter
-- [ ] Convert priority selection to AskUserQuestion instruction with High/Medium/Low options
-- [ ] Convert label confirmation to AskUserQuestion instruction
-- [ ] Add instruction for dynamic domain selection from available product areas
+- [x] Add `AskUserQuestion` to `allowed-tools` frontmatter
+- [x] Convert priority selection to AskUserQuestion instruction with High/Medium/Low options
+- [x] Convert label confirmation to AskUserQuestion instruction
+- [x] Add instruction for dynamic domain selection from available product areas
 
 **Verify:** Skill file has updated frontmatter and explicit AskUserQuestion instructions
 
@@ -141,7 +141,7 @@ See full specification: tasks/002/spec.md
 **Files:** `apps/kanban/src/content/skills/kanban-scope/SKILL.md`
 **Requirements:** FR1, FR4
 
-- [ ] Convert "Which task to scope?" to AskUserQuestion instruction with dynamic options populated from task list
+- [x] Convert "Which task to scope?" to AskUserQuestion instruction with dynamic options populated from task list
 
 **Verify:** Skill includes instruction to dynamically build options from available tasks
 
@@ -149,7 +149,7 @@ See full specification: tasks/002/spec.md
 **Files:** `apps/kanban/src/content/skills/kanban-refine/SKILL.md`
 **Requirements:** FR1, FR4
 
-- [ ] Convert "Which task to refine?" to AskUserQuestion instruction with dynamic options
+- [x] Convert "Which task to refine?" to AskUserQuestion instruction with dynamic options
 
 **Verify:** Skill includes instruction to dynamically build options from available tasks
 
@@ -157,7 +157,7 @@ See full specification: tasks/002/spec.md
 **Files:** `apps/kanban/src/content/skills/kanban-plan/SKILL.md`
 **Requirements:** FR1, FR4
 
-- [ ] Convert "Which task to plan?" to AskUserQuestion instruction with dynamic options
+- [x] Convert "Which task to plan?" to AskUserQuestion instruction with dynamic options
 
 **Verify:** Skill includes instruction to dynamically build options from available tasks
 
@@ -165,8 +165,8 @@ See full specification: tasks/002/spec.md
 **Files:** `apps/kanban/src/content/skills/kanban-implement/SKILL.md`
 **Requirements:** FR1, FR4, FR5
 
-- [ ] Add `AskUserQuestion` to `allowed-tools` frontmatter
-- [ ] Convert "Which task to implement?" to AskUserQuestion instruction with dynamic options
+- [x] Add `AskUserQuestion` to `allowed-tools` frontmatter
+- [x] Convert "Which task to implement?" to AskUserQuestion instruction with dynamic options
 
 **Verify:** Skill file has updated frontmatter and explicit AskUserQuestion instructions
 
@@ -174,8 +174,8 @@ See full specification: tasks/002/spec.md
 **Files:** `apps/kanban/src/content/skills/kanban-save/SKILL.md`
 **Requirements:** FR1, FR4, FR5
 
-- [ ] Add `AskUserQuestion` to `allowed-tools` frontmatter
-- [ ] Convert "Which task to commit WIP for?" to AskUserQuestion instruction with dynamic options
+- [x] Add `AskUserQuestion` to `allowed-tools` frontmatter
+- [x] Convert "Which task to commit WIP for?" to AskUserQuestion instruction with dynamic options
 
 **Verify:** Skill file has updated frontmatter and explicit AskUserQuestion instructions
 
@@ -183,7 +183,7 @@ See full specification: tasks/002/spec.md
 **Files:** `apps/kanban/src/content/skills/kanban-codecheck/SKILL.md`
 **Requirements:** FR1, FR4
 
-- [ ] Convert "Which task to check?" to AskUserQuestion instruction with dynamic options
+- [x] Convert "Which task to check?" to AskUserQuestion instruction with dynamic options
 
 **Verify:** Skill includes instruction to dynamically build options from available tasks
 
@@ -191,7 +191,7 @@ See full specification: tasks/002/spec.md
 **Files:** `apps/kanban/src/content/skills/kanban-approve/SKILL.md`
 **Requirements:** FR1, FR4
 
-- [ ] Convert "Which task to approve?" to AskUserQuestion instruction with dynamic options
+- [x] Convert "Which task to approve?" to AskUserQuestion instruction with dynamic options
 
 **Verify:** Skill includes instruction to dynamically build options from available tasks
 
@@ -199,7 +199,7 @@ See full specification: tasks/002/spec.md
 **Files:** `apps/kanban/src/content/skills/kanban-rework/SKILL.md`
 **Requirements:** FR1, FR4
 
-- [ ] Convert "Which task needs rework?" to AskUserQuestion instruction with dynamic options
+- [x] Convert "Which task needs rework?" to AskUserQuestion instruction with dynamic options
 
 **Verify:** Skill includes instruction to dynamically build options from available tasks
 
@@ -207,7 +207,7 @@ See full specification: tasks/002/spec.md
 **Files:** `apps/kanban/src/content/skills/kanban-docs/SKILL.md`
 **Requirements:** FR1, FR4
 
-- [ ] Convert "Which task needs documentation?" to AskUserQuestion instruction with dynamic options
+- [x] Convert "Which task needs documentation?" to AskUserQuestion instruction with dynamic options
 
 **Verify:** Skill includes instruction to dynamically build options from available tasks
 
@@ -215,7 +215,7 @@ See full specification: tasks/002/spec.md
 **Files:** `apps/kanban/src/content/skills/kanban-merge/SKILL.md`
 **Requirements:** FR1, FR4
 
-- [ ] Convert "Which task to merge?" to AskUserQuestion instruction with dynamic options
+- [x] Convert "Which task to merge?" to AskUserQuestion instruction with dynamic options
 
 **Verify:** Skill includes instruction to dynamically build options from available tasks
 
@@ -230,9 +230,9 @@ See full specification: tasks/002/spec.md
 - `apps/kanban/src/content/skills/kanban-report-user/SKILL.md`
 - `apps/kanban/src/content/skills/kanban-report-label/SKILL.md`
 
-- [ ] Review each skill for any prompts with predefined options
-- [ ] If prompts are truly open-ended/exploratory, leave as plain text
-- [ ] If any prompts have predefined options, convert to AskUserQuestion
+- [x] Review each skill for any prompts with predefined options
+- [x] If prompts are truly open-ended/exploratory, leave as plain text
+- [x] If any prompts have predefined options, convert to AskUserQuestion
 
 **Verify:** Each skill reviewed, documentation added if left unchanged explaining why
 
@@ -241,10 +241,10 @@ See full specification: tasks/002/spec.md
 #### Step 5.1: Build and test
 **Requirements:** All FRs
 
-- [ ] Run skill build process to compile updated skills to `.claude/skills/`
-- [ ] Test at least one skill from each category (Yes/No, Multi-choice, Task selection)
-- [ ] Verify keyboard navigation appears for all converted prompts
-- [ ] Verify no regressions in skill functionality
+- [x] Run skill build process to compile updated skills to `.claude/skills/`
+- [x] Test at least one skill from each category (Yes/No, Multi-choice, Task selection)
+- [x] Verify keyboard navigation appears for all converted prompts
+- [x] Verify no regressions in skill functionality
 
 **Verify:** All acceptance criteria from task met
 

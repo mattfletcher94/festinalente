@@ -1,7 +1,7 @@
 ---
 name: kanban-plan
 description: Create a plan document for a scoped task. Transforms functional specification into executable implementation steps with appropriate detail based on complexity.
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *)
+allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *), AskUserQuestion
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---
@@ -44,8 +44,15 @@ Create a plan file in `.kanban/tasks/{id}/` and move task from Scoped to Planned
     </branch>
     <branch condition="$ARGUMENTS not provided">
       <action>List tasks in `scoped` status from `.kanban/tasks/`</action>
-      <output>Show task IDs and titles</output>
-      <prompt>Which task to plan?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Task"
+        - question: "Which task would you like to plan?"
+        - options: Build from task list (up to 4 scoped tasks), each with:
+          - label: "{taskId}: {short title}" (truncate title if needed)
+          - description: "Priority: {priority} | Has spec ready for planning"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to type a task ID directly</note>
     </branch>
   </step>
 
@@ -55,7 +62,14 @@ Create a plan file in `.kanban/tasks/{id}/` and move task from Scoped to Planned
     <action>Parse YAML frontmatter</action>
     <validate>Verify current status is `scoped`</validate>
     <branch condition="status is not scoped">
-      <prompt>Task is in {status} status. Expected: scoped. Continue anyway? (y/n)</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Continue?"
+        - question: "Task is in {status} status. Expected: scoped. Continue with planning anyway?"
+        - options:
+          - label: "Yes", description: "Proceed with planning despite unexpected status"
+          - label: "No", description: "Cancel and check task status first"
+        - multiSelect: false
+      </action>
     </branch>
     <action>Get `spec` path from frontmatter</action>
     <branch condition="task not found">
@@ -156,7 +170,14 @@ Run: /kanban-scope {taskId}
   <step name="check_existing_plan">
     <validate>Check if `.kanban/tasks/{taskId}/plan.md` exists</validate>
     <branch condition="plan exists">
-      <prompt>Plan already exists. Overwrite or view existing?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Plan exists"
+        - question: "A plan already exists for this task. What would you like to do?"
+        - options:
+          - label: "Overwrite", description: "Create a new plan, replacing the existing one"
+          - label: "View existing", description: "Show the current plan without changes"
+        - multiSelect: false
+      </action>
     </branch>
   </step>
 

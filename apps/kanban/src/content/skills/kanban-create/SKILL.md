@@ -1,7 +1,7 @@
 ---
 name: kanban-create
 description: Create a new task in the kanban board and commit. Use when the user wants to add a task, ticket, bug, or feature to track.
-allowed-tools: Read, Write, Bash(node *, git add *, git commit *, git status, git branch *)
+allowed-tools: Read, Write, Bash(node *, git add *, git commit *, git status, git branch *), AskUserQuestion
 argument-hint: "[task title]"
 disable-model-invocation: true
 ---
@@ -71,7 +71,14 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
 
     <branch condition="no docs with score ≥ 0.3 found">
       <note>This may be a NEW feature not yet documented</note>
-      <prompt>This looks like a new feature. What domain should it belong to? (e.g., auth, billing, users)</prompt>
+      <action>If existing domains are known from `.kanban/product/` folder structure, use AskUserQuestion tool with:
+        - header: "Domain"
+        - question: "This looks like a new feature. What domain should it belong to?"
+        - options: Build from existing domain folders (up to 4), each with:
+          - label: "{domain}", description: "Group with other {domain} features"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to type a custom domain</note>
       <action>Set `affects: [{domain}/{slug-from-title}]` - doc will be created during /kanban-docs</action>
     </branch>
 
@@ -112,14 +119,46 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
     <action>Ensure title follows best practices (suggest improvements if needed)</action>
     <action>Generate initial description based on title</action>
     <action>Set status to first column ID from kanban-workflow.yaml (`backlog`)</action>
-    <prompt>What priority? (use priority IDs from kanban-workflow.yaml)</prompt>
-    <note>Default to `medium` if not specified</note>
+    <action>Use AskUserQuestion tool with:
+      - header: "Priority"
+      - question: "What priority should this task have?"
+      - options:
+        - label: "High", description: "Urgent or blocking other work"
+        - label: "Medium (Recommended)", description: "Normal priority, will be done in order"
+        - label: "Low", description: "Nice to have, can wait"
+      - multiSelect: false
+    </action>
   </step>
 
   <step name="determine_label">
     <action>Use `labels[].detect-keywords` from kanban-workflow.yaml to auto-detect label from title/context</action>
+    <branch condition="label auto-detected">
+      <action>Use AskUserQuestion tool with:
+        - header: "Label"
+        - question: "Auto-detected label: {detected-label}. Is this correct?"
+        - options:
+          - label: "Yes", description: "Use {detected-label} as the task label"
+          - label: "No", description: "Choose a different label"
+        - multiSelect: false
+      </action>
+      <branch condition="user selects No">
+        <action>Use AskUserQuestion tool with:
+          - header: "Label"
+          - question: "Which label should this task have?"
+          - options: Build from labels in workflow.yaml (bug, feature, docs, refactor), each with:
+            - label: "{label-name}", description: "{label description from workflow}"
+          - multiSelect: false
+        </action>
+      </branch>
+    </branch>
     <branch condition="label unclear">
-      <prompt>Confirm label or skip?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Label"
+        - question: "Which label should this task have?"
+        - options: Build from labels in workflow.yaml (bug, feature, docs, refactor), each with:
+          - label: "{label-name}", description: "{label description from workflow}"
+        - multiSelect: false
+      </action>
     </branch>
   </step>
 
