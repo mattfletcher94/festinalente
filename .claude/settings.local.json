@@ -40,7 +40,9 @@
       "Bash(pnpm dev)",
       "Bash(npx shadcn-vue@latest add:*)",
       "Bash(npx shadcn-vue@latest init --defaults)",
-      "WebFetch(domain:www.shadcn-vue.com)"
+      "WebFetch(domain:www.shadcn-vue.com)",
+      "Bash(pnpm dlx shadcn-vue@latest add:*)",
+      "Bash(curl:*)"
     ]
   }
 }

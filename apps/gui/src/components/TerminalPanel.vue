@@ -13,17 +13,25 @@ const emit = defineEmits<{
 
 const terminalRef = ref<HTMLDivElement>();
 const isRunning = ref(false);
+const currentTaskId = ref<string | null>(null);
 
 let terminal: Terminal;
 let fitAddon: FitAddon;
 
+// Extract task ID from command (e.g., "/kanban-plan 001" -> "001")
+function extractTaskId(command: string): string | null {
+  const match = command.match(/\/kanban-\w+\s+(\S+)/);
+  return match ? match[1] : null;
+}
+
 // Run a command - spawns Claude, runs command, exits when complete
 async function runCommand(command: string) {
   terminal.clear();
-  terminal.write(`\x1b[90m> Running: ${command}\x1b[0m\r\n\r\n`);
+  terminal.write(`\x1b[90m> Running: ${command}\x1b[0m\r\n`);
 
+  currentTaskId.value = extractTaskId(command);
   isRunning.value = true;
-  await window.electronAPI.ptyRunCommand(props.projectPath, command);
+  await window.electronAPI.ptyRunCommand(props.projectPath, command.trim());
   window.electronAPI.ptyResize(terminal.cols, terminal.rows);
 }
 
@@ -73,7 +81,13 @@ onMounted(() => {
   window.electronAPI.onPtyExit((code: number) => {
     isRunning.value = false;
     emit('exit', code);
-    terminal.write(`\r\n\x1b[90m[Task complete]\x1b[0m\r\n`);
+
+    // Clear terminal and show placeholder after task completes
+    setTimeout(() => {
+      terminal.clear();
+      terminal.write('\x1b[90mTask complete. Click a button to run another command.\x1b[0m\r\n');
+    }, 1500); // Give user time to see the final output
+
     emit('ready');
   });
 
@@ -95,5 +109,16 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div ref="terminalRef" class="h-full w-full p-2 bg-[#09090b]"></div>
+  <div class="h-full flex flex-col bg-background text-foreground">
+    <!-- Header -->
+    <div class="flex items-center justify-between px-4 py-3 border-b border-border">
+      <h2 class="text-sm font-semibold">
+        Terminal
+        <span v-if="currentTaskId" class="font-mono text-muted-foreground ml-1">({{ currentTaskId }})</span>
+      </h2>
+      <span v-if="isRunning" class="text-xs text-muted-foreground">Running...</span>
+    </div>
+    <!-- Terminal -->
+    <div ref="terminalRef" class="flex-1 p-2 bg-[#09090b]"></div>
+  </div>
 </template>

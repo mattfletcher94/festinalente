@@ -1,19 +1,25 @@
 <script setup lang="ts">
-import { SplitterGroup, type SplitterGroupProps } from 'reka-ui';
-import { cn } from '@/lib/utils';
+import type { SplitterGroupEmits, SplitterGroupProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
+import { reactiveOmit } from "@vueuse/core"
+import { SplitterGroup, useForwardPropsEmits } from "reka-ui"
+import { cn } from "@/lib/utils"
 
-interface Props extends SplitterGroupProps {
-  class?: string;
-}
+const props = defineProps<SplitterGroupProps & { class?: HTMLAttributes["class"] }>()
+const emits = defineEmits<SplitterGroupEmits>()
 
-const props = defineProps<Props>();
+const delegatedProps = reactiveOmit(props, "class")
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits)
 </script>
 
 <template>
   <SplitterGroup
-    v-bind="props"
+    v-slot="slotProps"
+    data-slot="resizable-panel-group"
+    v-bind="forwarded"
     :class="cn('flex h-full w-full data-[orientation=vertical]:flex-col', props.class)"
   >
-    <slot />
+    <slot v-bind="slotProps" />
   </SplitterGroup>
 </template>

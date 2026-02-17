@@ -17,4 +17,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onPtyExit: (callback: (code: number) => void) => {
     ipcRenderer.on('pty:exit', (_, code) => callback(code));
   },
+
+  // Tasks
+  listTasks: (projectPath: string) => ipcRenderer.invoke('tasks:list', projectPath),
+  readTaskFile: (projectPath: string, taskId: string) => ipcRenderer.invoke('tasks:read', projectPath, taskId),
+  getAvailableTaskFiles: (projectPath: string, taskId: string) => ipcRenderer.invoke('tasks:getAvailableFiles', projectPath, taskId),
+  readSpecFile: (projectPath: string, taskId: string) => ipcRenderer.invoke('tasks:readSpec', projectPath, taskId),
+  readPlanFile: (projectPath: string, taskId: string) => ipcRenderer.invoke('tasks:readPlan', projectPath, taskId),
+
+  // Settings
+  getSetting: <T>(key: string) => ipcRenderer.invoke('settings:get', key) as Promise<T>,
+  setSetting: (key: string, value: unknown) => ipcRenderer.invoke('settings:set', key, value),
+  getAllSettings: () => ipcRenderer.invoke('settings:getAll'),
 });

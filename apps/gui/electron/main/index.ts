@@ -4,10 +4,33 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import fs from 'node:fs';
 import os from 'node:os';
+import matter from 'gray-matter';
+import Store from 'electron-store';
 import { spawnClaude, runClaudeCommand, writeToPty, resizePty, killPty } from './pty-service';
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Settings store
+interface StoreSchema {
+  projectPath: string | null;
+  panelSizes: {
+    taskList: number;
+    taskDetail: number;
+    terminal: number;
+  };
+}
+
+const store = new Store<StoreSchema>({
+  defaults: {
+    projectPath: null,
+    panelSizes: {
+      taskList: 20,
+      taskDetail: 40,
+      terminal: 40,
+    },
+  },
+});
 
 // The built directory structure
 //
@@ -47,8 +70,8 @@ const indexHtml = path.join(RENDERER_DIST, 'index.html');
 async function createWindow() {
   win = new BrowserWindow({
     title: 'Claude Kanban',
-    width: 1000,
-    height: 700,
+    width: 1400,
+    height: 800,
     webPreferences: {
       preload,
       nodeIntegration: false,
@@ -108,6 +131,103 @@ ipcMain.handle('pty:runCommand', (_, cwd: string, command: string) => {
 ipcMain.on('pty:write', (_, data: string) => writeToPty(data));
 ipcMain.on('pty:resize', (_, cols: number, rows: number) => resizePty(cols, rows));
 ipcMain.on('pty:kill', () => killPty());
+
+// IPC: List tasks from .kanban/tasks/
+ipcMain.handle('tasks:list', async (_, projectPath: string) => {
+  const tasksDir = path.join(projectPath, '.kanban', 'tasks');
+  const tasks: Array<{
+    id: string;
+    title: string;
+    status: string;
+    priority?: string;
+    labels?: string[];
+    path: string;
+  }> = [];
+
+  if (!fs.existsSync(tasksDir)) return tasks;
+
+  const taskFolders = fs.readdirSync(tasksDir);
+
+  for (const folder of taskFolders) {
+    const taskFile = path.join(tasksDir, folder, 'task.md');
+    if (!fs.existsSync(taskFile)) continue;
+
+    try {
+      const content = fs.readFileSync(taskFile, 'utf-8');
+      const { data } = matter(content);
+
+      tasks.push({
+        id: (data.id as string) || folder,
+        title: (data.title as string) || 'Untitled',
+        status: (data.status as string) || 'backlog',
+        priority: data.priority as string | undefined,
+        labels: data.labels as string[] | undefined,
+        path: taskFile,
+      });
+    } catch (err) {
+      console.error(`Failed to parse task ${folder}:`, err);
+    }
+  }
+
+  return tasks;
+});
+
+// IPC: Read task file content
+ipcMain.handle('tasks:read', async (_, projectPath: string, taskId: string) => {
+  const taskFile = path.join(projectPath, '.kanban', 'tasks', taskId, 'task.md');
+
+  if (!fs.existsSync(taskFile)) {
+    throw new Error(`Task ${taskId} not found`);
+  }
+
+  return fs.readFileSync(taskFile, 'utf-8');
+});
+
+// IPC: Check which task files exist (spec, plan)
+ipcMain.handle('tasks:getAvailableFiles', async (_, projectPath: string, taskId: string) => {
+  const taskDir = path.join(projectPath, '.kanban', 'tasks', taskId);
+
+  return {
+    task: fs.existsSync(path.join(taskDir, 'task.md')),
+    spec: fs.existsSync(path.join(taskDir, 'spec.md')),
+    plan: fs.existsSync(path.join(taskDir, 'plan.md')),
+  };
+});
+
+// IPC: Read spec file content
+ipcMain.handle('tasks:readSpec', async (_, projectPath: string, taskId: string) => {
+  const specFile = path.join(projectPath, '.kanban', 'tasks', taskId, 'spec.md');
+
+  if (!fs.existsSync(specFile)) {
+    return null;
+  }
+
+  return fs.readFileSync(specFile, 'utf-8');
+});
+
+// IPC: Read plan file content
+ipcMain.handle('tasks:readPlan', async (_, projectPath: string, taskId: string) => {
+  const planFile = path.join(projectPath, '.kanban', 'tasks', taskId, 'plan.md');
+
+  if (!fs.existsSync(planFile)) {
+    return null;
+  }
+
+  return fs.readFileSync(planFile, 'utf-8');
+});
+
+// IPC: Settings handlers
+ipcMain.handle('settings:get', (_, key: keyof StoreSchema) => {
+  return store.get(key);
+});
+
+ipcMain.handle('settings:set', (_, key: keyof StoreSchema, value: unknown) => {
+  store.set(key, value);
+});
+
+ipcMain.handle('settings:getAll', () => {
+  return store.store;
+});
 
 app.whenReady().then(createWindow);
 
