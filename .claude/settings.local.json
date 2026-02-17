@@ -47,7 +47,8 @@
       "Bash(if not exist \".kanban\\\\product\" mkdir \".kanban\\\\product\")",
       "Bash(npx vue-tsc:*)",
       "Bash(npm run typecheck:*)",
-      "Bash(pnpm check:dpdm:*)"
+      "Bash(pnpm check:dpdm:*)",
+      "Bash(git merge:*)"
     ]
   }
 }

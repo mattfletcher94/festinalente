@@ -1,7 +1,7 @@
 ---
 name: kanban-approve
 description: Approve implementation after human QA, commit code, and move to Update Docs. Use when QA testing passes.
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git diff *, git branch *)
+allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git diff *, git branch *), AskUserQuestion
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---
@@ -57,8 +57,15 @@ Approve implementation after human QA testing, commit the code with appropriate 
     </branch>
     <branch condition="$ARGUMENTS not provided">
       <action>List tasks in `qa` status from `.kanban/tasks/`</action>
-      <output>Show task IDs and titles</output>
-      <prompt>Which task to approve?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Task"
+        - question: "Which task would you like to approve?"
+        - options: Build from task list (up to 4 tasks in qa status), each with:
+          - label: "{taskId}: {short title}" (truncate title if needed)
+          - description: "Status: qa | Ready for approval"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to type a task ID directly</note>
     </branch>
   </step>
 
@@ -128,8 +135,15 @@ Approve implementation after human QA testing, commit the code with appropriate 
 
   <step name="prompt_qa_confirmation">
     <output>Display task title and acceptance criteria</output>
-    <prompt>Have you tested the application and verified it meets acceptance criteria? [Y/n]</prompt>
-    <branch condition="user declines">
+    <action>Use AskUserQuestion tool with:
+      - header: "QA Passed?"
+      - question: "Have you tested the application and verified it meets acceptance criteria?"
+      - options:
+        - label: "Yes", description: "QA passed, ready to commit and move to Update Docs"
+        - label: "No", description: "Issues found, need to document and rework"
+      - multiSelect: false
+    </action>
+    <branch condition="user selects No">
       <output>Suggest: Use /kanban-rework {taskId} to document issues</output>
       <action>Exit</action>
     </branch>
@@ -141,7 +155,14 @@ Approve implementation after human QA testing, commit the code with appropriate 
     <output>Display files that will be committed</output>
     <branch condition="no changes found">
       <output>Warning: No uncommitted changes to commit. Was the implementation already committed?</output>
-      <prompt>Proceed anyway (just move status)?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Proceed?"
+        - question: "No uncommitted changes found. Proceed anyway (just move status)?"
+        - options:
+          - label: "Yes", description: "Continue and move task to Update Docs"
+          - label: "No", description: "Cancel and investigate missing changes"
+        - multiSelect: false
+      </action>
     </branch>
   </step>
 
@@ -223,8 +244,7 @@ Acceptance Criteria:
   When they click login
   Then they are authenticated and redirected to dashboard
 
-Have you tested the application and verified it meets acceptance criteria? [Y/n]
-> Y
+[User selects "Yes" - QA passed]
 
 Task 001 moved to Update Docs
 
@@ -262,8 +282,7 @@ Acceptance Criteria:
   When the server redirects
   Then the redirect goes to dashboard without loop
 
-Have you tested the application and verified it meets acceptance criteria? [Y/n]
-> Y
+[User selects "Yes" - QA passed]
 
 Task 002 moved to Update Docs
 

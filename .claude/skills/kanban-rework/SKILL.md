@@ -1,7 +1,7 @@
 ---
 name: kanban-rework
 description: Return task to In Progress for fixes. Works from QA or PR columns.
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *, gh pr *)
+allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *, gh pr *), AskUserQuestion
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---
@@ -62,8 +62,15 @@ See `.kanban/workflow.yaml` for column definitions and valid transitions.
     </branch>
     <branch condition="$ARGUMENTS not provided">
       <action>List tasks in `qa` or `pr` status from `.kanban/tasks/`</action>
-      <output>Show task IDs and titles</output>
-      <prompt>Which task needs rework?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Task"
+        - question: "Which task needs rework?"
+        - options: Build from task list (up to 4 tasks in qa or pr status), each with:
+          - label: "{taskId}: {short title}" (truncate title if needed)
+          - description: "Status: {status} | Ready for rework"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to type a task ID directly</note>
     </branch>
   </step>
 
@@ -73,7 +80,14 @@ See `.kanban/workflow.yaml` for column definitions and valid transitions.
     <action>Parse YAML frontmatter</action>
     <validate>Verify current status is `qa` or `pr`</validate>
     <branch condition="status is not qa or pr">
-      <prompt>Task is in {status} status. Expected: qa or pr. Continue anyway? (y/n)</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Continue?"
+        - question: "Task is in {status} status. Expected: qa or pr. Continue with rework anyway?"
+        - options:
+          - label: "Yes", description: "Proceed with rework despite unexpected status"
+          - label: "No", description: "Cancel and check task status first"
+        - multiSelect: false
+      </action>
     </branch>
     <action>Note current title, status, and acceptance criteria</action>
     <branch condition="task not found">
