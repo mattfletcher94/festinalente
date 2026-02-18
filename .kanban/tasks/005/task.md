@@ -1,7 +1,7 @@
 ---
 id: "005"
 title: "kanban-merge skill doesn't consistently update task status before merging"
-status: "refined"
+status: "scoped"
 priority: "high"
 labels: [bug]
 created: 2026-02-18
