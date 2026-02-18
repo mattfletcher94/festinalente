@@ -46,6 +46,7 @@ export interface CreateAppOrchestratorReturn {
   runCommand(command: string): Promise<void>;
   changeProject(): Promise<void>;
   createTask(): void;
+  discover(): void;
 }
 
 /**
@@ -113,6 +114,10 @@ export function createAppOrchestrator(
     runCommand('/kanban-create');
   }
 
+  function discover(): void {
+    runCommand('/kanban-discover');
+  }
+
   return {
     // Sub-orchestrators
     settings,
@@ -128,5 +133,6 @@ export function createAppOrchestrator(
     runCommand,
     changeProject,
     createTask,
+    discover,
   };
 }
