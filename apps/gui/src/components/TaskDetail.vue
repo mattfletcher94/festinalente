@@ -74,6 +74,20 @@ watch(
     }
   }
 );
+
+// Autoplay state with v-model support
+const autoplayEnabled = computed({
+  get: () => {
+    const taskId = tasks.selectedTaskId.value;
+    return taskId ? tasks.isAutoplayEnabled(taskId) : false;
+  },
+  set: (value: boolean) => {
+    const taskId = tasks.selectedTaskId.value;
+    if (taskId) {
+      tasks.setAutoplay(taskId, value);
+    }
+  },
+});
 </script>
 
 <template>
@@ -142,10 +156,7 @@ watch(
           </div>
           <div class="flex items-center gap-2">
             <span class="text-xs text-muted-foreground">Autoplay</span>
-            <Switch
-              :checked="tasks.selectedTaskId.value ? tasks.isAutoplayEnabled(tasks.selectedTaskId.value) : false"
-              @update:checked="tasks.selectedTaskId.value && tasks.setAutoplay(tasks.selectedTaskId.value, $event)"
-            />
+            <Switch v-model="autoplayEnabled" />
           </div>
         </div>
         <div class="space-y-2">
