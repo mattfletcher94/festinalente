@@ -69,10 +69,14 @@ onMounted(() => {
       xtermInstance.write('\x1b[90mTask complete. Click a button to run another command.\x1b[0m\r\n');
     }, 1500);
 
-    // Refresh task data
+    // Refresh task data including selected task
     const projectPath = settings.projectPath.value;
     if (projectPath) {
-      await tasks.loadTasks(projectPath);
+      try {
+        await tasks.refreshSelectedTask(projectPath);
+      } catch (err) {
+        console.error('Failed to refresh task after process exit:', err);
+      }
     }
   });
 
