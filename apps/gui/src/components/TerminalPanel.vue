@@ -20,6 +20,7 @@ const terminal = injectTerminal();
 const terminalRef = ref<HTMLDivElement>();
 let xtermInstance: Terminal;
 let fitAddon: FitAddon;
+let clearTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
 // Handle container resize
 useResizeObserver(terminalRef, () => {
@@ -52,7 +53,14 @@ onMounted(() => {
 
   // Register writer with orchestrator
   const writer: TerminalWriter = {
-    clear: () => xtermInstance.clear(),
+    clear: () => {
+      // Cancel any pending clear timeout when new command starts
+      if (clearTimeoutId) {
+        clearTimeout(clearTimeoutId);
+        clearTimeoutId = null;
+      }
+      xtermInstance.clear();
+    },
     write: (data: string) => xtermInstance.write(data),
     getDimensions: () => ({ cols: xtermInstance.cols, rows: xtermInstance.rows }),
   };
@@ -65,10 +73,13 @@ onMounted(() => {
 
   // Handle PTY exit
   terminal.onExit(async (exitCode: number) => {
-    // Clear terminal and show placeholder after task completes
-    setTimeout(() => {
-      xtermInstance.clear();
-      xtermInstance.write('\x1b[90mTask complete. Click a button to run another command.\x1b[0m\r\n');
+    // Clear terminal and show placeholder after task completes (unless autoplay starts new command)
+    clearTimeoutId = setTimeout(() => {
+      if (!terminal.isRunning.value) {
+        xtermInstance.clear();
+        xtermInstance.write('\x1b[90mTask complete. Click a button to run another command.\x1b[0m\r\n');
+      }
+      clearTimeoutId = null;
     }, 1500);
 
     // Refresh task data including selected task
@@ -91,6 +102,10 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  if (clearTimeoutId) {
+    clearTimeout(clearTimeoutId);
+    clearTimeoutId = null;
+  }
   terminal.unregisterWriter();
   xtermInstance?.dispose();
   terminal.kill();
