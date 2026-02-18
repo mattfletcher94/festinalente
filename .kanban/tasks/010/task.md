@@ -1,12 +1,12 @@
 ---
 id: "010"
 title: "Autoplay mode: automatically run next command when current finishes"
-status: pr
+status: "done"
 priority: medium
 labels: [feature]
 created: 2026-02-18
 updated: 2026-02-18
-completed:
+completed: 2026-02-18
 spec: "tasks/010/spec.md"
 plan: "tasks/010/plan.md"
 affects: [gui/autoplay-mode]
