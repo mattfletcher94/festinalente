@@ -157,17 +157,6 @@ Merge the task branch into main, clean up the branch, and move task to Done.
     </branch>
   </step>
 
-  <step name="move_to_done_and_commit_on_branch">
-    <note>Before merge so status is included</note>
-    <note>Format: `docs({taskId}): done - {title}`</note>
-    <action>Change `status: pr` to `status: done`</action>
-    <action>Add `updated: {YYYY-MM-DD}`</action>
-    <action>Add `completed: {YYYY-MM-DD}`</action>
-    <action>Write updated task file</action>
-    <command>git add .kanban/tasks/{taskId}/task.md</command>
-    <command>git commit -m "docs({taskId}): done - {title}"</command>
-  </step>
-
   <step name="merge_branch">
     <command>git checkout main</command>
     <command>git merge task/{taskId} --no-ff -m "Merge branch 'task/{taskId}'"</command>
@@ -176,6 +165,16 @@ Merge the task branch into main, clean up the branch, and move task to Done.
 
   <step name="cleanup_branch">
     <command>git branch -d task/{taskId}</command>
+  </step>
+
+  <step name="move_to_done_and_commit">
+    <note>Format: `docs({taskId}): done - {title}`</note>
+    <action>Change `status: pr` to `status: done`</action>
+    <action>Add `updated: {YYYY-MM-DD}`</action>
+    <action>Add `completed: {YYYY-MM-DD}`</action>
+    <action>Write updated task file</action>
+    <command>git add .kanban/tasks/{taskId}/task.md</command>
+    <command>git commit -m "docs({taskId}): done - {title}"</command>
   </step>
 
   <step name="output_result">
