@@ -60,6 +60,8 @@ export interface CreateTasksOrchestratorReturn {
   clearSelection(): void;
   loadTaskContent(projectPath: string): Promise<void>;
   refreshSelectedTask(projectPath: string): Promise<void>;
+  setAutoplay(taskId: TaskId, enabled: boolean): void;
+  isAutoplayEnabled(taskId: TaskId): boolean;
 }
 
 /**
@@ -78,6 +80,9 @@ export function createTasksOrchestrator(
   const selectedTask = ref<Task | null>(null);
   const columns = ref<TaskColumn[]>(groupingComputer.getDefaultColumns());
   const loading = ref(false);
+
+  // Autoplay state (session-only)
+  const autoplayEnabled = ref<Record<TaskId, boolean>>({});
 
   // Task content state
   const taskContent = ref('');
@@ -168,6 +173,26 @@ export function createTasksOrchestrator(
     await loadTaskContent(projectPath);
   }
 
+  /**
+   * Set autoplay state for a task.
+   *
+   * @param taskId - The task ID.
+   * @param enabled - Whether autoplay is enabled.
+   */
+  function setAutoplay(taskId: TaskId, enabled: boolean): void {
+    autoplayEnabled.value = { ...autoplayEnabled.value, [taskId]: enabled };
+  }
+
+  /**
+   * Check if autoplay is enabled for a task.
+   *
+   * @param taskId - The task ID.
+   * @returns Whether autoplay is enabled for the task.
+   */
+  function isAutoplayEnabled(taskId: TaskId): boolean {
+    return autoplayEnabled.value[taskId] ?? false;
+  }
+
   return {
     // State
     tasks,
@@ -196,5 +221,7 @@ export function createTasksOrchestrator(
     clearSelection,
     loadTaskContent,
     refreshSelectedTask,
+    setAutoplay,
+    isAutoplayEnabled,
   };
 }

@@ -47,6 +47,7 @@ export interface CreateAppOrchestratorReturn {
   changeProject(): Promise<void>;
   createTask(): void;
   discover(): void;
+  handleCommandComplete(exitCode: number): Promise<void>;
 }
 
 /**
@@ -118,6 +119,38 @@ export function createAppOrchestrator(
     runCommand('/kanban-discover');
   }
 
+  /**
+   * Handle terminal command completion for autoplay.
+   *
+   * @param exitCode - The exit code from the command.
+   */
+  async function handleCommandComplete(exitCode: number): Promise<void> {
+    // Only auto-run on successful exit
+    if (exitCode !== 0) return;
+
+    // Use terminal's currentTaskId since user may have clicked another task while command ran
+    const taskId = terminal.currentTaskId.value;
+    if (!taskId) return;
+
+    // Check if autoplay is enabled for this task
+    if (!tasks.isAutoplayEnabled(taskId)) return;
+
+    // Get the current task (after refresh) - find from tasks list using currentTaskId
+    const currentTask = tasks.tasks.value.find(t => t.id === taskId);
+    if (!currentTask) return;
+
+    // Stop at review phases (codecheck, qa, pr)
+    const reviewPhases = ['codecheck', 'qa', 'pr'];
+    if (reviewPhases.includes(currentTask.status)) return;
+
+    // Get first available action for this task
+    const availableActions = tasks.actionsComputer.getActions(currentTask);
+    if (availableActions.length === 0) return;
+
+    // Run the next command
+    await runCommand(availableActions[0].command);
+  }
+
   return {
     // Sub-orchestrators
     settings,
@@ -134,5 +167,6 @@ export function createAppOrchestrator(
     changeProject,
     createTask,
     discover,
+    handleCommandComplete,
   };
 }

@@ -35,10 +35,10 @@ The autoplay state is session-only (not persisted) because it's a `ref` without 
 **Requirements:** FR2, FR5
 **Pattern:** Reactive state at `tasks.orchestrator.ts:77-80`
 
-- [ ] Add `autoplayEnabled: Ref<Record<TaskId, boolean>>` to state section
-- [ ] Add `setAutoplay(taskId: TaskId, enabled: boolean): void` action
-- [ ] Add `isAutoplayEnabled(taskId: TaskId): boolean` helper (computed from Record)
-- [ ] Export in return object and interface
+- [x] Add `autoplayEnabled: Ref<Record<TaskId, boolean>>` to state section
+- [x] Add `setAutoplay(taskId: TaskId, enabled: boolean): void` action
+- [x] Add `isAutoplayEnabled(taskId: TaskId): boolean` helper (computed from Record)
+- [x] Export in return object and interface
 
 **Verify:** TypeScript compiles, new state accessible from components
 
@@ -47,14 +47,14 @@ The autoplay state is session-only (not persisted) because it's a `ref` without 
 **Requirements:** FR3, FR4, FR6
 **Pattern:** Coordination at `app.orchestrator.ts:89-95`
 
-- [ ] Add `handleCommandComplete(exitCode: number): void` method
-- [ ] Check exit code is 0 (success) before proceeding
-- [ ] Get selected task from tasks orchestrator
-- [ ] Check if autoplay is enabled for this task via `tasks.isAutoplayEnabled(taskId)`
-- [ ] Check if current status is a review phase (`codecheck`, `qa`, `pr`) - if so, return early
-- [ ] Get first action from `tasks.actionsComputer.getActions(task)`
-- [ ] If action exists, call `runCommand(action.command)`
-- [ ] Export in return object and interface
+- [x] Add `handleCommandComplete(exitCode: number): void` method
+- [x] Check exit code is 0 (success) before proceeding
+- [x] Get selected task from tasks orchestrator
+- [x] Check if autoplay is enabled for this task via `tasks.isAutoplayEnabled(taskId)`
+- [x] Check if current status is a review phase (`codecheck`, `qa`, `pr`) - if so, return early
+- [x] Get first action from `tasks.actionsComputer.getActions(task)`
+- [x] If action exists, call `runCommand(action.command)`
+- [x] Export in return object and interface
 
 **Verify:** Method signature correct, logic handles all branches
 
@@ -63,9 +63,9 @@ The autoplay state is session-only (not persisted) because it's a `ref` without 
 **Requirements:** FR3
 **Pattern:** Exit handling at `TerminalPanel.vue:65-81`
 
-- [ ] Import `injectApp` (already imported via `injectSettings`)
-- [ ] In `terminal.onExit` callback, after refresh, call `app.handleCommandComplete(exitCode)`
-- [ ] Pass exit code from the `onExit` callback parameter
+- [x] Import `injectApp` (already imported via `injectSettings`)
+- [x] In `terminal.onExit` callback, after refresh, call `app.handleCommandComplete(exitCode)`
+- [x] Pass exit code from the `onExit` callback parameter
 
 **Verify:** Autoplay triggers after successful command completion
 
@@ -74,22 +74,22 @@ The autoplay state is session-only (not persisted) because it's a `ref` without 
 **Requirements:** FR1
 **Pattern:** Component uses `injectTasks()` at line 8
 
-- [ ] Import `Switch` from `./ui/switch`
-- [ ] Import `Label` from `./ui/label` for accessibility
-- [ ] In "Next Up" section header (line 138-140), add flex container with label + Switch
-- [ ] Bind Switch to `tasks.isAutoplayEnabled(tasks.selectedTaskId.value)` computed
-- [ ] On `update:checked`, call `tasks.setAutoplay(tasks.selectedTaskId.value, $event)`
-- [ ] Only show when `actions.length > 0` (already in v-if)
+- [x] Import `Switch` from `./ui/switch`
+- [x] Import `Label` from `./ui/label` for accessibility
+- [x] In "Next Up" section header (line 138-140), add flex container with label + Switch
+- [x] Bind Switch to `tasks.isAutoplayEnabled(tasks.selectedTaskId.value)` computed
+- [x] On `update:checked`, call `tasks.setAutoplay(tasks.selectedTaskId.value, $event)`
+- [x] Only show when `actions.length > 0` (already in v-if)
 
 **Verify:** Toggle visible in UI, state updates on click
 
 ### Step 5: Final verification
-- [ ] All acceptance criteria from task met
-- [ ] Autoplay enabled → next command runs after current completes
-- [ ] Autoplay stops at codecheck, qa, pr phases
-- [ ] State is session-only (resets on reload)
-- [ ] Toggle not visible during kanban-create (no actions available)
-- [ ] No regressions in existing task/terminal functionality
+- [x] All acceptance criteria from task met
+- [x] Autoplay enabled → next command runs after current completes
+- [x] Autoplay stops at codecheck, qa, pr phases
+- [x] State is session-only (resets on reload)
+- [x] Toggle not visible during kanban-create (no actions available)
+- [x] No regressions in existing task/terminal functionality
 
 ## Testing Strategy
 

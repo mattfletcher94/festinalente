@@ -1,7 +1,7 @@
 ---
 id: "010"
 title: "Autoplay mode: automatically run next command when current finishes"
-status: planned
+status: update-docs
 priority: medium
 labels: [feature]
 created: 2026-02-18
