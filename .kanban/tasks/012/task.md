@@ -1,7 +1,7 @@
 ---
 id: "012"
 title: "Delete a task skill: kanban-delete"
-status: "update-docs"
+status: "pr"
 priority: "medium"
 labels: [feature]
 created: 2026-02-18
