@@ -1,7 +1,7 @@
 ---
 id: "009"
 title: "Add dropdown menu to Add Task button with Create Task and Discover options"
-status: "refined"
+status: "scoped"
 priority: "high"
 labels: [feature]
 created: 2026-02-18
