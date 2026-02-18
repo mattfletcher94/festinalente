@@ -30,12 +30,12 @@ This ensures the done commit is part of the task branch history that gets merged
 
 ## Implementation Steps
 
-- [ ] Step 1: Move `move_to_done_and_commit` step before `merge_branch` step `.claude/skills/kanban-merge/SKILL.md` (FR1, FR2)
-- [ ] Step 2: Update the step to execute while still on task branch, with note explaining why `.claude/skills/kanban-merge/SKILL.md` (FR2)
-- [ ] Step 3: Rename step to `move_to_done_and_commit_on_branch` for clarity `.claude/skills/kanban-merge/SKILL.md`
-- [ ] Step 4: Verify merge_branch step remains unchanged (FR3, FR5) `.claude/skills/kanban-merge/SKILL.md`
-- [ ] Step 5: Verify cleanup_branch step remains unchanged (FR4) `.claude/skills/kanban-merge/SKILL.md`
-- [ ] Step 6: Manual verification - read through the updated skill to confirm step order is correct
+- [x] Step 1: Move `move_to_done_and_commit` step before `merge_branch` step `.claude/skills/kanban-merge/SKILL.md` (FR1, FR2)
+- [x] Step 2: Update the step to execute while still on task branch, with note explaining why `.claude/skills/kanban-merge/SKILL.md` (FR2)
+- [x] Step 3: Rename step to `move_to_done_and_commit_on_branch` for clarity `.claude/skills/kanban-merge/SKILL.md`
+- [x] Step 4: Verify merge_branch step remains unchanged (FR3, FR5) `.claude/skills/kanban-merge/SKILL.md`
+- [x] Step 5: Verify cleanup_branch step remains unchanged (FR4) `.claude/skills/kanban-merge/SKILL.md`
+- [x] Step 6: Manual verification - read through the updated skill to confirm step order is correct
 
 ## Testing Strategy
 
