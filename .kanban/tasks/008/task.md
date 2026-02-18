@@ -1,7 +1,7 @@
 ---
 id: "008"
 title: "Add kanban-discover skill for exploration and analysis"
-status: "refined"
+status: "scoped"
 priority: "medium"
 labels: [feature]
 created: 2026-02-18
