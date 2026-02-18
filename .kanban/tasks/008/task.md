@@ -1,12 +1,12 @@
 ---
 id: "008"
 title: "Add kanban-discover skill for exploration and analysis"
-status: "pr"
+status: "done"
 priority: "medium"
 labels: [feature]
 created: 2026-02-18
 updated: 2026-02-18
-completed:
+completed: 2026-02-18
 spec: "tasks/008/spec.md"
 plan: "tasks/008/plan.md"
 affects: [cli/kanban-discover]
