@@ -1,7 +1,7 @@
 ---
 id: "007"
 title: "Middle panel does not refresh when a process completes"
-status: "refined"
+status: "scoped"
 priority: "high"
 labels: [bug]
 created: 2026-02-18
