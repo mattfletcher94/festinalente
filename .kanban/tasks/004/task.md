@@ -1,12 +1,12 @@
 ---
 id: "004"
 title: "Adding a new task doesn't refresh the task list"
-status: "pr"
+status: "done"
 priority: "high"
 labels: [bug]
 created: 2026-02-17
 updated: 2026-02-18
-completed:
+completed: 2026-02-18
 spec: "tasks/004/spec.md"
 plan: "tasks/004/plan.md"
 affects: [gui/task-list-refresh]
