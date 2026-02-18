@@ -1,7 +1,7 @@
 ---
 id: "004"
 title: "Adding a new task doesn't refresh the task list"
-status: "update-docs"
+status: "pr"
 priority: "high"
 labels: [bug]
 created: 2026-02-17
