@@ -1,7 +1,7 @@
 ---
 id: "006"
 title: "Ask for task description first before other questions in kanban-create"
-status: "planned"
+status: "update-docs"
 priority: "medium"
 labels: [feature]
 created: 2026-02-18

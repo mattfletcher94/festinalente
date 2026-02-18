@@ -35,11 +35,11 @@ The fix involves:
 **Requirements:** FR1, FR2, FR5
 **Pattern:** Step naming convention `get_X` for input collection
 
-- [ ] Create new `get_task_title` step after `get_next_id` (around line 61)
-- [ ] Add `outputs="title, slug"` to the step
-- [ ] Copy the title-handling logic from existing `get_task_details` (lines 113-120)
-- [ ] Branch on `$ARGUMENTS provided` vs not provided
-- [ ] Include title best practices check and slug generation
+- [x] Create new `get_task_title` step after `get_next_id` (around line 61)
+- [x] Add `outputs="title, slug"` to the step
+- [x] Copy the title-handling logic from existing `get_task_details` (lines 113-120)
+- [x] Branch on `$ARGUMENTS provided` vs not provided
+- [x] Include title best practices check and slug generation
 
 **Verify:** New step compiles without syntax errors, outputs `title` variable
 
@@ -47,10 +47,10 @@ The fix involves:
 **Files:** `apps/kanban/src/content/skills/kanban-create/SKILL.md`
 **Requirements:** FR3, FR4
 
-- [ ] Move `search_product_docs` step (lines 62-89) to after `get_task_title`
-- [ ] Move `search_engineering_docs` step (lines 91-110) to after `search_product_docs`
-- [ ] Update the keyword extraction comment to reference "the established title" not "the task title"
-- [ ] Verify step references `title` variable from previous step
+- [x] Move `search_product_docs` step (lines 62-89) to after `get_task_title`
+- [x] Move `search_engineering_docs` step (lines 91-110) to after `search_product_docs`
+- [x] Update the keyword extraction comment to reference "the established title" not "the task title"
+- [x] Verify step references `title` variable from previous step
 
 **Verify:** Doc search steps now appear after `get_task_title` in the file
 
@@ -58,10 +58,10 @@ The fix involves:
 **Files:** `apps/kanban/src/content/skills/kanban-create/SKILL.md`
 **Requirements:** FR4, FR6
 
-- [ ] Create new `get_priority` step after `search_engineering_docs`
-- [ ] Add `outputs="priority"` to the step
-- [ ] Move the priority AskUserQuestion logic from old `get_task_details` (lines 122-130)
-- [ ] Keep the same question format (High/Medium/Low options)
+- [x] Create new `get_priority` step after `search_engineering_docs`
+- [x] Add `outputs="priority"` to the step
+- [x] Move the priority AskUserQuestion logic from old `get_task_details` (lines 122-130)
+- [x] Keep the same question format (High/Medium/Low options)
 
 **Verify:** Priority question now appears after doc searches
 
@@ -69,18 +69,18 @@ The fix involves:
 **Files:** `apps/kanban/src/content/skills/kanban-create/SKILL.md`
 **Requirements:** FR1, FR4, FR5, FR6
 
-- [ ] Delete the entire old `get_task_details` step (lines 112-131)
-- [ ] Verify no dangling references to `get_task_details` in other steps
-- [ ] Verify `create_task_file` step still references correct variables (title, priority from new steps)
+- [x] Delete the entire old `get_task_details` step (lines 112-131)
+- [x] Verify no dangling references to `get_task_details` in other steps
+- [x] Verify `create_task_file` step still references correct variables (title, priority from new steps)
 
 **Verify:** No duplicate title or priority prompts, file parses correctly
 
 ### Step 5: Final verification
-- [ ] Step order is: `get_next_id` → `get_task_title` → `search_product_docs` → `search_engineering_docs` → `get_priority` → `determine_label` → `create_task_file` → `commit`
-- [ ] `/kanban-create` without argument asks title first
-- [ ] `/kanban-create "Fix bug"` accepts title silently
-- [ ] Question order matches spec: title → doc search → priority → label
-- [ ] No regressions in task file creation or commit
+- [x] Step order is: `get_next_id` → `get_task_title` → `search_product_docs` → `search_engineering_docs` → `get_priority` → `determine_label` → `create_task_file` → `commit`
+- [x] `/kanban-create` without argument asks title first
+- [x] `/kanban-create "Fix bug"` accepts title silently
+- [x] Question order matches spec: title → doc search → priority → label
+- [x] No regressions in task file creation or commit
 
 ## Testing Strategy
 
