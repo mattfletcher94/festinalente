@@ -1,11 +1,12 @@
 ---
 id: "012"
 title: "Delete a task skill: kanban-delete"
-status: "scoped"
+status: "planned"
 priority: "medium"
 labels: [feature]
 created: 2026-02-18
 updated: 2026-02-18
+plan: "tasks/012/plan.md"
 completed:
 spec: "tasks/012/spec.md"
 plan: "tasks/012/plan.md"
