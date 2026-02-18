@@ -39,8 +39,8 @@ See full specification: tasks/012/spec.md
 **Files:** `apps/kanban/src/content/kanban-workflow.yaml` (modify)
 **Requirements:** FR7
 
-- [ ] Add `delete: "docs({id}): delete - {title}"` to the commits section
-- [ ] Place after `done:` entry to maintain logical grouping
+- [x] Add `delete: "docs({id}): delete - {title}"` to the commits section
+- [x] Place after `done:` entry to maintain logical grouping
 
 **Verify:** File parses as valid YAML, new commit format is present
 
@@ -49,12 +49,12 @@ See full specification: tasks/012/spec.md
 **Requirements:** FR3, FR6
 **Pattern:** Script pattern from `apps/kanban/src/scripts/find-task.ts:1-66`
 
-- [ ] Create TypeScript file with shebang and imports (fs, path, gray-matter)
-- [ ] Accept task ID as argument
-- [ ] Validate task exists using find-task pattern
-- [ ] Validate task status is `backlog` or `refined`
-- [ ] Delete entire task folder using `fs.rmSync` with `recursive: true`
-- [ ] Return JSON output: `{ success: true, id, title, path }` or `{ error: true, message }`
+- [x] Create TypeScript file with shebang and imports (fs, path, gray-matter)
+- [x] Accept task ID as argument
+- [x] Validate task exists using find-task pattern
+- [x] Validate task status is `backlog` or `refined`
+- [x] Delete entire task folder using `fs.rmSync` with `recursive: true`
+- [x] Return JSON output: `{ success: true, id, title, path }` or `{ error: true, message }`
 
 **Snippet:**
 ```typescript
@@ -79,17 +79,17 @@ fs.rmSync(taskFolder, { recursive: true, force: true });
 **Requirements:** FR1, FR2, FR4, FR5, FR8, FR9
 **Pattern:** Skill structure from `apps/kanban/src/content/skills/kanban-create/SKILL.md`
 
-- [ ] Create skill folder `apps/kanban/src/content/skills/kanban-delete/`
-- [ ] Create SKILL.md with YAML frontmatter:
+- [x] Create skill folder `apps/kanban/src/content/skills/kanban-delete/`
+- [x] Create SKILL.md with YAML frontmatter:
   - `name: kanban-delete`
   - `description: Delete a task from the kanban board. Only works for tasks in Backlog or Refined status.`
   - `allowed-tools: Read, Bash(node *, git add *, git commit *, git status, git branch *), AskUserQuestion`
   - `argument-hint: "[task-id]"`
   - `disable-model-invocation: true`
-- [ ] Add `<purpose>` section
-- [ ] Add `<context>` with helper-scripts partial (show_find_task, show_list_tasks)
-- [ ] Add `<prohibited>` section
-- [ ] Add `<process>` with steps:
+- [x] Add `<purpose>` section
+- [x] Add `<context>` with helper-scripts partial (show_find_task, show_list_tasks)
+- [x] Add `<prohibited>` section
+- [x] Add `<process>` with steps:
   1. `load_workflow` - Read workflow.yaml
   2. `verify_branch` - Use `{{> branch-verify-main}}` partial
   3. `get_task_id` - Accept argument or prompt with list of eligible tasks
@@ -99,17 +99,17 @@ fs.rmSync(taskFolder, { recursive: true, force: true });
   7. `delete_task` - Run delete-task script
   8. `commit` - `git commit -m "docs({id}): delete - {title}"`
   9. `output_result` - Success message with commit hash
-- [ ] Add `<success_criteria>` section
-- [ ] Add `<example>` section
+- [x] Add `<success_criteria>` section
+- [x] Add `<example>` section
 
 **Verify:** Skill follows conventions, all FRs addressed, partials used correctly
 
 ### Step 4: Final verification
-- [ ] Build succeeds (if applicable)
-- [ ] All acceptance criteria from task met
-- [ ] Skill matches existing kanban-* skill conventions
-- [ ] Script matches existing script conventions
-- [ ] No regressions in workflow.yaml parsing
+- [x] Build succeeds (if applicable)
+- [x] All acceptance criteria from task met
+- [x] Skill matches existing kanban-* skill conventions
+- [x] Script matches existing script conventions
+- [x] No regressions in workflow.yaml parsing
 
 ## Testing Strategy
 
