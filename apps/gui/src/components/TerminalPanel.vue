@@ -72,7 +72,7 @@ onMounted(() => {
     // Refresh task data
     const projectPath = settings.projectPath.value;
     if (projectPath) {
-      await tasks.refreshSelectedTask(projectPath);
+      await tasks.loadTasks(projectPath);
     }
   });
 

@@ -29,9 +29,9 @@ The `loadTasks()` method is already optimized with ShallowRef, so calling it on 
 
 ## Implementation Steps
 
-- [ ] Step 1: Change `refreshSelectedTask()` to `loadTasks()` in `apps/gui/src/components/TerminalPanel.vue:75` (FR1, FR2)
-- [ ] Step 2: Verify error handling remains unchanged (console.log only, no user notification) (FR3)
-- [ ] Step 3: Manual verification — create task via GUI, confirm it appears without refresh
+- [x] Step 1: Change `refreshSelectedTask()` to `loadTasks()` in `apps/gui/src/components/TerminalPanel.vue:75` (FR1, FR2)
+- [x] Step 2: Verify error handling remains unchanged (console.log only, no user notification) (FR3)
+- [x] Step 3: Manual verification — create task via GUI, confirm it appears without refresh
 
 ## Testing Strategy
 
