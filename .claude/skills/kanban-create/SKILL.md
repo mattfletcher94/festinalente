@@ -133,8 +133,19 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
     <action>Use `nextId` from JSON output</action>
   </step>
 
+  <step name="get_task_title" outputs="title, slug">
+    <branch condition="$ARGUMENTS provided">
+      <action>Use $ARGUMENTS as title</action>
+    </branch>
+    <branch condition="$ARGUMENTS not provided">
+      <prompt>What is the task title?</prompt>
+    </branch>
+    <action>Ensure title follows best practices (suggest improvements if needed)</action>
+    <action>Generate slug from title for file naming</action>
+  </step>
+
   <step name="search_product_docs" when="`.kanban/product/` directory exists and is not empty">
-    <action>Extract keywords from the task title (nouns, verbs, domain terms)</action>
+    <action>Extract keywords from the established title (nouns, verbs, domain terms)</action>
     <command>node .kanban/scripts/search-product.cjs {keyword1} {keyword2} ...</command>
 
     <branch condition="docs with score ≥ 0.5 found">
@@ -163,7 +174,7 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
   </step>
 
   <step name="search_engineering_docs" when="`.kanban/engineering/` directory exists and is not empty">
-    <action>Extract keywords from the task title (technical terms, patterns, system names)</action>
+    <action>Extract keywords from the established title (technical terms, patterns, system names)</action>
     <command>node .kanban/scripts/search-engineering.cjs {keyword1} {keyword2} ...</command>
 
     <branch condition="docs with score ≥ 0.5 found">
@@ -183,16 +194,7 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
     </branch>
   </step>
 
-  <step name="get_task_details" outputs="title, slug, priority, labels">
-    <branch condition="$ARGUMENTS provided">
-      <action>Use $ARGUMENTS as title</action>
-    </branch>
-    <branch condition="$ARGUMENTS not provided">
-      <prompt>What is the task title?</prompt>
-    </branch>
-    <action>Ensure title follows best practices (suggest improvements if needed)</action>
-    <action>Generate initial description based on title</action>
-    <action>Set status to first column ID from kanban-workflow.yaml (`backlog`)</action>
+  <step name="get_priority" outputs="priority">
     <action>Use AskUserQuestion tool with:
       - header: "Priority"
       - question: "What priority should this task have?"
