@@ -5,7 +5,7 @@ type: feature
 summary: "Collapsible task list grouped by workflow status columns"
 keywords: [task-list, panel, collapsible, status, columns, grouped]
 related: [gui/desktop-app, gui/task-detail, cli/task-workflow]
-updated: 2026-02-17
+updated: 2026-02-18
 ---
 
 # Task List Panel
@@ -40,7 +40,7 @@ Columns are displayed in priority order (most active first):
 
 - **Task card**: Shows ID, title, and labels
 - **Collapsible section**: Click column header to expand/collapse
-- **Auto-refresh**: List refreshes when terminal command completes
+- **Auto-refresh**: List refreshes when terminal command completes or when a new task is created
 
 ## Interactions
 
