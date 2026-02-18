@@ -1,12 +1,12 @@
 ---
 id: "007"
 title: "Middle panel does not refresh when a process completes"
-status: "pr"
+status: "done"
 priority: "high"
 labels: [bug]
 created: 2026-02-18
 updated: 2026-02-18
-completed:
+completed: 2026-02-18
 spec: "tasks/007/spec.md"
 plan: "tasks/007/plan.md"
 affects: [gui/panel-refresh]
