@@ -9,7 +9,6 @@ updated: 2026-02-18
 plan: "tasks/012/plan.md"
 completed:
 spec: "tasks/012/spec.md"
-plan: "tasks/012/plan.md"
 affects: [cli/kanban-delete]
 engineering: []
 ---
