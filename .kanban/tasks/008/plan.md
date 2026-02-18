@@ -36,32 +36,32 @@ See full specification: tasks/008/spec.md
 
 ## Implementation Steps
 
-- [ ] Step 1: Create skill directory `apps/kanban/src/content/skills/kanban-discover/` (FR1)
-- [ ] Step 2: Write `SKILL.md` frontmatter following kanban-create pattern (FR1)
+- [x] Step 1: Create skill directory `apps/kanban/src/content/skills/kanban-discover/` (FR1)
+- [x] Step 2: Write `SKILL.md` frontmatter following kanban-create pattern (FR1)
   - name: kanban-discover
   - description: Explore questions and analyze codebases through Socratic Q&A before creating tasks
   - allowed-tools: Read, Glob, Grep, WebSearch, WebFetch, AskUserQuestion, Skill
   - argument-hint: "[exploration question]"
   - disable-model-invocation: false (or omit - default is false)
-- [ ] Step 3: Write `<purpose>` section describing the discovery/exploration workflow (FR2-FR3)
-- [ ] Step 4: Write `<context>` section using Handlebars partials (FR4-FR5)
+- [x] Step 3: Write `<purpose>` section describing the discovery/exploration workflow (FR2-FR3)
+- [x] Step 4: Write `<context>` section using Handlebars partials (FR4-FR5)
   - `{{> directory-reference}}`
   - Note about exploration types: codebase audit, research, analysis
-- [ ] Step 5: Write `<prohibited>` section (FR6)
+- [x] Step 5: Write `<prohibited>` section (FR6)
   - No file persistence during exploration
   - No task creation without user confirmation
   - No skipping the clarification phase
-- [ ] Step 6: Write `<process>` with steps (FR1-FR11):
+- [x] Step 6: Write `<process>` with steps (FR1-FR11):
   - get_question: Handle optional argument or prompt for question (FR1-FR3)
   - clarify_intent: Socratic Q&A to understand exploration scope (FR2-FR3)
   - perform_exploration: Use Glob/Grep/Read for codebase, WebSearch/WebFetch for research (FR4-FR5)
   - present_findings: Conversational output of findings (FR6-FR7)
   - offer_task_creation: Ask if user wants tasks from findings (FR7-FR8)
   - iterate_findings: For each finding, offer task creation via Skill tool (FR8-FR11)
-- [ ] Step 7: Write `<success_criteria>` section
-- [ ] Step 8: Write `<example>` section showing codebase audit flow with task creation
-- [ ] Step 9: Write `<next_steps>` section (suggest /kanban-refine for created tasks)
-- [ ] Step 10: Verify skill file follows existing patterns and is well-formed
+- [x] Step 7: Write `<success_criteria>` section
+- [x] Step 8: Write `<example>` section showing codebase audit flow with task creation
+- [x] Step 9: Write `<next_steps>` section (suggest /kanban-refine for created tasks)
+- [x] Step 10: Verify skill file follows existing patterns and is well-formed
 
 **Verify:** Build kanban package and confirm skill appears in installed skills
 
