@@ -40,9 +40,9 @@ See full specification: tasks/009/spec.md
 **Requirements:** Technical Constraint
 **Pattern:** Re-export pattern at `apps/gui/src/components/ui/collapsible/index.ts:1`
 
-- [ ] Navigate to `apps/gui/` directory
-- [ ] Run `pnpm dlx shadcn-vue@latest add dropdown-menu`
-- [ ] Verify generated files follow re-export pattern
+- [x] Navigate to `apps/gui/` directory
+- [x] Run `pnpm dlx shadcn-vue@latest add dropdown-menu`
+- [x] Verify generated files follow re-export pattern
 
 **Verify:** `apps/gui/src/components/ui/dropdown-menu/index.ts` exists and exports components
 
@@ -51,9 +51,9 @@ See full specification: tasks/009/spec.md
 **Requirements:** FR6
 **Pattern:** `createTask()` at `apps/gui/src/app/app.orchestrator.ts:112-114`
 
-- [ ] Add `discover(): void` to `CreateAppOrchestratorReturn` interface
-- [ ] Implement `discover()` function calling `runCommand('/kanban-discover')`
-- [ ] Add `discover` to returned object
+- [x] Add `discover(): void` to `CreateAppOrchestratorReturn` interface
+- [x] Implement `discover()` function calling `runCommand('/kanban-discover')`
+- [x] Add `discover` to returned object
 
 **Verify:** TypeScript compiles, orchestrator exports `discover` method
 
@@ -61,28 +61,28 @@ See full specification: tasks/009/spec.md
 **Files:** `apps/gui/src/components/TaskList.vue` (modify)
 **Requirements:** FR1, FR2, FR3, FR4, FR5, FR7
 
-- [ ] Import dropdown-menu components from `./ui/dropdown-menu`
-- [ ] Import `ChevronDown` icon (already using lucide-vue-next)
-- [ ] Replace the `+` Button with `DropdownMenu` wrapper
-- [ ] Create `DropdownMenuTrigger` as Button with "New +" text, `default` variant, `sm` size
-- [ ] Add `DropdownMenuContent` with alignment to end
-- [ ] Add "Create Task" `DropdownMenuItem` with title "Create Task" and description "Add a task directly"
-- [ ] Add "Discover" `DropdownMenuItem` with title "Discover" and description "Explore ideas through Q&A"
-- [ ] Wire "Create Task" to call `app.createTask()`
-- [ ] Wire "Discover" to call `app.discover()`
-- [ ] Remove old `handleCreateTask` function (inline the call or use directly)
+- [x] Import dropdown-menu components from `./ui/dropdown-menu`
+- [x] Import `ChevronDown` icon (already using lucide-vue-next)
+- [x] Replace the `+` Button with `DropdownMenu` wrapper
+- [x] Create `DropdownMenuTrigger` as Button with "New +" text, `default` variant, `sm` size
+- [x] Add `DropdownMenuContent` with alignment to end
+- [x] Add "Create Task" `DropdownMenuItem` with title "Create Task" and description "Add a task directly"
+- [x] Add "Discover" `DropdownMenuItem` with title "Discover" and description "Explore ideas through Q&A"
+- [x] Wire "Create Task" to call `app.createTask()`
+- [x] Wire "Discover" to call `app.discover()`
+- [x] Remove old `handleCreateTask` function (inline the call or use directly)
 
 **Verify:** Button displays "New +", dropdown opens on click, both options visible with descriptions
 
 ### Step 4: Final verification
-- [ ] Button labeled "New +" with primary/default variant styling
-- [ ] Dropdown opens on click
-- [ ] "Create Task" option shows title and "Add a task directly" description
-- [ ] "Discover" option shows title and "Explore ideas through Q&A" description
-- [ ] Clicking "Create Task" runs `/kanban-create` in terminal
-- [ ] Clicking "Discover" runs `/kanban-discover` in terminal
-- [ ] Dropdown closes after selection
-- [ ] No regressions in existing task list functionality
+- [x] Button labeled "New +" with primary/default variant styling
+- [x] Dropdown opens on click
+- [x] "Create Task" option shows title and "Add a task directly" description
+- [x] "Discover" option shows title and "Explore ideas through Q&A" description
+- [x] Clicking "Create Task" runs `/kanban-create` in terminal
+- [x] Clicking "Discover" runs `/kanban-discover` in terminal
+- [x] Dropdown closes after selection
+- [x] No regressions in existing task list functionality
 
 ## Testing Strategy
 

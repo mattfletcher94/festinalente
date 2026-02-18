@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
-import { Plus, ChevronDown, ChevronRight, FolderOpen } from 'lucide-vue-next';
+import { ChevronDown, ChevronRight, FolderOpen } from 'lucide-vue-next';
 
 import { injectApp } from '@/app';
 import { injectSettings } from '@/settings';
@@ -9,6 +9,12 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from './ui/collapsible';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 
 // Inject orchestrators
@@ -23,6 +29,10 @@ function handleSelectTask(task: Task) {
 
 function handleCreateTask() {
   app.createTask();
+}
+
+function handleDiscover() {
+  app.discover();
 }
 
 function handleChangeProject() {
@@ -53,15 +63,23 @@ onMounted(async () => {
         >
           <FolderOpen class="h-4 w-4" />
         </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          class="h-7 w-7"
-          title="Create task"
-          @click="handleCreateTask"
-        >
-          <Plus class="h-4 w-4" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger as-child>
+            <Button variant="default" size="sm" class="h-7 px-2">
+              New +
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" class="w-56">
+            <DropdownMenuItem @click="handleCreateTask" class="flex flex-col items-start gap-0.5 py-2">
+              <span class="font-medium">Create Task</span>
+              <span class="text-xs text-muted-foreground">Add a task directly</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem @click="handleDiscover" class="flex flex-col items-start gap-0.5 py-2">
+              <span class="font-medium">Discover</span>
+              <span class="text-xs text-muted-foreground">Explore ideas through Q&A</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
 
