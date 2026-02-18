@@ -84,6 +84,7 @@ commits:
   rework: "docs({id}): rework - {title}"  # Consolidated fail command
   docs: "docs({id}): product - {message}"
   done: "docs({id}): done - {title}"
+  delete: "docs({id}): delete - {title}"
   # Product discovery commands (not part of task workflow)
   map-product: "docs: map-product - {features}"
   define-product: "docs: define-product - {description}"

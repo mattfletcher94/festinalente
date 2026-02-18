@@ -1,14 +1,14 @@
 ---
 id: "012"
 title: "Delete a task skill: kanban-delete"
-status: "refined"
+status: "pr"
 priority: "medium"
 labels: [feature]
 created: 2026-02-18
 updated: 2026-02-18
+plan: "tasks/012/plan.md"
 completed:
 spec: "tasks/012/spec.md"
-plan: "tasks/012/plan.md"
 affects: [cli/kanban-delete]
 engineering: []
 ---

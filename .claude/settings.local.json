@@ -54,7 +54,8 @@
       "Bash(git push:*)",
       "Bash(git stash:*)",
       "Bash(test:*)",
-      "Bash(if not exist \".kanban\\\\product\\\\cli\" mkdir \".kanban\\\\product\\\\cli\")"
+      "Bash(if not exist \".kanban\\\\product\\\\cli\" mkdir \".kanban\\\\product\\\\cli\")",
+      "Bash(pnpm build:scripts:*)"
     ]
   }
 }
