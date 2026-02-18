@@ -32,9 +32,9 @@ This is a targeted fix - no new patterns or abstractions needed.
 
 ## Implementation Steps
 
-- [ ] Step 1: Change `loadTasks` to `refreshSelectedTask` in `onExit` handler `apps/gui/src/components/TerminalPanel.vue:75` (FR1, FR2, FR3)
-- [ ] Step 2: Wrap call in try/catch for error resilience `apps/gui/src/components/TerminalPanel.vue:72-77` (FR4)
-- [ ] Step 3: Verify: Run implement command, confirm "Next up" shows correct actions without navigation
+- [x] Step 1: Change `loadTasks` to `refreshSelectedTask` in `onExit` handler `apps/gui/src/components/TerminalPanel.vue:75` (FR1, FR2, FR3)
+- [x] Step 2: Wrap call in try/catch for error resilience `apps/gui/src/components/TerminalPanel.vue:72-77` (FR4)
+- [x] Step 3: Verify: Run implement command, confirm "Next up" shows correct actions without navigation
 
 ## Testing Strategy
 
