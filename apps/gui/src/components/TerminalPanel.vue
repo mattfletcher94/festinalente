@@ -5,11 +5,13 @@ import { onMounted, onUnmounted, ref } from 'vue';
 import { useResizeObserver } from '@vueuse/core';
 import '@xterm/xterm/css/xterm.css';
 
+import { injectApp } from '@/app';
 import { injectTasks } from '@/tasks';
 import { injectSettings } from '@/settings';
 import { injectTerminal, type TerminalWriter } from '@/terminal';
 
 // Inject orchestrators
+const app = injectApp();
 const settings = injectSettings();
 const tasks = injectTasks();
 const terminal = injectTerminal();
@@ -62,7 +64,7 @@ onMounted(() => {
   });
 
   // Handle PTY exit
-  terminal.onExit(async () => {
+  terminal.onExit(async (exitCode: number) => {
     // Clear terminal and show placeholder after task completes
     setTimeout(() => {
       xtermInstance.clear();
@@ -74,6 +76,8 @@ onMounted(() => {
     if (projectPath) {
       try {
         await tasks.refreshSelectedTask(projectPath);
+        // Handle autoplay after refresh completes
+        await app.handleCommandComplete(exitCode);
       } catch (err) {
         console.error('Failed to refresh task after process exit:', err);
       }

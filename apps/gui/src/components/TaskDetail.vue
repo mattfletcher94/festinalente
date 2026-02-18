@@ -7,9 +7,10 @@ import { injectHookConfig, type HookConfig } from '@/hook-config';
 import { injectSettings } from '@/settings';
 import { injectTasks } from '@/tasks';
 import { injectTerminal } from '@/terminal';
-import { Button } from './ui/button';
 import { Badge } from './ui/badge';
+import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
+import { Switch } from './ui/switch';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
 
 // Inject dependencies
@@ -135,8 +136,17 @@ watch(
 
       <!-- Next Up Section -->
       <div v-if="actions.length > 0" class="px-4 py-3 border-b border-border bg-muted/30">
-        <div class="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
-          Next Up
+        <div class="flex items-center justify-between mb-2">
+          <div class="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            Next Up
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-muted-foreground">Autoplay</span>
+            <Switch
+              :checked="tasks.selectedTaskId.value ? tasks.isAutoplayEnabled(tasks.selectedTaskId.value) : false"
+              @update:checked="tasks.selectedTaskId.value && tasks.setAutoplay(tasks.selectedTaskId.value, $event)"
+            />
+          </div>
         </div>
         <div class="space-y-2">
           <div
