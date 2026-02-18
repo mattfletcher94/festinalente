@@ -1,12 +1,12 @@
 ---
 id: "006"
 title: "Ask for task description first before other questions in kanban-create"
-status: "pr"
+status: "done"
 priority: "medium"
 labels: [feature]
 created: 2026-02-18
 updated: 2026-02-18
-completed:
+completed: 2026-02-18
 spec: "tasks/006/spec.md"
 plan: "tasks/006/plan.md"
 affects: [cli/kanban-create-ux]
