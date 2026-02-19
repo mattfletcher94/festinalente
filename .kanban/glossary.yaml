@@ -154,3 +154,70 @@ terms:
     domain: workflow
     definition: "Moving a task back to In Progress after failed review"
     auto_generated: true
+
+  # Engineering terms (added by map-engineering)
+  - term: "orchestrator"
+    aliases: ["state-orchestrator", "feature-orchestrator"]
+    domain: engineering
+    definition: "State management pattern coordinating capabilities and computers"
+    auto_generated: true
+
+  - term: "capability"
+    aliases: ["ipc-capability", "electron-bridge"]
+    domain: engineering
+    definition: "IPC abstraction layer wrapping window.electronAPI calls"
+    auto_generated: true
+
+  - term: "computer"
+    aliases: ["calculator", "pure-logic"]
+    domain: engineering
+    definition: "Pure function pattern for stateless business logic"
+    auto_generated: true
+
+  - term: "provider"
+    aliases: ["vue-provider", "injection-provider"]
+    domain: engineering
+    definition: "Vue provide/inject pattern for dependency injection"
+    auto_generated: true
+
+  - term: "barrel export"
+    aliases: ["barrel", "index-export", "re-export"]
+    domain: engineering
+    definition: "index.ts file re-exporting module contents grouped by role"
+    auto_generated: true
+
+  - term: "acyclic architecture"
+    aliases: ["dag", "clean-dag", "acyclic-deps"]
+    domain: engineering
+    definition: "Architecture where component dependencies form no cycles"
+    auto_generated: true
+
+  - term: "IPC"
+    aliases: ["inter-process-communication", "electron-ipc"]
+    domain: engineering
+    definition: "Communication between Electron main and renderer processes"
+    auto_generated: true
+
+  - term: "preload script"
+    aliases: ["preload", "context-bridge"]
+    domain: engineering
+    definition: "Electron script that exposes safe APIs to renderer via contextBridge"
+    auto_generated: true
+
+  - term: "ShallowRef"
+    aliases: ["shallow-ref", "vue-shallow-ref"]
+    domain: engineering
+    definition: "Vue reactivity for arrays/objects that only tracks root-level changes"
+    auto_generated: true
+
+  - term: "branded type"
+    aliases: ["nominal-type", "type-brand"]
+    domain: engineering
+    definition: "TypeScript pattern adding phantom property for compile-time type safety"
+    auto_generated: true
+
+  - term: "CVA"
+    aliases: ["class-variance-authority", "variant-styling"]
+    domain: engineering
+    definition: "Library for type-safe CSS class composition with variants"
+    auto_generated: true
