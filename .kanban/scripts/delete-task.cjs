@@ -62,9 +62,9 @@ function main() {
 	const parsed = require_xml_parser.parseTaskXml(content);
 	const status = parsed.status;
 	const title = parsed.title;
-	if (status !== "backlog" && status !== "refined") outputResult({
+	if (status !== "backlog") outputResult({
 		error: true,
-		message: `Cannot delete task in ${status} status. Only backlog/refined allowed.`
+		message: `Cannot delete task in ${status} status. Only backlog allowed.`
 	}, 1);
 	const taskFolder = path.default.join(TASKS_DIR, id);
 	fs.default.rmSync(taskFolder, {

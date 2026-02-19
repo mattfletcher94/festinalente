@@ -55,7 +55,6 @@ export function createTaskGroupingComputer(): CreateTaskGroupingComputerReturn {
       { id: 'pr', name: 'PR', open: true },
       { id: 'planned', name: 'Planned', open: true },
       { id: 'scoped', name: 'Scoped', open: true },
-      { id: 'refined', name: 'Refined', open: true },
       { id: 'backlog', name: 'Backlog', open: true },
       { id: 'done', name: 'Done', open: false },
     ];

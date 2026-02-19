@@ -1,7 +1,7 @@
 ---
 name: kanban-create
-description: Create a new task in the kanban board and commit. Use when the user wants to add a task, ticket, bug, or feature to track.
-allowed-tools: Read, Write, Bash(node *, git add *, git commit *, git status, git branch *), AskUserQuestion
+description: Create and refine a new task through conversational Q&A, then commit to Backlog. Captures problem, value, and acceptance criteria in a single workflow.
+allowed-tools: Read, Write, Bash(node *, git add *, git commit *, git status, git branch *), Grep, Glob, AskUserQuestion, WebSearch, WebFetch
 argument-hint: "[task title]"
 disable-model-invocation: true
 ---
@@ -9,7 +9,7 @@ disable-model-invocation: true
 # Create Kanban Task
 
 <purpose>
-Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
+Create and refine a new task through conversational Q&A, then commit to Backlog. Captures problem, value, and acceptance criteria in a single workflow.
 </purpose>
 
 <context>
@@ -164,6 +164,77 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
     </branch>
   </step>
 
+  <step name="conduct_qa_dialogue">
+    <note>This is a **conversational session** focused on **product/business concerns**:
+- What problem are we solving?
+- What value does it provide?
+- What does "done" look like?
+- User context, constraints, preferences</note>
+
+    <note>How the dialogue works:</note>
+
+    <action>Ask questions as needed using AskUserQuestion</action>
+    <note>Start with the most important gaps (problem, value, acceptance criteria)</note>
+    <note>Ask follow-up questions based on answers</note>
+    <note>Don't follow a rigid script - adapt to the conversation</note>
+
+    <note>User can volunteer information at any time:
+- User may provide context you didn't ask for
+- User may request research (e.g., "research how other apps handle password reset")
+- User may skip questions ("skip" or "you fill it in")</note>
+
+    <branch condition="user requests research">
+      <action>Use WebSearch/WebFetch to research domain topics, best practices, how other products solve similar problems</action>
+      <output>Share findings and ask if they influence requirements</output>
+    </branch>
+
+    <action>Continue until you have enough information to write: problem statement, value statement, acceptance criteria</action>
+
+    <output>
+**"I think I have enough information to create this task. Here's what I understand:**
+- **Problem:** {summary}
+- **Value:** {summary}
+- **Acceptance criteria:** {summary}
+
+**Is there anything else you'd like to discuss before I create the task?"**
+    </output>
+
+    <branch condition="user says 'that's good' / 'go ahead' / similar">
+      <action>Proceed to creating task file</action>
+    </branch>
+    <branch condition="user adds more context">
+      <action>Incorporate and ask if anything else</action>
+    </branch>
+    <branch condition="user has corrections">
+      <action>Update understanding and confirm again</action>
+    </branch>
+
+    <note>Key principles:
+- Focus on PRODUCT/BUSINESS concerns, not technical implementation
+- Let the conversation flow naturally
+- Research when it helps clarify requirements
+- Don't rush - thoroughness now saves time later</note>
+  </step>
+
+  <step name="format_acceptance_criteria">
+    <example_code lang="gherkin">
+Given {precondition}
+And {additional precondition if needed}
+When {action}
+Then {expected outcome}
+And {additional outcome if needed}
+    </example_code>
+
+    <note>Example:</note>
+    <example_code lang="gherkin">
+Given a user is on the login page
+And they have entered valid credentials
+When they click the login button
+Then they are redirected to the dashboard
+And their session is established
+    </example_code>
+  </step>
+
   <step name="create_task_file">
     <warning>Write to `.kanban/tasks/` — NOT `.kanban/product/`</warning>
     <action>Read template from `.kanban/templates/task.xml`</action>
@@ -171,8 +242,11 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
     <action>Create file at `.kanban/tasks/{nextId}/task.xml`</action>
     <note>`{nextId}` = the nextId from step get_next_id (e.g., "001")</note>
     <action>Fill XML attributes: `id`, `title`, `status: backlog`, `priority`, `labels`, `created`, `affects`, `engineering`</action>
-    <action>Fill body: `## Description`, `## Notes`</action>
-    <note>Leave empty (filled in later phases): other sections</note>
+    <action>Fill `<description>` with initial description</action>
+    <action>Fill `<problem>` with problem statement from Q&A</action>
+    <action>Fill `<value>` with value statement from Q&A</action>
+    <action>Fill `<acceptance-criteria>` with Gherkin-format criteria from Q&A</action>
+    <action>Leave `<notes>` empty (filled during implementation)</action>
   </step>
 
   <step name="commit">
@@ -184,11 +258,12 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
   <step name="output_result">
     <output>Print the created file path and task ID</output>
     <output>Print commit hash</output>
+    <output>Print acceptance criteria summary</output>
     <output>
-**Next: Refine the task**
+**Next: Scope the implementation**
 ```
 /clear
-/kanban-refine {nextId}
+/kanban-scope {nextId}
 ```
     </output>
     {{> skill-complete}}
@@ -201,32 +276,80 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
 - Task XML has `id="{nextId}"`
 - Task XML has `status="backlog"`
 - Task XML has `title` element with "{title}"
-- Task file contains `## Description` section
+- Task XML has `<problem>` section filled
+- Task XML has `<value>` section filled
+- Task XML has `<acceptance-criteria>` section with Gherkin format
 - Git log shows `docs({nextId}): create -`
-- Next steps shown to user
+- Next steps point to `/kanban-scope` (NOT /kanban-refine)
 </success_criteria>
 
 <example>
 User: `/kanban-create Fix login redirect bug`
 
-Creates: `.kanban/tasks/002/task.md`
-
 ```
+Creating task...
+
+Title: Fix login redirect bug
+Auto-detected label: bug
+
+Is this correct? [Yes / No]
+> Yes
+
+What priority should this task have?
+> Medium
+
+Let me ask some questions to understand this task better.
+
+What problem are you trying to solve?
+> After successful login, users are redirected to /home instead of
+> their original destination URL. If they were trying to access
+> /settings, they end up at /home and have to navigate manually.
+
+What value would solving this provide?
+> Better UX - users go directly where they intended. Also important
+> for shared links that require authentication.
+
+What does "done" look like?
+> After login, redirect to the URL they originally tried to access.
+> If no saved URL, default to /home.
+
+I think I have enough information to create this task. Here's what I understand:
+- **Problem:** Users redirected to /home instead of original destination after login
+- **Value:** Better UX, support for authenticated deep links
+- **Acceptance criteria:** Redirect to saved URL after login, default to /home if none
+
+Is there anything else you'd like to discuss before I create the task?
+> That's good.
+
+Creating task...
+
 Task 002 created in Backlog
 Title: Fix login redirect bug
 Labels: [bug]
+Priority: Medium
+
+Acceptance Criteria:
+  Given a user tries to access /settings without being logged in
+  And they are redirected to the login page
+  When they successfully log in
+  Then they are redirected to /settings
+
+  Given a user navigates directly to the login page
+  When they successfully log in
+  Then they are redirected to /home
+
 File: .kanban/tasks/002/task.xml
 Commit: a1b2c3d docs(002): create - Fix login redirect bug
 
 Next:
 /clear
-/kanban-refine 002
+/kanban-scope 002
 ```
 </example>
 
 <next_steps>
 ```
 /clear
-/kanban-refine {id}
+/kanban-scope {id}
 ```
 </next_steps>

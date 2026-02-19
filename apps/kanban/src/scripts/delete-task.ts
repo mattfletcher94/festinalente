@@ -91,11 +91,11 @@ function main(): void {
   const status = parsed.status;
   const title = parsed.title;
 
-  // Validate status - only backlog or refined allowed
-  if (status !== 'backlog' && status !== 'refined') {
+  // Validate status - only backlog allowed
+  if (status !== 'backlog') {
     outputResult({
       error: true,
-      message: `Cannot delete task in ${status} status. Only backlog/refined allowed.`
+      message: `Cannot delete task in ${status} status. Only backlog allowed.`
     }, 1);
   }
 

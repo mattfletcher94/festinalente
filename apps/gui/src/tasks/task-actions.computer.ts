@@ -65,16 +65,6 @@ export function createTaskActionsComputer(): CreateTaskActionsComputerReturn {
       case 'backlog':
         return [
           {
-            label: 'Refine',
-            command: buildCommand('refine', id),
-            variant: 'default',
-            description: 'Clarify requirements through Q&A',
-          },
-        ];
-
-      case 'refined':
-        return [
-          {
             label: 'Scope',
             command: buildCommand('scope', id),
             variant: 'default',

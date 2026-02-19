@@ -63,9 +63,6 @@ Show the current state of the board and suggest what command to run next. Helps 
 
   <step name="suggest_next_command_for_task" when="$ARGUMENTS is not empty">
     <branch condition="status is backlog">
-      <output>Next: `/kanban-refine {id}`</output>
-    </branch>
-    <branch condition="status is refined">
       <output>Next: `/kanban-scope {id}`</output>
     </branch>
     <branch condition="status is scoped">
@@ -158,9 +155,6 @@ Show the current state of the board and suggest what command to run next. Helps 
 **Scoped ({count})**
 - {id}: {title}
 
-**Refined ({count})**
-- {id}: {title}
-
 **Backlog ({count})**
 - {id}: {title}
 
@@ -189,7 +183,7 @@ Show the current state of the board and suggest what command to run next. Helps 
     <branch condition="tasks in planned but none in progress">
       <action>Suggest starting implementation</action>
     </branch>
-    <branch condition="only backlog/refined/scoped tasks">
+    <branch condition="only backlog/scoped tasks">
       <action>Suggest advancing the highest priority one</action>
     </branch>
     <branch condition="no tasks">

@@ -47,7 +47,7 @@ Display the Kanban board as a visual terminal output with box-drawing characters
       - question: "Which view would you like?"
       - options:
         - label: "Quick (Recommended)", description: "Hide empty columns, Done as count only"
-        - label: "Full", description: "Show all 10 columns, all tasks"
+        - label: "Full", description: "Show all 9 columns, all tasks"
         - label: "Custom", description: "Choose your own display settings"
       - multiSelect: false
     </action>
@@ -58,7 +58,7 @@ Display the Kanban board as a visual terminal output with box-drawing characters
       - header: "Empty cols"
       - question: "Show empty columns?"
       - options:
-        - label: "Yes", description: "Show all 10 columns even if empty"
+        - label: "Yes", description: "Show all 9 columns even if empty"
         - label: "No", description: "Only show columns with tasks"
       - multiSelect: false
     </action>
@@ -89,15 +89,14 @@ Display the Kanban board as a visual terminal output with box-drawing characters
   <step name="render_board">
     <note>Use this column order (workflow order):
 1. `backlog` → "BACKLOG"
-2. `refined` → "REFINED"
-3. `scoped` → "SCOPED"
-4. `planned` → "PLANNED"
-5. `in-progress` → "IN PROGRESS"
-6. `verify` → "VERIFY"
-7. `review` → "REVIEW"
-8. `update-docs` → "UPDATE DOCS"
-9. `awaiting-merge` → "AWAITING MERGE"
-10. `done` → "DONE"</note>
+2. `scoped` → "SCOPED"
+3. `planned` → "PLANNED"
+4. `in-progress` → "IN PROGRESS"
+5. `codecheck` → "CODE CHECK"
+6. `qa` → "QA"
+7. `update-docs` → "UPDATE DOCS"
+8. `pr` → "PR"
+9. `done` → "DONE"</note>
 
     <note>Box format:
 ```
@@ -188,9 +187,6 @@ Done (2 tasks)
 │ 003: Add email notifications          │
 │ 004: Improve search performance       │
 └───────────────────────────────────────┘
-┌─ REFINED (0) ─────────────────────────┐
-│                                       │
-└───────────────────────────────────────┘
 ┌─ SCOPED (0) ──────────────────────────┐
 │                                       │
 └───────────────────────────────────────┘
@@ -201,16 +197,16 @@ Done (2 tasks)
 │ 001: Add dark mode support [feature]  │
 │      3/7                              │
 └───────────────────────────────────────┘
-┌─ VERIFY (0) ──────────────────────────┐
+┌─ CODE CHECK (0) ──────────────────────┐
 │                                       │
 └───────────────────────────────────────┘
-┌─ REVIEW (0) ──────────────────────────┐
+┌─ QA (0) ──────────────────────────────┐
 │                                       │
 └───────────────────────────────────────┘
 ┌─ UPDATE DOCS (0) ─────────────────────┐
 │                                       │
 └───────────────────────────────────────┘
-┌─ AWAITING MERGE (0) ──────────────────┐
+┌─ PR (0) ──────────────────────────────┐
 │                                       │
 └───────────────────────────────────────┘
 ┌─ DONE (2) ────────────────────────────┐

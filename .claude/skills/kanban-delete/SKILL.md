@@ -1,6 +1,6 @@
 ---
 name: kanban-delete
-description: Delete a task from the kanban board. Only works for tasks in Backlog or Refined status.
+description: Delete a task from the kanban board. Only works for tasks in Backlog status.
 allowed-tools: Read, Bash(node *, git add *, git commit *, git status, git branch *, git rm *), AskUserQuestion
 argument-hint: "[task-id]"
 disable-model-invocation: true
@@ -9,7 +9,7 @@ disable-model-invocation: true
 # Delete Kanban Task
 
 <purpose>
-Permanently delete a task from the kanban board. Only tasks in Backlog or Refined status can be deleted.
+Permanently delete a task from the kanban board. Only tasks in Backlog status can be deleted.
 </purpose>
 
 <context>
@@ -35,7 +35,7 @@ Permanently delete a task from the kanban board. Only tasks in Backlog or Refine
 
 
 
-<note>Column transition: backlog/refined → [Deleted]</note>
+<note>Column transition: backlog → [Deleted]</note>
 <note>See `.kanban/workflow.yaml` for column definitions and valid transitions</note>
 </context>
 
@@ -68,16 +68,14 @@ Permanently delete a task from the kanban board. Only tasks in Backlog or Refine
     </branch>
     <branch condition="$ARGUMENTS not provided">
       <command>node .kanban/scripts/list-tasks.cjs --status=backlog</command>
-      <command>node .kanban/scripts/list-tasks.cjs --status=refined</command>
-      <action>Combine results from both commands</action>
       <branch condition="no eligible tasks">
-        <output>No tasks in Backlog or Refined status to delete.</output>
+        <output>No tasks in Backlog status to delete.</output>
         <action>Exit</action>
       </branch>
       <action>Use AskUserQuestion tool with:
         - header: "Task"
         - question: "Which task would you like to delete?"
-        - options: Build from task list (up to 4 tasks in backlog or refined status), each with:
+        - options: Build from task list (up to 4 tasks in backlog status), each with:
           - label: "{taskId}: {short title}" (truncate title if needed)
           - description: "Status: {status}"
         - multiSelect: false
@@ -99,12 +97,12 @@ Permanently delete a task from the kanban board. Only tasks in Backlog or Refine
   </step>
 
   <step name="validate_status">
-    <branch condition="status is backlog or refined">
+    <branch condition="status is backlog">
       <action>Continue to confirmation</action>
     </branch>
     <branch condition="status is any other value">
       <output>Error: Cannot delete task in {status} status.</output>
-      <output>Only tasks in Backlog or Refined status can be deleted.</output>
+      <output>Only tasks in Backlog status can be deleted.</output>
       <output>Tasks in later stages contain work that should not be discarded.</output>
       <action>Exit</action>
     </branch>
@@ -205,7 +203,7 @@ User: `/kanban-delete 003`
 Verifying branch... main ✓
 
 Error: Cannot delete task in in-progress status.
-Only tasks in Backlog or Refined status can be deleted.
+Only tasks in Backlog status can be deleted.
 Tasks in later stages contain work that should not be discarded.
 ```
 </example>

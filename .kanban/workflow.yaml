@@ -5,10 +5,7 @@
 columns:
   - id: backlog
     name: Backlog
-    description: New tasks awaiting refinement
-  - id: refined
-    name: Refined
-    description: Tasks refined with problem, value, and acceptance criteria
+    description: Fully refined tasks ready for scoping
   - id: scoped
     name: Scoped
     description: Tasks with functional specification ready for planning
@@ -62,8 +59,7 @@ priorities:
 
 transitions:
   # Format: source -> [valid destinations]
-  backlog: [refined, scoped]
-  refined: [scoped]
+  backlog: [scoped]
   scoped: [planned]
   planned: [in-progress]
   in-progress: [codecheck]
@@ -75,7 +71,6 @@ transitions:
 commits:
   # Commit message formats by phase
   create: "docs({id}): create - {title}"
-  refine: "docs({id}): refine - {title}"
   scope: "docs({id}): scope - {title}"
   plan: "docs({id}): plan - {title}"
   save: "wip({id}): {summary}"
@@ -84,6 +79,7 @@ commits:
   rework: "docs({id}): rework - {title}"  # Consolidated fail command
   docs: "docs({id}): product - {message}"
   done: "docs({id}): done - {title}"
+  delete: "docs({id}): delete - {title}"
   # Product discovery commands (not part of task workflow)
   map-product: "docs: map-product - {features}"
   define-product: "docs: define-product - {description}"

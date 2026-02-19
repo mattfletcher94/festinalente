@@ -79,9 +79,9 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
     <branch condition="status is in-progress">
       <action>Resume implementation (skip step move_to_in_progress)</action>
     </branch>
-    <branch condition="status is backlog or refined">
-      <output>Task needs refinement/scoping first.</output>
-      <output>Run `/kanban-refine {taskId}` or `/kanban-scope {taskId}` first.</output>
+    <branch condition="status is backlog">
+      <output>Task needs scoping first.</output>
+      <output>Run `/kanban-scope {taskId}` first.</output>
       <action>Exit</action>
     </branch>
     <branch condition="status is checks or later">

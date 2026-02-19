@@ -12,7 +12,6 @@ export type TaskId = string & { readonly __brand: 'TaskId' };
  */
 export type TaskStatus =
   | 'backlog'
-  | 'refined'
   | 'scoped'
   | 'planned'
   | 'in-progress'
