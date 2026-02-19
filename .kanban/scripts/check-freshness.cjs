@@ -102,7 +102,7 @@ function main() {
 	if (!typeFilter || typeFilter === "engineering") for (const docPath of scanRecursive(ENGINEERING_DIR)) {
 		const relativePath = path.default.relative(ENGINEERING_DIR, docPath).replace(/\\/g, "/");
 		let id = relativePath.replace(/\.md$/, "");
-		if (id.endsWith("/index")) id = id.replace(/\/index$/, "");
+		if (id.endsWith("/_index")) id = id.replace(/\/_index$/, "");
 		docsToCheck.push({
 			path: docPath,
 			id

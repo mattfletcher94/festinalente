@@ -32,7 +32,7 @@ function deriveId(filePath, baseDir) {
 	const relativePath = path.default.relative(baseDir, filePath).replace(/\\/g, "/");
 	const withoutExt = relativePath.replace(/\.md$/, "");
 	const parts = withoutExt.split("/");
-	if (parts[0] === "systems" && parts.length === 3 && parts[2] === "index") return `${parts[0]}/${parts[1]}`;
+	if (parts[0] === "systems" && parts.length === 3 && parts[2] === "_index") return `${parts[0]}/${parts[1]}`;
 	return withoutExt;
 }
 function loadDocs(docType, dir) {

@@ -77,7 +77,7 @@ What this pattern does NOT apply to:
 
 ## Systems Using This Pattern
 
-- [{system}](../systems/{system}/index.md)
+- [{system}](../systems/{system}/_index.md)
 
 ## Common Violations
 

@@ -35,7 +35,7 @@ function deriveIdAndSystem(filePath, engineeringDir) {
 		system: null
 	};
 	if (parts[0] === "systems") {
-		if (parts.length === 3 && parts[2] === "index") return {
+		if (parts.length === 3 && parts[2] === "_index") return {
 			id: `${parts[0]}/${parts[1]}`,
 			system: null
 		};

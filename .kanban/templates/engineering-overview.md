@@ -59,7 +59,7 @@ What this overview does NOT cover:
 
 ## Systems
 
-- [{system-name}](systems/{system}/index.md) - {summary}
+- [{system-name}](systems/{system}/_index.md) - {summary}
 
 ## Conventions
 

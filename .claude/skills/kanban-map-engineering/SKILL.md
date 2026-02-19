@@ -32,7 +32,7 @@ Analyze existing codebase and create engineering documentation through parallel 
 
 <note>Path rules:
 - `overview` → `.kanban/engineering/overview.md`
-- `systems/auth` → `.kanban/engineering/systems/auth/index.md`
+- `systems/auth` → `.kanban/engineering/systems/auth/_index.md`
 - `systems/auth/validator` → `.kanban/engineering/systems/auth/validator.md`
 - `patterns/acyclic-arch` → `.kanban/engineering/patterns/acyclic-arch.md`
 - `conventions/file-naming` → `.kanban/engineering/conventions/file-naming.md`
@@ -219,7 +219,7 @@ For each issue, provide:
     <warning>IMMEDIATELY write the engineering doc:</warning>
     <action>Create folder if needed: `.kanban/engineering/systems/{system}/`</action>
     <command description="Get current date">node .kanban/scripts/get-date-time.cjs</command>
-    <action>Create `.kanban/engineering/systems/{system}/index.md`</action>
+    <action>Create `.kanban/engineering/systems/{system}/_index.md`</action>
     <action>Use template from `.kanban/templates/engineering-system.md`</action>
     <action>Fill frontmatter: `id`, `type: system`, `title`, `tldr`, `summary`, `keywords`, `aliases`, `boundary`, `paths`, `verified`, `code_refs`</action>
 
@@ -414,11 +414,11 @@ Let me ask some questions to validate and expand on this understanding.
 ├── overview.md
 ├── systems/
 │   ├── auth/
-│   │   └── index.md
+│   │   └── _index.md
 │   ├── api/
-│   │   └── index.md
+│   │   └── _index.md
 │   └── database/
-│       └── index.md
+│       └── _index.md
 ├── patterns/
 │   ├── repository.md
 │   └── middleware.md

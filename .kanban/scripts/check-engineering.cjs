@@ -10,7 +10,7 @@ const ENGINEERING_DIR = ".kanban/engineering";
 *
 * ID → Path mapping rules:
 * - `overview` → `.kanban/engineering/overview.md`
-* - `systems/auth` → `.kanban/engineering/systems/auth/index.md`
+* - `systems/auth` → `.kanban/engineering/systems/auth/_index.md`
 * - `systems/auth/validator` → `.kanban/engineering/systems/auth/validator.md`
 * - `patterns/acyclic-arch` → `.kanban/engineering/patterns/acyclic-arch.md`
 * - `conventions/file-naming` → `.kanban/engineering/conventions/file-naming.md`
@@ -18,7 +18,7 @@ const ENGINEERING_DIR = ".kanban/engineering";
 function idToPath(id) {
 	if (id === "overview") return path.default.join(ENGINEERING_DIR, "overview.md");
 	const parts = id.split("/");
-	if (parts[0] === "systems" && parts.length === 2) return path.default.join(ENGINEERING_DIR, parts[0], parts[1], "index.md");
+	if (parts[0] === "systems" && parts.length === 2) return path.default.join(ENGINEERING_DIR, parts[0], parts[1], "_index.md");
 	return path.default.join(ENGINEERING_DIR, `${id}.md`);
 }
 function main() {

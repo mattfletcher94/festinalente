@@ -54,7 +54,7 @@ Create and refine a new task through conversational Q&A, then commit to Backlog.
 
 <note>Path rules:
 - `overview` → `.kanban/engineering/overview.md`
-- `systems/auth` → `.kanban/engineering/systems/auth/index.md`
+- `systems/auth` → `.kanban/engineering/systems/auth/_index.md`
 - `systems/auth/validator` → `.kanban/engineering/systems/auth/validator.md`
 - `patterns/acyclic-arch` → `.kanban/engineering/patterns/acyclic-arch.md`
 - `conventions/file-naming` → `.kanban/engineering/conventions/file-naming.md`
