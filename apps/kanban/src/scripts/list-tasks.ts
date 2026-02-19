@@ -6,7 +6,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import matter from 'gray-matter';
+import { parseTaskXml } from './lib/xml-parser';
 
 const TASKS_DIR = '.kanban/tasks';
 
@@ -63,21 +63,21 @@ function main(): void {
   const tasks: Task[] = [];
 
   for (const folderId of folders) {
-    const filePath = path.join(TASKS_DIR, folderId, 'task.md').replace(/\\/g, '/');
+    const filePath = path.join(TASKS_DIR, folderId, 'task.xml').replace(/\\/g, '/');
 
     if (!fs.existsSync(filePath)) continue;
 
     const content = fs.readFileSync(filePath, 'utf8');
-    const { data: frontmatter } = matter(content);
+    const parsed = parseTaskXml(content);
 
     const task: Task = {
       id: folderId,
-      filename: 'task.md',
+      filename: 'task.xml',
       path: filePath,
-      title: (frontmatter.title as string) || '',
-      status: (frontmatter.status as string) || '',
-      priority: (frontmatter.priority as string) || '',
-      labels: Array.isArray(frontmatter.labels) ? frontmatter.labels : []
+      title: parsed.title,
+      status: parsed.status,
+      priority: parsed.priority,
+      labels: parsed.labels
     };
 
     // Apply filters

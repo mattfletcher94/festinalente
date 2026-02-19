@@ -17,7 +17,7 @@ export interface CreateTasksApiCapabilityReturn {
   listTasks(projectPath: string): Promise<Task[]>;
 
   /**
-   * Get available files for a task (task.md, spec.md, plan.md).
+   * Get available files for a task (task.xml, spec.xml, plan.xml).
    *
    * @param projectPath - Path to the project directory.
    * @param taskId - The task ID.
@@ -26,7 +26,7 @@ export interface CreateTasksApiCapabilityReturn {
   getAvailableFiles(projectPath: string, taskId: TaskId): Promise<TaskFiles>;
 
   /**
-   * Read the task.md content.
+   * Read the task.xml content.
    *
    * @param projectPath - Path to the project directory.
    * @param taskId - The task ID.
@@ -35,7 +35,7 @@ export interface CreateTasksApiCapabilityReturn {
   readTaskFile(projectPath: string, taskId: TaskId): Promise<string>;
 
   /**
-   * Read the spec.md content.
+   * Read the spec.xml content.
    *
    * @param projectPath - Path to the project directory.
    * @param taskId - The task ID.
@@ -44,7 +44,7 @@ export interface CreateTasksApiCapabilityReturn {
   readSpecFile(projectPath: string, taskId: TaskId): Promise<string>;
 
   /**
-   * Read the plan.md content.
+   * Read the plan.xml content.
    *
    * @param projectPath - Path to the project directory.
    * @param taskId - The task ID.

@@ -59,7 +59,7 @@ Create a functional specification through iterative conversational Q&A focused o
   <step name="read_task_file" outputs="taskPath, title, acceptanceCriteria, status">
     <command>node .kanban/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
-    <action>Parse YAML frontmatter</action>
+    <action>Parse XML</action>
     <validate>Verify status is `backlog` or `refined`</validate>
     <branch condition="status is not backlog and not refined">
       <output>Task is in {status} status. Expected: backlog or refined.</output>
@@ -268,9 +268,9 @@ Create a functional specification through iterative conversational Q&A focused o
   </step>
 
   <step name="create_spec_file" outputs="specPath">
-    <action>Create at `.kanban/tasks/{taskId}/spec.md`</action>
-    <action>Follow template at `.kanban/templates/spec.md`</action>
-    <action>Link to spec in frontmatter</action>
+    <action>Create at `.kanban/tasks/{taskId}/spec.xml`</action>
+    <action>Follow template at `.kanban/templates/spec.xml`</action>
+    <action>Link to spec in XML attributes</action>
     <action>Fill ALL sections</action>
 
     <example_code lang="markdown">
@@ -344,14 +344,14 @@ updated: {YYYY-MM-DD}
     </example_code>
   </step>
 
-  <step name="update_task_frontmatter">
+  <step name="update_task_xml">
     <action>Change status to `scoped` (from either `backlog` or `refined`)</action>
-    <action>Add `spec: "tasks/{taskId}/spec.md"` to frontmatter</action>
+    <action>Add `spec="tasks/{taskId}/spec.xml"` to refs element</action>
     <action>Update `updated: {YYYY-MM-DD}`</action>
   </step>
 
   <step name="write_files">
-    <action>Write spec file at `.kanban/tasks/{taskId}/spec.md`</action>
+    <action>Write spec file at `.kanban/tasks/{taskId}/spec.xml`</action>
     <action>Write updated task file</action>
   </step>
 
@@ -362,7 +362,7 @@ updated: {YYYY-MM-DD}
 
   <step name="commit">
     <note>Format: `docs({taskId}): scope - {title}`</note>
-    <command>git add .kanban/tasks/{taskId}/spec.md .kanban/tasks/{taskId}/task.md</command>
+    <command>git add .kanban/tasks/{taskId}/spec.xml .kanban/tasks/{taskId}/task.xml</command>
     <command>git commit -m "docs({taskId}): scope - {title}"</command>
   </step>
 
@@ -384,10 +384,10 @@ updated: {YYYY-MM-DD}
 </process>
 
 <success_criteria>
-- Task file exists at `.kanban/tasks/{taskId}/task.md`
-- Spec file exists at `.kanban/tasks/{taskId}/spec.md`
-- Task frontmatter contains `status: scoped`
-- Task frontmatter contains `spec: "tasks/{taskId}/spec.md"`
+- Task file exists at `.kanban/tasks/{taskId}/task.xml`
+- Spec file exists at `.kanban/tasks/{taskId}/spec.xml`
+- Task XML has `status="scoped"`
+- Task refs element has `spec="tasks/{taskId}/spec.xml"`
 - Spec file contains `## Functional Requirements` section
 - Spec file contains `## Affected Files` section
 - Spec file contains `## Existing Patterns` section

@@ -6,12 +6,12 @@
 
 import fs from 'fs';
 import path from 'path';
-import matter from 'gray-matter';
+import { parseSpecXml } from './lib/xml-parser';
 
 const TASKS_DIR = '.kanban/tasks';
 
 function findSpecFile(id: string): string | null {
-  const specPath = path.join(TASKS_DIR, id, 'spec.md');
+  const specPath = path.join(TASKS_DIR, id, 'spec.xml');
   if (fs.existsSync(specPath)) {
     return specPath.replace(/\\/g, '/');
   }
@@ -48,15 +48,15 @@ function main(): void {
   }
 
   const content = fs.readFileSync(specPath, 'utf8');
-  const { data: frontmatter } = matter(content);
+  const parsed = parseSpecXml(content);
 
   const result = {
     id: id,
-    filename: 'spec.md',
+    filename: 'spec.xml',
     path: specPath,
-    task: (frontmatter.task as string) || id,
-    created: (frontmatter.created as string) || '',
-    updated: (frontmatter.updated as string) || ''
+    task: parsed.task || id,
+    created: parsed.created,
+    updated: parsed.updated
   };
 
   console.log(JSON.stringify(result, null, 2));

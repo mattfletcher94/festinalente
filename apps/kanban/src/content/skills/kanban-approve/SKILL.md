@@ -53,7 +53,7 @@ Approve implementation after human QA testing, commit the code with appropriate 
   <step name="read_task_file" outputs="taskPath, title, labels">
     <command>node .kanban/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
-    <action>Parse YAML frontmatter</action>
+    <action>Parse XML</action>
     <validate>Verify current status is `qa`</validate>
     <branch condition="status is in-progress">
       <output>Suggest completing verification first</output>
@@ -171,8 +171,8 @@ Approve implementation after human QA testing, commit the code with appropriate 
 </process>
 
 <success_criteria>
-- Task file exists at `.kanban/tasks/{taskId}/task.md`
-- Task frontmatter contains `status: update-docs`
+- Task file exists at `.kanban/tasks/{taskId}/task.xml`
+- Task XML has `status: update-docs`
 - Git log shows appropriate commit type (`feat`, `fix`, `refactor`, or `docs`) with `({taskId}):`
 - Next steps shown to user
 </success_criteria>

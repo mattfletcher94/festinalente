@@ -62,7 +62,7 @@ Update product documentation, commit the changes, push to remote, and move task 
   <step name="read_task_file" outputs="taskPath, title, labels, affects">
     <command>node .kanban/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
-    <action>Parse YAML frontmatter</action>
+    <action>Parse XML</action>
     <validate>Verify current status is `update-docs`</validate>
     <branch condition="status is qa">
       <output>Suggest `/kanban-approve {taskId}` first</output>
@@ -89,7 +89,7 @@ Update product documentation, commit the changes, push to remote, and move task 
 
   <step name="analyze_product_doc_impact">
     <note>a. **Check affects field:**</note>
-    <action>Read task's `affects` array from frontmatter</action>
+    <action>Read task's `affects` element from XML</action>
     <branch condition="affects has IDs">
       <command>node .kanban/scripts/check-product.cjs {affects IDs}</command>
     </branch>
@@ -123,7 +123,7 @@ Update product documentation, commit the changes, push to remote, and move task 
 
   <step name="analyze_engineering_doc_impact">
     <note>a. **Check engineering field:**</note>
-    <action>Read task's `engineering` array from frontmatter</action>
+    <action>Read task's `engineering` element from XML</action>
     <branch condition="engineering has IDs">
       <command>node .kanban/scripts/check-engineering.cjs {engineering IDs}</command>
     </branch>
@@ -219,7 +219,7 @@ Update product documentation, commit the changes, push to remote, and move task 
     <warning>CRITICAL: Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `docs`, not `kanban`.</warning>
     <command>git add .kanban/product/</command>
     <command>git add .kanban/engineering/</command>
-    <command>git add .kanban/tasks/{taskId}/task.md</command>
+    <command>git add .kanban/tasks/{taskId}/task.xml</command>
     <branch condition="both product and engineering docs were changed">
       <command>git commit -m "docs({taskId}): product+engineering - {description of doc changes}"</command>
     </branch>
@@ -257,8 +257,8 @@ Create PR on GitHub, then run:
 </process>
 
 <success_criteria>
-- Task file exists at `.kanban/tasks/{taskId}/task.md`
-- Task frontmatter contains `status: pr`
+- Task file exists at `.kanban/tasks/{taskId}/task.xml`
+- Task XML has `status="pr"`
 - Branch has been pushed to remote
 - Next steps shown to user
 </success_criteria>

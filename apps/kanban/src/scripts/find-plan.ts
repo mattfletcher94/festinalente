@@ -6,12 +6,12 @@
 
 import fs from 'fs';
 import path from 'path';
-import matter from 'gray-matter';
+import { parsePlanXml } from './lib/xml-parser';
 
 const TASKS_DIR = '.kanban/tasks';
 
 function findPlanFile(id: string): string | null {
-  const planPath = path.join(TASKS_DIR, id, 'plan.md');
+  const planPath = path.join(TASKS_DIR, id, 'plan.xml');
   if (fs.existsSync(planPath)) {
     return planPath.replace(/\\/g, '/');
   }
@@ -48,16 +48,16 @@ function main(): void {
   }
 
   const content = fs.readFileSync(planPath, 'utf8');
-  const { data: frontmatter } = matter(content);
+  const parsed = parsePlanXml(content);
 
   const result = {
     id: id,
-    filename: 'plan.md',
+    filename: 'plan.xml',
     path: planPath,
-    task: (frontmatter.task as string) || id,
-    spec: (frontmatter.spec as string) || '',
-    status: (frontmatter.status as string) || '',
-    iteration: parseInt((frontmatter.iteration as string) || '1', 10) || 1
+    task: parsed.task || id,
+    spec: parsed.spec,
+    status: parsed.status,
+    iteration: parsed.iteration
   };
 
   console.log(JSON.stringify(result, null, 2));

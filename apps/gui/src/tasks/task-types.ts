@@ -59,7 +59,7 @@ export interface TaskColumn {
 }
 
 /**
- * Available task files (task.md, spec.md, plan.md).
+ * Available task files (task.xml, spec.xml, plan.xml).
  */
 export interface TaskFiles {
   readonly task: boolean;

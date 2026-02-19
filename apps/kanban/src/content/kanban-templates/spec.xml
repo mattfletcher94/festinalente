@@ -1,0 +1,40 @@
+<spec task="{id}" created="{created}" updated="{updated}">
+  <title>{title}</title>
+
+  <context></context>
+
+  <scope>
+    <in-scope>
+    </in-scope>
+    <out-of-scope>
+    </out-of-scope>
+  </scope>
+
+  <requirements>
+  </requirements>
+
+  <files>
+  </files>
+
+  <patterns>
+  </patterns>
+
+  <research>
+    <product></product>
+    <engineering></engineering>
+    <codebase></codebase>
+    <pitfalls></pitfalls>
+  </research>
+
+  <constraints>
+  </constraints>
+
+  <dependencies>
+  </dependencies>
+
+  <risks>
+  </risks>
+
+  <open-questions>
+  </open-questions>
+</spec>

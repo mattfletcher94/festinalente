@@ -43,6 +43,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
+    "fast-xml-parser": "^5.3.6",
     "fuse.js": "^7.1.0",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.1"

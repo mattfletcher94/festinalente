@@ -6,7 +6,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import matter from 'gray-matter';
+import { parseTaskXml } from './lib/xml-parser';
 
 const TASKS_DIR = '.kanban/tasks';
 
@@ -37,7 +37,7 @@ type DeleteResult = DeleteSuccessResult | DeleteErrorResult;
  * @returns The task file path or null if not found.
  */
 function findTaskFile(id: string): string | null {
-  const taskPath = path.join(TASKS_DIR, id, 'task.md');
+  const taskPath = path.join(TASKS_DIR, id, 'task.xml');
   if (fs.existsSync(taskPath)) {
     return taskPath.replace(/\\/g, '/');
   }
@@ -86,10 +86,10 @@ function main(): void {
 
   // Read task to get title and validate status
   const content = fs.readFileSync(taskPath, 'utf8');
-  const { data: frontmatter } = matter(content);
+  const parsed = parseTaskXml(content);
 
-  const status = frontmatter.status as string;
-  const title = (frontmatter.title as string) || '';
+  const status = parsed.status;
+  const title = parsed.title;
 
   // Validate status - only backlog or refined allowed
   if (status !== 'backlog' && status !== 'refined') {

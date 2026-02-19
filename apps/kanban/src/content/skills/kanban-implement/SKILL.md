@@ -52,7 +52,7 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
   <step name="read_task_file" outputs="taskPath, title, status">
     <command>node .kanban/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
-    <action>Parse YAML frontmatter</action>
+    <action>Parse XML</action>
     <branch condition="status is planned">
       <action>Move to `in-progress` first (step move_to_in_progress)</action>
     </branch>
@@ -97,7 +97,7 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
   </step>
 
   <step name="read_spec">
-    <action>Get `spec` path from plan frontmatter</action>
+    <action>Get `spec` path from plan XML</action>
     <action>Read spec file for full context on requirements and patterns</action>
   </step>
 
@@ -242,10 +242,10 @@ To save progress now:
 </process>
 
 <success_criteria>
-- Task file exists at `.kanban/tasks/{taskId}/task.md`
+- Task file exists at `.kanban/tasks/{taskId}/task.xml`
 - If all tasks complete: `status: codecheck`
 - If partial progress: `status: in-progress`
-- Plan file exists at `.kanban/tasks/{taskId}/plan.md`
+- Plan file exists at `.kanban/tasks/{taskId}/plan.xml`
 - Completed tasks have `completed="true"` attribute
 - Verification was run for each auto task
 - Next steps shown to user
@@ -261,8 +261,8 @@ Implementing task 001 "Add user auth"...
 
 Task 001 moved to In Progress
 
-Reading spec: .kanban/tasks/001/spec.md
-Reading plan: .kanban/tasks/001/plan.md
+Reading spec: .kanban/tasks/001/spec.xml
+Reading plan: .kanban/tasks/001/plan.xml
 Found 3 tasks, 0 completed, execution order: 1, 2, 3
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -319,8 +319,8 @@ Implementing task 002 "Setup database"...
 
 Column: in-progress (resuming)
 
-Reading spec: .kanban/tasks/002/spec.md
-Reading plan: .kanban/tasks/002/plan.md
+Reading spec: .kanban/tasks/002/spec.xml
+Reading plan: .kanban/tasks/002/plan.xml
 Found 5 tasks, 2 completed, execution order: 3, 4, 5
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

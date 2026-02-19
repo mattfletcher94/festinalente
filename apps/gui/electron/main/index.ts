@@ -4,12 +4,19 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import fs from 'node:fs';
 import os from 'node:os';
-import matter from 'gray-matter';
+import { XMLParser } from 'fast-xml-parser';
 import yaml from 'js-yaml';
 import Store from 'electron-store';
 import { spawnClaude, runClaudeCommand, writeToPty, resizePty, killPty } from './pty-service';
 
 const require = createRequire(import.meta.url);
+
+// XML parser for task files
+const xmlParser = new XMLParser({
+  ignoreAttributes: false,
+  attributeNamePrefix: '',
+  textNodeName: '_text',
+});
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Settings store
@@ -150,19 +157,26 @@ ipcMain.handle('tasks:list', async (_, projectPath: string) => {
   const taskFolders = fs.readdirSync(tasksDir);
 
   for (const folder of taskFolders) {
-    const taskFile = path.join(tasksDir, folder, 'task.md');
+    const taskFile = path.join(tasksDir, folder, 'task.xml');
     if (!fs.existsSync(taskFile)) continue;
 
     try {
       const content = fs.readFileSync(taskFile, 'utf-8');
-      const { data } = matter(content);
+      const result = xmlParser.parse(content);
+      const data = result.task;
+
+      // Parse labels from XML structure
+      let labels: string[] | undefined;
+      if (data.labels?.label) {
+        labels = Array.isArray(data.labels.label) ? data.labels.label : [data.labels.label];
+      }
 
       tasks.push({
         id: (data.id as string) || folder,
         title: (data.title as string) || 'Untitled',
         status: (data.status as string) || 'backlog',
         priority: data.priority as string | undefined,
-        labels: data.labels as string[] | undefined,
+        labels,
         path: taskFile,
       });
     } catch (err) {
@@ -175,7 +189,7 @@ ipcMain.handle('tasks:list', async (_, projectPath: string) => {
 
 // IPC: Read task file content
 ipcMain.handle('tasks:read', async (_, projectPath: string, taskId: string) => {
-  const taskFile = path.join(projectPath, '.kanban', 'tasks', taskId, 'task.md');
+  const taskFile = path.join(projectPath, '.kanban', 'tasks', taskId, 'task.xml');
 
   if (!fs.existsSync(taskFile)) {
     throw new Error(`Task ${taskId} not found`);
@@ -189,15 +203,15 @@ ipcMain.handle('tasks:getAvailableFiles', async (_, projectPath: string, taskId:
   const taskDir = path.join(projectPath, '.kanban', 'tasks', taskId);
 
   return {
-    task: fs.existsSync(path.join(taskDir, 'task.md')),
-    spec: fs.existsSync(path.join(taskDir, 'spec.md')),
-    plan: fs.existsSync(path.join(taskDir, 'plan.md')),
+    task: fs.existsSync(path.join(taskDir, 'task.xml')),
+    spec: fs.existsSync(path.join(taskDir, 'spec.xml')),
+    plan: fs.existsSync(path.join(taskDir, 'plan.xml')),
   };
 });
 
 // IPC: Read spec file content
 ipcMain.handle('tasks:readSpec', async (_, projectPath: string, taskId: string) => {
-  const specFile = path.join(projectPath, '.kanban', 'tasks', taskId, 'spec.md');
+  const specFile = path.join(projectPath, '.kanban', 'tasks', taskId, 'spec.xml');
 
   if (!fs.existsSync(specFile)) {
     return null;
@@ -208,7 +222,7 @@ ipcMain.handle('tasks:readSpec', async (_, projectPath: string, taskId: string) 
 
 // IPC: Read plan file content
 ipcMain.handle('tasks:readPlan', async (_, projectPath: string, taskId: string) => {
-  const planFile = path.join(projectPath, '.kanban', 'tasks', taskId, 'plan.md');
+  const planFile = path.join(projectPath, '.kanban', 'tasks', taskId, 'plan.xml');
 
   if (!fs.existsSync(planFile)) {
     return null;

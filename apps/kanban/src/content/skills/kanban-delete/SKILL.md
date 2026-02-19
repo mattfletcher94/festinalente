@@ -64,7 +64,7 @@ Permanently delete a task from the kanban board. Only tasks in Backlog or Refine
     <command>node .kanban/scripts/find-task.cjs {taskId}</command>
     <branch condition="task found">
       <action>Read the file at the `path` from JSON output</action>
-      <action>Parse YAML frontmatter</action>
+      <action>Parse XML</action>
     </branch>
     <branch condition="task not found">
       <output>Error: Task {taskId} not found</output>

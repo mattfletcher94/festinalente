@@ -70,9 +70,9 @@ For task status details:
 
 | Source | Location | Contains |
 |--------|----------|----------|
-| Task file | `.kanban/tasks/{id}/task.md` | Status, priority, labels, description |
-| Spec file | `.kanban/tasks/{id}/spec.md` | Requirements, acceptance criteria |
-| Plan file | `.kanban/tasks/{id}/plan.md` | Implementation steps, checkboxes |
+| Task file | `.kanban/tasks/{id}/task.xml` | Status, priority, labels, description |
+| Spec file | `.kanban/tasks/{id}/spec.xml` | Requirements, acceptance criteria |
+| Plan file | `.kanban/tasks/{id}/plan.xml` | Implementation steps, checkboxes |
 | Git history | `git log --grep="({id})"` | Timeline, commits, state transitions |
 </note>
 

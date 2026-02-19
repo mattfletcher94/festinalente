@@ -57,7 +57,7 @@ Run code checks using user-configured directives. Directives can be automated co
   <step name="read_task_file" outputs="taskPath, title">
     <command>node .kanban/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
-    <action>Parse YAML frontmatter</action>
+    <action>Parse XML</action>
     <validate>Verify status is `codecheck`</validate>
     <branch condition="status is not codecheck">
       <action>Use AskUserQuestion tool with:
@@ -221,8 +221,8 @@ If you find issues that need fixing:
 </process>
 
 <success_criteria>
-- Task exists at `.kanban/tasks/{taskId}/task.md`
-- Plan exists at `.kanban/tasks/{taskId}/plan.md`
+- Task exists at `.kanban/tasks/{taskId}/task.xml`
+- Plan exists at `.kanban/tasks/{taskId}/plan.xml`
 - If checks passed: task status is `qa`
 - If user declined fix: task status remains `codecheck`, user notified to fix manually
 - Any fix attempts are logged to plan's Iterations section

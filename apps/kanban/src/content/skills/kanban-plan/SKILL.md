@@ -59,7 +59,7 @@ Create a plan file in `.kanban/tasks/{id}/` and move task from Scoped to Planned
   <step name="read_task_file" outputs="taskPath, title, specPath">
     <command>node .kanban/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
-    <action>Parse YAML frontmatter</action>
+    <action>Parse XML</action>
     <validate>Verify current status is `scoped`</validate>
     <branch condition="status is not scoped">
       <action>Use AskUserQuestion tool with:
@@ -71,7 +71,7 @@ Create a plan file in `.kanban/tasks/{id}/` and move task from Scoped to Planned
         - multiSelect: false
       </action>
     </branch>
-    <action>Get `spec` path from frontmatter</action>
+    <action>Get `spec` attribute from task XML</action>
     <branch condition="task not found">
       <output>Error: Task not found</output>
       <action>Exit</action>
@@ -122,7 +122,7 @@ Run: /kanban-scope {taskId}
     <note>Read product documentation for implementation context:</note>
 
     <action>Check task's affects field</action>
-    <branch condition="task has `affects` field in frontmatter">
+    <branch condition="task has `affects` field in XML">
       <action>For each product doc ID: Read `.kanban/product/{id}.md`</action>
       <action>Note: current behavior, UI components, user flows, constraints</action>
     </branch>
@@ -146,7 +146,7 @@ Run: /kanban-scope {taskId}
     <note>Read engineering documentation for implementation patterns:</note>
 
     <action>Check task's engineering field</action>
-    <branch condition="task has `engineering` field in frontmatter">
+    <branch condition="task has `engineering` field in XML">
       <action>For each engineering doc ID: Read doc (use ID→path rules)</action>
       <action>Note: patterns to follow, conventions, system interactions</action>
     </branch>
@@ -168,7 +168,7 @@ Run: /kanban-scope {taskId}
   </step>
 
   <step name="check_existing_plan">
-    <validate>Check if `.kanban/tasks/{taskId}/plan.md` exists</validate>
+    <validate>Check if `.kanban/tasks/{taskId}/plan.xml` exists</validate>
     <branch condition="plan exists">
       <action>Use AskUserQuestion tool with:
         - header: "Plan exists"
@@ -218,9 +218,9 @@ Run: /kanban-scope {taskId}
   </step>
 
   <step name="create_plan_file" outputs="planPath">
-    <action>Create at `.kanban/tasks/{taskId}/plan.md`</action>
+    <action>Create at `.kanban/tasks/{taskId}/plan.xml`</action>
     <action>Use complexity-appropriate format (see templates in this skill)</action>
-    <action>Link to spec in frontmatter</action>
+    <action>Link to spec in XML attributes</action>
     <action>Include all derived sections</action>
 
     <note>Plan must be self-contained: include enough context that the implementer doesn't need to constantly re-read the spec.</note>
@@ -228,7 +228,7 @@ Run: /kanban-scope {taskId}
     <example_code lang="yaml" label="Plan Template">
 ---
 task: "{taskId}"
-spec: "tasks/{taskId}/spec.md"
+spec: "tasks/{taskId}/spec.xml"
 status: approved
 created: {YYYY-MM-DD}
 generated_by: claude
@@ -245,7 +245,7 @@ complexity: {simple|medium|complex}
 {2-3 sentence summary of the implementation approach - NOT just "see spec"}
 {Key architectural decision or pattern being followed}
 
-See full specification: tasks/{taskId}/spec.md
+See full specification: tasks/{taskId}/spec.xml
 
 ## Technical Approach
 
@@ -402,7 +402,7 @@ See full specification: tasks/{taskId}/spec.md
 
   <step name="update_task_file">
     <action>Change `status: scoped` to `status: planned`</action>
-    <action>Add `plan: "tasks/{taskId}/plan.md"` to frontmatter</action>
+    <action>Add `plan="tasks/{taskId}/plan.xml"` to task refs element</action>
     <action>Add `updated: {YYYY-MM-DD}`</action>
   </step>
 
@@ -413,7 +413,7 @@ See full specification: tasks/{taskId}/spec.md
 
   <step name="commit">
     <note>Format: `docs({taskId}): plan - {title}`</note>
-    <command>git add .kanban/tasks/{taskId}/plan.md .kanban/tasks/{taskId}/task.md</command>
+    <command>git add .kanban/tasks/{taskId}/plan.xml .kanban/tasks/{taskId}/task.xml</command>
     <command>git commit -m "docs({taskId}): plan - {title}"</command>
   </step>
 
@@ -433,15 +433,15 @@ Next:
 </process>
 
 <success_criteria>
-- Task file exists at `.kanban/tasks/{taskId}/task.md`
-- Task frontmatter contains `status: planned`
-- Task frontmatter contains `plan: "tasks/{taskId}/plan.md"`
-- Plan file exists at `.kanban/tasks/{taskId}/plan.md`
-- Plan frontmatter contains `task: "{taskId}"`
-- Plan frontmatter contains `spec: "tasks/{taskId}/spec.md"`
-- Plan frontmatter contains `status: approved`
-- Plan frontmatter contains `complexity: {simple|medium|complex}`
-- Plan frontmatter contains `iteration: 1`
+- Task file exists at `.kanban/tasks/{taskId}/task.xml`
+- Task XML has `status="planned"`
+- Task refs element has `plan="tasks/{taskId}/plan.xml"`
+- Plan file exists at `.kanban/tasks/{taskId}/plan.xml`
+- Plan XML has `task="{taskId}"`
+- Plan XML has `spec="tasks/{taskId}/spec.xml"`
+- Plan XML has `status="approved"`
+- Plan XML has `complexity="{simple|medium|complex}"`
+- Plan XML has `iteration="1"`
 - Plan contains `## Overview` with implementation summary (not just "see spec")
 - Plan contains `## Technical Approach` section
 - Plan contains `## Implementation Tasks` section with XML task format
@@ -459,7 +459,7 @@ User: `/kanban-plan 001`
 Planning task 001 "Add localStorage persistence for app state"...
 
 Reading functional specification...
-- Spec: .kanban/tasks/001/spec.md
+- Spec: .kanban/tasks/001/spec.xml
 - 4 functional requirements
 - 2 files to modify, 1 new file
 - Using use-local-storage-state pattern
@@ -488,7 +488,7 @@ Deriving plan sections...
 
 Creating implementation plan...
 
-Plan created: .kanban/tasks/001/plan.md
+Plan created: .kanban/tasks/001/plan.xml
 - Complexity: medium
 - 4 implementation steps (structured format)
 - Testing strategy defined
@@ -497,8 +497,8 @@ Plan created: .kanban/tasks/001/plan.md
 
 Task 001 moved to Planned
 - Status: planned
-- Spec: tasks/001/spec.md
-- Plan: tasks/001/plan.md
+- Spec: tasks/001/spec.xml
+- Plan: tasks/001/plan.xml
 Commit: g7h8i9j docs(001): plan - Add localStorage persistence for app state
 
 Next:
@@ -511,7 +511,7 @@ Next:
 ```markdown
 ---
 task: "001"
-spec: "tasks/001/spec.md"
+spec: "tasks/001/spec.xml"
 status: approved
 created: 2026-02-17
 generated_by: claude
@@ -527,7 +527,7 @@ complexity: medium
 
 Implement state persistence using `use-local-storage-state` for reactive localStorage with cross-tab sync. State hydrates into Zustand on mount following the existing pattern in `src/store/settings.ts`. This approach was chosen over Zustand's built-in persist middleware because it provides tab synchronization.
 
-See full specification: tasks/001/spec.md
+See full specification: tasks/001/spec.xml
 
 ## Technical Approach
 
