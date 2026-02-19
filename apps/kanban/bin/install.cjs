@@ -238,17 +238,14 @@ async function main() {
 
   logStep('4/4', 'Saving manifest...');
 
-  // Save manifest to .claude for tracking
+  // Save manifest to .kanban for tracking
   const manifest = {
     _version: require('../package.json').version,
     _installedAt: new Date().toISOString(),
     skillsDir: '.claude/skills/',
     kanbanDir: '.kanban/'
   };
-  const manifestPath = path.join(claudeDir, 'kanban-manifest.json');
-  if (!fs.existsSync(claudeDir)) {
-    fs.mkdirSync(claudeDir, { recursive: true });
-  }
+  const manifestPath = path.join(kanbanDir, 'kanban-manifest.json');
   fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
 
   // Summary
