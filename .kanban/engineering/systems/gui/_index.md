@@ -100,7 +100,7 @@ UI Update ← Orchestrator ← Capability ← IPC ← Main Process ← PTY outpu
 
 | System | Relationship | Notes |
 |--------|--------------|-------|
-| [cli](../cli/index.md) | Executes CLI scripts via PTY | Terminal runs `/kanban-*` commands |
+| [cli](../cli/_index.md) | Executes CLI scripts via PTY | Terminal runs `/kanban-*` commands |
 | File System | Reads/writes task XML | Via IPC handlers in main process |
 
 **Summary:** GUI executes CLI commands via PTY and reads/writes task files via IPC.
@@ -109,7 +109,7 @@ UI Update ← Orchestrator ← Capability ← IPC ← Main Process ← PTY outpu
 
 What this system does NOT handle:
 
-- **Does NOT:** Execute skill logic -> See [cli](../cli/index.md)
+- **Does NOT:** Execute skill logic -> See [cli](../cli/_index.md)
 - **Does NOT:** Parse skill templates -> Handled by Claude Code
 - **Does NOT:** Manage git operations -> Delegated to Claude via terminal
 

@@ -104,8 +104,8 @@ function deriveId(filePath: string, baseDir: string): string {
   const withoutExt = relativePath.replace(/\.md$/, '');
   const parts = withoutExt.split('/');
 
-  // Handle systems/*/index.md -> systems/*
-  if (parts[0] === 'systems' && parts.length === 3 && parts[2] === 'index') {
+  // Handle systems/*/_index.md -> systems/*
+  if (parts[0] === 'systems' && parts.length === 3 && parts[2] === '_index') {
     return `${parts[0]}/${parts[1]}`;
   }
 

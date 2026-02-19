@@ -50,7 +50,7 @@ Input → {Component} → {Component} → Output
 
 | System | Relationship | Notes |
 |--------|--------------|-------|
-| [{system}](../{system}/index.md) | {how they interact} | {when/why} |
+| [{system}](../{system}/_index.md) | {how they interact} | {when/why} |
 
 **Summary:** {Brief recap of key interactions}
 
@@ -58,7 +58,7 @@ Input → {Component} → {Component} → Output
 
 What this system does NOT handle:
 
-- **Does NOT:** {thing} → See [{system}](../{system}/index.md)
+- **Does NOT:** {thing} → See [{system}](../{system}/_index.md)
 - **Does NOT:** {thing}
 
 ## Configuration

@@ -170,7 +170,7 @@ What this pattern does NOT apply to:
 
 ## Systems Using This Pattern
 
-- [gui](../systems/gui/index.md) - task-actions, task-grouping, terminal-command computers
+- [gui](../systems/gui/_index.md) - task-actions, task-grouping, terminal-command computers
 
 ## Common Violations
 

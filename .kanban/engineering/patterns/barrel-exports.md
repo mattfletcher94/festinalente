@@ -150,7 +150,7 @@ What this pattern does NOT apply to:
 
 ## Systems Using This Pattern
 
-- [gui](../systems/gui/index.md) - All feature folders
+- [gui](../systems/gui/_index.md) - All feature folders
 
 ## Common Violations
 

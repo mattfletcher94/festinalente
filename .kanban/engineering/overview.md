@@ -89,8 +89,8 @@ What this overview does NOT cover:
 
 ## Systems
 
-- [gui](systems/gui/index.md) - Electron desktop application with Vue 3 UI
-- [cli](systems/cli/index.md) - Node.js CLI toolkit with scripts and skills
+- [gui](systems/gui/_index.md) - Electron desktop application with Vue 3 UI
+- [cli](systems/cli/_index.md) - Node.js CLI toolkit with scripts and skills
 
 ## Conventions
 

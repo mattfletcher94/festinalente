@@ -25,7 +25,7 @@ interface Summary {
  *
  * ID → Path mapping rules:
  * - `overview` → `.kanban/engineering/overview.md`
- * - `systems/auth` → `.kanban/engineering/systems/auth/index.md`
+ * - `systems/auth` → `.kanban/engineering/systems/auth/_index.md`
  * - `systems/auth/validator` → `.kanban/engineering/systems/auth/validator.md`
  * - `patterns/acyclic-arch` → `.kanban/engineering/patterns/acyclic-arch.md`
  * - `conventions/file-naming` → `.kanban/engineering/conventions/file-naming.md`
@@ -38,10 +38,10 @@ function idToPath(id: string): string {
 
   const parts = id.split('/');
 
-  // Systems have nested structure with index.md
+  // Systems have nested structure with _index.md
   if (parts[0] === 'systems' && parts.length === 2) {
-    // systems/auth → systems/auth/index.md
-    return path.join(ENGINEERING_DIR, parts[0], parts[1], 'index.md');
+    // systems/auth → systems/auth/_index.md
+    return path.join(ENGINEERING_DIR, parts[0], parts[1], '_index.md');
   }
 
   // Everything else: direct mapping

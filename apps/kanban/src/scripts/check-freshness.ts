@@ -181,9 +181,9 @@ function main(): void {
     for (const docPath of scanRecursive(ENGINEERING_DIR)) {
       const relativePath = path.relative(ENGINEERING_DIR, docPath).replace(/\\/g, '/');
       let id = relativePath.replace(/\.md$/, '');
-      // Handle index.md files
-      if (id.endsWith('/index')) {
-        id = id.replace(/\/index$/, '');
+      // Handle _index.md files
+      if (id.endsWith('/_index')) {
+        id = id.replace(/\/_index$/, '');
       }
       docsToCheck.push({ path: docPath, id });
     }

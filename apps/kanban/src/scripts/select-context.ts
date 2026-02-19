@@ -144,9 +144,9 @@ function resolveDocPath(id: string, baseDir: string): string {
   let docPath = path.join(baseDir, `${id}.md`);
   if (fs.existsSync(docPath)) return docPath;
 
-  // Try with index.md for systems
+  // Try with _index.md for systems
   if (baseDir === ENGINEERING_DIR && id.startsWith('systems/')) {
-    docPath = path.join(baseDir, id, 'index.md');
+    docPath = path.join(baseDir, id, '_index.md');
     if (fs.existsSync(docPath)) return docPath;
   }
 

@@ -106,7 +106,7 @@ Claude Command (/kanban-create)
 
 | System | Relationship | Notes |
 |--------|--------------|-------|
-| [gui](../gui/index.md) | GUI runs skills via PTY | Terminal executes `/kanban-*` commands |
+| [gui](../gui/_index.md) | GUI runs skills via PTY | Terminal executes `/kanban-*` commands |
 | Claude Code | Loads and executes skills | Skills guide Claude through workflows |
 | Git | Skills commit changes | Using workflow.yaml commit formats |
 
@@ -116,7 +116,7 @@ Claude Command (/kanban-create)
 
 What this system does NOT handle:
 
-- **Does NOT:** Provide GUI -> See [gui](../gui/index.md)
+- **Does NOT:** Provide GUI -> See [gui](../gui/_index.md)
 - **Does NOT:** Execute AI prompts -> Claude Code handles that
 - **Does NOT:** Manage Electron IPC -> GUI responsibility
 

@@ -139,7 +139,7 @@ What this pattern does NOT apply to:
 
 ## Systems Using This Pattern
 
-- [gui](../systems/gui/index.md) - tasks-api, settings, pty, hook-config capabilities
+- [gui](../systems/gui/_index.md) - tasks-api, settings, pty, hook-config capabilities
 
 ## Common Violations
 

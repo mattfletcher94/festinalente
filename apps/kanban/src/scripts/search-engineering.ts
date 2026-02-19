@@ -90,11 +90,11 @@ function deriveIdAndSystem(filePath: string, engineeringDir: string): { id: stri
     return { id: parts[0], system: null };
   }
 
-  // systems/auth/index.md → id: "systems/auth", system: null
+  // systems/auth/_index.md → id: "systems/auth", system: null
   // systems/auth/validator.md → id: "systems/auth/validator", system: "auth"
   if (parts[0] === 'systems') {
-    if (parts.length === 3 && parts[2] === 'index') {
-      // systems/auth/index → systems/auth
+    if (parts.length === 3 && parts[2] === '_index') {
+      // systems/auth/_index → systems/auth
       return { id: `${parts[0]}/${parts[1]}`, system: null };
     } else if (parts.length === 3) {
       // systems/auth/validator → systems/auth/validator, system: auth
