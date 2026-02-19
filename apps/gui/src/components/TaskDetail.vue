@@ -180,7 +180,7 @@ const autoplayEnabled = computed({
               :variant="action.variant"
               size="sm"
               :disabled="!terminal.isReady.value"
-              class="h-7 text-xs flex-shrink-0"
+              class="h-7 text-xs shrink-0"
               @click="app.runCommand(action.command)"
             >
               <Play v-if="action.variant === 'default'" class="h-3 w-3 mr-1" />
