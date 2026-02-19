@@ -16,4 +16,141 @@
 #       definition: "optional brief definition"
 
 version: 1
-terms: []
+terms:
+  - term: "kanban"
+    aliases: ["board", "workflow-board"]
+    domain: workflow
+    definition: "Visual task management system with columns representing workflow stages"
+    auto_generated: true
+
+  - term: "task"
+    aliases: ["ticket", "item", "work-item"]
+    domain: workflow
+    definition: "A unit of work tracked through the kanban workflow"
+    auto_generated: true
+
+  - term: "skill"
+    aliases: ["command", "slash-command"]
+    domain: cli
+    definition: "Interactive Claude Code workflow invoked via /kanban-{name}"
+    auto_generated: true
+
+  - term: "workflow column"
+    aliases: ["column", "status", "stage"]
+    domain: workflow
+    definition: "Task grouping by progress status (Backlog, Scoped, Planned, etc.)"
+    auto_generated: true
+
+  - term: "backlog"
+    aliases: ["todo", "unstarted"]
+    domain: workflow
+    definition: "Initial workflow column for tasks ready to be scoped"
+    auto_generated: true
+
+  - term: "scoped"
+    aliases: ["specified", "defined"]
+    domain: workflow
+    definition: "Workflow column for tasks with detailed requirements in spec.xml"
+    auto_generated: true
+
+  - term: "planned"
+    aliases: ["ready", "designed"]
+    domain: workflow
+    definition: "Workflow column for tasks with implementation plan in plan.xml"
+    auto_generated: true
+
+  - term: "codecheck"
+    aliases: ["verification", "automated-check"]
+    domain: workflow
+    definition: "Review phase running automated tests, typecheck, and lint"
+    auto_generated: true
+
+  - term: "autoplay"
+    aliases: ["auto-run", "continuous"]
+    domain: gui
+    definition: "GUI feature that automatically runs sequential workflow commands"
+    auto_generated: true
+
+  - term: "review phase"
+    aliases: ["gate", "checkpoint"]
+    domain: workflow
+    definition: "Workflow step requiring human approval (codecheck, qa, pr)"
+    auto_generated: true
+
+  - term: "hook config"
+    aliases: ["directives", "project-config"]
+    domain: cli
+    definition: "Project-specific commands in .kanban/config.yaml for workflow steps"
+    auto_generated: true
+
+  - term: "product docs"
+    aliases: ["feature-docs", "user-docs"]
+    domain: docs
+    definition: "Documentation describing user-facing features in .kanban/product/"
+    auto_generated: true
+
+  - term: "engineering docs"
+    aliases: ["technical-docs", "system-docs"]
+    domain: docs
+    definition: "Documentation describing systems, patterns, conventions in .kanban/engineering/"
+    auto_generated: true
+
+  - term: "tldr"
+    aliases: ["summary", "one-liner"]
+    domain: docs
+    definition: "Single sentence summary field in documentation frontmatter (max 100 chars)"
+    auto_generated: true
+
+  - term: "freshness"
+    aliases: ["staleness", "verification"]
+    domain: docs
+    definition: "Documentation age tracking based on verified date and code changes"
+    auto_generated: true
+
+  - term: "context selection"
+    aliases: ["doc-selection", "context-loading"]
+    domain: cli
+    definition: "Smart retrieval of relevant documentation for task implementation"
+    auto_generated: true
+
+  - term: "tier"
+    aliases: ["detail-level", "verbosity"]
+    domain: cli
+    definition: "Context detail level for documentation (minimal, standard, full)"
+    auto_generated: true
+
+  - term: "PTY"
+    aliases: ["pseudo-terminal", "terminal-session"]
+    domain: gui
+    definition: "Pseudo-terminal for executing commands in the GUI terminal panel"
+    auto_generated: true
+
+  - term: "spec.xml"
+    aliases: ["spec", "specification"]
+    domain: workflow
+    definition: "Task specification file with detailed requirements created by /kanban-scope"
+    auto_generated: true
+
+  - term: "plan.xml"
+    aliases: ["plan", "implementation-plan"]
+    domain: workflow
+    definition: "Task plan file with implementation steps created by /kanban-plan"
+    auto_generated: true
+
+  - term: "boundary"
+    aliases: ["scope-limit", "exclusion"]
+    domain: docs
+    definition: "Documentation field describing what a feature/doc does NOT cover"
+    auto_generated: true
+
+  - term: "Socratic Q&A"
+    aliases: ["socratic", "discovery-qa"]
+    domain: cli
+    definition: "Interactive question-driven exploration method used by discovery skills"
+    auto_generated: true
+
+  - term: "rework"
+    aliases: ["revision", "redo"]
+    domain: workflow
+    definition: "Moving a task back to In Progress after failed review"
+    auto_generated: true
