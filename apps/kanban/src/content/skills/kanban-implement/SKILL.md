@@ -160,7 +160,7 @@ Warning: Some relevant docs may be outdated:
   </step>
 
   <step name="parse_plan_tasks" outputs="tasks, executionOrder">
-    <action>Parse the `<tasks>` section from plan.md</action>
+    <action>Parse the `<tasks>` section from plan.xml</action>
     <action>Extract all `<task>` elements with their attributes and children</action>
     <action>Build dependency graph from `depends` attributes</action>
     <action>Calculate execution order using topological sort</action>
@@ -232,7 +232,7 @@ Warning: Some relevant docs may be outdated:
     </substep>
 
     <substep name="mark_task_complete">
-      <action>Update plan.md: Add `completed="true" completed_at="{ISO timestamp}"` to the task element</action>
+      <action>Update plan.xml: Add `completed="true" completed_at="{ISO timestamp}"` to the task element</action>
       <action>Write updated plan file</action>
       <note>This enables resumability if implementation is interrupted</note>
     </substep>

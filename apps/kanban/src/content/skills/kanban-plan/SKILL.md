@@ -225,106 +225,89 @@ Run: /kanban-scope {taskId}
 
     <note>Plan must be self-contained: include enough context that the implementer doesn't need to constantly re-read the spec.</note>
 
-    <example_code lang="yaml" label="Plan Template">
----
-task: "{taskId}"
-spec: "tasks/{taskId}/spec.xml"
-status: approved
-created: {YYYY-MM-DD}
-generated_by: claude
-model: {current model}
-version: 1
-iteration: 1
-complexity: {simple|medium|complex}
----
+    <example_code lang="xml" label="Plan Template (Pure XML)">
+<plan task="{taskId}" spec="tasks/{taskId}/spec.xml" status="approved"
+      complexity="{simple|medium|complex}" created="{YYYY-MM-DD}" updated="{YYYY-MM-DD}"
+      generated-by="claude" model="{current model}" version="1" iteration="1">
+  <title>{task title}</title>
 
-# Plan: {task title}
+  <overview>
+    {2-3 sentence summary of the implementation approach - NOT just "see spec"}
+    {Key architectural decision or pattern being followed}
+  </overview>
 
-## Overview
+  <approach>
+    <rationale>
+      {Why this approach - derived from spec's Existing Patterns and Research Findings}
+      {Key patterns being followed with file:line references}
+      {Any trade-offs considered during scoping}
+    </rationale>
+    <breaking-changes>
+      {List any breaking changes this implementation introduces}
+    </breaking-changes>
+  </approach>
 
-{2-3 sentence summary of the implementation approach - NOT just "see spec"}
-{Key architectural decision or pattern being followed}
+  <tasks>
+    <task id="1" type="auto">
+      <name>First implementation step</name>
+      <files>path/to/file.ts (create|modify|delete)</files>
+      <requirements>FR1, FR2</requirements>
+      <pattern>Pattern name at file:line</pattern>
+      <action>
+        - Step 1
+        - Step 2
+        - Step 3
+      </action>
+      <verify>npx tsc --noEmit</verify>
+      <done>Acceptance criteria for this task</done>
+    </task>
 
-See full specification: tasks/{taskId}/spec.xml
+    <task id="2" type="auto" depends="1">
+      <name>Second step (depends on first)</name>
+      <files>path/to/other.ts (modify)</files>
+      <requirements>FR3</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Implementation details
+      </action>
+      <verify>npm run build</verify>
+      <done>Verification criteria</done>
+    </task>
 
-## Technical Approach
+    <task id="3" type="manual" depends="2">
+      <name>Manual verification step</name>
+      <files>N/A</files>
+      <requirements>FR1-FR3</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Manual verification steps
+      </action>
+      <verify>Manual: Description of what to verify</verify>
+      <done>All acceptance criteria verified</done>
+    </task>
+  </tasks>
 
-{Why this approach - derived from spec's Existing Patterns and Research Findings}
-{Key patterns being followed with file:line references}
-{Any trade-offs considered during scoping}
+  <testing>
+    <automated>{what tests to write, if any - derived from FRs}</automated>
+    <manual>{what to verify by hand - derived from acceptance criteria}</manual>
+    <regression>{what existing behavior to confirm still works}</regression>
+  </testing>
 
-## Implementation Tasks
+  <edge-cases>
+    <case scenario="{edge case 1}">{how to handle}</case>
+    <case scenario="{edge case 2}">{how to handle}</case>
+    <case scenario="{edge case 3}">{how to handle}</case>
+  </edge-cases>
 
-<tasks>
-{XML task format - see below}
-</tasks>
+  <pitfalls>
+    <pitfall issue="{pitfall 1}">{mitigation}</pitfall>
+    <pitfall issue="{pitfall 2}">{mitigation}</pitfall>
+  </pitfalls>
 
-## Testing Strategy
-
-- **Automated:** {what tests to write, if any - derived from FRs}
-- **Manual:** {what to verify by hand - derived from acceptance criteria}
-- **Regression:** {what existing behavior to confirm still works}
-
-## Edge Cases
-
-- {edge case 1} — {how to handle}
-- {edge case 2} — {how to handle}
-- {edge case 3} — {how to handle}
-
-## Potential Pitfalls
-
-- {pitfall 1} — {mitigation}
-- {pitfall 2} — {mitigation}
-    </example_code>
-
-    <note>Use XML task format for ALL complexity levels:</note>
-
-    <example_code lang="markdown" label="Implementation Tasks Section">
-## Implementation Tasks
-
-<tasks>
-<task id="1" type="auto">
-  <name>Add persistence hook</name>
-  <files>src/hooks/usePersistedState.ts (create)</files>
-  <requirements>FR1, FR2</requirements>
-  <pattern>Custom hook pattern from src/hooks/useSettings.ts:12</pattern>
-  <action>
-    - Create hook wrapping use-local-storage-state
-    - Add TypeScript types for persisted state shape
-    - Use app_state as localStorage key
-  </action>
-  <verify>npx tsc --noEmit</verify>
-  <done>Hook exports correctly, TypeScript compiles without errors</done>
-</task>
-
-<task id="2" type="auto" depends="1">
-  <name>Integrate with Zustand store</name>
-  <files>src/store/index.ts (modify)</files>
-  <requirements>FR3</requirements>
-  <pattern>Hydration pattern at src/store/settings.ts:42-58</pattern>
-  <action>
-    - Import persistence hook
-    - Add hydration effect on mount
-    - Subscribe to store changes for persistence
-  </action>
-  <verify>npm run build</verify>
-  <done>State persists after page refresh</done>
-</task>
-
-<task id="3" type="manual" depends="2">
-  <name>Verify cross-tab sync</name>
-  <files>N/A</files>
-  <requirements>FR4</requirements>
-  <pattern>N/A</pattern>
-  <action>
-    - Open app in two browser tabs
-    - Modify state in tab 1
-    - Verify state updates in tab 2
-  </action>
-  <verify>Manual: Open two tabs, change state in one, confirm sync in other</verify>
-  <done>State changes sync between tabs within 1 second</done>
-</task>
-</tasks>
+  <iterations></iterations>
+  <wip></wip>
+  <completeness></completeness>
+</plan>
     </example_code>
 
     <note>Task element attributes:</note>
@@ -437,17 +420,16 @@ Next:
 - Task XML has `status="planned"`
 - Task refs element has `plan="tasks/{taskId}/plan.xml"`
 - Plan file exists at `.kanban/tasks/{taskId}/plan.xml`
-- Plan XML has `task="{taskId}"`
-- Plan XML has `spec="tasks/{taskId}/spec.xml"`
-- Plan XML has `status="approved"`
-- Plan XML has `complexity="{simple|medium|complex}"`
-- Plan XML has `iteration="1"`
-- Plan contains `## Overview` with implementation summary (not just "see spec")
-- Plan contains `## Technical Approach` section
-- Plan contains `## Implementation Tasks` section with XML task format
-- Plan contains `## Testing Strategy` section
-- Plan contains `## Edge Cases` section
-- Plan contains `## Potential Pitfalls` section
+- Plan is pure XML (no markdown or YAML frontmatter)
+- Plan root element is `<plan>` with attributes: task, spec, status, complexity, iteration
+- Plan has `<title>` element with task title
+- Plan has `<overview>` element with implementation summary (not just "see spec")
+- Plan has `<approach>` element with `<rationale>` child
+- Plan has `<tasks>` element with one or more `<task>` children
+- Each `<task>` has: id, type attributes and name, files, requirements, action, verify, done children
+- Plan has `<testing>` element with automated, manual, regression children
+- Plan has `<edge-cases>` element with `<case>` children
+- Plan has `<pitfalls>` element with `<pitfall>` children
 - Git log shows `docs({taskId}): plan -`
 - Next steps shown to user
 </success_criteria>
@@ -508,114 +490,113 @@ Next:
 </example>
 
 <example_plan label="Example Medium-Complexity Plan Output">
-```markdown
----
-task: "001"
-spec: "tasks/001/spec.xml"
-status: approved
-created: 2026-02-17
-generated_by: claude
-model: claude-opus-4-5-20251101
-version: 1
-iteration: 1
-complexity: medium
----
+```xml
+<plan task="001" spec="tasks/001/spec.xml" status="approved"
+      complexity="medium" created="2026-02-17" updated="2026-02-17"
+      generated-by="claude" model="claude-opus-4-5-20251101" version="1" iteration="1">
+  <title>Add localStorage persistence for app state</title>
 
-# Plan: Add localStorage persistence for app state
+  <overview>
+    Implement state persistence using use-local-storage-state for reactive localStorage
+    with cross-tab sync. State hydrates into Zustand on mount following the existing
+    pattern in src/store/settings.ts. This approach was chosen over Zustand's built-in
+    persist middleware because it provides tab synchronization.
+  </overview>
 
-## Overview
+  <approach>
+    <rationale>
+      Following two existing patterns:
+      - State persistence: use-local-storage-state hook (new dependency, chosen during scoping for tab sync)
+      - Hydration: Pattern at src/store/settings.ts:42-58 for loading external state into Zustand
 
-Implement state persistence using `use-local-storage-state` for reactive localStorage with cross-tab sync. State hydrates into Zustand on mount following the existing pattern in `src/store/settings.ts`. This approach was chosen over Zustand's built-in persist middleware because it provides tab synchronization.
+      The localStorage key uses the app_ prefix convention found in src/utils/config.ts.
+    </rationale>
+    <breaking-changes>None</breaking-changes>
+  </approach>
 
-See full specification: tasks/001/spec.xml
+  <tasks>
+    <task id="1" type="auto">
+      <name>Add persistence hook</name>
+      <files>src/hooks/usePersistedState.ts (create)</files>
+      <requirements>FR1, FR2</requirements>
+      <pattern>Custom hook pattern from src/hooks/useSettings.ts:12</pattern>
+      <action>
+        - Create hook wrapping use-local-storage-state
+        - Add TypeScript types for persisted state shape
+        - Use app_state as localStorage key
+      </action>
+      <verify>npx tsc --noEmit</verify>
+      <done>Hook exports correctly, TypeScript compiles without errors</done>
+    </task>
 
-## Technical Approach
+    <task id="2" type="auto" depends="1">
+      <name>Integrate with Zustand store</name>
+      <files>src/store/index.ts (modify)</files>
+      <requirements>FR3</requirements>
+      <pattern>Hydration pattern at src/store/settings.ts:42-58</pattern>
+      <action>
+        - Import persistence hook
+        - Add hydration effect on mount
+        - Subscribe to store changes for persistence
+      </action>
+      <verify>npm run build</verify>
+      <done>State persists after page refresh</done>
+    </task>
 
-Following two existing patterns:
-- **State persistence:** `use-local-storage-state` hook (new dependency, chosen during scoping for tab sync)
-- **Hydration:** Pattern at `src/store/settings.ts:42-58` for loading external state into Zustand
+    <task id="3" type="auto" depends="2">
+      <name>Add sync subscription</name>
+      <files>src/store/index.ts (modify)</files>
+      <requirements>FR4</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Subscribe to localStorage changes from other tabs
+        - Update Zustand state when external changes detected
+      </action>
+      <verify>npm run build</verify>
+      <done>Change in one tab reflects in another tab</done>
+    </task>
 
-The localStorage key uses the `app_` prefix convention found in `src/utils/config.ts`.
+    <task id="4" type="manual" depends="3">
+      <name>Final verification</name>
+      <files>N/A</files>
+      <requirements>FR1, FR2, FR3, FR4</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Verify all acceptance criteria from task met
+        - Verify state persists across refresh
+        - Verify state syncs across tabs
+        - Verify no regressions in existing store functionality
+      </action>
+      <verify>Manual: Test all acceptance criteria</verify>
+      <done>All acceptance criteria pass</done>
+    </task>
+  </tasks>
 
-## Implementation Tasks
+  <testing>
+    <automated>None required (state management, manual verification sufficient)</automated>
+    <manual>
+      - Modify state, refresh page, verify state restored
+      - Open two tabs, modify state in one, verify sync in other
+      - Clear localStorage, verify app loads with defaults
+    </manual>
+    <regression>Verify existing Zustand actions still work correctly</regression>
+  </testing>
 
-<tasks>
-<task id="1" type="auto">
-  <name>Add persistence hook</name>
-  <files>src/hooks/usePersistedState.ts (create)</files>
-  <requirements>FR1, FR2</requirements>
-  <pattern>Custom hook pattern from src/hooks/useSettings.ts:12</pattern>
-  <action>
-    - Create hook wrapping use-local-storage-state
-    - Add TypeScript types for persisted state shape
-    - Use app_state as localStorage key
-  </action>
-  <verify>npx tsc --noEmit</verify>
-  <done>Hook exports correctly, TypeScript compiles without errors</done>
-</task>
+  <edge-cases>
+    <case scenario="localStorage unavailable (private browsing)">Fall back to in-memory state, no persistence</case>
+    <case scenario="localStorage quota exceeded">Catch error, log warning, continue without persistence</case>
+    <case scenario="Corrupted localStorage data">Validate on load, reset to defaults if invalid</case>
+  </edge-cases>
 
-<task id="2" type="auto" depends="1">
-  <name>Integrate with Zustand store</name>
-  <files>src/store/index.ts (modify)</files>
-  <requirements>FR3</requirements>
-  <pattern>Hydration pattern at src/store/settings.ts:42-58</pattern>
-  <action>
-    - Import persistence hook
-    - Add hydration effect on mount
-    - Subscribe to store changes for persistence
-  </action>
-  <verify>npm run build</verify>
-  <done>State persists after page refresh</done>
-</task>
+  <pitfalls>
+    <pitfall issue="Hydration timing">Must hydrate before first render to avoid flash; use Zustand persist subscribe pattern</pitfall>
+    <pitfall issue="Key collision">Use unique app_state key with version prefix for future migrations</pitfall>
+  </pitfalls>
 
-<task id="3" type="auto" depends="2">
-  <name>Add sync subscription</name>
-  <files>src/store/index.ts (modify)</files>
-  <requirements>FR4</requirements>
-  <pattern>N/A</pattern>
-  <action>
-    - Subscribe to localStorage changes from other tabs
-    - Update Zustand state when external changes detected
-  </action>
-  <verify>npm run build</verify>
-  <done>Change in one tab reflects in another tab</done>
-</task>
-
-<task id="4" type="manual" depends="3">
-  <name>Final verification</name>
-  <files>N/A</files>
-  <requirements>FR1, FR2, FR3, FR4</requirements>
-  <pattern>N/A</pattern>
-  <action>
-    - Verify all acceptance criteria from task met
-    - Verify state persists across refresh
-    - Verify state syncs across tabs
-    - Verify no regressions in existing store functionality
-  </action>
-  <verify>Manual: Test all acceptance criteria</verify>
-  <done>All acceptance criteria pass</done>
-</task>
-</tasks>
-
-## Testing Strategy
-
-- **Automated:** None required (state management, manual verification sufficient)
-- **Manual:**
-  - Modify state, refresh page, verify state restored
-  - Open two tabs, modify state in one, verify sync in other
-  - Clear localStorage, verify app loads with defaults
-- **Regression:** Verify existing Zustand actions still work correctly
-
-## Edge Cases
-
-- localStorage unavailable (private browsing) — fall back to in-memory state, no persistence
-- localStorage quota exceeded — catch error, log warning, continue without persistence
-- Corrupted localStorage data — validate on load, reset to defaults if invalid
-
-## Potential Pitfalls
-
-- Hydration timing — must hydrate before first render to avoid flash; use Zustand's `persist` subscribe pattern
-- Key collision — use unique `app_state` key with version prefix for future migrations
+  <iterations></iterations>
+  <wip></wip>
+  <completeness></completeness>
+</plan>
 ```
 </example_plan>
 

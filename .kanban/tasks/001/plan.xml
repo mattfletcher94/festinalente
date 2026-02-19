@@ -1,307 +1,306 @@
----
-task: "001"
-spec: "tasks/001/spec.xml"
-status: approved
-created: 2026-02-19
-generated_by: claude
-model: claude-opus-4-5-20251101
-version: 1
-iteration: 1
-complexity: complex
----
+<plan task="001" spec="tasks/001/spec.xml" status="approved"
+      complexity="complex" created="2026-02-19" updated="2026-02-19"
+      generated-by="claude" model="claude-opus-4-5-20251101" version="1" iteration="1">
+  <title>Add global settings panel with Yolo mode toggle</title>
 
-# Plan: Add global settings panel with Yolo mode toggle
+  <overview>
+    Implement a global header bar with settings popover containing Yolo mode toggle.
+    The header consolidates action buttons (project picker, new task dropdown) from
+    TaskList and adds a settings icon that opens a shadcn Popover. Yolo mode persists
+    via electron-store and passes --dangerously-skip-permissions flag to Claude CLI
+    when enabled. This follows the existing Computer/Capability/Orchestrator architecture
+    with Vue state in orchestrators only, using the createContext pattern for injection.
+  </overview>
 
-## Overview
+  <approach>
+    <rationale>
+      Why this approach:
+      - Reuses existing settings module infrastructure (capability + orchestrator pattern at apps/gui/src/settings/)
+      - Adds yoloMode to existing StoreSchema rather than creating new storage
+      - Settings orchestrator already holds Vue refs - just extend it with yoloMode: Ref&lt;boolean&gt;
+      - PTY capability accepts yoloMode as parameter, passes flag to spawn args
 
-Implement a global header bar with settings popover containing Yolo mode toggle. The header consolidates action buttons (project picker, new task dropdown) from TaskList and adds a settings icon that opens a shadcn Popover. Yolo mode persists via electron-store and passes `--dangerously-skip-permissions` flag to Claude CLI when enabled.
+      Key patterns being followed:
+      - Settings persistence: electron-store pattern at apps/gui/electron/main/index.ts:23-41
+      - Orchestrator state: ref pattern at apps/gui/src/settings/settings.orchestrator.ts:57-59
+      - IPC bridge: preload exposes API at apps/gui/electron/preload/index.ts:8-9
+      - createContext provider: pattern at apps/gui/src/lib/utils.ts:37-85
+    </rationale>
+    <breaking-changes>
+      - TaskList header buttons removed (FolderOpen, New+ dropdown) - moved to AppHeader
+      - ptyRunCommand IPC signature changes to accept yoloMode boolean
+      - Terminal orchestrator needs settings orchestrator injected for yoloMode access
+    </breaking-changes>
+  </approach>
 
-This follows the existing Computer/Capability/Orchestrator architecture with Vue state in orchestrators only, using the createContext pattern for injection.
+  <tasks>
+    <task id="1" type="auto">
+      <name>Install shadcn-vue Popover component</name>
+      <files>
+        apps/gui/src/components/ui/popover/Popover.vue (create)
+        apps/gui/src/components/ui/popover/PopoverContent.vue (create)
+        apps/gui/src/components/ui/popover/PopoverTrigger.vue (create)
+        apps/gui/src/components/ui/popover/index.ts (create)
+      </files>
+      <requirements>FR5</requirements>
+      <pattern>shadcn-vue component installation</pattern>
+      <action>
+        - cd apps/gui
+        - npx shadcn-vue@latest add popover
+        - Verify popover components created in src/components/ui/popover/
+      </action>
+      <verify>ls apps/gui/src/components/ui/popover/</verify>
+      <done>Popover, PopoverContent, PopoverTrigger components exist in ui/popover/</done>
+    </task>
 
-See full specification: tasks/001/spec.xml
+    <task id="2" type="auto" depends="1">
+      <name>Add yoloMode to electron-store schema</name>
+      <files>apps/gui/electron/main/index.ts (modify)</files>
+      <requirements>FR9</requirements>
+      <pattern>StoreSchema interface at apps/gui/electron/main/index.ts:23-30</pattern>
+      <action>
+        - Add yoloMode: boolean to StoreSchema interface
+        - Add yoloMode: false to store defaults object
+      </action>
+      <verify>npx tsc --noEmit -p apps/gui/tsconfig.node.json</verify>
+      <done>StoreSchema includes yoloMode, defaults to false</done>
+    </task>
 
-## Technical Approach
+    <task id="3" type="auto" depends="2">
+      <name>Add yoloMode to settings types</name>
+      <files>apps/gui/src/settings/settings-types.ts (modify)</files>
+      <requirements>FR9</requirements>
+      <pattern>AppSettings interface at apps/gui/src/settings/settings-types.ts:18-24</pattern>
+      <action>
+        - Add yoloMode: boolean | undefined to AppSettings interface
+      </action>
+      <verify>npx tsc --noEmit -p apps/gui</verify>
+      <done>AppSettings includes yoloMode field</done>
+    </task>
 
-**Why this approach:**
-- Reuses existing settings module infrastructure (capability + orchestrator pattern at `apps/gui/src/settings/`)
-- Adds yoloMode to existing StoreSchema rather than creating new storage
-- Settings orchestrator already holds Vue refs - just extend it with `yoloMode: Ref<boolean>`
-- PTY capability accepts yoloMode as parameter, passes flag to spawn args
+    <task id="4" type="auto" depends="3">
+      <name>Add yoloMode methods to settings capability</name>
+      <files>apps/gui/src/settings/settings.capability.ts (modify)</files>
+      <requirements>FR9</requirements>
+      <pattern>Capability method pattern at apps/gui/src/settings/settings.capability.ts:45-77</pattern>
+      <action>
+        - Add getYoloMode(): Promise&lt;boolean&gt; to interface
+        - Add setYoloMode(enabled: boolean): Promise&lt;void&gt; to interface
+        - Implement getYoloMode using window.electronAPI.getSetting('yoloMode')
+        - Implement setYoloMode using window.electronAPI.setSetting('yoloMode', enabled)
+        - Update getAllSettings to include yoloMode
+      </action>
+      <verify>npx tsc --noEmit -p apps/gui</verify>
+      <done>Settings capability has getYoloMode/setYoloMode methods</done>
+    </task>
 
-**Key patterns being followed:**
-- Settings persistence: electron-store pattern at `apps/gui/electron/main/index.ts:23-41`
-- Orchestrator state: ref pattern at `apps/gui/src/settings/settings.orchestrator.ts:57-59`
-- IPC bridge: preload exposes API at `apps/gui/electron/preload/index.ts:8-9`
-- createContext provider: pattern at `apps/gui/src/lib/utils.ts:37-85`
+    <task id="5" type="auto" depends="4">
+      <name>Add yoloMode state and actions to settings orchestrator</name>
+      <files>apps/gui/src/settings/settings.orchestrator.ts (modify)</files>
+      <requirements>FR9</requirements>
+      <pattern>Orchestrator state pattern at apps/gui/src/settings/settings.orchestrator.ts:56-59</pattern>
+      <action>
+        - Add yoloMode: Ref&lt;boolean&gt; to CreateSettingsOrchestratorReturn interface
+        - Add setYoloMode(enabled: boolean): Promise&lt;void&gt; to interface
+        - Create yoloMode ref initialized to false
+        - In load(), read yoloMode from allSettings and set ref
+        - Implement setYoloMode: update ref, call capability.setYoloMode
+        - Return yoloMode and setYoloMode in return object
+      </action>
+      <verify>npx tsc --noEmit -p apps/gui</verify>
+      <done>Settings orchestrator exposes yoloMode ref and setYoloMode action</done>
+    </task>
 
-**Breaking Changes:**
-- TaskList header buttons removed (FolderOpen, New+ dropdown) - moved to AppHeader
-- ptyRunCommand IPC signature changes to accept yoloMode boolean
-- Terminal orchestrator needs settings orchestrator injected for yoloMode access
+    <task id="6" type="auto" depends="5">
+      <name>Update PTY IPC to accept yoloMode</name>
+      <files>
+        apps/gui/electron/preload/index.ts (modify)
+        apps/gui/src/env.d.ts (modify)
+      </files>
+      <requirements>FR10, FR11</requirements>
+      <pattern>IPC pattern at apps/gui/electron/preload/index.ts:8-9</pattern>
+      <action>
+        - In preload/index.ts: Change ptyRunCommand signature to accept (cwd, command, yoloMode)
+        - Pass yoloMode as third argument to ipcRenderer.invoke
+        - In env.d.ts: Update ptyRunCommand type to (cwd: string, command: string, yoloMode: boolean) =&gt; Promise&lt;void&gt;
+      </action>
+      <verify>npx tsc --noEmit -p apps/gui</verify>
+      <done>ptyRunCommand IPC accepts yoloMode parameter</done>
+    </task>
 
-## Implementation Tasks
+    <task id="7" type="auto" depends="6">
+      <name>Update PTY service to prepend flag when yoloMode enabled</name>
+      <files>apps/gui/electron/main/pty-service.ts (modify)</files>
+      <requirements>FR10, FR11</requirements>
+      <pattern>PTY spawn args at apps/gui/electron/main/pty-service.ts:97</pattern>
+      <action>
+        - Update runClaudeCommand signature to accept yoloMode: boolean
+        - Build args array: if yoloMode, prepend '--dangerously-skip-permissions' before command
+        - Pass args to pty.spawn: ['--dangerously-skip-permissions', command] or [command]
+        - Update ipcMain handler for 'pty:runCommand' to pass yoloMode arg
+      </action>
+      <verify>npx tsc --noEmit -p apps/gui/tsconfig.node.json</verify>
+      <done>PTY spawns Claude with --dangerously-skip-permissions when yoloMode true</done>
+    </task>
 
-<tasks>
-<task id="1" type="auto">
-  <name>Install shadcn-vue Popover component</name>
-  <files>
-    apps/gui/src/components/ui/popover/Popover.vue (create)
-    apps/gui/src/components/ui/popover/PopoverContent.vue (create)
-    apps/gui/src/components/ui/popover/PopoverTrigger.vue (create)
-    apps/gui/src/components/ui/popover/index.ts (create)
-  </files>
-  <requirements>FR5</requirements>
-  <pattern>shadcn-vue component installation</pattern>
-  <action>
-    - cd apps/gui
-    - npx shadcn-vue@latest add popover
-    - Verify popover components created in src/components/ui/popover/
-  </action>
-  <verify>ls apps/gui/src/components/ui/popover/</verify>
-  <done>Popover, PopoverContent, PopoverTrigger components exist in ui/popover/</done>
-</task>
+    <task id="8" type="auto" depends="7">
+      <name>Update PTY capability to accept yoloMode</name>
+      <files>apps/gui/src/terminal/pty.capability.ts (modify)</files>
+      <requirements>FR10, FR11</requirements>
+      <pattern>Capability method at apps/gui/src/terminal/pty.capability.ts:62-64</pattern>
+      <action>
+        - Update runCommand signature: add yoloMode: boolean parameter
+        - Update interface CreatePtyCapabilityReturn.runCommand signature
+        - Pass yoloMode to window.electronAPI.ptyRunCommand
+      </action>
+      <verify>npx tsc --noEmit -p apps/gui</verify>
+      <done>PTY capability passes yoloMode through IPC</done>
+    </task>
 
-<task id="2" type="auto" depends="1">
-  <name>Add yoloMode to electron-store schema</name>
-  <files>apps/gui/electron/main/index.ts (modify)</files>
-  <requirements>FR9</requirements>
-  <pattern>StoreSchema interface at apps/gui/electron/main/index.ts:23-30</pattern>
-  <action>
-    - Add yoloMode: boolean to StoreSchema interface
-    - Add yoloMode: false to store defaults object
-  </action>
-  <verify>npx tsc --noEmit -p apps/gui/tsconfig.node.json</verify>
-  <done>StoreSchema includes yoloMode, defaults to false</done>
-</task>
+    <task id="9" type="auto" depends="8">
+      <name>Inject settings into terminal orchestrator for yoloMode access</name>
+      <files>apps/gui/src/terminal/terminal.orchestrator.ts (modify)</files>
+      <requirements>FR10, FR11</requirements>
+      <pattern>DI pattern at apps/gui/src/terminal/terminal.orchestrator.ts:36-46</pattern>
+      <action>
+        - Import CreateSettingsOrchestratorReturn from settings module
+        - Add settings: CreateSettingsOrchestratorReturn to CreateTerminalOrchestratorOptions
+        - In runCommand: read settings.yoloMode.value
+        - Pass yoloMode to pty.runCommand(projectPath, command, yoloMode)
+      </action>
+      <verify>npx tsc --noEmit -p apps/gui</verify>
+      <done>Terminal orchestrator reads yoloMode from settings and passes to PTY</done>
+    </task>
 
-<task id="3" type="auto" depends="2">
-  <name>Add yoloMode to settings types</name>
-  <files>apps/gui/src/settings/settings-types.ts (modify)</files>
-  <requirements>FR9</requirements>
-  <pattern>AppSettings interface at apps/gui/src/settings/settings-types.ts:18-24</pattern>
-  <action>
-    - Add yoloMode: boolean | undefined to AppSettings interface
-  </action>
-  <verify>npx tsc --noEmit -p apps/gui</verify>
-  <done>AppSettings includes yoloMode field</done>
-</task>
+    <task id="10" type="auto" depends="9">
+      <name>Create SettingsPanel component with Yolo toggle</name>
+      <files>apps/gui/src/components/SettingsPanel.vue (create)</files>
+      <requirements>FR6, FR7, FR8</requirements>
+      <pattern>Thin component pattern - inject orchestrator, call methods</pattern>
+      <action>
+        - Create SettingsPanel.vue
+        - Import injectSettings from @/settings
+        - Import Switch from ./ui/switch
+        - Template: div with "Settings" header
+        - Template: Switch bound to settings.yoloMode.value, @update:checked calls settings.setYoloMode
+        - Template: Label "Yolo mode" next to switch
+        - Template: Description text explaining skips permission prompts
+        - Template: Red warning text about potential danger (text-destructive class)
+        - Keep component thin - just inject and render
+      </action>
+      <verify>npx tsc --noEmit -p apps/gui</verify>
+      <done>SettingsPanel.vue renders Yolo toggle with description and warning</done>
+    </task>
 
-<task id="4" type="auto" depends="3">
-  <name>Add yoloMode methods to settings capability</name>
-  <files>apps/gui/src/settings/settings.capability.ts (modify)</files>
-  <requirements>FR9</requirements>
-  <pattern>Capability method pattern at apps/gui/src/settings/settings.capability.ts:45-77</pattern>
-  <action>
-    - Add getYoloMode(): Promise&lt;boolean&gt; to interface
-    - Add setYoloMode(enabled: boolean): Promise&lt;void&gt; to interface
-    - Implement getYoloMode using window.electronAPI.getSetting('yoloMode')
-    - Implement setYoloMode using window.electronAPI.setSetting('yoloMode', enabled)
-    - Update getAllSettings to include yoloMode
-  </action>
-  <verify>npx tsc --noEmit -p apps/gui</verify>
-  <done>Settings capability has getYoloMode/setYoloMode methods</done>
-</task>
+    <task id="11" type="auto" depends="10">
+      <name>Create AppHeader component</name>
+      <files>apps/gui/src/components/AppHeader.vue (create)</files>
+      <requirements>FR1, FR2, FR3, FR4, FR5</requirements>
+      <pattern>Thin component pattern - inject orchestrators</pattern>
+      <action>
+        - Create AppHeader.vue
+        - Import injectApp, injectSettings from respective modules
+        - Import Button from ./ui/button
+        - Import DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger from ./ui/dropdown-menu
+        - Import Popover, PopoverContent, PopoverTrigger from ./ui/popover
+        - Import FolderOpen, Settings from lucide-vue-next
+        - Import SettingsPanel
+        - Template: header element with flex, justify-between, border-b, h-12, px-4
+        - Left side: FolderOpen button (calls app.changeProject), New+ dropdown (Create Task, Discover)
+        - Right side: Settings icon button wrapped in Popover trigger, PopoverContent contains SettingsPanel
+      </action>
+      <verify>npx tsc --noEmit -p apps/gui</verify>
+      <done>AppHeader.vue with project button, new dropdown, settings popover</done>
+    </task>
 
-<task id="5" type="auto" depends="4">
-  <name>Add yoloMode state and actions to settings orchestrator</name>
-  <files>apps/gui/src/settings/settings.orchestrator.ts (modify)</files>
-  <requirements>FR9</requirements>
-  <pattern>Orchestrator state pattern at apps/gui/src/settings/settings.orchestrator.ts:56-59</pattern>
-  <action>
-    - Add yoloMode: Ref&lt;boolean&gt; to CreateSettingsOrchestratorReturn interface
-    - Add setYoloMode(enabled: boolean): Promise&lt;void&gt; to interface
-    - Create yoloMode ref initialized to false
-    - In load(), read yoloMode from allSettings and set ref
-    - Implement setYoloMode: update ref, call capability.setYoloMode
-    - Return yoloMode and setYoloMode in return object
-  </action>
-  <verify>npx tsc --noEmit -p apps/gui</verify>
-  <done>Settings orchestrator exposes yoloMode ref and setYoloMode action</done>
-</task>
+    <task id="12" type="auto" depends="11">
+      <name>Simplify TaskList header</name>
+      <files>apps/gui/src/components/TaskList.vue (modify)</files>
+      <requirements>FR12</requirements>
+      <pattern>N/A - removal only</pattern>
+      <action>
+        - Remove FolderOpen import from lucide-vue-next
+        - Remove DropdownMenu imports (all 4 components)
+        - Remove handleCreateTask, handleDiscover, handleChangeProject functions (not needed in this component anymore)
+        - Remove injectApp import (no longer needed)
+        - Simplify header div: remove buttons, keep only "Tasks" h2
+        - Keep injectSettings and injectTasks, onMounted task loading
+      </action>
+      <verify>npx tsc --noEmit -p apps/gui</verify>
+      <done>TaskList header shows only "Tasks" title, no action buttons</done>
+    </task>
 
-<task id="6" type="auto" depends="5">
-  <name>Update PTY IPC to accept yoloMode</name>
-  <files>
-    apps/gui/electron/preload/index.ts (modify)
-    apps/gui/src/env.d.ts (modify)
-  </files>
-  <requirements>FR10, FR11</requirements>
-  <pattern>IPC pattern at apps/gui/electron/preload/index.ts:8-9</pattern>
-  <action>
-    - In preload/index.ts: Change ptyRunCommand signature to accept (cwd, command, yoloMode)
-    - Pass yoloMode as third argument to ipcRenderer.invoke
-    - In env.d.ts: Update ptyRunCommand type to (cwd: string, command: string, yoloMode: boolean) => Promise&lt;void&gt;
-  </action>
-  <verify>npx tsc --noEmit -p apps/gui</verify>
-  <done>ptyRunCommand IPC accepts yoloMode parameter</done>
-</task>
+    <task id="13" type="auto" depends="12">
+      <name>Add AppHeader to App.vue and wire settings to terminal</name>
+      <files>apps/gui/src/App.vue (modify)</files>
+      <requirements>FR1, FR10</requirements>
+      <pattern>Composition root at apps/gui/src/App.vue:34-68</pattern>
+      <action>
+        - Import AppHeader component
+        - Update createTerminalOrchestrator call to include settings in options
+        - Add AppHeader component above ResizablePanelGroup in template
+        - Wrap ResizablePanelGroup in div with flex flex-col h-full to accommodate header
+      </action>
+      <verify>npm run build --prefix apps/gui</verify>
+      <done>App.vue renders AppHeader, terminal receives settings for yoloMode</done>
+    </task>
 
-<task id="7" type="auto" depends="6">
-  <name>Update PTY service to prepend flag when yoloMode enabled</name>
-  <files>apps/gui/electron/main/pty-service.ts (modify)</files>
-  <requirements>FR10, FR11</requirements>
-  <pattern>PTY spawn args at apps/gui/electron/main/pty-service.ts:97</pattern>
-  <action>
-    - Update runClaudeCommand signature to accept yoloMode: boolean
-    - Build args array: if yoloMode, prepend '--dangerously-skip-permissions' before command
-    - Pass args to pty.spawn: ['--dangerously-skip-permissions', command] or [command]
-    - Update ipcMain handler for 'pty:runCommand' to pass yoloMode arg
-  </action>
-  <verify>npx tsc --noEmit -p apps/gui/tsconfig.node.json</verify>
-  <done>PTY spawns Claude with --dangerously-skip-permissions when yoloMode true</done>
-</task>
+    <task id="14" type="manual" depends="13">
+      <name>Verify all acceptance criteria</name>
+      <files>N/A</files>
+      <requirements>FR1-FR12</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Run the app: npm run dev --prefix apps/gui
+        - Verify header bar visible above panels
+        - Verify FolderOpen button opens project picker
+        - Verify New+ dropdown shows Create Task and Discover options
+        - Verify settings icon (gear) visible on right side of header
+        - Click settings icon, verify popover opens
+        - Verify Yolo mode toggle visible in popover
+        - Verify description text present
+        - Verify red warning text present
+        - Enable Yolo mode, close app, reopen - verify still enabled
+        - Run a Claude command, verify --dangerously-skip-permissions in spawn (check console log)
+        - Disable Yolo mode, run command, verify flag NOT passed
+        - Verify TaskList header shows only "Tasks" title
+      </action>
+      <verify>Manual: Complete all verification steps above</verify>
+      <done>All 12 functional requirements verified working</done>
+    </task>
+  </tasks>
 
-<task id="8" type="auto" depends="7">
-  <name>Update PTY capability to accept yoloMode</name>
-  <files>apps/gui/src/terminal/pty.capability.ts (modify)</files>
-  <requirements>FR10, FR11</requirements>
-  <pattern>Capability method at apps/gui/src/terminal/pty.capability.ts:62-64</pattern>
-  <action>
-    - Update runCommand signature: add yoloMode: boolean parameter
-    - Update interface CreatePtyCapabilityReturn.runCommand signature
-    - Pass yoloMode to window.electronAPI.ptyRunCommand
-  </action>
-  <verify>npx tsc --noEmit -p apps/gui</verify>
-  <done>PTY capability passes yoloMode through IPC</done>
-</task>
+  <testing>
+    <automated>TypeScript compilation validates all type changes are consistent across layers (env.d.ts, preload, capability, orchestrator)</automated>
+    <manual>
+      - Toggle Yolo mode on/off, verify popover interaction works
+      - Close/reopen app, verify setting persisted
+      - Run Claude command with Yolo on, verify flag in PTY console log
+      - Run Claude command with Yolo off, verify no flag
+      - Verify AppHeader buttons work (project picker, create task, discover)
+    </manual>
+    <regression>
+      - Existing terminal functionality still works
+      - Panel resizing still works
+      - Task selection still works
+      - Settings persistence for projectPath and panelSizes still works
+    </regression>
+  </testing>
 
-<task id="9" type="auto" depends="8">
-  <name>Inject settings into terminal orchestrator for yoloMode access</name>
-  <files>apps/gui/src/terminal/terminal.orchestrator.ts (modify)</files>
-  <requirements>FR10, FR11</requirements>
-  <pattern>DI pattern at apps/gui/src/terminal/terminal.orchestrator.ts:36-46</pattern>
-  <action>
-    - Import CreateSettingsOrchestratorReturn from settings module
-    - Add settings: CreateSettingsOrchestratorReturn to CreateTerminalOrchestratorOptions
-    - In runCommand: read settings.yoloMode.value
-    - Pass yoloMode to pty.runCommand(projectPath, command, yoloMode)
-  </action>
-  <verify>npx tsc --noEmit -p apps/gui</verify>
-  <done>Terminal orchestrator reads yoloMode from settings and passes to PTY</done>
-</task>
+  <edge-cases>
+    <case scenario="Yolo mode toggled while command running">No effect on current command, applies to next spawn</case>
+    <case scenario="Settings popover closed by clicking outside">Standard Popover behavior, no special handling</case>
+    <case scenario="Multiple rapid toggles">Each calls setYoloMode which persists, final state wins</case>
+  </edge-cases>
 
-<task id="10" type="auto" depends="9">
-  <name>Create SettingsPanel component with Yolo toggle</name>
-  <files>apps/gui/src/components/SettingsPanel.vue (create)</files>
-  <requirements>FR6, FR7, FR8</requirements>
-  <pattern>Thin component pattern - inject orchestrator, call methods</pattern>
-  <action>
-    - Create SettingsPanel.vue
-    - Import injectSettings from @/settings
-    - Import Switch from ./ui/switch
-    - Template: div with "Settings" header
-    - Template: Switch bound to settings.yoloMode.value, @update:checked calls settings.setYoloMode
-    - Template: Label "Yolo mode" next to switch
-    - Template: Description text explaining skips permission prompts
-    - Template: Red warning text about potential danger (text-destructive class)
-    - Keep component thin - just inject and render
-  </action>
-  <verify>npx tsc --noEmit -p apps/gui</verify>
-  <done>SettingsPanel.vue renders Yolo toggle with description and warning</done>
-</task>
+  <pitfalls>
+    <pitfall issue="IPC signature mismatch">env.d.ts and preload must have identical signatures; update both in same task (task 6)</pitfall>
+    <pitfall issue="PTY flag format">Must be separate array element, not embedded in command string; ['--dangerously-skip-permissions', command] not ['--dangerously-skip-permissions ' + command]</pitfall>
+    <pitfall issue="DI ordering in App.vue">terminal orchestrator needs settings passed in; create settings first, then terminal with settings injected</pitfall>
+    <pitfall issue="Ref vs value">In terminal orchestrator, read settings.yoloMode.value not settings.yoloMode</pitfall>
+  </pitfalls>
 
-<task id="11" type="auto" depends="10">
-  <name>Create AppHeader component</name>
-  <files>apps/gui/src/components/AppHeader.vue (create)</files>
-  <requirements>FR1, FR2, FR3, FR4, FR5</requirements>
-  <pattern>Thin component pattern - inject orchestrators</pattern>
-  <action>
-    - Create AppHeader.vue
-    - Import injectApp, injectSettings from respective modules
-    - Import Button from ./ui/button
-    - Import DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger from ./ui/dropdown-menu
-    - Import Popover, PopoverContent, PopoverTrigger from ./ui/popover
-    - Import FolderOpen, Settings from lucide-vue-next
-    - Import SettingsPanel
-    - Template: header element with flex, justify-between, border-b, h-12, px-4
-    - Left side: FolderOpen button (calls app.changeProject), New+ dropdown (Create Task, Discover)
-    - Right side: Settings icon button wrapped in Popover trigger, PopoverContent contains SettingsPanel
-  </action>
-  <verify>npx tsc --noEmit -p apps/gui</verify>
-  <done>AppHeader.vue with project button, new dropdown, settings popover</done>
-</task>
-
-<task id="12" type="auto" depends="11">
-  <name>Simplify TaskList header</name>
-  <files>apps/gui/src/components/TaskList.vue (modify)</files>
-  <requirements>FR12</requirements>
-  <pattern>N/A - removal only</pattern>
-  <action>
-    - Remove FolderOpen import from lucide-vue-next
-    - Remove DropdownMenu imports (all 4 components)
-    - Remove handleCreateTask, handleDiscover, handleChangeProject functions (not needed in this component anymore)
-    - Remove injectApp import (no longer needed)
-    - Simplify header div: remove buttons, keep only "Tasks" h2
-    - Keep injectSettings and injectTasks, onMounted task loading
-  </action>
-  <verify>npx tsc --noEmit -p apps/gui</verify>
-  <done>TaskList header shows only "Tasks" title, no action buttons</done>
-</task>
-
-<task id="13" type="auto" depends="12">
-  <name>Add AppHeader to App.vue and wire settings to terminal</name>
-  <files>apps/gui/src/App.vue (modify)</files>
-  <requirements>FR1, FR10</requirements>
-  <pattern>Composition root at apps/gui/src/App.vue:34-68</pattern>
-  <action>
-    - Import AppHeader component
-    - Update createTerminalOrchestrator call to include settings in options
-    - Add AppHeader component above ResizablePanelGroup in template
-    - Wrap ResizablePanelGroup in div with flex flex-col h-full to accommodate header
-  </action>
-  <verify>npm run build --prefix apps/gui</verify>
-  <done>App.vue renders AppHeader, terminal receives settings for yoloMode</done>
-</task>
-
-<task id="14" type="manual" depends="13">
-  <name>Verify all acceptance criteria</name>
-  <files>N/A</files>
-  <requirements>FR1-FR12</requirements>
-  <pattern>N/A</pattern>
-  <action>
-    - Run the app: npm run dev --prefix apps/gui
-    - Verify header bar visible above panels
-    - Verify FolderOpen button opens project picker
-    - Verify New+ dropdown shows Create Task and Discover options
-    - Verify settings icon (gear) visible on right side of header
-    - Click settings icon, verify popover opens
-    - Verify Yolo mode toggle visible in popover
-    - Verify description text present
-    - Verify red warning text present
-    - Enable Yolo mode, close app, reopen - verify still enabled
-    - Run a Claude command, verify --dangerously-skip-permissions in spawn (check console log)
-    - Disable Yolo mode, run command, verify flag NOT passed
-    - Verify TaskList header shows only "Tasks" title
-  </action>
-  <verify>Manual: Complete all verification steps above</verify>
-  <done>All 12 functional requirements verified working</done>
-</task>
-</tasks>
-
-## Testing Strategy
-
-- **Automated:** TypeScript compilation validates all type changes are consistent across layers (env.d.ts, preload, capability, orchestrator)
-- **Manual:**
-  - Toggle Yolo mode on/off, verify popover interaction works
-  - Close/reopen app, verify setting persisted
-  - Run Claude command with Yolo on, verify flag in PTY console log
-  - Run Claude command with Yolo off, verify no flag
-  - Verify AppHeader buttons work (project picker, create task, discover)
-- **Regression:**
-  - Existing terminal functionality still works
-  - Panel resizing still works
-  - Task selection still works
-  - Settings persistence for projectPath and panelSizes still works
-
-## Edge Cases
-
-- Yolo mode toggled while command running — no effect on current command, applies to next spawn
-- Settings popover closed by clicking outside — standard Popover behavior, no special handling
-- Multiple rapid toggles — each calls setYoloMode which persists, final state wins
-
-## Potential Pitfalls
-
-- **IPC signature mismatch** — env.d.ts and preload must have identical signatures; update both in same task (task 6)
-- **PTY flag format** — Must be separate array element, not embedded in command string; `['--dangerously-skip-permissions', command]` not `['--dangerously-skip-permissions ' + command]`
-- **DI ordering in App.vue** — terminal orchestrator needs settings passed in; create settings first, then terminal with settings injected
-- **Ref vs value** — In terminal orchestrator, read `settings.yoloMode.value` not `settings.yoloMode`
+  <iterations></iterations>
+  <wip></wip>
+  <completeness></completeness>
+</plan>
