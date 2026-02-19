@@ -253,9 +253,11 @@ See full specification: tasks/{taskId}/spec.md
 {Key patterns being followed with file:line references}
 {Any trade-offs considered during scoping}
 
-## Implementation Steps
+## Implementation Tasks
 
-{Format varies by complexity - see below}
+<tasks>
+{XML task format - see below}
+</tasks>
 
 ## Testing Strategy
 
@@ -275,94 +277,127 @@ See full specification: tasks/{taskId}/spec.md
 - {pitfall 2} — {mitigation}
     </example_code>
 
-    <note>Step format by complexity:</note>
+    <note>Use XML task format for ALL complexity levels:</note>
 
-    <example_code lang="markdown" label="Simple (1-2 files, ≤3 FRs): Flat checkboxes">
-## Implementation Steps
+    <example_code lang="markdown" label="Implementation Tasks Section">
+## Implementation Tasks
 
-- [ ] Step 1: {description} `path/to/file.ts` (FR1)
-- [ ] Step 2: {description} `path/to/file.ts` (FR2)
-- [ ] Step 3: {description} `path/to/file.ts` (FR3)
-- [ ] Step 4: Verify acceptance criteria — {what to check}
+<tasks>
+<task id="1" type="auto">
+  <name>Add persistence hook</name>
+  <files>src/hooks/usePersistedState.ts (create)</files>
+  <requirements>FR1, FR2</requirements>
+  <pattern>Custom hook pattern from src/hooks/useSettings.ts:12</pattern>
+  <action>
+    - Create hook wrapping use-local-storage-state
+    - Add TypeScript types for persisted state shape
+    - Use app_state as localStorage key
+  </action>
+  <verify>npx tsc --noEmit</verify>
+  <done>Hook exports correctly, TypeScript compiles without errors</done>
+</task>
+
+<task id="2" type="auto" depends="1">
+  <name>Integrate with Zustand store</name>
+  <files>src/store/index.ts (modify)</files>
+  <requirements>FR3</requirements>
+  <pattern>Hydration pattern at src/store/settings.ts:42-58</pattern>
+  <action>
+    - Import persistence hook
+    - Add hydration effect on mount
+    - Subscribe to store changes for persistence
+  </action>
+  <verify>npm run build</verify>
+  <done>State persists after page refresh</done>
+</task>
+
+<task id="3" type="manual" depends="2">
+  <name>Verify cross-tab sync</name>
+  <files>N/A</files>
+  <requirements>FR4</requirements>
+  <pattern>N/A</pattern>
+  <action>
+    - Open app in two browser tabs
+    - Modify state in tab 1
+    - Verify state updates in tab 2
+  </action>
+  <verify>Manual: Open two tabs, change state in one, confirm sync in other</verify>
+  <done>State changes sync between tabs within 1 second</done>
+</task>
+</tasks>
     </example_code>
 
-    <example_code lang="markdown" label="Medium (3-5 files, 4-6 FRs): Structured steps with sub-tasks">
-## Implementation Steps
+    <note>Task element attributes:</note>
+    <table>
+      | Attribute | Required | Description |
+      |-----------|----------|-------------|
+      | `id` | Yes | Sequential number (1, 2, 3...) |
+      | `type` | Yes | "auto" (has executable verify) or "manual" (human verification) |
+      | `depends` | No | Comma-separated IDs of prerequisite tasks |
+    </table>
 
-### Step 1: {description}
-**Files:** `path/to/file.ts`
-**Requirements:** FR1, FR2
-**Pattern:** {pattern name} at `path/to/example.ts:42`
+    <note>Task child elements:</note>
+    <table>
+      | Element | Required | Description |
+      |---------|----------|-------------|
+      | `<name>` | Yes | Brief description of the task |
+      | `<files>` | Yes | Affected files with (create), (modify), or (delete) |
+      | `<requirements>` | Yes | Which FRs from spec this satisfies |
+      | `<pattern>` | No | Existing pattern to follow with file:line reference |
+      | `<action>` | Yes | Specific steps to take (can be multi-line with - bullets) |
+      | `<verify>` | Yes | Command to run OR "Manual: {description}" |
+      | `<done>` | Yes | Acceptance criteria for this specific task |
+    </table>
 
-- [ ] {sub-task 1}
-- [ ] {sub-task 2}
-- [ ] {sub-task 3}
+    <note>Verification types:</note>
+    <note>- **Command verification:** `<verify>npm run build</verify>` - Executed automatically</note>
+    <note>- **Manual verification:** `<verify>Manual: Check the UI renders correctly</verify>` - Shown to user</note>
+    <note>- Tasks with `type="manual"` always use manual verification</note>
 
-**Verify:** {how to confirm this step is complete}
+    <note>Task creation guidelines:
+1. ATOMIC: Each task = one logical change that leaves codebase working
+2. VERIFIABLE: Every task has explicit `<verify>` command or manual step
+3. TRACEABLE: Reference specific files and FRs from spec
+4. ORDERED: Use `depends` to express prerequisites
+5. PATTERN-AWARE: Include `<pattern>` reference when following existing code
+6. SELF-CONTAINED: `<action>` has enough detail to implement without re-reading spec</note>
+  </step>
 
-### Step 2: {description}
-**Files:** `path/to/file.ts`, `path/to/other.ts`
-**Requirements:** FR3
+  <step name="verify_plan_completeness">
+    <note>Critical self-check: Ensure plan is implementable without conversation context.</note>
 
-- [ ] {sub-task 1}
-- [ ] {sub-task 2}
+    <action>Re-read the plan you just created as if you had NO knowledge of this conversation</action>
 
-**Verify:** {how to confirm this step is complete}
+    <validate>Ask yourself: "If context was cleared right now, could I implement this plan from scratch?"</validate>
 
-### Step N: Final verification
-- [ ] All acceptance criteria from task met
-- [ ] No regressions in {affected area}
-    </example_code>
+    <checklist>
+      <item>Does each task specify exact file paths (not relative references)?</item>
+      <item>Does each task have enough detail in `<action>` to implement without re-reading spec?</item>
+      <item>Are pattern references specific (file:line) not vague ("follow existing pattern")?</item>
+      <item>Is the `<verify>` command concrete and executable?</item>
+      <item>Are dependencies between tasks explicit via `depends` attribute?</item>
+      <item>Does Technical Approach explain WHY this approach (not just WHAT)?</item>
+      <item>Are edge cases specific to THIS implementation (not generic)?</item>
+    </checklist>
 
-    <example_code lang="markdown" label="Complex (6+ files, 7+ FRs): Phased steps with code snippets">
-## Implementation Steps
+    <branch condition="any checklist item fails">
+      <action>Update the plan to add missing context</action>
+      <action>Be specific: add file paths, line numbers, concrete commands</action>
+      <action>Re-verify after updates</action>
+    </branch>
 
-### Phase 1: {phase name}
+    <output>
+**Plan Completeness Check**
+- [ ] File paths are absolute/specific
+- [ ] Actions are self-contained
+- [ ] Pattern references include file:line
+- [ ] Verify commands are executable
+- [ ] Dependencies are explicit
+- [ ] Approach explains rationale
+- [ ] Edge cases are specific
 
-#### Step 1.1: {description}
-**Files:** `path/to/file.ts` (create)
-**Requirements:** FR1, FR2
-**Pattern:** {pattern name} at `path/to/example.ts:42`
-
-- [ ] {sub-task 1}
-- [ ] {sub-task 2}
-
-**Snippet:**
-```typescript
-// Expected implementation pattern
-const example = usePattern({
-  option: 'value'
-})
-```
-
-**Verify:** {success criteria for this step}
-
-#### Step 1.2: {description}
-**Files:** `path/to/file.ts`
-**Requirements:** FR3
-
-- [ ] {sub-task 1}
-
-**Verify:** {success criteria for this step}
-
-### Phase 2: {phase name}
-
-#### Step 2.1: {description}
-...
-
-### Phase N: Final verification
-- [ ] All acceptance criteria from task met
-- [ ] Integration testing complete
-- [ ] No regressions in {affected areas}
-    </example_code>
-
-    <note>Step creation guidelines:
-1. ATOMIC: Each step = one logical change that leaves codebase working
-2. COMPLETE: Include all sub-tasks, pattern references, and verification criteria
-3. TRACEABLE: Reference specific file(s) and FR(s) from spec
-4. SEPARABLE: Don't mix concerns — refactoring separate from features
-5. VERIFIABLE: Every step has explicit success criteria
-6. SELF-CONTAINED: Include enough context to implement without re-reading spec</note>
+{If any failed, explain what was added to fix it}
+    </output>
   </step>
 
   <step name="update_task_file">
@@ -409,7 +444,7 @@ Next:
 - Plan frontmatter contains `iteration: 1`
 - Plan contains `## Overview` with implementation summary (not just "see spec")
 - Plan contains `## Technical Approach` section
-- Plan contains `## Implementation Steps` section with complexity-appropriate format
+- Plan contains `## Implementation Tasks` section with XML task format
 - Plan contains `## Testing Strategy` section
 - Plan contains `## Edge Cases` section
 - Plan contains `## Potential Pitfalls` section
@@ -502,44 +537,65 @@ Following two existing patterns:
 
 The localStorage key uses the `app_` prefix convention found in `src/utils/config.ts`.
 
-## Implementation Steps
+## Implementation Tasks
 
-### Step 1: Add persistence hook
-**Files:** `src/hooks/usePersistedState.ts` (create)
-**Requirements:** FR1, FR2
-**Pattern:** Custom hook pattern from `src/hooks/useSettings.ts`
+<tasks>
+<task id="1" type="auto">
+  <name>Add persistence hook</name>
+  <files>src/hooks/usePersistedState.ts (create)</files>
+  <requirements>FR1, FR2</requirements>
+  <pattern>Custom hook pattern from src/hooks/useSettings.ts:12</pattern>
+  <action>
+    - Create hook wrapping use-local-storage-state
+    - Add TypeScript types for persisted state shape
+    - Use app_state as localStorage key
+  </action>
+  <verify>npx tsc --noEmit</verify>
+  <done>Hook exports correctly, TypeScript compiles without errors</done>
+</task>
 
-- [ ] Create hook wrapping `use-local-storage-state`
-- [ ] Add TypeScript types for persisted state shape
-- [ ] Use `app_state` as localStorage key
+<task id="2" type="auto" depends="1">
+  <name>Integrate with Zustand store</name>
+  <files>src/store/index.ts (modify)</files>
+  <requirements>FR3</requirements>
+  <pattern>Hydration pattern at src/store/settings.ts:42-58</pattern>
+  <action>
+    - Import persistence hook
+    - Add hydration effect on mount
+    - Subscribe to store changes for persistence
+  </action>
+  <verify>npm run build</verify>
+  <done>State persists after page refresh</done>
+</task>
 
-**Verify:** Hook exports correctly, TypeScript compiles
+<task id="3" type="auto" depends="2">
+  <name>Add sync subscription</name>
+  <files>src/store/index.ts (modify)</files>
+  <requirements>FR4</requirements>
+  <pattern>N/A</pattern>
+  <action>
+    - Subscribe to localStorage changes from other tabs
+    - Update Zustand state when external changes detected
+  </action>
+  <verify>npm run build</verify>
+  <done>Change in one tab reflects in another tab</done>
+</task>
 
-### Step 2: Integrate with Zustand store
-**Files:** `src/store/index.ts`
-**Requirements:** FR3
-**Pattern:** Hydration at `src/store/settings.ts:42-58`
-
-- [ ] Import persistence hook
-- [ ] Add hydration effect on mount
-- [ ] Subscribe to store changes for persistence
-
-**Verify:** State persists after page refresh
-
-### Step 3: Add sync subscription
-**Files:** `src/store/index.ts`
-**Requirements:** FR4
-
-- [ ] Subscribe to localStorage changes from other tabs
-- [ ] Update Zustand state when external changes detected
-
-**Verify:** Change in one tab reflects in another tab
-
-### Step 4: Final verification
-- [ ] All acceptance criteria from task met
-- [ ] State persists across refresh
-- [ ] State syncs across tabs
-- [ ] No regressions in existing store functionality
+<task id="4" type="manual" depends="3">
+  <name>Final verification</name>
+  <files>N/A</files>
+  <requirements>FR1, FR2, FR3, FR4</requirements>
+  <pattern>N/A</pattern>
+  <action>
+    - Verify all acceptance criteria from task met
+    - Verify state persists across refresh
+    - Verify state syncs across tabs
+    - Verify no regressions in existing store functionality
+  </action>
+  <verify>Manual: Test all acceptance criteria</verify>
+  <done>All acceptance criteria pass</done>
+</task>
+</tasks>
 
 ## Testing Strategy
 

@@ -8,47 +8,71 @@ generated_by: human|claude
 model: {model-name}
 version: 1
 iteration: 1
+complexity: simple|medium|complex
 ---
 
 # Plan: {title}
 
 ## Overview
-{Brief summary of implementation approach}
-{References functional spec for full context}
 
-## Implementation Steps
+{2-3 sentence summary of implementation approach - NOT just "see spec"}
+{Key architectural decision or pattern being followed}
 
-<!-- Step Guidelines:
-1. ATOMIC: Each step = one logical change that leaves codebase working
-2. COMPLETE: Understand desired change, definition of done, all sub-steps, all info needed
-3. TRACEABLE: Reference specific file(s) and/or FR from spec
-4. SEPARABLE: Don't mix concerns - refactoring separate from features
-5. TESTABLE: The change can be verified (test, type-check, manual)
+See full specification: tasks/{id}/spec.md
+
+## Technical Approach
+
+{Why this approach - derived from spec's Research Findings}
+{Key patterns being followed with file:line references}
+{Any trade-offs considered}
+
+## Implementation Tasks
+
+<tasks>
+<!-- Task format:
+<task id="N" type="auto|manual" depends="comma,separated,ids">
+  <name>Brief description</name>
+  <files>path/to/file.ts (create|modify|delete)</files>
+  <requirements>FR1, FR2</requirements>
+  <pattern>Pattern name at path/to/example.ts:line</pattern>
+  <action>
+    - Step 1
+    - Step 2
+  </action>
+  <verify>command to run OR "Manual: description"</verify>
+  <done>Acceptance criteria for this task</done>
+</task>
 -->
+</tasks>
 
-- [ ] Step 1: {description} `path/to/file.ts` (FR1)
-- [ ] Step 2: {description} `path/to/file.ts` (FR1)
-- [ ] Step 3: {description} `path/to/new.ts` (FR2)
+## Testing Strategy
+
+- **Automated:** {tests to write, if any}
+- **Manual:** {what to verify by hand}
+- **Regression:** {what existing behavior to confirm still works}
+
+## Edge Cases
+
+- {edge case 1} — {how to handle}
+- {edge case 2} — {how to handle}
+
+## Potential Pitfalls
+
+- {pitfall 1} — {mitigation}
+- {pitfall 2} — {mitigation}
 
 ## Iterations
-<!-- Added by verify-fail-task or review-fail-task -->
-
-### Attempt {n} — {Phase} Failed ({YYYY-MM-DD})
-
-**Phase:** verify|review
-**Result:** failed
-
-**Errors/Issues:**
-- {error or feedback item}
-
-**Action:** {guidance for fixing}
+<!-- Added by kanban-rework when issues found -->
 
 ## WIP Notes
-<!-- Added by in-progress-wip-commit -->
+<!-- Added by kanban-save for partial progress -->
 
-**Last WIP:** YYYY-MM-DD
-**Progress:** {completed}/{total} steps
-
-**Continuation hints:**
-- Next step: {description}
-- Context: {relevant context for resuming}
+## Completeness Verification
+<!-- Added by kanban-plan after self-check -->
+- [ ] File paths are absolute/specific
+- [ ] Actions are self-contained (no "see above" references)
+- [ ] Pattern references include file:line
+- [ ] Verify commands are executable
+- [ ] Dependencies are explicit
+- [ ] Approach explains rationale (WHY not just WHAT)
+- [ ] Edge cases are specific to this implementation

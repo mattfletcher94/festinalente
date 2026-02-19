@@ -39,6 +39,20 @@ updated: YYYY-MM-DD
 - **Pattern:** {description}
   - Reference: `path/to/another.ts:15`
 
+## Research Findings
+
+### Product Context
+{Product docs read and key insights for this task}
+
+### Engineering Patterns
+{Patterns to follow with file:line references}
+
+### Codebase Analysis
+{Similar implementations found in codebase}
+
+### Pitfalls Identified
+{Known issues and constraints to avoid}
+
 ## Technical Constraints
 - {Must use existing X library}
 - {Cannot modify Y because...}
