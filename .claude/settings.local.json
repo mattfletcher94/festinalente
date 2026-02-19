@@ -56,7 +56,10 @@
       "Bash(test:*)",
       "Bash(if not exist \".kanban\\\\product\\\\cli\" mkdir \".kanban\\\\product\\\\cli\")",
       "Bash(pnpm build:scripts:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(pnpm build:content:*)",
+      "Bash(npx claude-kanban)",
+      "Bash(git rm:*)"
     ]
   }
 }
