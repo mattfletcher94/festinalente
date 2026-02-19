@@ -1,0 +1,19 @@
+# Project Glossary
+# ----------------
+# Maps project-specific terms to their aliases for improved search.
+# When searching for "sign in", also match docs tagged with "login".
+#
+# This file is:
+# - Auto-populated during /kanban-map-product and /kanban-map-engineering
+# - Editable by hand to add custom terms
+# - Used by search scripts to expand queries
+#
+# Format:
+#   terms:
+#     - term: "canonical name"
+#       aliases: ["synonym1", "synonym2"]
+#       domain: "optional domain grouping"
+#       definition: "optional brief definition"
+
+version: 1
+terms: []

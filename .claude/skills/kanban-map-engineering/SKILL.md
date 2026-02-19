@@ -1,14 +1,14 @@
 ---
 name: kanban-map-engineering
-description: Analyze existing codebase and create engineering documentation through Socratic Q&A
-allowed-tools: Read, Write, Glob, Grep, Bash(git add *, git commit *, git status), AskUserQuestion
+description: Analyze existing codebase and create engineering documentation through parallel exploration and Socratic Q&A
+allowed-tools: Read, Write, Glob, Grep, Bash(git add *, git commit *, git status), AskUserQuestion, Task
 disable-model-invocation: true
 ---
 
 # Skill: Map Engineering
 
 <purpose>
-Analyze existing codebase and create engineering documentation through Socratic Q&A.
+Analyze existing codebase and create engineering documentation through parallel exploration and Socratic Q&A.
 </purpose>
 
 <context>
@@ -39,11 +39,14 @@ Analyze existing codebase and create engineering documentation through Socratic 
 </note>
 
 <note>**Column Transition:** N/A - This is a documentation command, not a task workflow command.</note>
+
+<note>**Glossary:** This skill updates `.kanban/glossary.yaml` with technical terms and aliases.</note>
 </context>
 
 <prohibited>
-- Do not skip the codebase research phase
+- Do not skip the parallel discovery phase
 - Do not write docs without validating with user through Q&A
+- Do not skip the validation phase
 - Do not skip the commit step
 </prohibited>
 
@@ -65,50 +68,137 @@ Analyze existing codebase and create engineering documentation through Socratic 
     </branch>
   </step>
 
-  <step name="deep_codebase_research">
-    <note>Research the codebase thoroughly:</note>
+  <step name="parallel_discovery">
+    <note>**CRITICAL: Spawn 4 agents in parallel using Task tool**</note>
+    <action>Use the Task tool 4 times in a SINGLE message to achieve parallelism</action>
 
-    <note>**Tech Stack:**</note>
-    <action>Read package.json, requirements.txt, Cargo.toml, go.mod, etc.</action>
-    <action>Identify languages, frameworks, key dependencies</action>
+    <parallel>
+      <agent name="Stack Analyzer" subagent_type="Explore">
+        <description>Analyze tech stack and dependencies</description>
+        <prompt>
+Analyze the technology stack of this codebase:
+1. Read package.json, requirements.txt, Cargo.toml, go.mod, etc.
+2. Identify programming languages used
+3. List frameworks and their versions
+4. Note key dependencies and what they're used for
+5. Identify build tools (webpack, vite, cargo, etc.)
+6. Find testing frameworks
+7. Note database technologies
 
-    <note>**Directory Structure:**</note>
-    <action>Use Glob to find source directories</action>
-    <action>Map the high-level structure</action>
+Provide a structured summary:
+- Languages: {list with versions if available}
+- Frameworks: {list with versions}
+- Key Dependencies: {name: purpose}
+- Build Tools: {list}
+- Testing: {frameworks used}
+- Database: {type and driver}
+        </prompt>
+      </agent>
 
-    <note>**Systems/Services:**</note>
-    <action>Identify major subsystems (auth, api, database, etc.)</action>
-    <action>Find entry points and boundaries</action>
+      <agent name="Architecture Mapper" subagent_type="Explore">
+        <description>Map systems and data flow</description>
+        <prompt>
+Map the system architecture of this codebase:
+1. Identify major subsystems (auth, api, database, cache, etc.)
+2. Find entry points for each system
+3. Trace data flow between systems
+4. Identify integration points (APIs, events, queues)
+5. Find configuration and environment handling
+6. Note any microservices or separate deployables
 
-    <note>**Patterns:**</note>
-    <action>Look for architectural patterns (MVC, microservices, etc.)</action>
-    <action>Identify naming conventions</action>
-    <action>Find dependency injection patterns</action>
-    <action>Note error handling approaches</action>
+For each system, provide:
+- name: System name
+- purpose: What it does (1 sentence)
+- entry_points: Main files/classes
+- components: Key internal components
+- interacts_with: Other systems it communicates with
+- data_flow: How data moves through it
 
-    <note>**Conventions:**</note>
-    <action>File naming patterns</action>
-    <action>Code organization within files</action>
-    <action>Import/export patterns</action>
+Also provide a high-level data flow diagram (ASCII art).
+        </prompt>
+      </agent>
+
+      <agent name="Convention Extractor" subagent_type="Explore">
+        <description>Extract coding conventions and patterns</description>
+        <prompt>
+Extract coding conventions and patterns from this codebase:
+1. File naming conventions (PascalCase, kebab-case, etc.)
+2. Folder organization patterns
+3. Import/export patterns (barrels, direct imports)
+4. Error handling approach (exceptions, Result types, error codes)
+5. Dependency injection pattern (if any)
+6. State management approach
+7. API design patterns (REST, GraphQL conventions)
+8. Testing conventions
+
+For each convention/pattern found, provide:
+- name: Convention name
+- type: naming | structure | error-handling | state | api | testing
+- rule: The convention rule (1-2 sentences)
+- example_file: File that demonstrates this
+- evidence: Code snippet showing the pattern
+        </prompt>
+      </agent>
+
+      <agent name="Risk Identifier" subagent_type="Explore">
+        <description>Identify technical debt and risks</description>
+        <prompt>
+Identify technical risks and debt in this codebase:
+1. Look for TODO, FIXME, HACK, XXX comments
+2. Find deprecated code or dependencies
+3. Identify potential security concerns
+4. Look for missing error handling
+5. Find hard-coded values that should be config
+6. Identify code duplication patterns
+7. Note missing tests or test coverage gaps
+8. Find performance concerns (N+1 queries, blocking I/O)
+
+For each issue, provide:
+- type: tech_debt | security | performance | maintainability
+- severity: high | medium | low
+- location: File and line
+- description: What the issue is
+- recommendation: How to address it
+        </prompt>
+      </agent>
+    </parallel>
+
+    <action>Wait for all 4 agents to complete</action>
+    <note>Agents run concurrently - this is faster than sequential exploration</note>
+  </step>
+
+  <step name="synthesize_findings">
+    <action>Combine outputs from all 4 agents</action>
+    <action>Organize systems by dependency order</action>
+    <action>Group patterns by category</action>
+    <action>Prioritize risks by severity</action>
+
+    <note>**Synthesis Rules:**</note>
+    <rule>Stack Analyzer provides the foundation - verify against actual usage</rule>
+    <rule>Architecture Mapper systems become the systems/ docs</rule>
+    <rule>Convention Extractor patterns become patterns/ and conventions/ docs</rule>
+    <rule>Risk Identifier issues can be documented as "Known Issues" in relevant system docs</rule>
+
+    <action>Present summary to user for validation</action>
   </step>
 
   <step name="create_engineering_overview">
-    <note>Based on codebase analysis, draft overview content:</note>
+    <note>Based on synthesis, draft overview content:</note>
     <prompt>What is the main technology stack?</prompt>
     <prompt>What's the high-level architecture approach?</prompt>
     <warning>IMMEDIATELY create overview.md:</warning>
     <action>Create `.kanban/engineering/overview.md`</action>
     <action>Use template from `.kanban/templates/engineering-overview.md`</action>
-    <action>Fill frontmatter: `id: overview`, `type: overview`, `title`, `summary`</action>
-    <action>Fill body sections: Tech Stack, Architecture Summary, Directory Structure</action>
+    <action>Fill frontmatter: `id: overview`, `type: overview`, `title`, `tldr`, `summary`, `keywords`, `aliases`, `boundary`</action>
+    <action>Fill body sections: Tech Stack (from Stack Analyzer), Architecture Summary, Directory Structure</action>
   </step>
 
   <step name="present_summary">
-    <output>I analyzed the codebase and found the following:</output>
-    <output>**Tech Stack:** {languages, frameworks}</output>
-    <output>**Systems:** {major subsystems identified}</output>
-    <output>**Patterns:** {architectural patterns observed}</output>
-    <output>**Conventions:** {naming and organization patterns}</output>
+    <output>I analyzed the codebase using 4 parallel agents and found the following:</output>
+    <output>**Tech Stack:** {languages, frameworks from Stack Analyzer}</output>
+    <output>**Systems:** {major subsystems from Architecture Mapper}</output>
+    <output>**Patterns:** {key patterns from Convention Extractor}</output>
+    <output>**Risks Identified:** {count} issues ({high} high, {medium} medium, {low} low)</output>
     <output>Let me ask some questions to validate and expand on this understanding.</output>
   </step>
 
@@ -116,38 +206,114 @@ Analyze existing codebase and create engineering documentation through Socratic 
     <note>Use AskUserQuestion tool for **one question at a time**.</note>
     <warning>CRITICAL: Write docs incrementally to prevent context loss</warning>
 
-    <note>**For each system (depth-first):**</note>
-    <prompt>I found {system} that appears to handle {description}. Is this accurate?</prompt>
-    <branch condition="user corrects">
-      <action>Update understanding</action>
-    </branch>
-    <prompt>What are the key components within {system}?</prompt>
-    <prompt>Are there any important patterns or constraints specific to this system?</prompt>
+    <note>**For each system (depth-first), ask Discovery Questions:**</note>
+    <questions name="system_discovery">
+      <prompt>I found {system} that appears to handle {description}. Is this accurate?</prompt>
+      <prompt>What are the key components within {system}?</prompt>
+      <prompt>Why was this system designed this way? What alternatives were considered?</prompt>
+      <prompt>What are the performance or scalability constraints?</prompt>
+      <prompt>What does this system NOT handle? (boundaries)</prompt>
+      <prompt>Are there any known issues or technical debt?</prompt>
+    </questions>
 
     <warning>IMMEDIATELY write the engineering doc:</warning>
     <action>Create folder if needed: `.kanban/engineering/systems/{system}/`</action>
     <command description="Get current date">node .kanban/scripts/get-date-time.cjs</command>
     <action>Create `.kanban/engineering/systems/{system}/index.md`</action>
     <action>Use template from `.kanban/templates/engineering-system.md`</action>
+    <action>Fill frontmatter: `id`, `type: system`, `title`, `tldr`, `summary`, `keywords`, `aliases`, `boundary`, `paths`, `verified`, `code_refs`</action>
 
     <note>**For patterns discovered:**</note>
-    <prompt>I noticed a {pattern} pattern. Can you tell me more about when/how to apply it?</prompt>
+    <questions name="pattern_discovery">
+      <prompt>I noticed a {pattern} pattern. Can you tell me more about when/how to apply it?</prompt>
+      <prompt>What problem does this pattern solve?</prompt>
+      <prompt>When should this pattern NOT be used?</prompt>
+      <prompt>Can you show me a good example and a bad example?</prompt>
+    </questions>
+
     <action>Create `.kanban/engineering/patterns/{pattern}.md`</action>
     <action>Use template from `.kanban/templates/engineering-pattern.md`</action>
-    <action>Include examples from the codebase</action>
+    <action>Include correct and incorrect examples from the codebase</action>
 
     <note>**For conventions discovered:**</note>
-    <prompt>I see a convention for {thing}. Are there specific rules to follow?</prompt>
+    <questions name="convention_discovery">
+      <prompt>I see a convention for {thing}. Are there specific rules to follow?</prompt>
+      <prompt>What happens if someone violates this convention?</prompt>
+      <prompt>Are there any exceptions to this convention?</prompt>
+    </questions>
+
     <action>Create `.kanban/engineering/conventions/{convention}.md`</action>
     <action>Use template from `.kanban/templates/engineering-convention.md`</action>
+
+    <note>**Documentation Review (per doc):**</note>
+    <action>Read the draft back to user</action>
+    <prompt>Is this accurate? What's missing?</prompt>
+    <prompt>Would this help a new developer understand the system?</prompt>
 
     <note>**Exit:**</note>
     <prompt>Is there anything else about the engineering/architecture you'd like to document?</prompt>
     <branch condition="user says no/nothing/that's all">
-      <action>Proceed to final review</action>
+      <action>Proceed to glossary update</action>
     </branch>
     <branch condition="user has more">
       <action>Continue Q&A</action>
+    </branch>
+  </step>
+
+  <step name="update_glossary">
+    <note>Update project glossary with technical terms</note>
+    <action>Check if `.kanban/glossary.yaml` exists</action>
+    <branch condition="exists">
+      <action>Read existing glossary</action>
+      <action>Add new technical terms discovered</action>
+    </branch>
+    <branch condition="does not exist">
+      <action>Create `.kanban/glossary.yaml` with technical terms</action>
+    </branch>
+
+    <example_code lang="yaml">
+# Project Glossary - Technical terms section
+version: 1
+terms:
+  # ... existing terms ...
+  - term: "{technical-term}"
+    aliases: ["{synonym1}", "{synonym2}"]
+    domain: engineering
+    definition: "{brief definition}"
+    auto_generated: true
+    </example_code>
+
+    <prompt>Review technical terms - any to add, remove, or rename?</prompt>
+  </step>
+
+  <step name="validation_phase">
+    <note>Validate documentation quality and completeness</note>
+
+    <action>Check all `related` fields resolve to existing docs</action>
+    <action>Check all `paths` and `code_refs` fields point to existing files</action>
+    <action>Check for orphan docs (not referenced anywhere)</action>
+    <action>Verify each doc has required fields: tldr, summary, keywords, boundary</action>
+
+    <output>
+Validation Report:
+────────────────────────────────────────
+Total docs created: {count}
+- Systems: {count}
+- Patterns: {count}
+- Conventions: {count}
+
+ISSUES FOUND:
+- Related field issues: {list or "None"}
+- Invalid paths: {list or "None"}
+- Orphan docs: {list or "None"}
+- Missing fields: {list or "None"}
+
+Risks documented: {count} from Risk Identifier
+    </output>
+
+    <branch condition="issues found">
+      <prompt>Would you like to fix these issues now?</prompt>
+      <action>Fix each issue interactively</action>
     </branch>
   </step>
 
@@ -155,11 +321,13 @@ Analyze existing codebase and create engineering documentation through Socratic 
     <action>Read all generated engineering docs</action>
     <action>Update overview.md with links to created systems/patterns/conventions</action>
     <action>Verify all `related` fields are accurate across docs</action>
+    <action>Add any high-severity risks to relevant system docs</action>
   </step>
 
   <step name="commit">
     <note>Format: `docs: map-engineering - {brief summary}`</note>
     <command>git add .kanban/engineering/</command>
+    <command>git add .kanban/glossary.yaml</command>
     <command>git commit -m "docs: map-engineering - {systems, patterns listed}"</command>
     <note>Example: `docs: map-engineering - auth system, api system, middleware pattern`</note>
   </step>
@@ -167,6 +335,12 @@ Analyze existing codebase and create engineering documentation through Socratic 
   <step name="output_result">
     <output>Engineering documentation mapped!</output>
     <output>
+**Created:**
+- {system_count} system docs
+- {pattern_count} pattern docs
+- {convention_count} convention docs
+- {risk_count} risks documented
+
 **Next: Start creating tasks**
 ```
 /clear
@@ -188,10 +362,99 @@ Analyze existing codebase and create engineering documentation through Socratic 
 <success_criteria>
 - `.kanban/engineering/` directory exists
 - At least `overview.md` was created
-- Each doc has valid frontmatter (id, type, title, summary, keywords, paths, updated)
+- Each doc has valid frontmatter (id, type, title, tldr, summary, keywords, boundary, paths, verified, updated)
+- `.kanban/glossary.yaml` updated with technical terms
+- Validation phase completed without errors
 - Git log shows `docs: map-engineering -`
 - Next steps shown to user
 </success_criteria>
+
+<example>
+User: `/kanban-map-engineering`
+
+```
+Launching 4 parallel agents to analyze the codebase...
+
+[Stack Analyzer] Reading package.json, analyzing dependencies...
+[Architecture Mapper] Identifying systems and data flow...
+[Convention Extractor] Finding patterns and conventions...
+[Risk Identifier] Looking for technical debt and risks...
+
+All agents complete. Synthesizing findings...
+
+I analyzed the codebase and found the following:
+
+**Tech Stack:**
+- TypeScript 5.3, Node.js 20
+- Express.js 4.18 (API framework)
+- PostgreSQL 15 (database)
+- Jest (testing)
+
+**Systems:**
+- auth: JWT authentication with refresh tokens
+- api: REST API with versioning
+- database: PostgreSQL with Prisma ORM
+- cache: Redis for session storage
+
+**Patterns:**
+- Repository pattern for data access
+- Middleware pattern for request processing
+- Factory pattern for service creation
+
+**Risks Identified:** 12 issues (2 high, 5 medium, 5 low)
+- HIGH: SQL injection risk in search endpoint
+- HIGH: No rate limiting on auth endpoints
+
+Let me ask some questions to validate and expand on this understanding.
+```
+
+**After Q&A completes, creates:**
+```
+.kanban/engineering/
+├── overview.md
+├── systems/
+│   ├── auth/
+│   │   └── index.md
+│   ├── api/
+│   │   └── index.md
+│   └── database/
+│       └── index.md
+├── patterns/
+│   ├── repository.md
+│   └── middleware.md
+└── conventions/
+    ├── file-naming.md
+    └── error-handling.md
+```
+
+**Validation Report:**
+```
+Total docs created: 8
+- Systems: 3
+- Patterns: 2
+- Conventions: 2
+
+ISSUES FOUND: None
+
+Risks documented: 12 (added to relevant system docs)
+```
+</example>
+
+<note>
+**Parallel Agent Benefits:**
+
+1. **Comprehensive analysis** - Each agent specializes in one aspect
+2. **Risk awareness** - Dedicated agent finds security and performance issues
+3. **Pattern recognition** - Convention Extractor ensures consistency documentation
+4. **Faster mapping** - 4 agents work simultaneously
+
+**Engineering Doc Quality:**
+
+- Always include code examples from the actual codebase
+- Document the "why" not just the "what"
+- Include boundaries (what the system/pattern does NOT do)
+- Link risks to specific systems for traceability
+</note>
 
 <next_steps>
 ```

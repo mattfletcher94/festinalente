@@ -236,6 +236,16 @@ async function main() {
     logSuccess('.kanban/config.yaml already exists, skipping');
   }
 
+  // Copy glossary.yaml if it doesn't exist (don't overwrite user glossary)
+  const glossarySource = path.join(templatesDest, 'glossary.yaml');
+  const glossaryDest = path.join(kanbanDir, 'glossary.yaml');
+  if (!fs.existsSync(glossaryDest) && fs.existsSync(glossarySource)) {
+    fs.copyFileSync(glossarySource, glossaryDest);
+    logSuccess('Created .kanban/glossary.yaml');
+  } else if (fs.existsSync(glossaryDest)) {
+    logSuccess('.kanban/glossary.yaml already exists, skipping');
+  }
+
   logStep('4/4', 'Saving manifest...');
 
   // Save manifest to .kanban for tracking

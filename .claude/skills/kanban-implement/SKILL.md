@@ -127,10 +127,58 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
     <action>Read spec file for full context on requirements and patterns</action>
   </step>
 
-  <step name="load_product_context" when="task has `affects` field">
-    <action>For each ID in affects: Read `.kanban/product/{id}.md`</action>
-    <action>Understand current product behavior</action>
+  <step name="load_smart_context">
+    <note>**Smart Context Selection:** Load relevant docs at appropriate tier</note>
+    <command>node .kanban/scripts/select-context.cjs {taskId} --tier=standard --max=5</command>
+    <action>Parse JSON output</action>
+    <action>For each doc in output, present the content field</action>
+    <note>Standard tier: tldr + summary + boundary for each relevant doc</note>
+
+    <branch condition="task appears complex (multiple systems involved)">
+      <action>Re-run with --tier=full for most relevant 2 docs</action>
+      <command>node .kanban/scripts/select-context.cjs {taskId} --tier=full --max=2</command>
+    </branch>
+
+    <note>Context tiers:</note>
+    <note>- minimal: Only tldr (~50 tokens per doc)</note>
+    <note>- standard: tldr + summary + boundary (~200 tokens per doc)</note>
+    <note>- full: Entire doc content (~500-1000 tokens per doc)</note>
+
     <note>Implementation should maintain or extend documented behavior</note>
+  </step>
+
+  <step name="check_doc_freshness">
+    <note>**Freshness Check:** Warn if relevant docs may be outdated</note>
+    <command>node .kanban/scripts/check-freshness.cjs --stale-days=30</command>
+    <action>Parse JSON output</action>
+    <action>Check if any docs from affects or engineering field are in staleDocs list</action>
+
+    <branch condition="any affected docs are stale">
+      <output>
+Warning: Some relevant docs may be outdated:
+      </output>
+      <action>For each stale doc related to this task:</action>
+      <output>- {doc.id}: verified {doc.verifiedDate} ({doc.daysSinceVerified} days ago)</output>
+      <output>  Code changed: {doc.modifiedCodeRefs}</output>
+
+      <action>Use AskUserQuestion with:
+        - header: "Stale docs"
+        - question: "Some docs may be outdated. How should I proceed?"
+        - options:
+          - label: "Continue anyway (Recommended)", description: "Proceed with implementation, update docs later"
+          - label: "Review docs first", description: "Read the stale docs before implementing"
+        - multiSelect: false
+      </action>
+
+      <branch condition="user selects review first">
+        <action>For each stale doc, read and present content</action>
+        <prompt>Is this doc still accurate enough to guide implementation?</prompt>
+      </branch>
+    </branch>
+
+    <branch condition="no stale docs">
+      <note>All relevant docs are fresh</note>
+    </branch>
   </step>
 
   <step name="load_hook_config">

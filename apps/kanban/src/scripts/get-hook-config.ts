@@ -17,6 +17,7 @@ interface HookConfig {
   directives?: string[];
   product?: string[];
   engineering?: string[];
+  tier?: 'minimal' | 'standard' | 'full';
 }
 
 interface Config {
@@ -38,6 +39,7 @@ interface DocInfo {
 
 interface HookResult {
   hook: string;
+  tier: 'minimal' | 'standard' | 'full';
   directives: DirectiveInfo[];
   product: DocInfo[];
   engineering: DocInfo[];
@@ -82,6 +84,7 @@ function main(): void {
   if (!hooks) {
     console.log(JSON.stringify({
       hook: hookName,
+      tier: 'standard',
       directives: [],
       product: [],
       engineering: []
@@ -93,12 +96,16 @@ function main(): void {
   if (!hookConfig) {
     console.log(JSON.stringify({
       hook: hookName,
+      tier: 'standard',
       directives: [],
       product: [],
       engineering: []
     } as HookResult));
     return;
   }
+
+  // Get tier from config, default to 'standard'
+  const tier = (hookConfig.tier as 'minimal' | 'standard' | 'full') || 'standard';
 
   // Build directives info
   const directives: DirectiveInfo[] = (hookConfig.directives || []).map((name: string) => {
@@ -132,6 +139,7 @@ function main(): void {
 
   const result: HookResult = {
     hook: hookName,
+    tier,
     directives,
     product,
     engineering

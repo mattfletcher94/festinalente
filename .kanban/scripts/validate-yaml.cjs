@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 const require_chunk = require('./chunk-DWy1uDak.cjs');
-const require_gray_matter$1 = require('./gray-matter-eGHh6fA9.cjs');
+const require_gray_matter$1 = require('./gray-matter-Cxe2PDJm.cjs');
 const fs = require_chunk.__toESM(require("fs"));
 const path = require_chunk.__toESM(require("path"));
 

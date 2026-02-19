@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const require_chunk = require('./chunk-DWy1uDak.cjs');
-const require_gray_matter$1 = require('./gray-matter-eGHh6fA9.cjs');
-const require_fuse = require('./fuse-BxOLNH3G.cjs');
+const require_gray_matter$1 = require('./gray-matter-Cxe2PDJm.cjs');
+const require_fuse = require('./fuse-Qm11Ho2o.cjs');
 const fs = require_chunk.__toESM(require("fs"));
 const path = require_chunk.__toESM(require("path"));
 
@@ -52,14 +52,23 @@ function loadDocs() {
 			id: frontmatter.id || id,
 			title: frontmatter.title || "",
 			type: frontmatter.type || "feature",
+			tldr: frontmatter.tldr || "",
 			summary: frontmatter.summary || "",
 			keywords: Array.isArray(frontmatter.keywords) ? frontmatter.keywords : [],
+			aliases: Array.isArray(frontmatter.aliases) ? frontmatter.aliases : [],
+			boundary: frontmatter.boundary || "",
 			domain,
 			body: body.slice(0, 1e3),
 			path: normalizedPath
 		});
 	}
 	return docs;
+}
+function checkBoundaryMatch(boundary, searchTerms) {
+	if (!boundary) return false;
+	const boundaryLower = boundary.toLowerCase();
+	for (const term of searchTerms) if (boundaryLower.includes(term.toLowerCase())) return true;
+	return false;
 }
 function main() {
 	const args = parseArgs(process.argv.slice(2));
@@ -92,30 +101,38 @@ function main() {
 		keys: [
 			{
 				name: "keywords",
-				weight: .4
+				weight: .35
+			},
+			{
+				name: "aliases",
+				weight: .35
 			},
 			{
 				name: "title",
-				weight: .3
-			},
-			{
-				name: "id",
 				weight: .25
 			},
 			{
-				name: "summary",
+				name: "tldr",
+				weight: .25
+			},
+			{
+				name: "id",
 				weight: .2
 			},
 			{
-				name: "domain",
+				name: "summary",
 				weight: .15
 			},
 			{
-				name: "body",
+				name: "domain",
 				weight: .1
+			},
+			{
+				name: "body",
+				weight: .05
 			}
 		],
-		threshold: .4,
+		threshold: .35,
 		includeScore: true,
 		ignoreLocation: true,
 		useExtendedSearch: true,
@@ -123,13 +140,20 @@ function main() {
 	});
 	const query = searchTerms.join(" ");
 	const fuseResults = fuse.search(query);
-	const results = fuseResults.map((result) => ({
-		id: result.item.id,
-		title: result.item.title,
-		score: Math.round((1 - (result.score || 0)) * 100) / 100,
-		summary: result.item.summary,
-		path: result.item.path
-	})).filter((result) => result.score >= minScore);
+	const results = fuseResults.map((result) => {
+		const baseScore = 1 - (result.score || 0);
+		const hasBoundaryMatch = checkBoundaryMatch(result.item.boundary, searchTerms);
+		const adjustedScore = hasBoundaryMatch ? Math.max(0, baseScore - .15) : baseScore;
+		return {
+			id: result.item.id,
+			title: result.item.title,
+			score: Math.round(adjustedScore * 100) / 100,
+			summary: result.item.summary,
+			tldr: result.item.tldr,
+			path: result.item.path,
+			boundaryPenalty: hasBoundaryMatch
+		};
+	}).filter((result) => result.score >= minScore).sort((a, b) => b.score - a.score);
 	const output = {
 		query: searchTerms,
 		count: results.length,

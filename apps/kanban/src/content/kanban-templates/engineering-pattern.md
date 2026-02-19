@@ -2,16 +2,41 @@
 id: "patterns/{name}"
 title: "{Pattern Name}"
 type: pattern
-summary: "{One sentence}"
+tldr: "{When to use this pattern - max 100 chars}"
+summary: "{Problem it solves and solution approach}"
 keywords: []
+aliases: []
+boundary: "{When NOT to use this pattern}"
 related: []
 paths: []
 updated: YYYY-MM-DD
+verified: YYYY-MM-DD
+code_refs: []
 ---
 
 # {Pattern Name}
 
-{Description of the pattern and when to use it}
+> **TL;DR:** {tldr repeated}
+
+## Problem
+
+{What problem does this pattern solve?}
+
+## Solution
+
+{How does the pattern solve it?}
+
+**Summary:** {Brief recap of solution}
+
+## When to Use
+
+- {Scenario 1}
+- {Scenario 2}
+
+## When NOT to Use
+
+- {Anti-scenario 1} → Use [{alternative}](../{path}) instead
+- {Anti-scenario 2}
 
 ## Quick Reference
 
@@ -19,21 +44,40 @@ updated: YYYY-MM-DD
 
 ## Validation Checklist
 
-{How to verify compliance}
+- [ ] {Check 1}
+- [ ] {Check 2}
+
+**Summary:** {Brief recap of validation}
 
 ## Examples
 
-### Correct
+### Correct Example
 
-```typescript
-// Good example
+```{language}
+// {file path where this is used}
+{good code example}
 ```
 
-### Incorrect
+### Incorrect Example
 
-```typescript
-// Bad example - explain why
+```{language}
+// DON'T do this
+{bad code example}
+// Because: {reason}
 ```
+
+**Summary:** {Brief recap of examples}
+
+## Boundaries
+
+What this pattern does NOT apply to:
+
+- **Does NOT:** {thing} → Use [{alternative}](../{path}) instead
+- **Does NOT:** {thing}
+
+## Systems Using This Pattern
+
+- [{system}](../systems/{system}/index.md)
 
 ## Common Violations
 

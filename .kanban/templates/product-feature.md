@@ -2,17 +2,24 @@
 id: "{domain}/{slug}"
 title: "{Feature Name}"
 type: feature
+tldr: "{Single sentence - max 100 chars}"
 summary: "{One sentence description - for LLM discovery}"
 keywords: []
+aliases: []
+boundary: "{What this feature does NOT cover}"
 related: []
 updated: YYYY-MM-DD
 ---
 
 # {Feature Name}
 
+> **TL;DR:** {tldr repeated}
+
 ## Overview
 
 {Feature Name} allows users to {do what}. This is important because {reason/value}.
+
+**Summary:** {Brief recap of the feature's purpose}
 
 ## How It Works
 
@@ -27,10 +34,32 @@ updated: YYYY-MM-DD
 - {Step 2}
 - {Step 3}
 
-## Key Concepts
+**Summary:** {Brief recap of the main workflow}
 
-- **{Term}**: {Definition}
-- **{Term}**: {Definition}
+## Examples
+
+### Typical Usage
+
+```{language}
+// {file path where this is used}
+{code example}
+```
+
+### Edge Case: {scenario}
+
+```{language}
+// {what happens when}
+{code example}
+```
+
+**Summary:** {Brief recap of key examples}
+
+## Boundaries
+
+What this feature does NOT do:
+
+- **Does NOT:** {thing 1} → See [{related-feature}]({path})
+- **Does NOT:** {thing 2}
 
 ## Configuration
 

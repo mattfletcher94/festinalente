@@ -161,6 +161,22 @@ Update product documentation, commit the changes, push to remote, and move task 
     <action>Make minimal, focused updates (don't rewrite entire doc)</action>
     <action>Preserve existing content that's still accurate</action>
     <warning>SCOPE RESTRICTION: Only update docs to reflect what THIS task implemented</warning>
+
+    <note>**Verification Prompt:**</note>
+    <action>Read implemented code for this task</action>
+    <action>Compare to doc content</action>
+    <prompt>Does this doc accurately reflect the implementation? (Yes/No/Needs correction)</prompt>
+    <branch condition="user confirms">
+      <command description="Get current date">node .kanban/scripts/get-date-time.cjs</command>
+      <action>Update `verified: {YYYY-MM-DD}` in frontmatter</action>
+      <action>Update `code_refs` with files touched by this task</action>
+    </branch>
+    <branch condition="user says needs correction">
+      <prompt>What needs to be corrected?</prompt>
+      <action>Make corrections</action>
+      <action>Re-verify with user</action>
+      <action>Update `verified: {YYYY-MM-DD}` in frontmatter</action>
+    </branch>
   </step>
 
   <step name="create_new_docs" when="new docs needed">
@@ -168,11 +184,11 @@ Update product documentation, commit the changes, push to remote, and move task 
     <command description="Get current date">node .kanban/scripts/get-date-time.cjs</command>
     <action>Use `date` field from output</action>
 
-    <note>**For features** (use `.kanban/templates/product-doc.md`):</note>
+    <note>**For features** (use `.kanban/templates/product-feature.md`):</note>
     <action>Fill frontmatter: `id: {domain}/{feature}`, `type: feature`, title, summary, keywords, updated</action>
     <action>Fill sections: Overview, How It Works, Limitations</action>
 
-    <note>**For concepts** (use `.kanban/templates/concept-doc.md`):</note>
+    <note>**For concepts** (use `.kanban/templates/product-concept.md`):</note>
     <action>Fill frontmatter: `id: {domain}/{concept}`, `type: concept`, title, summary, keywords, updated</action>
     <action>Fill sections: Definition, Examples, Rules & Constraints</action>
 
