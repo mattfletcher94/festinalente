@@ -1,0 +1,35 @@
+<plan task="{id}" spec="tasks/{id}/spec.xml" status="draft"
+      complexity="{complexity}" created="{created}" updated="{updated}"
+      generated-by="claude" model="{model}" version="1" iteration="1">
+  <title>{title}</title>
+
+  <overview></overview>
+
+  <approach>
+    <rationale></rationale>
+  </approach>
+
+  <tasks>
+  </tasks>
+
+  <testing>
+    <automated></automated>
+    <manual></manual>
+    <regression></regression>
+  </testing>
+
+  <edge-cases>
+  </edge-cases>
+
+  <pitfalls>
+  </pitfalls>
+
+  <iterations>
+  </iterations>
+
+  <wip>
+  </wip>
+
+  <completeness>
+  </completeness>
+</plan>

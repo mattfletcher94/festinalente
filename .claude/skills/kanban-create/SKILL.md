@@ -16,7 +16,7 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
 <note>
 - **`.claude/skills/kanban-*/`** — Installed kanban skills — READ ONLY
 - **`.kanban/`** — Project data and config — READ/WRITE
-- **`.kanban/tasks/{id}/`** — Task folder containing `task.md`, `spec.md`, `plan.md`
+- **`.kanban/tasks/{id}/`** — Task folder containing `task.xml`, `spec.xml`, `plan.xml`
 - **`.kanban/scripts/`** — Helper scripts for kanban operations
 - **`.kanban/templates/`** — Document templates
 - **`.kanban/workflow.yaml`** — Workflow config (columns, labels, transitions)
@@ -150,7 +150,7 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
 
     <branch condition="docs with score ≥ 0.5 found">
       <note>These docs describe existing features this task relates to</note>
-      <action>Set `affects: [{matched-ids}]` in task frontmatter</action>
+      <action>Set `affects: [{matched-ids}]` in task XML</action>
       <output>Related product docs: {ids}</output>
     </branch>
 
@@ -179,7 +179,7 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
 
     <branch condition="docs with score ≥ 0.5 found">
       <note>These docs describe existing patterns/systems this task relates to</note>
-      <action>Set `engineering: [{matched-ids}]` in task frontmatter</action>
+      <action>Set `engineering: [{matched-ids}]` in task XML</action>
       <output>Related engineering docs: {ids}</output>
     </branch>
 
@@ -240,18 +240,18 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
 
   <step name="create_task_file">
     <warning>Write to `.kanban/tasks/` — NOT `.kanban/product/`</warning>
-    <action>Read template from `.kanban/templates/task.md`</action>
+    <action>Read template from `.kanban/templates/task.xml`</action>
     <action>Create folder `.kanban/tasks/{nextId}/`</action>
-    <action>Create file at `.kanban/tasks/{nextId}/task.md`</action>
+    <action>Create file at `.kanban/tasks/{nextId}/task.xml`</action>
     <note>`{nextId}` = the nextId from step get_next_id (e.g., "001")</note>
-    <action>Fill frontmatter: `id`, `title`, `status: backlog`, `priority`, `labels`, `created`, `affects`, `engineering`</action>
+    <action>Fill XML attributes: `id`, `title`, `status: backlog`, `priority`, `labels`, `created`, `affects`, `engineering`</action>
     <action>Fill body: `## Description`, `## Notes`</action>
     <note>Leave empty (filled in later phases): other sections</note>
   </step>
 
   <step name="commit">
     <note>Format: `docs({nextId}): create - {title}`</note>
-    <command>git add .kanban/tasks/{nextId}/task.md</command>
+    <command>git add .kanban/tasks/{nextId}/task.xml</command>
     <command>git commit -m "docs({nextId}): create - {title}"</command>
   </step>
 
@@ -267,9 +267,9 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
     </output>
     ## Final Validation
     
-    Before completing, validate all task YAML frontmatter:
+    Before completing, validate all task XML:
     
-    <command description="Validate YAML in all task files">node .kanban/scripts/validate-yaml.cjs</command>
+    <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
     
     If validation fails, fix the reported errors before completing.
     
@@ -279,10 +279,10 @@ Create a new task file in `.kanban/tasks/` in the Backlog column and commit it.
 
 <success_criteria>
 - Task folder exists at `.kanban/tasks/{nextId}/`
-- Task file exists at `.kanban/tasks/{nextId}/task.md`
-- Frontmatter contains `id: "{nextId}"`
-- Frontmatter contains `status: backlog`
-- Frontmatter contains `title: "{title}"`
+- Task file exists at `.kanban/tasks/{nextId}/task.xml`
+- Task XML has `id="{nextId}"`
+- Task XML has `status="backlog"`
+- Task XML has `title` element with "{title}"
 - Task file contains `## Description` section
 - Git log shows `docs({nextId}): create -`
 - Next steps shown to user
@@ -297,7 +297,7 @@ Creates: `.kanban/tasks/002/task.md`
 Task 002 created in Backlog
 Title: Fix login redirect bug
 Labels: [bug]
-File: .kanban/tasks/002/task.md
+File: .kanban/tasks/002/task.xml
 Commit: a1b2c3d docs(002): create - Fix login redirect bug
 
 Next:

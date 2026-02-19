@@ -16,7 +16,7 @@ Return a task to In Progress when human review finds issues. Works from both QA 
 <note>
 - **`.claude/skills/kanban-*/`** — Installed kanban skills — READ ONLY
 - **`.kanban/`** — Project data and config — READ/WRITE
-- **`.kanban/tasks/{id}/`** — Task folder containing `task.md`, `spec.md`, `plan.md`
+- **`.kanban/tasks/{id}/`** — Task folder containing `task.xml`, `spec.xml`, `plan.xml`
 - **`.kanban/scripts/`** — Helper scripts for kanban operations
 - **`.kanban/templates/`** — Document templates
 - **`.kanban/workflow.yaml`** — Workflow config (columns, labels, transitions)
@@ -77,7 +77,7 @@ See `.kanban/workflow.yaml` for column definitions and valid transitions.
   <step name="read_task_file" outputs="taskPath, title, currentStatus">
     <command>node .kanban/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
-    <action>Parse YAML frontmatter</action>
+    <action>Parse XML</action>
     <validate>Verify current status is `qa` or `pr`</validate>
     <branch condition="status is not qa or pr">
       <action>Use AskUserQuestion tool with:
@@ -107,7 +107,7 @@ See `.kanban/workflow.yaml` for column definitions and valid transitions.
   </step>
 
   <step name="read_plan_file" outputs="planPath">
-    <action>Check for `.kanban/tasks/{taskId}/plan.md`</action>
+    <action>Check for `.kanban/tasks/{taskId}/plan.xml`</action>
     <branch condition="plan found">
       <action>Read plan content</action>
     </branch>
@@ -157,8 +157,8 @@ See `.kanban/workflow.yaml` for column definitions and valid transitions.
   </step>
 
   <step name="update_plan_with_iteration">
-    <note>Following template at `.kanban/templates/plan.md`</note>
-    <action>Increment `iteration` in frontmatter</action>
+    <note>Following template at `.kanban/templates/plan.xml`</note>
+    <action>Increment `iteration` attribute in plan XML</action>
     <action>Determine phase name based on original status:
 - `qa` → "QA Failed"
 - `pr` → "PR Rejected"</action>
@@ -189,8 +189,8 @@ See `.kanban/workflow.yaml` for column definitions and valid transitions.
 
   <step name="commit">
     <note>Format: `docs({taskId}): rework - {title}`</note>
-    <command>git add .kanban/tasks/{taskId}/task.md</command>
-    <command>git add .kanban/tasks/{taskId}/plan.md</command>
+    <command>git add .kanban/tasks/{taskId}/task.xml</command>
+    <command>git add .kanban/tasks/{taskId}/plan.xml</command>
     <command>git commit -m "docs({taskId}): rework - {title}"</command>
   </step>
 
@@ -213,9 +213,9 @@ Then re-verify:
     </output>
     ## Final Validation
     
-    Before completing, validate all task YAML frontmatter:
+    Before completing, validate all task XML:
     
-    <command description="Validate YAML in all task files">node .kanban/scripts/validate-yaml.cjs</command>
+    <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
     
     If validation fails, fix the reported errors before completing.
     
@@ -224,9 +224,9 @@ Then re-verify:
 </process>
 
 <success_criteria>
-- Task file exists at `.kanban/tasks/{taskId}/task.md`
-- Plan file exists at `.kanban/tasks/{taskId}/plan.md`
-- Task frontmatter contains `status: in-progress`
+- Task file exists at `.kanban/tasks/{taskId}/task.xml`
+- Plan file exists at `.kanban/tasks/{taskId}/plan.xml`
+- Task XML has `status="in-progress"`
 - Plan contains `## Iterations` section with rework entry
 - Git log shows `docs({taskId}): rework -`
 - If was in PR: PR is closed (verify with `gh pr view --json state`)

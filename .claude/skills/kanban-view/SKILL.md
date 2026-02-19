@@ -81,7 +81,7 @@ Display the Kanban board as a visual terminal output with box-drawing characters
 
   <step name="get_plan_progress" when="tasks have status `planned`, `in-progress`, `verify`, or `review`">
     <note>For tasks with status `planned`, `in-progress`, `verify`, or `review`:</note>
-    <action>Read `.kanban/tasks/{id}/plan.md` if it exists</action>
+    <action>Read `.kanban/tasks/{id}/plan.xml` if it exists</action>
     <action>Count checkboxes: `- [ ]` (incomplete) and `- [x]` (complete)</action>
     <action>Calculate progress as `{complete}/{total}`</action>
   </step>
@@ -144,9 +144,9 @@ No tasks on the board.
     </branch>
     ## Final Validation
     
-    Before completing, validate all task YAML frontmatter:
+    Before completing, validate all task XML:
     
-    <command description="Validate YAML in all task files">node .kanban/scripts/validate-yaml.cjs</command>
+    <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
     
     If validation fails, fix the reported errors before completing.
     

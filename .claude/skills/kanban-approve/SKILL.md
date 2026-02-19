@@ -16,7 +16,7 @@ Approve implementation after human QA testing, commit the code with appropriate 
 <note>
 - **`.claude/skills/kanban-*/`** — Installed kanban skills — READ ONLY
 - **`.kanban/`** — Project data and config — READ/WRITE
-- **`.kanban/tasks/{id}/`** — Task folder containing `task.md`, `spec.md`, `plan.md`
+- **`.kanban/tasks/{id}/`** — Task folder containing `task.xml`, `spec.xml`, `plan.xml`
 - **`.kanban/scripts/`** — Helper scripts for kanban operations
 - **`.kanban/templates/`** — Document templates
 - **`.kanban/workflow.yaml`** — Workflow config (columns, labels, transitions)
@@ -72,7 +72,7 @@ Approve implementation after human QA testing, commit the code with appropriate 
   <step name="read_task_file" outputs="taskPath, title, labels">
     <command>node .kanban/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
-    <action>Parse YAML frontmatter</action>
+    <action>Parse XML</action>
     <validate>Verify current status is `qa`</validate>
     <branch condition="status is in-progress">
       <output>Suggest completing verification first</output>
@@ -220,9 +220,9 @@ Approve implementation after human QA testing, commit the code with appropriate 
     </output>
     ## Final Validation
     
-    Before completing, validate all task YAML frontmatter:
+    Before completing, validate all task XML:
     
-    <command description="Validate YAML in all task files">node .kanban/scripts/validate-yaml.cjs</command>
+    <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
     
     If validation fails, fix the reported errors before completing.
     
@@ -231,8 +231,8 @@ Approve implementation after human QA testing, commit the code with appropriate 
 </process>
 
 <success_criteria>
-- Task file exists at `.kanban/tasks/{taskId}/task.md`
-- Task frontmatter contains `status: update-docs`
+- Task file exists at `.kanban/tasks/{taskId}/task.xml`
+- Task XML has `status: update-docs`
 - Git log shows appropriate commit type (`feat`, `fix`, `refactor`, or `docs`) with `({taskId}):`
 - Next steps shown to user
 </success_criteria>

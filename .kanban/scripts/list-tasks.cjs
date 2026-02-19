@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 const require_chunk = require('./chunk-DWy1uDak.cjs');
-const require_gray_matter$1 = require('./gray-matter-Cxe2PDJm.cjs');
+const require_xml_parser = require('./xml-parser-Df7HM_HY.cjs');
 const fs = require_chunk.__toESM(require("fs"));
 const path = require_chunk.__toESM(require("path"));
 
 //#region src/scripts/list-tasks.ts
-var import_gray_matter = require_chunk.__toESM(require_gray_matter$1.require_gray_matter(), 1);
 const TASKS_DIR = ".kanban/tasks";
 function parseArgs(args) {
 	const result = { _: [] };
@@ -27,18 +26,18 @@ function main() {
 	const folders = fs.default.readdirSync(TASKS_DIR, { withFileTypes: true }).filter((f) => f.isDirectory()).map((f) => f.name).sort();
 	const tasks = [];
 	for (const folderId of folders) {
-		const filePath = path.default.join(TASKS_DIR, folderId, "task.md").replace(/\\/g, "/");
+		const filePath = path.default.join(TASKS_DIR, folderId, "task.xml").replace(/\\/g, "/");
 		if (!fs.default.existsSync(filePath)) continue;
 		const content = fs.default.readFileSync(filePath, "utf8");
-		const { data: frontmatter } = (0, import_gray_matter.default)(content);
+		const parsed = require_xml_parser.parseTaskXml(content);
 		const task = {
 			id: folderId,
-			filename: "task.md",
+			filename: "task.xml",
 			path: filePath,
-			title: frontmatter.title || "",
-			status: frontmatter.status || "",
-			priority: frontmatter.priority || "",
-			labels: Array.isArray(frontmatter.labels) ? frontmatter.labels : []
+			title: parsed.title,
+			status: parsed.status,
+			priority: parsed.priority,
+			labels: parsed.labels
 		};
 		if (args.status && task.status !== args.status) continue;
 		if (args.priority && task.priority !== args.priority) continue;

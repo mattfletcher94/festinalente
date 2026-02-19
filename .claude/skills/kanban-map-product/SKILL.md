@@ -227,9 +227,9 @@ Ready to start creating tasks:
     </output>
     ## Final Validation
     
-    Before completing, validate all task YAML frontmatter:
+    Before completing, validate all task XML:
     
-    <command description="Validate YAML in all task files">node .kanban/scripts/validate-yaml.cjs</command>
+    <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
     
     If validation fails, fix the reported errors before completing.
     

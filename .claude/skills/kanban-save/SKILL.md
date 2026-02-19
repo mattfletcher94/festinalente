@@ -60,7 +60,7 @@ Save partial implementation progress when interrupted. Task stays in In Progress
   <step name="read_task_file" outputs="taskPath, title">
     <command>node .kanban/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
-    <action>Parse YAML frontmatter</action>
+    <action>Parse XML</action>
     <validate>Verify current status is `in-progress`</validate>
     <branch condition="status is not in-progress">
       <output>Task is not in progress. WIP commit only works for tasks being implemented.</output>
@@ -83,7 +83,7 @@ Save partial implementation progress when interrupted. Task stays in In Progress
   </step>
 
   <step name="read_plan_file" outputs="planPath, planContent">
-    <action>Check for `.kanban/tasks/{taskId}/plan.md`</action>
+    <action>Check for `.kanban/tasks/{taskId}/plan.xml`</action>
     <branch condition="plan found">
       <action>Read plan content</action>
     </branch>
@@ -141,7 +141,7 @@ Save partial implementation progress when interrupted. Task stays in In Progress
 
   <step name="add_wip_notes_to_plan" when="plan exists">
     <action>Add or update `## WIP Notes` section</action>
-    <note>Follow template at `.kanban/templates/plan.md`</note>
+    <note>Follow template at `.kanban/templates/plan.xml`</note>
     <example_code lang="markdown">
 ## WIP Notes
 
@@ -170,7 +170,7 @@ Save partial implementation progress when interrupted. Task stays in In Progress
     <note>Format: `wip({taskId}): {progress summary}`</note>
     <action>Stage all relevant files (code + plan)</action>
     <command>git add {changed files}</command>
-    <command>git add .kanban/tasks/{taskId}/plan.md</command>
+    <command>git add .kanban/tasks/{taskId}/plan.xml</command>
     <command>git commit -m "wip({taskId}): {progress summary}"</command>
   </step>
 
@@ -187,9 +187,9 @@ Save partial implementation progress when interrupted. Task stays in In Progress
     </output>
     ## Final Validation
     
-    Before completing, validate all task YAML frontmatter:
+    Before completing, validate all task XML:
     
-    <command description="Validate YAML in all task files">node .kanban/scripts/validate-yaml.cjs</command>
+    <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
     
     If validation fails, fix the reported errors before completing.
     
@@ -198,8 +198,8 @@ Save partial implementation progress when interrupted. Task stays in In Progress
 </process>
 
 <success_criteria>
-- Task file exists at `.kanban/tasks/{taskId}/task.md`
-- Task frontmatter contains `status: in-progress`
+- Task file exists at `.kanban/tasks/{taskId}/task.xml`
+- Task XML has `status="in-progress"`
 - If changes existed: git log shows `wip({taskId}):`
 - Next steps shown to user
 </success_criteria>
@@ -212,7 +212,7 @@ User: `/kanban-save 001`
 ```
 Saving WIP for task 001 "Add user authentication"...
 
-Reading plan: .kanban/tasks/001/plan.md
+Reading plan: .kanban/tasks/001/plan.xml
 Progress: 2/5 items complete
 
 Verifying checkboxes match actual progress...
@@ -227,7 +227,7 @@ Adding WIP notes to plan...
 Staging files:
 - src/routes/auth.ts
 - src/middleware/jwt.ts
-- .kanban/tasks/001/plan.md
+- .kanban/tasks/001/plan.xml
 
 Commit: d4e5f6g wip(001): completed auth routes and login endpoint
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 const require_chunk = require('./chunk-DWy1uDak.cjs');
-const require_gray_matter$1 = require('./gray-matter-Cxe2PDJm.cjs');
+const require_gray_matter$1 = require('./gray-matter-eGHh6fA9.cjs');
 const fs = require_chunk.__toESM(require("fs"));
 const path = require_chunk.__toESM(require("path"));
 
@@ -8,7 +8,9 @@ const path = require_chunk.__toESM(require("path"));
 var import_gray_matter = require_chunk.__toESM(require_gray_matter$1.require_gray_matter(), 1);
 const TASKS_DIR = ".kanban/tasks";
 /**
+
 * Validate a single markdown file.
+
 */
 function validateFile(filePath) {
 	try {
@@ -24,7 +26,9 @@ function validateFile(filePath) {
 	}
 }
 /**
+
 * Get all markdown files in the tasks directory.
+
 */
 function getAllTaskFiles() {
 	const files = [];

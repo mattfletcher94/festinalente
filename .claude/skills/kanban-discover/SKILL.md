@@ -15,7 +15,7 @@ Explore questions and analyze codebases through conversational Socratic Q&A befo
 <note>
 - **`.claude/skills/kanban-*/`** — Installed kanban skills — READ ONLY
 - **`.kanban/`** — Project data and config — READ/WRITE
-- **`.kanban/tasks/{id}/`** — Task folder containing `task.md`, `spec.md`, `plan.md`
+- **`.kanban/tasks/{id}/`** — Task folder containing `task.xml`, `spec.xml`, `plan.xml`
 - **`.kanban/scripts/`** — Helper scripts for kanban operations
 - **`.kanban/templates/`** — Document templates
 - **`.kanban/workflow.yaml`** — Workflow config (columns, labels, transitions)
@@ -221,9 +221,9 @@ The created tasks are in Backlog. Next step for each:
     </output>
     ## Final Validation
     
-    Before completing, validate all task YAML frontmatter:
+    Before completing, validate all task XML:
     
-    <command description="Validate YAML in all task files">node .kanban/scripts/validate-yaml.cjs</command>
+    <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
     
     If validation fails, fix the reported errors before completing.
     

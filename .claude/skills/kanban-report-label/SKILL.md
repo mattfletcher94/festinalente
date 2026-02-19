@@ -40,8 +40,8 @@ Query tasks filtered by label using natural language.
   </step>
 
   <step name="find_matching_tasks" outputs="taskFiles">
-    <action>Search `.kanban/tasks/*/task.md` for files containing the label in frontmatter</action>
-    <command>grep -l "labels:.*{label}" .kanban/tasks/*/task.md</command>
+    <action>Search `.kanban/tasks/*/task.xml` for files containing the label element</action>
+    <command>grep -l "&lt;label&gt;{label}&lt;/label&gt;" .kanban/tasks/*/task.xml</command>
   </step>
 
   <step name="read_task_details">
@@ -70,9 +70,9 @@ For more details on the board:
     </output>
     ## Final Validation
     
-    Before completing, validate all task YAML frontmatter:
+    Before completing, validate all task XML:
     
-    <command description="Validate YAML in all task files">node .kanban/scripts/validate-yaml.cjs</command>
+    <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
     
     If validation fails, fix the reported errors before completing.
     
@@ -101,9 +101,9 @@ From `.kanban/workflow.yaml`:
 
 | Source | Location | Contains |
 |--------|----------|----------|
-| Task files | `.kanban/tasks/{id}/task.md` | Status, priority, labels, description |
-| Spec files | `.kanban/tasks/{id}/spec.md` | Requirements for scoped tasks |
-| Plan files | `.kanban/tasks/{id}/plan.md` | Implementation plans |
+| Task files | `.kanban/tasks/{id}/task.xml` | Status, priority, labels, description |
+| Spec files | `.kanban/tasks/{id}/spec.xml` | Requirements for scoped tasks |
+| Plan files | `.kanban/tasks/{id}/plan.xml` | Implementation plans |
 </note>
 
 <note>

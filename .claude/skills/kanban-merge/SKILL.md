@@ -16,7 +16,7 @@ Merge the task branch into main, clean up the branch, and move task to Done.
 <note>
 - **`.claude/skills/kanban-*/`** — Installed kanban skills — READ ONLY
 - **`.kanban/`** — Project data and config — READ/WRITE
-- **`.kanban/tasks/{id}/`** — Task folder containing `task.md`, `spec.md`, `plan.md`
+- **`.kanban/tasks/{id}/`** — Task folder containing `task.xml`, `spec.xml`, `plan.xml`
 - **`.kanban/scripts/`** — Helper scripts for kanban operations
 - **`.kanban/templates/`** — Document templates
 - **`.kanban/workflow.yaml`** — Workflow config (columns, labels, transitions)
@@ -72,7 +72,7 @@ Merge the task branch into main, clean up the branch, and move task to Done.
   <step name="read_task_file" outputs="taskPath, title">
     <command>node .kanban/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
-    <action>Parse YAML frontmatter</action>
+    <action>Parse XML</action>
     <validate>Verify current status is `pr`</validate>
     <branch condition="status is update-docs">
       <output>Suggest `/kanban-docs {taskId}` first</output>
@@ -173,7 +173,7 @@ Merge the task branch into main, clean up the branch, and move task to Done.
     <action>Add `updated: {YYYY-MM-DD}`</action>
     <action>Add `completed: {YYYY-MM-DD}`</action>
     <action>Write updated task file</action>
-    <command>git add .kanban/tasks/{taskId}/task.md</command>
+    <command>git add .kanban/tasks/{taskId}/task.xml</command>
     <command>git commit -m "docs({taskId}): done - {title}"</command>
   </step>
 
@@ -192,9 +192,9 @@ Merge the task branch into main, clean up the branch, and move task to Done.
     </output>
     ## Final Validation
     
-    Before completing, validate all task YAML frontmatter:
+    Before completing, validate all task XML:
     
-    <command description="Validate YAML in all task files">node .kanban/scripts/validate-yaml.cjs</command>
+    <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
     
     If validation fails, fix the reported errors before completing.
     
@@ -203,9 +203,9 @@ Merge the task branch into main, clean up the branch, and move task to Done.
 </process>
 
 <success_criteria>
-- Task file exists at `.kanban/tasks/{taskId}/task.md`
-- Task frontmatter contains `status: done`
-- Task frontmatter contains `completed:` date
+- Task file exists at `.kanban/tasks/{taskId}/task.xml`
+- Task XML has `status="done"`
+- Task XML has `completed` attribute with date
 - Current branch is `main`
 - Branch `task/{taskId}` no longer exists locally
 - Next steps shown to user

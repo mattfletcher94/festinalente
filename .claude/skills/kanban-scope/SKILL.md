@@ -16,7 +16,7 @@ Create a functional specification through iterative conversational Q&A focused o
 <note>
 - **`.claude/skills/kanban-*/`** — Installed kanban skills — READ ONLY
 - **`.kanban/`** — Project data and config — READ/WRITE
-- **`.kanban/tasks/{id}/`** — Task folder containing `task.md`, `spec.md`, `plan.md`
+- **`.kanban/tasks/{id}/`** — Task folder containing `task.xml`, `spec.xml`, `plan.xml`
 - **`.kanban/scripts/`** — Helper scripts for kanban operations
 - **`.kanban/templates/`** — Document templates
 - **`.kanban/workflow.yaml`** — Workflow config (columns, labels, transitions)
@@ -98,7 +98,7 @@ Create a functional specification through iterative conversational Q&A focused o
   <step name="read_task_file" outputs="taskPath, title, acceptanceCriteria, status">
     <command>node .kanban/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
-    <action>Parse YAML frontmatter</action>
+    <action>Parse XML</action>
     <validate>Verify status is `backlog` or `refined`</validate>
     <branch condition="status is not backlog and not refined">
       <output>Task is in {status} status. Expected: backlog or refined.</output>
@@ -180,40 +180,94 @@ Create a functional specification through iterative conversational Q&A focused o
     </example_code>
   </step>
 
-  <step name="initial_codebase_research">
-    <note>Read product context first:</note>
-    <branch condition="task has `affects` field">
-      <action>For each ID: Read `.kanban/product/{id}.md`</action>
-      <action>Note: current behavior, constraints, interactions</action>
-      <note>This informs WHERE to look in codebase</note>
-    </branch>
+  <step name="structured_research" outputs="researchFindings">
+    <note>Conduct structured research in four areas BEFORE the Q&A dialogue.</note>
+    <note>This ensures thorough exploration and pattern discovery.</note>
 
-    <note>Read engineering context:</note>
-    <branch condition="task has `engineering` field">
-      <action>For each ID: Read engineering doc (overview, system, pattern, or convention)</action>
-      <action>Note: patterns to follow, existing implementations, constraints</action>
-      <note>This informs HOW to implement and WHERE to look</note>
-    </branch>
-    <branch condition="no engineering field">
-      <command>node .kanban/scripts/search-engineering.cjs {keywords from title/description}</command>
-      <branch condition="relevant patterns/systems found">
-        <action>Read and note relevant patterns</action>
-        <action>Suggest adding to `engineering` field</action>
+    <substep name="research_product_context">
+      <note>Understand existing product behavior that may constrain implementation.</note>
+      <branch condition="task has `affects` field">
+        <action>For each ID in `affects`: Read `.kanban/product/{id}.md`</action>
+        <action>Note: current behavior, constraints, user flows, feature interactions</action>
       </branch>
+      <action>Search for additional relevant product docs</action>
+      <command>node .kanban/scripts/search-product.cjs {keywords from title and description}</command>
+      <branch condition="docs with score ≥ 0.3 found">
+        <action>Read top matches not already read</action>
+      </branch>
+      <output_variable>productFindings: list of {docId, keyInsight}</output_variable>
+    </substep>
+
+    <substep name="research_engineering_patterns">
+      <note>Find established patterns and conventions to follow.</note>
+      <branch condition="task has `engineering` field">
+        <action>For each ID: Read engineering doc using ID→path rules</action>
+        <action>Note: patterns to follow, conventions, system interactions</action>
+      </branch>
+      <action>Search for additional relevant engineering docs</action>
+      <command>node .kanban/scripts/search-engineering.cjs {technical keywords}</command>
+      <branch condition="docs with score ≥ 0.3 found">
+        <action>Read top matches not already read</action>
+      </branch>
+      <output_variable>engineeringFindings: list of {docId, pattern, reference}</output_variable>
+    </substep>
+
+    <substep name="research_codebase_architecture">
+      <note>Find similar implementations to use as references.</note>
+      <action>Use Glob to find potentially affected files based on task description</action>
+      <action>Use Grep to search for similar implementations, related functions, types</action>
+      <action>Read key files to understand existing patterns with file:line references</action>
+      <output_variable>codebaseFindings: list of {component, filePath, relevance}</output_variable>
+    </substep>
+
+    <substep name="research_pitfalls">
+      <note>Identify known issues and constraints to avoid.</note>
+      <action>Search for error handling patterns in affected areas</action>
+      <action>Look for TODO/FIXME/HACK comments in related code</action>
+      <action>Check engineering docs for documented constraints or gotchas</action>
+      <action>Search for closed issues or known problems in the area</action>
+      <output_variable>pitfallFindings: list of {issue, impact, mitigation}</output_variable>
+    </substep>
+  </step>
+
+  <step name="synthesize_research" outputs="synthesis">
+    <note>Consolidate all research findings into a structured summary.</note>
+    <note>Present to user for approval BEFORE proceeding to Q&A.</note>
+
+    <action>Consolidate findings from all four research areas</action>
+
+    <output>
+**Research Synthesis**
+
+### Product Context
+{List each product doc read and key insight for this task}
+- **{docId}**: {key insight - how it relates to this task}
+
+### Engineering Patterns
+{List patterns found that should be followed}
+- **{pattern-name}**: {how it applies} — Reference: `{file}:{line}`
+
+### Codebase Architecture
+{List similar implementations found}
+- **{component/feature}**: `{file}` — {what it does that's relevant}
+
+### Pitfalls & Constraints
+{List known issues to avoid}
+- **{issue}**: {why it matters} — Mitigation: {approach}
+
+---
+
+**Does this synthesis look complete? Any areas you'd like me to explore further?**
+    </output>
+
+    <branch condition="user says 'looks good' / 'continue' / 'that's fine'">
+      <action>Store synthesis for inclusion in spec</action>
+      <action>Proceed to conduct_qa_dialogue step</action>
     </branch>
-
-    <note>Then proceed with codebase research:</note>
-    <action>Based on task description and acceptance criteria, do preliminary research</action>
-    <action>Use Glob to find potentially affected files</action>
-    <action>Use Grep to search for relevant patterns, functions, or components</action>
-    <action>Read key files to understand existing patterns</action>
-    <action>Identify dependencies and libraries involved</action>
-    <action>Look for similar implementations that can serve as references</action>
-
-    <note>Pattern search strategy:
-- Search for similar functionality: "How is X done elsewhere?"
-- Search for related types/interfaces: "What types are involved?"
-- Search for integration points: "What connects to this?"</note>
+    <branch condition="user requests more research in specific area">
+      <action>Conduct additional research in requested area</action>
+      <action>Update synthesis and present again</action>
+    </branch>
   </step>
 
   <step name="conduct_qa_dialogue">
@@ -280,9 +334,9 @@ Create a functional specification through iterative conversational Q&A focused o
   </step>
 
   <step name="create_spec_file" outputs="specPath">
-    <action>Create at `.kanban/tasks/{taskId}/spec.md`</action>
-    <action>Follow template at `.kanban/templates/spec.md`</action>
-    <action>Link to spec in frontmatter</action>
+    <action>Create at `.kanban/tasks/{taskId}/spec.xml`</action>
+    <action>Follow template at `.kanban/templates/spec.xml`</action>
+    <action>Link to spec in XML attributes</action>
     <action>Fill ALL sections</action>
 
     <example_code lang="markdown">
@@ -316,6 +370,20 @@ updated: {YYYY-MM-DD}
 - **Pattern:** {description}
   - Reference: `path/to/example.ts:42`
 
+## Research Findings
+
+### Product Context
+{From synthesis - product docs read and key insights}
+
+### Engineering Patterns
+{From synthesis - patterns to follow with file:line references}
+
+### Codebase Analysis
+{From synthesis - similar implementations found}
+
+### Pitfalls Identified
+{From synthesis - known issues and constraints to avoid}
+
 ## Technical Constraints
 - {Constraints discovered during research}
 
@@ -342,14 +410,14 @@ updated: {YYYY-MM-DD}
     </example_code>
   </step>
 
-  <step name="update_task_frontmatter">
+  <step name="update_task_xml">
     <action>Change status to `scoped` (from either `backlog` or `refined`)</action>
-    <action>Add `spec: "tasks/{taskId}/spec.md"` to frontmatter</action>
+    <action>Add `spec="tasks/{taskId}/spec.xml"` to refs element</action>
     <action>Update `updated: {YYYY-MM-DD}`</action>
   </step>
 
   <step name="write_files">
-    <action>Write spec file at `.kanban/tasks/{taskId}/spec.md`</action>
+    <action>Write spec file at `.kanban/tasks/{taskId}/spec.xml`</action>
     <action>Write updated task file</action>
   </step>
 
@@ -360,7 +428,7 @@ updated: {YYYY-MM-DD}
 
   <step name="commit">
     <note>Format: `docs({taskId}): scope - {title}`</note>
-    <command>git add .kanban/tasks/{taskId}/spec.md .kanban/tasks/{taskId}/task.md</command>
+    <command>git add .kanban/tasks/{taskId}/spec.xml .kanban/tasks/{taskId}/task.xml</command>
     <command>git commit -m "docs({taskId}): scope - {title}"</command>
   </step>
 
@@ -379,9 +447,9 @@ updated: {YYYY-MM-DD}
     </output>
     ## Final Validation
     
-    Before completing, validate all task YAML frontmatter:
+    Before completing, validate all task XML:
     
-    <command description="Validate YAML in all task files">node .kanban/scripts/validate-yaml.cjs</command>
+    <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
     
     If validation fails, fix the reported errors before completing.
     
@@ -390,10 +458,10 @@ updated: {YYYY-MM-DD}
 </process>
 
 <success_criteria>
-- Task file exists at `.kanban/tasks/{taskId}/task.md`
-- Spec file exists at `.kanban/tasks/{taskId}/spec.md`
-- Task frontmatter contains `status: scoped`
-- Task frontmatter contains `spec: "tasks/{taskId}/spec.md"`
+- Task file exists at `.kanban/tasks/{taskId}/task.xml`
+- Spec file exists at `.kanban/tasks/{taskId}/spec.xml`
+- Task XML has `status="scoped"`
+- Task refs element has `spec="tasks/{taskId}/spec.xml"`
 - Spec file contains `## Functional Requirements` section
 - Spec file contains `## Affected Files` section
 - Spec file contains `## Existing Patterns` section

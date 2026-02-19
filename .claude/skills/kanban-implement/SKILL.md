@@ -16,7 +16,7 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
 <note>
 - **`.claude/skills/kanban-*/`** — Installed kanban skills — READ ONLY
 - **`.kanban/`** — Project data and config — READ/WRITE
-- **`.kanban/tasks/{id}/`** — Task folder containing `task.md`, `spec.md`, `plan.md`
+- **`.kanban/tasks/{id}/`** — Task folder containing `task.xml`, `spec.xml`, `plan.xml`
 - **`.kanban/scripts/`** — Helper scripts for kanban operations
 - **`.kanban/templates/`** — Document templates
 - **`.kanban/workflow.yaml`** — Workflow config (columns, labels, transitions)
@@ -72,7 +72,7 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
   <step name="read_task_file" outputs="taskPath, title, status">
     <command>node .kanban/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
-    <action>Parse YAML frontmatter</action>
+    <action>Parse XML</action>
     <branch condition="status is planned">
       <action>Move to `in-progress` first (step move_to_in_progress)</action>
     </branch>
@@ -123,7 +123,7 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
   </step>
 
   <step name="read_spec">
-    <action>Get `spec` path from plan frontmatter</action>
+    <action>Get `spec` path from plan XML</action>
     <action>Read spec file for full context on requirements and patterns</action>
   </step>
 
@@ -164,43 +164,106 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
     </example_code>
   </step>
 
-  <step name="parse_plan_checkboxes" outputs="totalItems, completedItems, remainingItems">
-    <action>Find all unchecked items: `- [ ]` pattern</action>
-    <action>Find all checked items: `- [x]` pattern</action>
-    <action>Calculate: total items, completed items, remaining items</action>
-    <output>Display progress overview</output>
-  </step>
+  <step name="parse_plan_tasks" outputs="tasks, executionOrder">
+    <action>Parse the `<tasks>` section from plan.md</action>
+    <action>Extract all `<task>` elements with their attributes and children</action>
+    <action>Build dependency graph from `depends` attributes</action>
+    <action>Calculate execution order using topological sort</action>
+    <action>Identify any already-completed tasks (have `completed="true"` attribute)</action>
 
-  <step name="execute_plan_checkboxes">
-    <note>For each unchecked item (`- [ ]`) in order:</note>
-    <action>Display: "[{n}/{total}] {checkbox description}"</action>
-    <action>Execute the implementation step described</action>
-    <action>Mark checkbox as complete: change `- [ ]` to `- [x]`</action>
-    <action>Write updated plan file immediately (enables resume)</action>
-    <output>Done</output>
+    <output>Found {n} tasks total, {m} remaining, execution order: {ids}</output>
 
-    <branch condition="any step fails">
-      <action>Stop execution</action>
-      <output>Report which step failed and why</output>
-      <note>Progress is saved (can resume later with same command)</note>
-      <output>Suggest: Use /kanban-save to save progress</output>
+    <branch condition="circular dependency detected">
+      <output>Error: Circular dependency in tasks: {cycle}</output>
+      <action>Exit - plan needs manual fix</action>
     </branch>
   </step>
 
-  <step name="on_completion">
-    <important>This step MUST update the task status when all items are complete</important>
-    <branch condition="ALL checkboxes complete">
-      <command description="Get current date">node .kanban/scripts/get-date-time.cjs</command>
-      <action>Read the task file at {taskPath}</action>
-      <action>In the YAML frontmatter, change `status: in-progress` to `status: codecheck`</action>
-      <action>Update `updated: {YYYY-MM-DD}` with date from command output</action>
-      <action>Write the updated task file back to {taskPath}</action>
-      <validate>Verify the task file now contains `status: codecheck`</validate>
-      <output>Task moved to codecheck status.</output>
+  <step name="execute_tasks">
+    <note>Execute each task in dependency order, verifying after each.</note>
+
+    <action>For each task in executionOrder where completed != "true":</action>
+
+    <substep name="show_task_context">
+      <output>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[{currentIndex}/{totalTasks}] {task.name}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+**Files:** {task.files}
+**Requirements:** {task.requirements}
+**Pattern:** {task.pattern}
+      </output>
+    </substep>
+
+    <substep name="execute_action">
+      <action>Read and understand the action items in {task.action}</action>
+      <action>Make the code changes described</action>
+      <note>Follow the pattern reference if provided</note>
+    </substep>
+
+    <substep name="run_verification">
+      <branch condition="task.type is 'auto' AND task.verify does NOT start with 'Manual:'">
+        <output>Running verification: {task.verify}</output>
+        <command>{task.verify}</command>
+        <branch condition="command succeeds (exit code 0)">
+          <output>✓ Verification passed</output>
+        </branch>
+        <branch condition="command fails">
+          <output>✗ Verification failed: {error}</output>
+          <action>Analyze the error</action>
+          <action>Attempt to fix the issue</action>
+          <action>Re-run verification command</action>
+          <branch condition="still fails after fix attempt">
+            <output>Verification still failing. Manual intervention may be needed.</output>
+            <action>Use AskUserQuestion to ask: "Verification failed. Options: 1) I'll fix manually and continue, 2) Skip this task, 3) Stop implementation"</action>
+          </branch>
+        </branch>
+      </branch>
+      <branch condition="task.type is 'manual' OR task.verify starts with 'Manual:'">
+        <output>Manual verification required: {task.verify}</output>
+        <action>Use AskUserQuestion to ask: "Please verify: {task.verify}. Is it working correctly?"</action>
+        <branch condition="user confirms">
+          <output>✓ Manual verification confirmed</output>
+        </branch>
+        <branch condition="user says no">
+          <action>Ask what's wrong and attempt to fix</action>
+        </branch>
+      </branch>
+    </substep>
+
+    <substep name="confirm_done_criteria">
+      <action>Verify the done criteria: {task.done}</action>
+      <output>Done criteria met: {task.done}</output>
+    </substep>
+
+    <substep name="mark_task_complete">
+      <action>Update plan.md: Add `completed="true" completed_at="{ISO timestamp}"` to the task element</action>
+      <action>Write updated plan file</action>
+      <note>This enables resumability if implementation is interrupted</note>
+    </substep>
+  </step>
+
+  <step name="check_completion">
+    <branch condition="all tasks have completed='true'">
+      <action>Update task status to `codecheck`</action>
+      <output>All implementation tasks complete. Moving to code check.</output>
+      <output>
+Next:
+/clear
+/kanban-codecheck {taskId}
+      </output>
     </branch>
-    <branch condition="some checkboxes remain">
+    <branch condition="some tasks remain incomplete">
       <action>Keep status as `in-progress`</action>
-      <output>Partial progress: {completed}/{total} items</output>
+      <output>
+{completed}/{total} tasks complete. To continue later:
+/clear
+/kanban-implement {taskId}
+
+To save progress now:
+/clear
+/kanban-save {taskId}
+      </output>
     </branch>
   </step>
 
@@ -229,9 +292,9 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
     </branch>
     ## Final Validation
     
-    Before completing, validate all task YAML frontmatter:
+    Before completing, validate all task XML:
     
-    <command description="Validate YAML in all task files">node .kanban/scripts/validate-yaml.cjs</command>
+    <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
     
     If validation fails, fix the reported errors before completing.
     
@@ -240,11 +303,12 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
 </process>
 
 <success_criteria>
-- Task file exists at `.kanban/tasks/{taskId}/task.md`
-- If all items complete: `status: codecheck`
+- Task file exists at `.kanban/tasks/{taskId}/task.xml`
+- If all tasks complete: `status: codecheck`
 - If partial progress: `status: in-progress`
-- Plan file exists at `.kanban/tasks/{taskId}/plan.md`
-- All plan checkboxes are marked complete (`- [x]`) for full implementation
+- Plan file exists at `.kanban/tasks/{taskId}/plan.xml`
+- Completed tasks have `completed="true"` attribute
+- Verification was run for each auto task
 - Next steps shown to user
 </success_criteria>
 
@@ -258,33 +322,51 @@ Implementing task 001 "Add user auth"...
 
 Task 001 moved to In Progress
 
-Reading spec: .kanban/tasks/001/spec.md
-Reading plan: .kanban/tasks/001/plan.md
-Progress: 0/3 items
+Reading spec: .kanban/tasks/001/spec.xml
+Reading plan: .kanban/tasks/001/plan.xml
+Found 3 tasks, 0 completed, execution order: 1, 2, 3
 
-[1/3] Create auth routes file `src/routes/auth.ts` (FR1)
-  Creating src/routes/auth.ts...
-  Done
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[1/3] Create auth routes file
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+**Files:** src/routes/auth.ts (create)
+**Requirements:** FR1
+**Pattern:** Route pattern at src/routes/users.ts:15
 
-[2/3] Add login endpoint `src/routes/auth.ts` (FR1)
-  Adding POST /login handler...
-  Done
+Creating src/routes/auth.ts...
+Running verification: npx tsc --noEmit
+✓ Verification passed
+Done criteria met: File exists and compiles
 
-[3/3] Add logout endpoint `src/routes/auth.ts` (FR2)
-  Adding POST /logout handler...
-  Done
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2/3] Add login endpoint
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+**Files:** src/routes/auth.ts (modify)
+**Requirements:** FR1
+**Pattern:** POST handler at src/routes/users.ts:42
 
-Implementation complete!
-All 3 plan items executed.
+Adding POST /login handler...
+Running verification: npm run build
+✓ Verification passed
+Done criteria met: Login endpoint responds to POST
 
-Task 001 ready for code checks.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[3/3] Test login flow manually
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+**Files:** N/A
+**Requirements:** FR1
+**Pattern:** N/A
+
+Manual verification required: Test login with valid and invalid credentials
+[User confirms: Yes]
+✓ Manual verification confirmed
+Done criteria met: Login works with valid creds, rejects invalid
+
+All implementation tasks complete. Moving to code check.
 - Status: codecheck
-- Files modified: 3 (uncommitted)
+- Files modified: 2 (uncommitted)
 
-**Next: Run code checks**
-Code check runs your configured checks (tests, lint, typecheck).
-If checks pass, you'll manually QA the application before code is committed.
-
+Next:
 /clear
 /kanban-codecheck 001
 ```
@@ -298,33 +380,51 @@ Implementing task 002 "Setup database"...
 
 Column: in-progress (resuming)
 
-Reading spec: .kanban/tasks/002/spec.md
-Reading plan: .kanban/tasks/002/plan.md
-Progress: 2/5 items (resuming from item 3)
+Reading spec: .kanban/tasks/002/spec.xml
+Reading plan: .kanban/tasks/002/plan.xml
+Found 5 tasks, 2 completed, execution order: 3, 4, 5
 
-[3/5] Create migration script `db/migrations/001_initial.sql` (FR2)
-  Creating db/migrations/001_initial.sql...
-  Done
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[3/5] Create migration script
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+**Files:** db/migrations/001_initial.sql (create)
+**Requirements:** FR2
+**Pattern:** Migration format at db/migrations/000_setup.sql:1
 
-[4/5] Add seed data `db/seeds/dev.sql` (FR3)
-  Creating db/seeds/dev.sql...
-  Done
+Creating db/migrations/001_initial.sql...
+Running verification: npm run db:migrate:dry
+✓ Verification passed
+Done criteria met: Migration applies cleanly
 
-[5/5] Update README with DB setup (FR4)
-  Adding database section to README.md...
-  Done
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[4/5] Add seed data
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+**Files:** db/seeds/dev.sql (create)
+**Requirements:** FR3
+**Pattern:** Seed format at db/seeds/test.sql:1
 
-Implementation complete!
-All 5 plan items executed (3 this session).
+Creating db/seeds/dev.sql...
+Running verification: npm run db:seed:dry
+✓ Verification passed
+Done criteria met: Seed data inserts without errors
 
-Task 002 ready for code checks.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[5/5] Update README with DB setup
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+**Files:** README.md (modify)
+**Requirements:** FR4
+**Pattern:** N/A
+
+Adding database section to README.md...
+Running verification: npx markdownlint README.md
+✓ Verification passed
+Done criteria met: README has complete DB setup instructions
+
+All implementation tasks complete. Moving to code check.
 - Status: codecheck
 - Files modified: 5 (uncommitted)
 
-**Next: Run code checks**
-Code check runs your configured checks (tests, lint, typecheck).
-If checks pass, you'll manually QA the application before code is committed.
-
+Next:
 /clear
 /kanban-codecheck 002
 ```

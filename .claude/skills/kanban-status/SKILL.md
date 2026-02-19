@@ -36,7 +36,7 @@ Show the current state of the board and suggest what command to run next. Helps 
   <step name="find_task" when="$ARGUMENTS is not empty" outputs="taskPath">
     <command>node .kanban/scripts/find-task.cjs {id}</command>
     <action>Read the file at the `path` from JSON output</action>
-    <action>Parse YAML frontmatter</action>
+    <action>Parse XML</action>
     <branch condition="task not found">
       <output>Error: Task not found</output>
       <action>Exit</action>
@@ -49,7 +49,7 @@ Show the current state of the board and suggest what command to run next. Helps 
   </step>
 
   <step name="get_plan_progress" when="$ARGUMENTS is not empty AND status is `planned`, `in-progress`, `checks`, or `qa`">
-    <action>Read `.kanban/tasks/{id}/plan.md`</action>
+    <action>Read `.kanban/tasks/{id}/plan.xml`</action>
     <action>Count checkboxes: total, completed, remaining</action>
     <action>Check for WIP Notes section</action>
     <action>Check for Iterations section (previous failures)</action>
@@ -133,7 +133,7 @@ Show the current state of the board and suggest what command to run next. Helps 
   </step>
 
   <step name="parse_each_task" when="$ARGUMENTS is empty">
-    <action>Read frontmatter to get id, title, status</action>
+    <action>Read XML to get id, title, status</action>
     <action>Group tasks by status</action>
   </step>
 
@@ -224,9 +224,9 @@ Show the current state of the board and suggest what command to run next. Helps 
     </output>
     ## Final Validation
     
-    Before completing, validate all task YAML frontmatter:
+    Before completing, validate all task XML:
     
-    <command description="Validate YAML in all task files">node .kanban/scripts/validate-yaml.cjs</command>
+    <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
     
     If validation fails, fix the reported errors before completing.
     
