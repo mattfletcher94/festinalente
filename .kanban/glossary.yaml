@@ -17,207 +17,213 @@
 
 version: 1
 terms:
+  # Workflow terms
   - term: "kanban"
-    aliases: ["board", "workflow-board"]
-    domain: workflow
+    aliases: ["board", "workflow-board", "task-board"]
+    domain: tasks
     definition: "Visual task management system with columns representing workflow stages"
     auto_generated: true
 
   - term: "task"
     aliases: ["ticket", "item", "work-item"]
-    domain: workflow
+    domain: tasks
     definition: "A unit of work tracked through the kanban workflow"
     auto_generated: true
 
-  - term: "skill"
-    aliases: ["command", "slash-command"]
-    domain: cli
-    definition: "Interactive Claude Code workflow invoked via /kanban-{name}"
-    auto_generated: true
-
-  - term: "workflow column"
-    aliases: ["column", "status", "stage"]
-    domain: workflow
-    definition: "Task grouping by progress status (Backlog, Scoped, Planned, etc.)"
+  - term: "workflow"
+    aliases: ["pipeline", "process", "flow"]
+    domain: tasks
+    definition: "9-column task progression from backlog to done"
     auto_generated: true
 
   - term: "backlog"
-    aliases: ["todo", "unstarted"]
-    domain: workflow
+    aliases: ["todo", "unstarted", "new"]
+    domain: tasks
     definition: "Initial workflow column for tasks ready to be scoped"
     auto_generated: true
 
   - term: "scoped"
-    aliases: ["specified", "defined"]
-    domain: workflow
-    definition: "Workflow column for tasks with detailed requirements in spec.xml"
+    aliases: ["specified", "defined", "analyzed"]
+    domain: tasks
+    definition: "Workflow column for tasks with functional specification"
     auto_generated: true
 
   - term: "planned"
-    aliases: ["ready", "designed"]
-    domain: workflow
-    definition: "Workflow column for tasks with implementation plan in plan.xml"
+    aliases: ["ready", "designed", "prepared"]
+    domain: tasks
+    definition: "Workflow column for tasks with implementation plan"
+    auto_generated: true
+
+  - term: "in-progress"
+    aliases: ["implementing", "coding", "wip"]
+    domain: tasks
+    definition: "Workflow column for tasks currently being implemented"
     auto_generated: true
 
   - term: "codecheck"
-    aliases: ["verification", "automated-check"]
-    domain: workflow
-    definition: "Review phase running automated tests, typecheck, and lint"
+    aliases: ["verification", "automated-check", "checks"]
+    domain: tasks
+    definition: "Workflow column for running automated tests and lint"
     auto_generated: true
 
-  - term: "autoplay"
-    aliases: ["auto-run", "continuous"]
-    domain: gui
-    definition: "GUI feature that automatically runs sequential workflow commands"
+  - term: "qa"
+    aliases: ["quality-assurance", "testing", "manual-test"]
+    domain: tasks
+    definition: "Workflow column for human testing of the implementation"
     auto_generated: true
 
-  - term: "review phase"
-    aliases: ["gate", "checkpoint"]
-    domain: workflow
-    definition: "Workflow step requiring human approval (codecheck, qa, pr)"
+  - term: "rework"
+    aliases: ["revision", "redo", "fix"]
+    domain: tasks
+    definition: "Moving a task back to in-progress after failed review"
     auto_generated: true
 
-  - term: "hook config"
-    aliases: ["directives", "project-config"]
+  - term: "spec"
+    aliases: ["specification", "spec.xml", "functional-spec"]
+    domain: tasks
+    definition: "Functional specification file with technical requirements"
+    auto_generated: true
+
+  - term: "plan"
+    aliases: ["implementation-plan", "plan.xml", "steps"]
+    domain: tasks
+    definition: "Implementation plan file with executable steps"
+    auto_generated: true
+
+  - term: "affects"
+    aliases: ["product-link", "feature-link"]
+    domain: tasks
+    definition: "Task XML field linking to product documentation IDs"
+    auto_generated: true
+
+  # Skill/CLI terms
+  - term: "skill"
+    aliases: ["command", "slash-command", "kanban-command"]
     domain: cli
-    definition: "Project-specific commands in .kanban/config.yaml for workflow steps"
+    definition: "Interactive Claude Code workflow invoked via /kanban-{name}"
     auto_generated: true
 
+  - term: "directive"
+    aliases: ["governance-rule", "coding-directive", "check-rule"]
+    domain: validation
+    definition: "XML file defining coding rules, checks, and examples"
+    auto_generated: true
+
+  # Documentation terms
   - term: "product docs"
-    aliases: ["feature-docs", "user-docs"]
+    aliases: ["feature-docs", "user-docs", "product-documentation"]
     domain: docs
     definition: "Documentation describing user-facing features in .kanban/product/"
     auto_generated: true
 
   - term: "engineering docs"
-    aliases: ["technical-docs", "system-docs"]
+    aliases: ["technical-docs", "system-docs", "patterns"]
     domain: docs
     definition: "Documentation describing systems, patterns, conventions in .kanban/engineering/"
     auto_generated: true
 
   - term: "tldr"
-    aliases: ["summary", "one-liner"]
+    aliases: ["summary", "one-liner", "brief"]
     domain: docs
-    definition: "Single sentence summary field in documentation frontmatter (max 100 chars)"
+    definition: "Single sentence summary field in documentation frontmatter"
+    auto_generated: true
+
+  - term: "boundary"
+    aliases: ["scope-limit", "exclusion", "does-not"]
+    domain: docs
+    definition: "Documentation field describing what a feature does NOT cover"
+    auto_generated: true
+
+  - term: "stub doc"
+    aliases: ["stub", "placeholder-doc", "draft"]
+    domain: docs
+    definition: "Minimal documentation created during task creation, completed later"
     auto_generated: true
 
   - term: "freshness"
-    aliases: ["staleness", "verification"]
+    aliases: ["staleness", "doc-age", "outdated"]
     domain: docs
     definition: "Documentation age tracking based on verified date and code changes"
     auto_generated: true
 
   - term: "context selection"
-    aliases: ["doc-selection", "context-loading"]
-    domain: cli
-    definition: "Smart retrieval of relevant documentation for task implementation"
+    aliases: ["doc-selection", "context-loading", "smart-context"]
+    domain: docs
+    definition: "Tiered retrieval of relevant documentation for implementation"
     auto_generated: true
 
   - term: "tier"
-    aliases: ["detail-level", "verbosity"]
-    domain: cli
-    definition: "Context detail level for documentation (minimal, standard, full)"
-    auto_generated: true
-
-  - term: "PTY"
-    aliases: ["pseudo-terminal", "terminal-session"]
-    domain: gui
-    definition: "Pseudo-terminal for executing commands in the GUI terminal panel"
-    auto_generated: true
-
-  - term: "spec.xml"
-    aliases: ["spec", "specification"]
-    domain: workflow
-    definition: "Task specification file with detailed requirements created by /kanban-scope"
-    auto_generated: true
-
-  - term: "plan.xml"
-    aliases: ["plan", "implementation-plan"]
-    domain: workflow
-    definition: "Task plan file with implementation steps created by /kanban-plan"
-    auto_generated: true
-
-  - term: "boundary"
-    aliases: ["scope-limit", "exclusion"]
+    aliases: ["detail-level", "verbosity", "context-tier"]
     domain: docs
-    definition: "Documentation field describing what a feature/doc does NOT cover"
+    definition: "Context detail level: minimal, standard, or full"
     auto_generated: true
 
-  - term: "Socratic Q&A"
-    aliases: ["socratic", "discovery-qa"]
-    domain: cli
-    definition: "Interactive question-driven exploration method used by discovery skills"
+  # Search terms
+  - term: "hybrid search"
+    aliases: ["combined-search", "fuzzy-search", "doc-search"]
+    domain: docs
+    definition: "Search combining exact keyword matching with fuzzy search"
     auto_generated: true
 
-  - term: "rework"
-    aliases: ["revision", "redo"]
-    domain: workflow
-    definition: "Moving a task back to In Progress after failed review"
+  - term: "glossary"
+    aliases: ["terms", "synonyms", "aliases"]
+    domain: utilities
+    definition: "Project-specific term mappings for search expansion"
     auto_generated: true
 
-  # Engineering terms (added by map-engineering)
-  - term: "orchestrator"
-    aliases: ["state-orchestrator", "feature-orchestrator"]
-    domain: engineering
-    definition: "State management pattern coordinating capabilities and computers"
+  - term: "query expansion"
+    aliases: ["term-expansion", "synonym-expansion"]
+    domain: utilities
+    definition: "Expanding search queries with glossary aliases"
     auto_generated: true
 
-  - term: "capability"
-    aliases: ["ipc-capability", "electron-bridge"]
-    domain: engineering
-    definition: "IPC abstraction layer wrapping window.electronAPI calls"
+  # VSCode terms
+  - term: "codelens"
+    aliases: ["inline-action", "code-lens", "lens"]
+    domain: vscode
+    definition: "VSCode inline action links displayed above task.xml content"
     auto_generated: true
 
-  - term: "computer"
-    aliases: ["calculator", "pure-logic"]
-    domain: engineering
-    definition: "Pure function pattern for stateless business logic"
+  - term: "treeview"
+    aliases: ["tree-view", "sidebar-view", "kanban-view"]
+    domain: vscode
+    definition: "VSCode sidebar panel showing tasks grouped by status"
     auto_generated: true
 
-  - term: "provider"
-    aliases: ["vue-provider", "injection-provider"]
-    domain: engineering
-    definition: "Vue provide/inject pattern for dependency injection"
+  - term: "file watcher"
+    aliases: ["watcher", "auto-refresh", "file-monitor"]
+    domain: vscode
+    definition: "Monitors task files and refreshes UI on changes"
     auto_generated: true
 
-  - term: "barrel export"
-    aliases: ["barrel", "index-export", "re-export"]
-    domain: engineering
-    definition: "index.ts file re-exporting module contents grouped by role"
+  # Validation terms
+  - term: "xml validation"
+    aliases: ["validate-xml", "xml-syntax"]
+    domain: validation
+    definition: "Syntax validation for task.xml, spec.xml, plan.xml files"
     auto_generated: true
 
-  - term: "acyclic architecture"
-    aliases: ["dag", "clean-dag", "acyclic-deps"]
-    domain: engineering
-    definition: "Architecture where component dependencies form no cycles"
+  - term: "yaml validation"
+    aliases: ["validate-yaml", "frontmatter-validation"]
+    domain: validation
+    definition: "Syntax validation for documentation frontmatter"
     auto_generated: true
 
-  - term: "IPC"
-    aliases: ["inter-process-communication", "electron-ipc"]
-    domain: engineering
-    definition: "Communication between Electron main and renderer processes"
+  - term: "quality check"
+    aliases: ["doc-quality", "validate-docs", "quality-audit"]
+    domain: validation
+    definition: "Documentation completeness validation with 8 criteria"
     auto_generated: true
 
-  - term: "preload script"
-    aliases: ["preload", "context-bridge"]
-    domain: engineering
-    definition: "Electron script that exposes safe APIs to renderer via contextBridge"
+  # Utility terms
+  - term: "next-id"
+    aliases: ["id-generation", "task-id", "sequential-id"]
+    domain: utilities
+    definition: "Generates next available task ID with padding"
     auto_generated: true
 
-  - term: "ShallowRef"
-    aliases: ["shallow-ref", "vue-shallow-ref"]
-    domain: engineering
-    definition: "Vue reactivity for arrays/objects that only tracks root-level changes"
-    auto_generated: true
-
-  - term: "branded type"
-    aliases: ["nominal-type", "type-brand"]
-    domain: engineering
-    definition: "TypeScript pattern adding phantom property for compile-time type safety"
-    auto_generated: true
-
-  - term: "CVA"
-    aliases: ["class-variance-authority", "variant-styling"]
-    domain: engineering
-    definition: "Library for type-safe CSS class composition with variants"
+  - term: "datetime"
+    aliases: ["timestamp", "date-time", "current-date"]
+    domain: utilities
+    definition: "Current timestamp in ISO and YYYY-MM-DD formats"
     auto_generated: true
