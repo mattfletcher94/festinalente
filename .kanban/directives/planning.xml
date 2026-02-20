@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<directive name="planning" version="1"
+<directive name="planning" version="2"
            created="2025-01-15" updated="2026-02-20">
 
   <description>
@@ -32,18 +32,18 @@
       Include test strategy with what to test and how to mock
     </rule>
     <rule id="P5" phase="plan">
-      Define implementation order: computers, capabilities, orchestrators, providers, components
+      Define implementation order: computers, capabilities, orchestrator (extension.ts)
     </rule>
   </process>
 
   <validation>
     <check id="V1" type="checklist" severity="warning">
-      <item>All modules have proper suffix (.computer.ts, .capability.ts, .orchestrator.ts)</item>
+      <item>All modules have proper suffix (.computer.ts, .capability.ts)</item>
       <item>Dependency graph is acyclic</item>
       <item>No capability imports another capability</item>
       <item>No policy logic planned for capabilities</item>
-      <item>Vue state only in orchestrators</item>
-      <item>createContext pattern used for all providers</item>
+      <item>VSCode API calls only in capabilities</item>
+      <item>Computers are pure functions with no VSCode imports</item>
       <item>All public APIs have planned TSDoc</item>
       <item>Tests planned for all new functionality</item>
       <item>No backwards compatibility shims planned</item>
@@ -56,26 +56,36 @@
       <code><![CDATA[
 ## Module Structure
 
-### Computers
-- `task.computer.ts` - Pure computation for task operations
+### Computers (pure functions)
+- `task-parser.computer.ts` - XML parsing logic
+  - Dependencies: fast-xml-parser (external)
+
+- `task-actions.computer.ts` - Compute available actions per status
   - Dependencies: none
 
-### Capabilities
-- `task-api.capability.ts` - Manages API calls
-  - Dependencies: task.computer (direct)
+### Capabilities (VSCode API)
+- `file-system.capability.ts` - File read/write operations
+  - Dependencies: none (uses fs module)
 
-### Orchestrators
-- `app.orchestrator.ts` - Coordinates task operations
-  - Dependencies: task-api.capability (via DI)
-  - Vue State: tasks ref, selectedTask computed
+- `terminal.capability.ts` - Terminal creation and commands
+  - Dependencies: none (uses vscode API)
+
+- `tasks-view.capability.ts` - TreeView provider
+  - Dependencies: task-parser.computer, task-actions.computer (via injection)
+
+### Orchestrator
+- `extension.ts` - Wires everything in activate()
+  - Creates computers and capabilities
+  - Registers commands and providers
 
 ## Implementation Order
-1. task.computer.ts (no dependencies)
-2. task-api.capability.ts (imports computer)
-3. app.orchestrator.ts (injects capability)
-4. AppProvider.ts (createContext wrapper)
-5. TaskList.vue (thin component)
-6. Tests for all above
+1. task-parser.computer.ts (no dependencies)
+2. task-actions.computer.ts (no dependencies)
+3. file-system.capability.ts (uses fs)
+4. terminal.capability.ts (uses vscode)
+5. tasks-view.capability.ts (injects computers)
+6. extension.ts (orchestrates all)
+7. Tests for computers (pure functions are easy to test)
       ]]></code>
       <explanation>Plan with proper categorization, order, and constraints built in</explanation>
     </example>

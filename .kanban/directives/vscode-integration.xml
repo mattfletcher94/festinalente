@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<directive name="vscode-integration" version="1"
+           created="2026-02-20" updated="2026-02-20">
+
+  <description>
+    Rules for integrating Computer/Capability/Orchestrator architecture with VSCode Extension API
+  </description>
+
+  <context>
+    <principle id="C1" keywords="extension,entry,activate">
+      extension.ts is the orchestrator entry point where all wiring happens
+    </principle>
+    <principle id="C2" keywords="vscode,api,capability">
+      All VSCode API interactions must be in capabilities, not computers
+    </principle>
+    <principle id="C3" keywords="pure,computer,function">
+      Computers are pure functions - no VSCode imports, no side effects
+    </principle>
+    <principle id="C4" keywords="dependency,injection,factory">
+      Capabilities receive dependencies via factory function parameters
+    </principle>
+  </context>
+
+  <process>
+    <rule id="P1" phase="implement">
+      Create capabilities for each VSCode API interaction (terminal, tree view, codelens)
+    </rule>
+    <rule id="P2" phase="implement">
+      Place VSCode event emitters and disposables only in capabilities
+    </rule>
+    <rule id="P3" phase="implement">
+      Wire all dependencies in extension.ts activate function
+    </rule>
+  </process>
+
+  <validation>
+    <check id="V1" type="pattern" severity="error" files="*.computer.ts">
+      <forbidden>import.*from\s+['"]vscode['"]</forbidden>
+      <reason>Computers are pure functions - no VSCode API imports</reason>
+    </check>
+
+    <check id="V2" type="pattern" severity="error" files="*.computer.ts">
+      <forbidden>import.*from\s+['"]fs['"]</forbidden>
+      <reason>Computers are pure - file system access belongs in capabilities</reason>
+    </check>
+
+    <check id="V3" type="checklist" severity="warning">
+      <item>All VSCode API calls are in capabilities</item>
+      <item>Computers only contain pure computation logic</item>
+      <item>extension.ts creates and wires all dependencies</item>
+      <item>Capabilities return interfaces, not concrete VSCode types where possible</item>
+    </check>
+  </validation>
+
+  <examples>
+    <example ref="V1" type="violation">
+      <code><![CDATA[
+// WRONG: VSCode import in computer
+import * as vscode from 'vscode';
+
+export function createTaskGroupingComputer() {
+  const icon = new vscode.ThemeIcon('task');  // Forbidden!
+  return { icon };
+}
+      ]]></code>
+      <explanation>Computers must be pure TypeScript without VSCode imports</explanation>
+    </example>
+
+    <example ref="V1" type="correct">
+      <code><![CDATA[
+// CORRECT: Pure TypeScript computer
+export function createTaskGroupingComputer() {
+  function groupByStatus(tasks: Task[]): Map<TaskStatus, Task[]> {
+    // Pure computation, no VSCode API
+    const grouped = new Map<TaskStatus, Task[]>();
+    for (const task of tasks) {
+      const list = grouped.get(task.status) || [];
+      list.push(task);
+      grouped.set(task.status, list);
+    }
+    return grouped;
+  }
+
+  return { groupByStatus };
+}
+      ]]></code>
+      <explanation>Computer contains only pure functions with no side effects</explanation>
+    </example>
+
+    <example ref="C2" type="correct">
+      <code><![CDATA[
+// CORRECT: VSCode API in capability
+import * as vscode from 'vscode';
+
+export function createTerminalCapability() {
+  let terminal: vscode.Terminal | undefined;
+
+  function getOrCreateTerminal(name: string, cwd: string): vscode.Terminal {
+    if (!terminal || !vscode.window.terminals.includes(terminal)) {
+      terminal = vscode.window.createTerminal({ name, cwd });
+    }
+    return terminal;
+  }
+
+  function sendCommand(term: vscode.Terminal, command: string): void {
+    term.sendText(command);
+  }
+
+  return { getOrCreateTerminal, sendCommand };
+}
+      ]]></code>
+      <explanation>Capability encapsulates VSCode API interactions</explanation>
+    </example>
+
+    <example ref="C4" type="correct">
+      <code><![CDATA[
+// CORRECT: Capability with injected dependencies
+export interface TasksViewCapabilityDeps {
+  loadTasks: () => Task[];
+  getColumns: () => readonly TaskColumn[];
+}
+
+export function createTasksViewCapability(deps: TasksViewCapabilityDeps) {
+  // Capability uses injected computers/other capabilities
+  function getStatusGroups(): StatusGroupItem[] {
+    const tasks = deps.loadTasks();
+    const columns = deps.getColumns();
+    // ...
+  }
+
+  return { getStatusGroups };
+}
+      ]]></code>
+      <explanation>Dependencies injected via factory parameters, not imported directly</explanation>
+    </example>
+  </examples>
+
+</directive>
