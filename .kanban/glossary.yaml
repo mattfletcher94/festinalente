@@ -227,3 +227,52 @@ terms:
     domain: utilities
     definition: "Current timestamp in ISO and YYYY-MM-DD formats"
     auto_generated: true
+
+  # Engineering architecture terms
+  - term: "capability"
+    aliases: ["mechanism", "io-layer", "side-effect"]
+    domain: engineering
+    definition: "VSCode extension component handling I/O and side effects"
+    auto_generated: true
+
+  - term: "computer"
+    aliases: ["pure-function", "logic", "computation"]
+    domain: engineering
+    definition: "VSCode extension component with pure functions, no side effects"
+    auto_generated: true
+
+  - term: "orchestrator"
+    aliases: ["coordinator", "extension-entry", "policy"]
+    domain: engineering
+    definition: "extension.ts that coordinates capabilities and computers"
+    auto_generated: true
+
+  - term: "factory-di"
+    aliases: ["factory-pattern", "dependency-injection", "di"]
+    domain: engineering
+    definition: "Factory functions that inject dependencies for testability"
+    auto_generated: true
+
+  - term: "tagged-union"
+    aliases: ["discriminated-union", "result-type", "error-union"]
+    domain: engineering
+    definition: "TypeScript pattern with error/success tags for CLI output"
+    auto_generated: true
+
+  - term: "monorepo"
+    aliases: ["workspace", "multi-package", "pnpm-workspace"]
+    domain: engineering
+    definition: "Single repository containing multiple packages (apps/)"
+    auto_generated: true
+
+  - term: "turbo"
+    aliases: ["turborepo", "build-orchestration", "task-runner"]
+    domain: engineering
+    definition: "Build system for monorepo task orchestration and caching"
+    auto_generated: true
+
+  - term: "fuse"
+    aliases: ["fuse.js", "fuzzy-match", "fuzzy-library"]
+    domain: engineering
+    definition: "JavaScript library for fuzzy searching"
+    auto_generated: true
