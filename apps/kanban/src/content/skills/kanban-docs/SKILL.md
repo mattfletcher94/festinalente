@@ -89,8 +89,8 @@ Update product documentation, commit the changes, push to remote, and move task 
     {{> branch-verify-task}}
   </step>
 
-  <step name="load_hook_config">
-    {{> hook-config command="docs"}}
+  <step name="load_directives">
+    {{> load-directives skill="docs"}}
   </step>
 
   <step name="analyze_product_doc_impact" outputs="stubDocs, existingDocs, missingDocs">
@@ -359,6 +359,8 @@ Update product documentation, commit the changes, push to remote, and move task 
     <command>git push -u origin task/{taskId}</command>
     <output>Branch pushed to remote</output>
   </step>
+
+  {{> directive-compliance}}
 
   <step name="output_result">
     <output>Print documentation status (updated/skipped)</output>

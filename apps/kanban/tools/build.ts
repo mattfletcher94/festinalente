@@ -5,8 +5,8 @@
  *
  * Compiles Handlebars templates from src/content to dist/
  * - skills/*.md files are compiled with partials
- * - kanban-templates/* are copied as-is
- * - kanban-workflow.yaml is copied as-is
+ * - templates/* are copied as-is
+ * - workflow.yaml is copied as-is
  */
 
 import Handlebars from 'handlebars';
@@ -131,15 +131,15 @@ async function main(): Promise<void> {
   const skillCount = await compileDirectory('skills');
   console.log(`  Compiled ${skillCount} skill files`);
 
-  // Copy kanban-templates to templates/
+  // Copy templates/
   console.log('\n3. Copying templates...');
-  const templateCount = await copyDirectory('kanban-templates', 'templates');
+  const templateCount = await copyDirectory('templates');
   console.log(`  Copied ${templateCount} template files`);
 
-  // Copy kanban-workflow.yaml to workflow.yaml
+  // Copy workflow.yaml
   console.log('\n4. Copying workflow.yaml...');
   await copyFile(
-    path.join(SRC_CONTENT, 'kanban-workflow.yaml'),
+    path.join(SRC_CONTENT, 'workflow.yaml'),
     path.join(DIST, 'workflow.yaml')
   );
   console.log('  Copied workflow.yaml');

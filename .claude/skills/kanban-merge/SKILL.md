@@ -20,7 +20,7 @@ Merge the task branch into main, clean up the branch, and move task to Done.
 - **`.kanban/scripts/`** — Helper scripts for kanban operations
 - **`.kanban/templates/`** — Document templates
 - **`.kanban/workflow.yaml`** — Workflow config (columns, labels, transitions)
-- **`.kanban/directives/`** — User-defined directives (custom instructions for hooks)
+- **`.kanban/directives/`** — User-defined directives (custom instructions for skills)
 </note>
 
 <note>Use these scripts to reliably find files:</note>
@@ -98,33 +98,29 @@ Merge the task branch into main, clean up the branch, and move task to Done.
     </branch>
   </step>
 
-  <step name="load_hook_config">
-    <step name="load_hook_config">
-      <command>node .kanban/scripts/get-hook-config.cjs kanban-merge</command>
+  <step name="load_directives">
+    <step name="load_directives">
+      <command>node .kanban/scripts/get-skill-config.cjs kanban-merge</command>
       <action>Parse the JSON output</action>
     
       <branch condition="directives.length > 0">
         <warning>Directives are MANDATORY. You MUST follow them.</warning>
         <action>For EACH directive where `exists` is `true`:</action>
-        <action>Read the directive file at `path`</action>
-        <action>Follow ALL instructions as mandatory requirements</action>
-      </branch>
-    
-      <branch condition="product.length > 0 OR engineering.length > 0">
-        <note>Context docs are for guidance, not mandatory.</note>
-        <action>Read any product/engineering docs where `exists` is `true`</action>
-        <action>Use these for additional context as needed</action>
+        <action>Read the directive XML file at `path`</action>
+        <action>Parse and apply:</action>
+        <action>- `<context>` principles: Maintain as ongoing mindset</action>
+        <action>- `<process>` rules where phase="merge": Follow as requirements</action>
+        <note>`<validation>` checks will run in directive_compliance step</note>
+        <note>`<examples>` will be shown if violations are found</note>
       </branch>
     </step>
     
     <example_code lang="json">
     {
-      "hook": "kanban-merge",
+      "skill": "kanban-merge",
       "directives": [
-        { "name": "my-directive", "path": ".kanban/directives/my-directive/DIRECTIVE.md", "exists": true }
-      ],
-      "product": [],
-      "engineering": []
+        { "name": "architecture", "path": ".kanban/directives/architecture.xml", "exists": true }
+      ]
     }
     </example_code>
   </step>
@@ -175,6 +171,37 @@ Merge the task branch into main, clean up the branch, and move task to Done.
     <action>Write updated task file</action>
     <command>git add .kanban/tasks/{taskId}/task.xml</command>
     <command>git commit -m "docs({taskId}): done - {title}"</command>
+  </step>
+
+  <step name="directive_compliance">
+    <note>Verify compliance with all loaded directives</note>
+  
+    <action>For each directive loaded in load_directives step:</action>
+    <action>Re-read the directive XML file</action>
+  
+    <action>Run each `<validation>` check:</action>
+  
+    <branch condition="check type=command">
+      <command>{content of <run> element}</command>
+      <validate>{content of <expect> element}</validate>
+    </branch>
+  
+    <branch condition="check type=pattern">
+      <action>For each file matching `files` glob that was modified:</action>
+      <action>Check content against `<forbidden>` or `<required>` regex</action>
+    </branch>
+  
+    <branch condition="check type=checklist">
+      <action>Self-assess each `<item>` as Y/N</action>
+    </branch>
+  
+    <branch condition="any check fails">
+      <output>Directive violation: {check id} - {reason}</output>
+      <action>Find `<example>` elements where ref matches failed check</action>
+      <action>Show violation examples to illustrate the problem</action>
+      <action>Show correct examples to illustrate the fix</action>
+      <prompt>Fix now or acknowledge and continue?</prompt>
+    </branch>
   </step>
 
   <step name="output_result">

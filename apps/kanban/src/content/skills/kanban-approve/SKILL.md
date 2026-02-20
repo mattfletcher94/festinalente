@@ -77,8 +77,8 @@ Approve implementation after human QA testing, commit the code with appropriate 
     {{> branch-verify-task}}
   </step>
 
-  <step name="load_hook_config">
-    {{> hook-config command="approve"}}
+  <step name="load_directives">
+    {{> load-directives skill="approve"}}
   </step>
 
   <step name="prompt_qa_confirmation">
@@ -154,6 +154,8 @@ Approve implementation after human QA testing, commit the code with appropriate 
     <note>`.kanban` files MUST be included — they accumulate status and plan changes from implement/verify that are not committed earlier</note>
     <command>git commit -m "{commitType}({taskId}): {title}"</command>
   </step>
+
+  {{> directive-compliance}}
 
   <step name="output_result">
     <output>Print commit hash and message</output>

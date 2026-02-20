@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<directive name="planning" version="1"
+           created="2025-01-15" updated="2026-02-20">
+
+  <description>
+    Create implementation plans that build in compliance from the start
+  </description>
+
+  <context>
+    <principle id="C1" keywords="compliance,design,constraint">
+      Plans should be designed so code review passes on first attempt
+    </principle>
+    <principle id="C2" keywords="breaking,backwards,compatibility">
+      Zero backwards compatibility - break things properly, update all callers
+    </principle>
+    <principle id="C3" keywords="test,documentation">
+      Tests and documentation are part of the plan, not afterthoughts
+    </principle>
+  </context>
+
+  <process>
+    <rule id="P1" phase="plan">
+      Apply all design constraints before designing the solution
+    </rule>
+    <rule id="P2" phase="plan">
+      List all modules with correct suffixes and verify dependency DAG
+    </rule>
+    <rule id="P3" phase="plan">
+      Include TSDoc signatures for all new public APIs
+    </rule>
+    <rule id="P4" phase="plan">
+      Include test strategy with what to test and how to mock
+    </rule>
+    <rule id="P5" phase="plan">
+      Define implementation order: computers, capabilities, orchestrators, providers, components
+    </rule>
+  </process>
+
+  <validation>
+    <check id="V1" type="checklist" severity="warning">
+      <item>All modules have proper suffix (.computer.ts, .capability.ts, .orchestrator.ts)</item>
+      <item>Dependency graph is acyclic</item>
+      <item>No capability imports another capability</item>
+      <item>No policy logic planned for capabilities</item>
+      <item>Vue state only in orchestrators</item>
+      <item>createContext pattern used for all providers</item>
+      <item>All public APIs have planned TSDoc</item>
+      <item>Tests planned for all new functionality</item>
+      <item>No backwards compatibility shims planned</item>
+      <item>Explicit types on all exports</item>
+    </check>
+  </validation>
+
+  <examples>
+    <example ref="C1" type="correct">
+      <code><![CDATA[
+## Module Structure
+
+### Computers
+- `task.computer.ts` - Pure computation for task operations
+  - Dependencies: none
+
+### Capabilities
+- `task-api.capability.ts` - Manages API calls
+  - Dependencies: task.computer (direct)
+
+### Orchestrators
+- `app.orchestrator.ts` - Coordinates task operations
+  - Dependencies: task-api.capability (via DI)
+  - Vue State: tasks ref, selectedTask computed
+
+## Implementation Order
+1. task.computer.ts (no dependencies)
+2. task-api.capability.ts (imports computer)
+3. app.orchestrator.ts (injects capability)
+4. AppProvider.ts (createContext wrapper)
+5. TaskList.vue (thin component)
+6. Tests for all above
+      ]]></code>
+      <explanation>Plan with proper categorization, order, and constraints built in</explanation>
+    </example>
+
+    <example ref="C2" type="violation">
+      <code><![CDATA[
+## Breaking Changes
+- Rename oldFunction to newFunction
+- Add backwards compatibility re-export for oldFunction
+      ]]></code>
+      <explanation>Never plan for backwards compatibility</explanation>
+    </example>
+
+    <example ref="C2" type="correct">
+      <code><![CDATA[
+## Breaking Changes
+- Rename oldFunction to newFunction
+- Update all 5 callers in: fileA.ts, fileB.ts, fileC.ts, fileD.ts, fileE.ts
+      ]]></code>
+      <explanation>Plan direct updates, no compatibility layer</explanation>
+    </example>
+  </examples>
+
+</directive>

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<directive name="typescript" version="1"
+           created="2025-01-15" updated="2026-02-20">
+
+  <description>
+    Type safety, domain modeling, and API design requirements for strict TypeScript
+  </description>
+
+  <context>
+    <principle id="C1" keywords="any,unknown,type,safety">
+      Never use any - use unknown and narrow with type guards
+    </principle>
+    <principle id="C2" keywords="export,return,type">
+      All exported functions must have explicit return types
+    </principle>
+    <principle id="C3" keywords="id,identifier,brand">
+      Use branded types for domain identifiers (TaskId, ProjectId, etc.)
+    </principle>
+    <principle id="C4" keywords="state,boolean,union">
+      Use discriminated unions for states, not boolean flags
+    </principle>
+  </context>
+
+  <process>
+    <rule id="P1" phase="implement">
+      Define domain types for new identifiers using branded types
+    </rule>
+    <rule id="P2" phase="implement">
+      Use readonly on value objects and interface properties
+    </rule>
+    <rule id="P3" phase="implement">
+      Use options objects for functions with more than 2 parameters
+    </rule>
+  </process>
+
+  <validation>
+    <check id="V1" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>:\s*any\b</forbidden>
+      <reason>any type disables type checking - use unknown and narrow</reason>
+    </check>
+
+    <check id="V2" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>as\s+any\b</forbidden>
+      <reason>as any is an escape hatch - fix the underlying type issue</reason>
+    </check>
+
+    <check id="V3" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>@ts-ignore</forbidden>
+      <reason>ts-ignore suppresses errors - fix the type issue or link to issue</reason>
+    </check>
+
+    <check id="V4" type="checklist" severity="warning">
+      <item>No any type in new code</item>
+      <item>All exported functions have explicit return types</item>
+      <item>Domain types used for IDs (not raw strings)</item>
+      <item>Discriminated unions for states (not boolean flags)</item>
+      <item>Value objects use readonly</item>
+    </check>
+  </validation>
+
+  <examples>
+    <example ref="V1" type="violation">
+      <code><![CDATA[
+// WRONG
+function handleEvent(data: any) {
+  return data.value;  // Unsafe access
+}
+      ]]></code>
+      <explanation>any disables type checking, making access unsafe</explanation>
+    </example>
+
+    <example ref="V1" type="correct">
+      <code><![CDATA[
+// CORRECT
+function handleEvent(data: unknown): number {
+  if (typeof data === 'object' && data !== null && 'value' in data) {
+    const value = (data as { value: unknown }).value;
+    if (typeof value === 'number') return value;
+  }
+  throw new Error('Invalid event data');
+}
+      ]]></code>
+      <explanation>unknown requires proper type narrowing before use</explanation>
+    </example>
+
+    <example ref="C3" type="correct">
+      <code><![CDATA[
+// Domain types for identifiers
+type TaskId = string & { readonly __brand: 'TaskId' };
+type ProjectId = string & { readonly __brand: 'ProjectId' };
+
+interface Task {
+  readonly id: TaskId;
+  readonly projectId: ProjectId;
+}
+      ]]></code>
+      <explanation>Branded types prevent mixing up different ID types</explanation>
+    </example>
+
+    <example ref="C4" type="violation">
+      <code><![CDATA[
+// WRONG: Boolean flags for state
+interface Task {
+  isLoading: boolean;
+  hasError: boolean;
+  isComplete: boolean;
+  data?: TaskData;
+  error?: Error;
+}
+      ]]></code>
+      <explanation>Boolean flags allow impossible states (isLoading AND isComplete both true)</explanation>
+    </example>
+
+    <example ref="C4" type="correct">
+      <code><![CDATA[
+// CORRECT: Discriminated union
+type TaskState =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'error'; error: Error }
+  | { status: 'complete'; data: TaskData };
+      ]]></code>
+      <explanation>Only one state is possible at a time, enabling exhaustive handling</explanation>
+    </example>
+  </examples>
+
+</directive>

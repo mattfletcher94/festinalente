@@ -255,7 +255,7 @@ async function main() {
     skillsDir: '.claude/skills/',
     kanbanDir: '.kanban/'
   };
-  const manifestPath = path.join(kanbanDir, 'kanban-manifest.json');
+  const manifestPath = path.join(kanbanDir, 'manifest.json');
   fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
 
   // Summary

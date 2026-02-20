@@ -89,8 +89,8 @@ See `.kanban/workflow.yaml` for column definitions and valid transitions.
     <note>Plan will be updated with issues to address</note>
   </step>
 
-  <step name="load_hook_config">
-    {{> hook-config command="rework"}}
+  <step name="load_directives">
+    {{> load-directives skill="rework"}}
   </step>
 
   <step name="close_pr" when="status was `pr`">
@@ -141,6 +141,8 @@ See `.kanban/workflow.yaml` for column definitions and valid transitions.
     <command>git add .kanban/tasks/{taskId}/plan.xml</command>
     <command>git commit -m "docs({taskId}): rework - {title}"</command>
   </step>
+
+  {{> directive-compliance}}
 
   <step name="output_result">
     <output>Print commit hash</output>

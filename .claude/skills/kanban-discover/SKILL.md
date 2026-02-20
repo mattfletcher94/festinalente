@@ -19,7 +19,7 @@ Explore questions and analyze codebases through conversational Socratic Q&A befo
 - **`.kanban/scripts/`** — Helper scripts for kanban operations
 - **`.kanban/templates/`** — Document templates
 - **`.kanban/workflow.yaml`** — Workflow config (columns, labels, transitions)
-- **`.kanban/directives/`** — User-defined directives (custom instructions for hooks)
+- **`.kanban/directives/`** — User-defined directives (custom instructions for skills)
 </note>
 
 <note>Exploration types this skill supports:</note>

@@ -73,8 +73,8 @@ Merge the task branch into main, clean up the branch, and move task to Done.
     {{> branch-verify-task}}
   </step>
 
-  <step name="load_hook_config">
-    {{> hook-config command="merge"}}
+  <step name="load_directives">
+    {{> load-directives skill="merge"}}
   </step>
 
   <step name="verify_ready_to_merge" outputs="commitsToMerge">
@@ -124,6 +124,8 @@ Merge the task branch into main, clean up the branch, and move task to Done.
     <command>git add .kanban/tasks/{taskId}/task.xml</command>
     <command>git commit -m "docs({taskId}): done - {title}"</command>
   </step>
+
+  {{> directive-compliance}}
 
   <step name="output_result">
     <output>Print: "Branch merged successfully!"</output>

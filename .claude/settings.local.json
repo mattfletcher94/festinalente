@@ -62,7 +62,8 @@
       "Bash(git rm:*)",
       "Bash(pnpm --dir \"C:/Users/MattF/Documents/Code/claudeban/apps/kanban\" build)",
       "Bash(pnpm --filter @claudeban/kanban build:*)",
-      "Bash(pnpm --filter kanban build:*)"
+      "Bash(pnpm --filter kanban build:*)",
+      "Bash(git mv:*)"
     ]
   }
 }

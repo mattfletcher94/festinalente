@@ -155,8 +155,8 @@ Warning: Some relevant docs may be outdated:
     </branch>
   </step>
 
-  <step name="load_hook_config">
-    {{> hook-config command="implement"}}
+  <step name="load_directives">
+    {{> load-directives skill="implement"}}
   </step>
 
   <step name="parse_plan_tasks" outputs="tasks, executionOrder">
@@ -261,6 +261,8 @@ To save progress now:
       </output>
     </branch>
   </step>
+
+  {{> directive-compliance}}
 
   <step name="output_result">
     <output>Display implementation summary</output>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<directive name="code-review" version="1"
+           created="2025-01-15" updated="2026-02-20">
+
+  <description>
+    Perform strict architectural code review with no backwards compatibility
+  </description>
+
+  <context>
+    <principle id="C1" keywords="backwards,compatibility,legacy">
+      No backwards compatibility - we break things and fix them properly
+    </principle>
+    <principle id="C2" keywords="deprecated,deprecation">
+      No deprecation notices - we delete or keep, no middle ground
+    </principle>
+    <principle id="C3" keywords="strict,adversarial,reject">
+      Code review is adversarial - find problems, reject violations
+    </principle>
+  </context>
+
+  <process>
+    <rule id="P1" phase="codecheck">
+      Run automated checks first: pnpm test, pnpm lint, pnpm typecheck
+    </rule>
+    <rule id="P2" phase="codecheck">
+      Scan for forbidden patterns before any manual review
+    </rule>
+    <rule id="P3" phase="codecheck">
+      Check architectural classification of all new/modified modules
+    </rule>
+  </process>
+
+  <validation>
+    <check id="V1" type="command" severity="error">
+      <run>pnpm test</run>
+      <expect>All tests pass (exit code 0)</expect>
+    </check>
+
+    <check id="V2" type="command" severity="error">
+      <run>pnpm lint</run>
+      <expect>No lint errors (exit code 0)</expect>
+    </check>
+
+    <check id="V3" type="command" severity="error">
+      <run>pnpm typecheck</run>
+      <expect>No type errors (exit code 0)</expect>
+    </check>
+
+    <check id="V4" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>@deprecated</forbidden>
+      <reason>No deprecation notices - delete or keep, no middle ground</reason>
+    </check>
+
+    <check id="V5" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>backwards?\s*compat</forbidden>
+      <reason>No backwards compatibility shims</reason>
+    </check>
+
+    <check id="V6" type="checklist" severity="error">
+      <item>No @deprecated tags without removal</item>
+      <item>No backwards compatibility shims or wrappers</item>
+      <item>No feature flags for old vs new behavior</item>
+      <item>No re-exports of renamed symbols for compatibility</item>
+      <item>All modules properly categorized (.computer, .capability, .orchestrator)</item>
+    </check>
+  </validation>
+
+  <examples>
+    <example ref="V4" type="violation">
+      <code><![CDATA[
+// WRONG: Deprecation without removal
+/** @deprecated Use newFunction instead */
+export function oldFunction() { ... }
+
+export function newFunction() { ... }
+      ]]></code>
+      <explanation>Delete oldFunction, update all callers to use newFunction</explanation>
+    </example>
+
+    <example ref="V4" type="correct">
+      <code><![CDATA[
+// CORRECT: Just the new function, old one deleted
+export function newFunction() { ... }
+
+// All callers updated directly
+      ]]></code>
+      <explanation>No deprecation period, just direct updates</explanation>
+    </example>
+
+    <example ref="V5" type="violation">
+      <code><![CDATA[
+// WRONG: Backwards compatibility wrapper
+export function loadConfig(path: string) {
+  // Support old format for backwards compatibility
+  if (isOldFormat(path)) {
+    return loadOldConfig(path);
+  }
+  return loadNewConfig(path);
+}
+      ]]></code>
+      <explanation>No compatibility layers - migrate all data to new format</explanation>
+    </example>
+  </examples>
+
+</directive>

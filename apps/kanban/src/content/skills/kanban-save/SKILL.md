@@ -76,8 +76,8 @@ Save partial implementation progress when interrupted. Task stays in In Progress
     </branch>
   </step>
 
-  <step name="load_hook_config">
-    {{> hook-config command="save"}}
+  <step name="load_directives">
+    {{> load-directives skill="save"}}
   </step>
 
   <step name="verify_plan_checkboxes">
@@ -129,6 +129,8 @@ Save partial implementation progress when interrupted. Task stays in In Progress
     <command>git add .kanban/tasks/{taskId}/plan.xml</command>
     <command>git commit -m "wip({taskId}): {progress summary}"</command>
   </step>
+
+  {{> directive-compliance}}
 
   <step name="output_result">
     <output>Print commit hash</output>

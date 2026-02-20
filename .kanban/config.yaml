@@ -1,107 +1,48 @@
 # Kanban Config Schema
 # ---------------------
-# This file has exactly THREE top-level keys: name, hooks, settings
+# This file has exactly THREE top-level keys: name, directives, settings
 #
-# Hooks Configuration:
-# Each hook can specify directives, product docs, and engineering docs.
-# - directives: User-defined instructions from .kanban/directives/{name}/DIRECTIVE.md
-# - product: Product doc IDs for context (e.g., "features/auth")
-# - engineering: Engineering doc IDs for context (e.g., "patterns/validation")
+# Directives Configuration:
+# Each skill can load directives from .kanban/directives/{name}.xml
+# Directives are mandatory instructions that the LLM must follow.
 
 name: ""
 
-hooks:
-  kanban-status:
-    directives: []
-    product: []
-    engineering: []
-  kanban-create:
-    directives: []
-    product: []
-    engineering: []
-  kanban-refine:
-    directives: []
-    product: []
-    engineering: []
+directives:
+  kanban-status: []
+  kanban-create: []
+  kanban-refine: []
   kanban-scope:
-    directives:
-      - architecture
-      - vue-integration
-      - typescript
-    product: []
-    engineering: []
+    - architecture
+    - vue-integration
+    - typescript
   kanban-plan:
-    directives:
-      - planning
-      - architecture
-      - vue-integration
-    product: []
-    engineering: []
+    - planning
+    - architecture
+    - vue-integration
   kanban-implement:
-    directives:
-      - architecture
-      - vue-integration
-      - typescript
-      - tsdoc
-    product: []
-    engineering: []
-  kanban-save:
-    directives: []
-    product: []
-    engineering: []
+    - architecture
+    - vue-integration
+    - typescript
+    - tsdoc
+  kanban-save: []
   kanban-codecheck:
-    directives:
-      - code-review
-    product: []
-    engineering: []
-  kanban-approve:
-    directives: []
-    product: []
-    engineering: []
-  kanban-docs:
-    directives: []
-    product: []
-    engineering: []
-  kanban-merge:
-    directives: []
-    product: []
-    engineering: []
+    - code-review
+  kanban-approve: []
+  kanban-docs: []
+  kanban-merge: []
   kanban-rework:
-    directives:
-      - architecture
-      - vue-integration
-      - typescript
-      - tsdoc
-    product: []
-    engineering: []
-  kanban-map-product:
-    directives: []
-    product: []
-    engineering: []
-  kanban-define-product:
-    directives: []
-    product: []
-    engineering: []
-  kanban-map-engineering:
-    directives: []
-    product: []
-    engineering: []
-  kanban-view:
-    directives: []
-    product: []
-    engineering: []
-  kanban-report-label:
-    directives: []
-    product: []
-    engineering: []
-  kanban-report-task:
-    directives: []
-    product: []
-    engineering: []
-  kanban-report-user:
-    directives: []
-    product: []
-    engineering: []
+    - architecture
+    - vue-integration
+    - typescript
+    - tsdoc
+  kanban-map-product: []
+  kanban-define-product: []
+  kanban-map-engineering: []
+  kanban-view: []
+  kanban-report-label: []
+  kanban-report-task: []
+  kanban-report-user: []
 
 settings:
   version: "2.0"

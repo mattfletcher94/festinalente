@@ -97,7 +97,7 @@ Run code checks using user-configured directives. Directives can be automated co
 
   <step name="load_check_directives" outputs="checkDirectives, hasChecks">
     <action>Read `.kanban/config.yaml`</action>
-    <action>Find `hooks.kanban-codecheck.directives` array</action>
+    <action>Find `directives.kanban-codecheck` array</action>
     <branch condition="directives array is empty or not defined">
       <action>Set hasChecks = false</action>
       <output>No code checks configured.</output>
@@ -105,7 +105,7 @@ Run code checks using user-configured directives. Directives can be automated co
     </branch>
     <branch condition="directives array has entries">
       <action>Set hasChecks = true</action>
-      <action>For each directive name: read `.kanban/directives/{name}/DIRECTIVE.md`</action>
+      <action>For each directive name: read `.kanban/directives/{name}.xml`</action>
     </branch>
   </step>
 
@@ -232,37 +232,39 @@ If you find issues that need fixing:
 <note>
 **Check Directive Types:**
 
-Users create check directives in `.kanban/directives/`. There are two types:
+Users create check directives in `.kanban/directives/{name}.xml`. Directives use XML format with these check types:
 
 **1. Command-based (automated)**
-```markdown
-# Check: TypeScript
-
-Run `pnpm typecheck`
-
-### Pass criteria
-Exit code 0, no errors in output.
-
-### Common failures
-- "Cannot find module X" — missing dependency
-- "Type X is not assignable to Y" — type mismatch
+```xml
+<validation>
+  <check id="V1" type="command" severity="error">
+    <run>pnpm typecheck</run>
+    <expect>Exit code 0, no errors in output</expect>
+  </check>
+</validation>
 ```
 
-**2. AI-driven review (guidelines)**
-```markdown
-# Check: Coding Patterns
-
-### Guidelines
-- Use factory functions instead of classes
-- API handlers belong in src/routes/
-- Use arrow functions for callbacks
-- Prefer composition over inheritance
-
-### Review focus
-Look at new/modified files and check against the above patterns.
+**2. Pattern-based (regex check)**
+```xml
+<validation>
+  <check id="V2" type="pattern" severity="warning" files="**/*.ts">
+    <forbidden>class\s+\w+</forbidden>
+    <reason>Use factory functions instead of classes</reason>
+  </check>
+</validation>
 ```
 
-The directive is detected as command-based if `Run \`command\`` is present.
+**3. Checklist (manual verification)**
+```xml
+<validation>
+  <check id="V3" type="checklist" severity="info">
+    <item>API handlers are in src/routes/</item>
+    <item>Arrow functions used for callbacks</item>
+  </check>
+</validation>
+```
+
+The check type is determined by the `type` attribute on the `<check>` element.
 </note>
 
 <example>

@@ -79,8 +79,8 @@ Create a functional specification through iterative conversational Q&A focused o
     </branch>
   </step>
 
-  <step name="load_hook_config">
-    {{> hook-config command="scope"}}
+  <step name="load_directives">
+    {{> load-directives skill="scope"}}
   </step>
 
   <step name="structured_research" outputs="researchFindings">
@@ -334,6 +334,8 @@ updated: {YYYY-MM-DD}
     <command>git add .kanban/tasks/{taskId}/spec.xml .kanban/tasks/{taskId}/task.xml</command>
     <command>git commit -m "docs({taskId}): scope - {title}"</command>
   </step>
+
+  {{> directive-compliance}}
 
   <step name="output_result">
     <output>Print summary of affected files identified</output>

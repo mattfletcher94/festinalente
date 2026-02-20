@@ -49,8 +49,8 @@ Create and refine a new task through conversational Q&A, then commit to Backlog.
     </branch>
   </step>
 
-  <step name="load_hook_config">
-    {{> hook-config command="create"}}
+  <step name="load_directives">
+    {{> load-directives skill="create"}}
   </step>
 
   <step name="get_next_id" outputs="nextId">
@@ -301,6 +301,8 @@ And their session is established
     </branch>
     <command>git commit -m "docs({nextId}): create - {title}"</command>
   </step>
+
+  {{> directive-compliance}}
 
   <step name="output_result">
     <output>Print the created file path and task ID</output>

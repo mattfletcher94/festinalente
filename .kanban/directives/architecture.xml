@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<directive name="architecture" version="1"
+           created="2025-01-15" updated="2026-02-20">
+
+  <description>
+    Validate that the codebase's dependency graph is a DAG with clear layering
+  </description>
+
+  <context>
+    <principle id="C1" keywords="policy,decision,when,should">
+      Policy belongs in orchestrators, mechanism in capabilities
+    </principle>
+    <principle id="C2" keywords="imports,dependencies,direction">
+      Dependencies flow inward: Computer &lt;- Capability &lt;- Orchestrator
+    </principle>
+    <principle id="C3" keywords="naming,suffix,categorization">
+      Every module must be categorized with suffix: .computer.ts, .capability.ts, .orchestrator.ts
+    </principle>
+  </context>
+
+  <process>
+    <rule id="P1" phase="plan">
+      Identify which architectural layer each affected file belongs to
+    </rule>
+    <rule id="P2" phase="implement">
+      Categorize every new module with correct suffix
+    </rule>
+    <rule id="P3" phase="implement">
+      When creating pure functions, wrap them in a computer factory
+    </rule>
+  </process>
+
+  <validation>
+    <check id="V1" type="command" severity="error">
+      <run>pnpm check:dpdm</run>
+      <expect>No circular dependencies (exit code 0)</expect>
+    </check>
+
+    <check id="V2" type="pattern" severity="error" files="*.capability.ts">
+      <forbidden>import.*\.capability\.</forbidden>
+      <reason>Capabilities cannot import other capabilities (lateral dependency)</reason>
+    </check>
+
+    <check id="V3" type="pattern" severity="error" files="*.capability.ts">
+      <forbidden>(ensure|getOrCreate|maybe)[A-Z]</forbidden>
+      <reason>Policy logic (ensure/getOrCreate/maybe) belongs in orchestrators</reason>
+    </check>
+
+    <check id="V4" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>(Manager|Service|Helper|Utils)(&lt;|$)</forbidden>
+      <reason>Ambiguous naming - use computer/capability/orchestrator suffix</reason>
+    </check>
+
+    <check id="V5" type="checklist" severity="warning">
+      <item>All new modules have correct suffix (.computer.ts, .capability.ts, .orchestrator.ts)</item>
+      <item>No policy logic in capabilities</item>
+      <item>Computers only import other computers</item>
+      <item>Orchestrators use DI for capabilities</item>
+    </check>
+  </validation>
+
+  <examples>
+    <example ref="V3" type="violation">
+      <code><![CDATA[
+// WRONG: Policy in capability
+function ensureSession(): Session {
+  if (session && session.isValid) return session;  // Policy!
+  return createSession();
+}
+      ]]></code>
+      <explanation>Capability decides WHEN to create - this is policy, belongs in orchestrator</explanation>
+    </example>
+
+    <example ref="V3" type="correct">
+      <code><![CDATA[
+// CORRECT: Mechanism in capability
+function createSession(): Session {
+  return api.createSession();
+}
+
+// Policy in orchestrator
+function getSession(): Session {
+  if (session && session.isValid) return session;
+  return createSession();
+}
+      ]]></code>
+      <explanation>Capability provides mechanism (createSession), orchestrator decides when (getSession)</explanation>
+    </example>
+
+    <example ref="V2" type="violation">
+      <code><![CDATA[
+// WRONG: Capability importing capability
+import { createSettingsCapability } from './settings.capability';
+
+export function createTasksCapability() {
+  const settings = createSettingsCapability();  // Forbidden!
+}
+      ]]></code>
+      <explanation>Lateral dependency - both capabilities should be injected into orchestrator</explanation>
+    </example>
+
+    <example ref="V2" type="correct">
+      <code><![CDATA[
+// CORRECT: Orchestrator composes capabilities
+export function createAppOrchestrator(deps: {
+  settingsCapability: SettingsCapability;
+  tasksCapability: TasksCapability;
+}) {
+  // Orchestrator coordinates both
+}
+      ]]></code>
+      <explanation>Orchestrator receives both via DI, no lateral capability dependencies</explanation>
+    </example>
+  </examples>
+
+</directive>

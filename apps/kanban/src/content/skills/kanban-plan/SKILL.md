@@ -181,8 +181,8 @@ Run: /kanban-scope {taskId}
     </branch>
   </step>
 
-  <step name="load_hook_config">
-    {{> hook-config command="plan"}}
+  <step name="load_directives">
+    {{> load-directives skill="plan"}}
   </step>
 
   <step name="derive_plan_sections" outputs="technicalApproach, testingStrategy, edgeCases, pitfalls">
@@ -399,6 +399,8 @@ Run: /kanban-scope {taskId}
     <command>git add .kanban/tasks/{taskId}/plan.xml .kanban/tasks/{taskId}/task.xml</command>
     <command>git commit -m "docs({taskId}): plan - {title}"</command>
   </step>
+
+  {{> directive-compliance}}
 
   <step name="output_result">
     <output>Print: "Task {taskId} moved to Planned"</output>
