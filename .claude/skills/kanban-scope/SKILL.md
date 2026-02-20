@@ -193,6 +193,13 @@ Create a functional specification through iterative conversational Q&A focused o
       <action>Search for closed issues or known problems in the area</action>
       <output_variable>pitfallFindings: list of {issue, impact, mitigation}</output_variable>
     </substep>
+
+    <substep name="research_ui_patterns" condition="task affects user-facing output">
+      <note>When the task affects UI/UX, find existing patterns to follow.</note>
+      <action>Use Glob to find existing components in affected areas</action>
+      <action>Read key UI files to identify reusable patterns with file:line references</action>
+      <output_variable>uiPatternFindings: list of {pattern, reference}</output_variable>
+    </substep>
   </step>
 
   <step name="synthesize_research" outputs="synthesis">
@@ -242,6 +249,11 @@ Create a functional specification through iterative conversational Q&A focused o
 - Dependencies and libraries
 - Technical constraints
 - Files to modify/create</note>
+
+    <note>**For UI tasks:** Propose, don't interrogate.
+- INFER decisions from context and acceptance criteria
+- PROPOSE solutions with reasoning: "I'd place X here because Y. Does that work?"
+- Only ASK when there's genuine ambiguity the context doesn't resolve</note>
 
     <note>How the dialogue works:</note>
 
