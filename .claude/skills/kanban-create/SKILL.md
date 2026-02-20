@@ -68,7 +68,6 @@ Create and refine a new task through conversational Q&A, then commit to Backlog.
 - Do not use `Search()` or `Glob()` to find files manually
 - Do not read `.kanban/config.yaml` directly
 - Do not run `ls` commands to explore directories
-- Do not create files in `.kanban/product/` (that's for product docs, not tasks)
 - Do not skip the commit step
 - Do not guess filenames or IDs — always use the helper scripts
 </prohibited>
@@ -144,7 +143,7 @@ Create and refine a new task through conversational Q&A, then commit to Backlog.
     <action>Generate slug from title for file naming</action>
   </step>
 
-  <step name="search_product_docs" when="`.kanban/product/` directory exists and is not empty">
+  <step name="search_product_docs" when="`.kanban/product/` directory exists and is not empty" outputs="newDocId, newDocPath">
     <action>Extract keywords from the established title (nouns, verbs, domain terms)</action>
     <command>node .kanban/scripts/search-product.cjs {keyword1} {keyword2} ...</command>
 
@@ -155,7 +154,7 @@ Create and refine a new task through conversational Q&A, then commit to Backlog.
     </branch>
 
     <branch condition="no docs with score ≥ 0.3 found">
-      <note>This may be a NEW feature not yet documented</note>
+      <note>This may be a NEW feature not yet documented - we'll create a stub doc</note>
       <action>If existing domains are known from `.kanban/product/` folder structure, use AskUserQuestion tool with:
         - header: "Domain"
         - question: "This looks like a new feature. What domain should it belong to?"
@@ -164,7 +163,10 @@ Create and refine a new task through conversational Q&A, then commit to Backlog.
         - multiSelect: false
       </action>
       <note>User can select "Other" to type a custom domain</note>
-      <action>Set `affects: [{domain}/{slug-from-title}]` - doc will be created during /kanban-docs</action>
+      <action>Set newDocId = `{domain}/{slug-from-title}`</action>
+      <action>Set newDocPath = `.kanban/product/{domain}/{slug-from-title}.md`</action>
+      <action>Set `affects: [{newDocId}]` in task XML</action>
+      <note>Stub doc will be created in step create_stub_doc</note>
     </branch>
 
     <branch condition="`.kanban/product/` is empty or doesn't exist">
@@ -192,6 +194,48 @@ Create and refine a new task through conversational Q&A, then commit to Backlog.
       <action>Skip this step</action>
       <output>No engineering docs yet</output>
     </branch>
+  </step>
+
+  <step name="create_stub_doc" when="newDocId was set (new feature detected)">
+    <note>Create a minimal stub doc so the `affects` link is valid immediately</note>
+    <command description="Get current date">node .kanban/scripts/get-date-time.cjs</command>
+    <action>Create domain folder if doesn't exist: `.kanban/product/{domain}/`</action>
+    <action>Create stub doc at {newDocPath} with minimal content:</action>
+    <example_code lang="markdown">
+---
+id: "{newDocId}"
+title: "{Feature title derived from task title}"
+type: feature
+tldr: ""
+summary: "Stub - to be completed during /kanban-docs"
+keywords: [{keywords from task title}]
+aliases: []
+boundary: ""
+related: []
+updated: {date from get-date-time}
+stub: true
+task: "{nextId}"
+---
+
+# {Feature title}
+
+> **TL;DR:** (To be completed)
+
+## Overview
+
+This is a stub document created during task creation. It will be completed with full content during the `/kanban-docs` phase after implementation.
+
+**Related task:** {nextId} - {task title}
+
+## Status
+
+- [ ] Overview section
+- [ ] How It Works section
+- [ ] Examples section
+- [ ] Boundaries section
+    </example_code>
+    <output>Created stub doc: {newDocPath}</output>
+    <note>The `stub: true` frontmatter marks this for completion during /kanban-docs</note>
   </step>
 
   <step name="get_priority" outputs="priority">
@@ -326,6 +370,9 @@ And their session is established
   <step name="commit">
     <note>Format: `docs({nextId}): create - {title}`</note>
     <command>git add .kanban/tasks/{nextId}/task.xml</command>
+    <branch condition="stub doc was created">
+      <command>git add {newDocPath}</command>
+    </branch>
     <command>git commit -m "docs({nextId}): create - {title}"</command>
   </step>
 
@@ -361,11 +408,14 @@ And their session is established
 - Task XML has `<problem>` section filled
 - Task XML has `<value>` section filled
 - Task XML has `<acceptance-criteria>` section with Gherkin format
+- If new feature: stub doc exists at `.kanban/product/{domain}/{slug}.md` with `stub: true`
 - Git log shows `docs({nextId}): create -`
 - Next steps point to `/kanban-scope` (NOT /kanban-refine)
 </success_criteria>
 
 <example>
+**Bug fix (existing feature):**
+
 User: `/kanban-create Fix login redirect bug`
 
 ```
@@ -373,59 +423,87 @@ Creating task...
 
 Title: Fix login redirect bug
 Auto-detected label: bug
+Is this correct? [Yes / No] > Yes
 
-Is this correct? [Yes / No]
-> Yes
+Searching product docs...
+Related product docs: auth/login (score: 0.72)
 
-What priority should this task have?
-> Medium
-
-Let me ask some questions to understand this task better.
+What priority should this task have? > Medium
 
 What problem are you trying to solve?
-> After successful login, users are redirected to /home instead of
-> their original destination URL. If they were trying to access
-> /settings, they end up at /home and have to navigate manually.
+> After login, users go to /home instead of their original destination.
 
 What value would solving this provide?
-> Better UX - users go directly where they intended. Also important
-> for shared links that require authentication.
+> Better UX - users go directly where they intended.
 
 What does "done" look like?
 > After login, redirect to the URL they originally tried to access.
-> If no saved URL, default to /home.
 
-I think I have enough information to create this task. Here's what I understand:
-- **Problem:** Users redirected to /home instead of original destination after login
+I think I have enough information to create this task.
+- **Problem:** Users redirected to /home instead of original destination
 - **Value:** Better UX, support for authenticated deep links
-- **Acceptance criteria:** Redirect to saved URL after login, default to /home if none
+- **Acceptance criteria:** Redirect to saved URL after login, default to /home
 
-Is there anything else you'd like to discuss before I create the task?
-> That's good.
-
-Creating task...
+Is there anything else? > That's good.
 
 Task 002 created in Backlog
-Title: Fix login redirect bug
-Labels: [bug]
-Priority: Medium
-
-Acceptance Criteria:
-  Given a user tries to access /settings without being logged in
-  And they are redirected to the login page
-  When they successfully log in
-  Then they are redirected to /settings
-
-  Given a user navigates directly to the login page
-  When they successfully log in
-  Then they are redirected to /home
-
-File: .kanban/tasks/002/task.xml
-Commit: a1b2c3d docs(002): create - Fix login redirect bug
+- Labels: [bug]
+- Affects: auth/login
+- File: .kanban/tasks/002/task.xml
+- Commit: a1b2c3d docs(002): create - Fix login redirect bug
 
 Next:
 /clear
 /kanban-scope 002
+```
+
+**New feature (stub doc created):**
+
+User: `/kanban-create Add dark mode toggle`
+
+```
+Creating task...
+
+Title: Add dark mode toggle
+Auto-detected label: feature
+Is this correct? [Yes / No] > Yes
+
+Searching product docs...
+No matching docs found (new feature detected).
+
+This looks like a new feature. What domain should it belong to?
+[gui] Group with other gui features
+[settings] Group with other settings features
+> gui
+
+Creating stub doc: .kanban/product/gui/dark-mode.md
+
+What priority should this task have? > Medium
+
+What problem are you trying to solve?
+> Users can't switch between light and dark themes.
+
+What value would solving this provide?
+> Better accessibility and reduced eye strain for users who prefer dark mode.
+
+I think I have enough information to create this task.
+- **Problem:** No dark/light theme toggle
+- **Value:** Better accessibility, user preference support
+- **Acceptance criteria:** Toggle in settings, persists across sessions
+
+Is there anything else? > That's good.
+
+Task 003 created in Backlog
+- Labels: [feature]
+- Affects: gui/dark-mode (stub created)
+- Files:
+  - .kanban/tasks/003/task.xml
+  - .kanban/product/gui/dark-mode.md (stub)
+- Commit: b2c3d4e docs(003): create - Add dark mode toggle
+
+Next:
+/clear
+/kanban-scope 003
 ```
 </example>
 
