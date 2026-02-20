@@ -1,0 +1,105 @@
+{
+  "name": "claude-kanban-vscode",
+  "displayName": "Claude Kanban",
+  "description": "AI-powered task management for Claude Code",
+  "version": "0.1.0",
+  "publisher": "claude-kanban",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "kanban",
+          "title": "Kanban",
+          "icon": "resources/kanban-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "kanban": [
+        {
+          "id": "kanbanTasks",
+          "name": "Tasks"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "kanbanTasks",
+        "contents": "No .kanban folder found in this workspace.\n\nOpen a folder containing a .kanban directory to see tasks.",
+        "when": "!kanban.hasKanbanFolder"
+      }
+    ],
+    "commands": [
+      {
+        "command": "kanban.refresh",
+        "title": "Kanban: Refresh Tasks",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "kanban.createTask",
+        "title": "Kanban: Create Task",
+        "icon": "$(add)"
+      },
+      {
+        "command": "kanban.runAction",
+        "title": "Kanban: Run Action"
+      },
+      {
+        "command": "kanban.openFile",
+        "title": "Kanban: Open File"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "kanban.createTask",
+          "when": "view == kanbanTasks && kanban.hasKanbanFolder",
+          "group": "navigation@1"
+        },
+        {
+          "command": "kanban.refresh",
+          "when": "view == kanbanTasks",
+          "group": "navigation@2"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Kanban",
+      "properties": {
+        "kanban.autoplay": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically advance to next workflow stage when a command completes"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
+    "compile": "npm run build",
+    "watch": "npm run build -- --watch",
+    "lint": "eslint src --ext ts",
+    "package": "npm run build && vsce package --no-dependencies",
+    "publish": "npm run build && vsce publish --no-dependencies"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^4.5.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.12",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.2.1",
+    "esbuild": "^0.27.3",
+    "typescript": "^5.7.0"
+  }
+}

@@ -10,7 +10,10 @@
     "typecheck": "turbo typecheck",
     "check:dpdm": "npx dpdm -T --no-warning --exit-code circular:1 apps/gui/src/main.ts",
     "kanban:build": "pnpm --filter claude-kanban build",
-    "gui:dev": "pnpm --filter claude-kanban-gui dev"
+    "gui:dev": "pnpm --filter claude-kanban-gui dev",
+    "vscode:compile": "pnpm --filter claude-kanban-vscode compile",
+    "vscode:watch": "pnpm --filter claude-kanban-vscode watch",
+    "vscode:package": "pnpm --filter claude-kanban-vscode package"
   },
   "devDependencies": {
     "turbo": "^2.4.0",
