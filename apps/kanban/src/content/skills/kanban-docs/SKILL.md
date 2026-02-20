@@ -25,6 +25,12 @@ Update product documentation, commit the changes, push to remote, and move task 
 
 <note>**`.kanban/engineering/`** — Engineering documentation files (systems, patterns, conventions)</note>
 
+<note>**Smart Context:** `node .kanban/scripts/select-context.cjs {taskId} --tier=standard` — Load similar docs for reference</note>
+
+<note>**Quality Check:** `node .kanban/scripts/validate-docs.cjs {path}` — Validate doc meets quality standards</note>
+
+<note>**Glossary:** `.kanban/glossary.yaml` — Project terminology (update when introducing new terms)</note>
+
 {{> column-transition from="update-docs" to="pr"}}
 </context>
 
@@ -87,29 +93,31 @@ Update product documentation, commit the changes, push to remote, and move task 
     {{> hook-config command="docs"}}
   </step>
 
-  <step name="analyze_product_doc_impact">
+  <step name="analyze_product_doc_impact" outputs="stubDocs, existingDocs, missingDocs">
     <note>a. **Check affects field:**</note>
     <action>Read task's `affects` element from XML</action>
     <branch condition="affects has IDs">
       <command>node .kanban/scripts/check-product.cjs {affects IDs}</command>
     </branch>
-    <action>Categorize: existing docs vs missing docs</action>
 
-    <note>b. **Analyze task for unlisted impacts:**</note>
+    <note>b. **Categorize docs:**</note>
+    <action>For each doc ID in affects:</action>
+    <action>- Read the doc file if it exists</action>
+    <action>- Check for `stub: true` in frontmatter</action>
+    <action>Categorize into: stubDocs (need completing), existingDocs (need updating), missingDocs (need creating)</action>
+
+    <note>c. **Analyze task for unlisted impacts:**</note>
     <action>Read task description, spec, and implementation context</action>
     <command>node .kanban/scripts/search-product.cjs {keywords from title/description}</command>
     <branch condition="high-scoring docs NOT in affects">
       <output>Suggest adding to affects</output>
     </branch>
 
-    <note>c. **Determine action for each:**</note>
-    <action>Existing docs → Will UPDATE</action>
-    <action>Missing docs → Will CREATE (new feature)</action>
-
     <note>d. **Present analysis to user:**</note>
     <output>Product Doc Analysis for Task {taskId}:</output>
+    <output>Will COMPLETE (stub exists): {id} - stub created during /kanban-create</output>
     <output>Will UPDATE (doc exists): {id} - {summary}</output>
-    <output>Will CREATE (new feature): {id} - (new doc needed)</output>
+    <output>Will CREATE (new doc needed): {id}</output>
     <output>Unaffected (internal change): {reason if applicable}</output>
     <action>Use AskUserQuestion tool with:
       - header: "Product docs"
@@ -155,6 +163,14 @@ Update product documentation, commit the changes, push to remote, and move task 
     </action>
   </step>
 
+  <step name="load_smart_context" when="creating or completing docs">
+    <note>**Load similar docs for reference on quality/structure**</note>
+    <command>node .kanban/scripts/select-context.cjs {taskId} --tier=standard --max=3</command>
+    <action>Parse JSON output</action>
+    <action>For each doc in output, note the structure and quality patterns</action>
+    <note>Use these as reference when writing new docs - match their level of detail</note>
+  </step>
+
   <step name="update_existing_docs" when="docs need updating">
     <action>Read current doc at `.kanban/product/{id}.md`</action>
     <action>Identify sections that need changes based on implementation</action>
@@ -179,18 +195,57 @@ Update product documentation, commit the changes, push to remote, and move task 
     </branch>
   </step>
 
-  <step name="create_new_docs" when="new docs needed">
+  <step name="complete_stub_docs" when="stub docs exist">
+    <note>**Complete stub docs created during /kanban-create**</note>
+    <action>Read the stub doc</action>
+    <action>Remove `stub: true` and `task:` from frontmatter</action>
+    <command description="Get current date">node .kanban/scripts/get-date-time.cjs</command>
+
+    <note>**Required frontmatter fields:**</note>
+    <action>Fill `tldr:` - Single sentence, max 100 chars, explains core purpose</action>
+    <action>Fill `summary:` - One sentence for LLM discovery</action>
+    <action>Fill `keywords:` - 3-5 terms users might search for</action>
+    <action>Fill `aliases:` - Alternative names (e.g., "dark mode" → ["night mode", "theme toggle"])</action>
+    <action>Fill `boundary:` - What this feature does NOT cover</action>
+    <action>Update `updated:` with current date</action>
+    <action>Add `verified:` with current date</action>
+    <action>Add `code_refs:` with files touched by this task</action>
+
+    <note>**Required content sections:**</note>
+    <action>TL;DR blockquote at top (repeat tldr)</action>
+    <action>Overview section with summary at end</action>
+    <action>How It Works section with key workflows</action>
+    <action>Examples section with code snippets from implementation</action>
+    <action>Boundaries section listing what it does NOT do</action>
+
+    <action>Write content based on what was actually implemented</action>
+    <action>Reference actual code paths where relevant</action>
+  </step>
+
+  <step name="create_new_docs" when="new docs needed (no stub exists)">
     <action>Create domain folder if doesn't exist: `.kanban/product/{domain}/`</action>
     <command description="Get current date">node .kanban/scripts/get-date-time.cjs</command>
     <action>Use `date` field from output</action>
 
     <note>**For features** (use `.kanban/templates/product-feature.md`):</note>
-    <action>Fill frontmatter: `id: {domain}/{feature}`, `type: feature`, title, summary, keywords, updated</action>
-    <action>Fill sections: Overview, How It Works, Limitations</action>
+    <action>Fill ALL frontmatter fields:</action>
+    <action>- `id:` {domain}/{feature}</action>
+    <action>- `type:` feature</action>
+    <action>- `title:` Human-readable title</action>
+    <action>- `tldr:` Single sentence, max 100 chars</action>
+    <action>- `summary:` One sentence for LLM discovery</action>
+    <action>- `keywords:` 3-5 search terms</action>
+    <action>- `aliases:` Alternative names users might use</action>
+    <action>- `boundary:` What this does NOT cover</action>
+    <action>- `related:` IDs of related docs</action>
+    <action>- `updated:` Current date</action>
+    <action>- `verified:` Current date</action>
+    <action>- `code_refs:` Files implementing this feature</action>
+    <action>Fill sections: Overview (with summary), How It Works, Examples, Boundaries, Limitations</action>
 
     <note>**For concepts** (use `.kanban/templates/product-concept.md`):</note>
-    <action>Fill frontmatter: `id: {domain}/{concept}`, `type: concept`, title, summary, keywords, updated</action>
-    <action>Fill sections: Definition, Examples, Rules & Constraints</action>
+    <action>Same frontmatter fields as features</action>
+    <action>Fill sections: Definition, Examples, Rules & Constraints, Boundaries</action>
 
     <action>Write content based on what was implemented</action>
     <action>Keep scope focused on THIS feature/concept only</action>
@@ -219,7 +274,56 @@ Update product documentation, commit the changes, push to remote, and move task 
     <action>Create appropriate folder structure</action>
     <command description="Get current date">node .kanban/scripts/get-date-time.cjs</command>
     <action>Use appropriate template from `.kanban/templates/engineering-*.md`</action>
+    <action>Fill ALL frontmatter fields including tldr, aliases, boundary</action>
     <action>Fill content based on what was implemented</action>
+  </step>
+
+  <step name="update_domain_index" when="new doc created in a domain">
+    <note>**Update the domain's _index.md to include the new doc**</note>
+    <action>Check if `.kanban/product/{domain}/_index.md` exists</action>
+    <branch condition="_index.md exists">
+      <action>Read the _index.md file</action>
+      <action>Add the new doc to the appropriate section (features list, concepts list)</action>
+      <action>Add a one-line description matching the doc's tldr</action>
+    </branch>
+    <branch condition="_index.md doesn't exist">
+      <note>Consider creating one if multiple docs now exist in this domain</note>
+    </branch>
+  </step>
+
+  <step name="update_glossary" when="new terms introduced">
+    <note>**Add new terminology to glossary**</note>
+    <action>Identify any new terms introduced by this feature</action>
+    <action>Check if terms exist in `.kanban/glossary.yaml`</action>
+    <branch condition="new terms found">
+      <action>Read `.kanban/glossary.yaml`</action>
+      <action>Add new entries with:</action>
+      <action>- term: The canonical name</action>
+      <action>- aliases: Alternative names/spellings</action>
+      <action>- definition: Brief explanation</action>
+      <action>Write updated glossary</action>
+      <output>Added to glossary: {terms}</output>
+    </branch>
+    <example_code lang="yaml">
+# Example glossary entry:
+- term: "Yolo mode"
+  aliases: ["skip permissions", "dangerous mode", "auto-approve"]
+  definition: "Mode that auto-approves all permission requests"
+    </example_code>
+  </step>
+
+  <step name="validate_docs" when="docs were created or updated">
+    <note>**Run quality validation on changed docs**</note>
+    <command>node .kanban/scripts/validate-docs.cjs {changed doc paths}</command>
+    <branch condition="validation passes">
+      <output>Quality check passed</output>
+    </branch>
+    <branch condition="validation fails">
+      <output>Quality issues found:</output>
+      <output>{issues from validation}</output>
+      <action>Fix the issues before proceeding</action>
+      <action>Re-run validation</action>
+    </branch>
   </step>
 
   <step name="move_to_pr">
@@ -235,6 +339,7 @@ Update product documentation, commit the changes, push to remote, and move task 
     <warning>CRITICAL: Use EXACTLY this format. Do NOT invent commit types like `kanban(...)`. The commit type is `docs`, not `kanban`.</warning>
     <command>git add .kanban/product/</command>
     <command>git add .kanban/engineering/</command>
+    <command>git add .kanban/glossary.yaml</command>
     <command>git add .kanban/tasks/{taskId}/task.xml</command>
     <branch condition="both product and engineering docs were changed">
       <command>git commit -m "docs({taskId}): product+engineering - {description of doc changes}"</command>
@@ -275,47 +380,72 @@ Create PR on GitHub, then run:
 <success_criteria>
 - Task file exists at `.kanban/tasks/{taskId}/task.xml`
 - Task XML has `status="pr"`
+- If docs created/updated:
+  - All frontmatter fields filled (tldr, summary, keywords, aliases, boundary)
+  - TL;DR blockquote present at top
+  - Examples section with code snippets
+  - Boundaries section present
+  - `verified` date set to current date
+  - `code_refs` populated with touched files
+  - `stub: true` removed if was stub doc
+  - Domain _index.md updated if applicable
+  - Glossary updated if new terms
+  - validate-docs passes
 - Branch has been pushed to remote
 - Next steps shown to user
 </success_criteria>
 
 <example>
-**Documentation Updated:**
+**Completing a stub doc (new feature):**
 
 User: `/kanban-docs 001`
 
 ```
-Completing documentation for task 001 "Add user authentication"...
+Completing documentation for task 001 "Add Yolo mode toggle"...
 
-Task: 001 - Add user authentication
-Labels: [feature, api]
+Task: 001 - Add Yolo mode toggle
+Labels: [feature]
+Affects: gui/yolo-mode
 
-This task may require documentation updates.
-Detected: feature, api labels
+Product Doc Analysis:
+Will COMPLETE (stub exists): gui/yolo-mode - stub created during /kanban-create
 
-[User selects "Yes" to proceed with documentation]
+Loading context from similar docs...
+Found: gui/terminal.md, gui/autoplay.md (using as reference)
 
-What documentation needs to be updated?
-> Add authentication section to README and create docs/auth.md
+Proceed with product documentation updates? [Yes (Recommended)]
 
-Creating docs/auth.md...
-Updating README.md with auth section...
+Completing stub doc: .kanban/product/gui/yolo-mode.md
 
-Note: Only documenting what THIS task implemented.
-NOT modifying docs for unrelated features.
+Filling frontmatter:
+- tldr: "Toggle to skip all permission prompts in Claude sessions"
+- keywords: [yolo, permissions, skip, auto-approve, settings]
+- aliases: [skip permissions, dangerous mode, auto-approve]
+- boundary: "Does not affect Claude's internal safety checks"
+- verified: 2026-02-20
+- code_refs: [src/settings/settings.orchestrator.ts, electron/main/pty-service.ts]
 
-Staging documentation:
-- docs/auth.md
-- README.md
+Writing content sections:
+- Overview with summary
+- How It Works (settings panel → toggle → PTY flag)
+- Examples (enabling, disabling, persistence)
+- Boundaries (what it doesn't do)
 
-Commit: h8i9j0k docs(001): product - add authentication guide
+Updating domain index: .kanban/product/gui/_index.md
+Added: yolo-mode - Toggle to skip permission prompts
+
+Updating glossary: .kanban/glossary.yaml
+Added term: "Yolo mode" (aliases: skip permissions, dangerous mode)
+
+Running quality validation...
+Quality check passed
+
+Commit: h8i9j0k docs(001): product - complete yolo-mode documentation
 
 Pushing branch...
 Branch pushed to remote.
 
 Task 001 moved to PR column.
-- Status: pr
-- Docs commit: h8i9j0k
 
 Create PR on GitHub, then run:
 /clear
@@ -324,37 +454,63 @@ Create PR on GitHub, then run:
 Or if PR needs changes: /kanban-rework 001
 ```
 
-**Documentation Skipped:**
+**Updating existing docs:**
 
 User: `/kanban-docs 002`
 
 ```
-Completing documentation for task 002 "Refactor database queries"...
+Completing documentation for task 002 "Fix login redirect bug"...
 
-Task: 002 - Refactor database queries
-Labels: [refactor]
+Task: 002 - Fix login redirect bug
+Labels: [bug]
+Affects: auth/login
 
-This task may require documentation updates.
-Detected: internal change (refactor)
+Product Doc Analysis:
+Will UPDATE (doc exists): auth/login - Authentication flow documentation
 
-[User selects "No" to skip documentation]
+Proceed with product documentation updates? [Yes (Recommended)]
 
-Reason (optional):
-> Internal optimization, no user-facing changes
+Updating: .kanban/product/auth/login.md
+- Added redirect preservation to "How It Works" section
+- Added example for deep link authentication
+- Updated verified: 2026-02-20
+- Updated code_refs with touched files
 
-Documentation skipped: Internal optimization
+Running quality validation...
+Quality check passed
 
-Pushing branch...
-Branch pushed to remote.
+Commit: a1b2c3d docs(002): product - update login redirect behavior
 
 Task 002 moved to PR column.
-- Status: pr
 
 Create PR on GitHub, then run:
 /clear
 /kanban-merge 002
+```
 
-Or if PR needs changes: /kanban-rework 002
+**Internal change (no docs needed):**
+
+User: `/kanban-docs 003`
+
+```
+Completing documentation for task 003 "Refactor database queries"...
+
+Task: 003 - Refactor database queries
+Labels: [refactor]
+Affects: (empty)
+
+Product Doc Analysis:
+No user-facing changes detected (internal refactor)
+
+Proceed with product documentation updates? [No]
+
+Documentation skipped: Internal optimization
+
+Task 003 moved to PR column.
+
+Create PR on GitHub, then run:
+/clear
+/kanban-merge 003
 ```
 </example>
 
