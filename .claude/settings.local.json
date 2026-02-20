@@ -77,7 +77,8 @@
       "Bash(pnpm compile:*)",
       "Bash(pnpm package:*)",
       "Bash(code --install-extension:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(git fetch:*)"
     ]
   }
 }
