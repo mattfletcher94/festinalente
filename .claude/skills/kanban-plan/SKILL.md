@@ -292,6 +292,20 @@ Run: /kanban-scope {taskId}
       - Order-dependent operations
       - Common mistakes to avoid
     </action>
+
+    <action name="breaking_changes">
+      <note>For any renames, API changes, or config restructuring:</note>
+      - Document exact old→new mapping (not just "rename X to Y")
+      - List all affected locations
+      - Format: old string/pattern → new string/pattern
+    </action>
+
+    <action name="inventory">
+      <note>For bulk operations (updating many files, migrating many items):</note>
+      - List ALL items explicitly (not "all 9 files")
+      - Use inventory section with named sets
+      - Prevents missing items during implementation
+    </action>
   </step>
 
   <step name="create_plan_file" outputs="planPath">
@@ -320,9 +334,20 @@ Run: /kanban-scope {taskId}
       {Any trade-offs considered during scoping}
     </rationale>
     <breaking-changes>
-      {List any breaking changes this implementation introduces}
+      <change type="rename|config|api">
+        <old>{exact string/pattern/structure being replaced}</old>
+        <new>{exact replacement}</new>
+        <affects>{files or locations impacted}</affects>
+      </change>
     </breaking-changes>
   </approach>
+
+  <inventory>
+    <set name="{descriptive-name}" count="{N}">
+      <item>{path or identifier 1}</item>
+      <item>{path or identifier 2}</item>
+    </set>
+  </inventory>
 
   <tasks>
     <task id="1" type="auto">
@@ -438,6 +463,8 @@ Run: /kanban-scope {taskId}
       <item>Are dependencies between tasks explicit via `depends` attribute?</item>
       <item>Does Technical Approach explain WHY this approach (not just WHAT)?</item>
       <item>Are edge cases specific to THIS implementation (not generic)?</item>
+      <item>For breaking changes: Is there explicit old→new mapping for each change?</item>
+      <item>For bulk operations: Is there an inventory listing ALL items (not "update all X files")?</item>
     </checklist>
 
     <branch condition="any checklist item fails">
@@ -455,6 +482,8 @@ Run: /kanban-scope {taskId}
 - [ ] Dependencies are explicit
 - [ ] Approach explains rationale
 - [ ] Edge cases are specific
+- [ ] Breaking changes have old→new mapping (or "None")
+- [ ] Bulk operations have complete inventory (if applicable)
 
 {If any failed, explain what was added to fix it}
     </output>
@@ -540,7 +569,7 @@ Next:
 - Plan root element is `<plan>` with attributes: task, spec, status, complexity, iteration
 - Plan has `<title>` element with task title
 - Plan has `<overview>` element with implementation summary (not just "see spec")
-- Plan has `<approach>` element with `<rationale>` child
+- Plan has `<approach>` element with `<rationale>` and `<breaking-changes>` children
 - Plan has `<tasks>` element with one or more `<task>` children
 - Each `<task>` has: id, type attributes and name, files, requirements, action, verify, done children
 - Plan has `<testing>` element with automated, manual, regression children
@@ -629,6 +658,8 @@ Next:
     </rationale>
     <breaking-changes>None</breaking-changes>
   </approach>
+
+  <inventory></inventory>
 
   <tasks>
     <task id="1" type="auto">
