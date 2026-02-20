@@ -117,6 +117,14 @@ export function activate(context: vscode.ExtensionContext): void {
     return files;
   }
 
+  // Policy: Check which task files exist
+  function checkTaskFiles(taskPath: string): { hasSpec: boolean; hasPlan: boolean } {
+    return {
+      hasSpec: fs.exists(fs.joinPath(taskPath, 'spec.xml')),
+      hasPlan: fs.exists(fs.joinPath(taskPath, 'plan.xml')),
+    };
+  }
+
   // Policy: Parse task from URI
   function parseTaskFromUri(uri: vscode.Uri): Task | undefined {
     const taskPath = path.dirname(uri.fsPath);
@@ -141,6 +149,7 @@ export function activate(context: vscode.ExtensionContext): void {
     groupByStatus: taskGrouping.groupByStatus,
     getVisibleColumns: taskGrouping.getVisibleColumns,
     getTaskFiles,
+    checkTaskFiles,
   });
 
   // Initialize codelens capability with dependencies

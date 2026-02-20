@@ -60,36 +60,100 @@ class StatusGroupItem extends vscode.TreeItem {
  * Task tree item (e.g., "001: Add settings panel").
  */
 class TaskItem extends vscode.TreeItem {
-  constructor(public readonly task: Task) {
+  constructor(
+    public readonly task: Task,
+    public readonly files: { hasSpec: boolean; hasPlan: boolean }
+  ) {
     super(`${task.id}: ${task.title}`, vscode.TreeItemCollapsibleState.Collapsed);
 
-    this.description = task.priority ? `[${task.priority}]` : undefined;
+    this.description = this.buildDescription();
     this.contextValue = 'task';
     this.tooltip = this.buildTooltip();
     this.iconPath = this.getPriorityIcon();
   }
 
-  private buildTooltip(): string {
-    const lines = [this.task.title];
+  private buildDescription(): string {
+    const parts: string[] = [];
+
+    // Priority indicator
     if (this.task.priority) {
-      lines.push(`Priority: ${this.task.priority}`);
+      const prioMap: Record<string, string> = {
+        critical: '!!!',
+        high: '!!',
+        medium: '!',
+        low: '·',
+      };
+      parts.push(prioMap[this.task.priority.toLowerCase()] || '');
     }
+
+    // Labels (first 2 only to save space)
     if (this.task.labels.length > 0) {
-      lines.push(`Labels: ${this.task.labels.join(', ')}`);
+      const displayLabels = this.task.labels.slice(0, 2);
+      parts.push(displayLabels.map((l) => `#${l}`).join(' '));
+      if (this.task.labels.length > 2) {
+        parts.push(`+${this.task.labels.length - 2}`);
+      }
     }
-    return lines.join('\n');
+
+    // File indicators
+    const fileIndicators: string[] = [];
+    if (this.files.hasSpec) fileIndicators.push('S');
+    if (this.files.hasPlan) fileIndicators.push('P');
+    if (fileIndicators.length > 0) {
+      parts.push(`[${fileIndicators.join('')}]`);
+    }
+
+    return parts.join(' ');
+  }
+
+  private buildTooltip(): vscode.MarkdownString {
+    const md = new vscode.MarkdownString();
+    md.supportHtml = true;
+
+    // Title
+    md.appendMarkdown(`### ${this.task.title}\n\n`);
+
+    // Priority with color
+    if (this.task.priority) {
+      const prioColors: Record<string, string> = {
+        critical: '🔴',
+        high: '🟠',
+        medium: '🟡',
+        low: '🔵',
+      };
+      const icon = prioColors[this.task.priority.toLowerCase()] || '⚪';
+      md.appendMarkdown(`**Priority:** ${icon} ${this.task.priority}\n\n`);
+    }
+
+    // Labels
+    if (this.task.labels.length > 0) {
+      md.appendMarkdown(`**Labels:** ${this.task.labels.map((l) => `\`${l}\``).join(' ')}\n\n`);
+    }
+
+    // Files
+    md.appendMarkdown(`**Files:**\n`);
+    md.appendMarkdown(`- task.xml ✓\n`);
+    md.appendMarkdown(`- spec.xml ${this.files.hasSpec ? '✓' : '✗'}\n`);
+    md.appendMarkdown(`- plan.xml ${this.files.hasPlan ? '✓' : '✗'}\n`);
+
+    // Dates
+    if (this.task.created) {
+      md.appendMarkdown(`\n---\n*Created: ${this.task.created}*`);
+    }
+
+    return md;
   }
 
   private getPriorityIcon(): vscode.ThemeIcon {
     switch (this.task.priority?.toLowerCase()) {
       case 'critical':
-        return new vscode.ThemeIcon('flame', new vscode.ThemeColor('errorForeground'));
+        return new vscode.ThemeIcon('flame', new vscode.ThemeColor('charts.red'));
       case 'high':
-        return new vscode.ThemeIcon('arrow-up', new vscode.ThemeColor('errorForeground'));
+        return new vscode.ThemeIcon('arrow-up', new vscode.ThemeColor('charts.orange'));
       case 'medium':
-        return new vscode.ThemeIcon('dash', new vscode.ThemeColor('warningForeground'));
+        return new vscode.ThemeIcon('dash', new vscode.ThemeColor('charts.yellow'));
       case 'low':
-        return new vscode.ThemeIcon('arrow-down', new vscode.ThemeColor('descriptionForeground'));
+        return new vscode.ThemeIcon('arrow-down', new vscode.ThemeColor('charts.blue'));
       default:
         return new vscode.ThemeIcon('circle-outline');
     }
@@ -140,6 +204,7 @@ export interface TasksViewCapabilityDeps {
     grouped: Map<TaskStatus, Task[]>
   ) => readonly TaskColumn[];
   getTaskFiles: (taskPath: string) => string[];
+  checkTaskFiles: (taskPath: string) => { hasSpec: boolean; hasPlan: boolean };
 }
 
 export interface CreateTasksViewCapabilityReturn {
@@ -196,7 +261,9 @@ export function createTasksViewCapability(
 
   function getTasksForStatus(status: TaskStatus): TaskItem[] {
     const tasks = deps.loadTasks();
-    return tasks.filter((t) => t.status === status).map((t) => new TaskItem(t));
+    return tasks
+      .filter((t) => t.status === status)
+      .map((t) => new TaskItem(t, deps.checkTaskFiles(t.taskPath)));
   }
 
   function getFilesForTask(taskPath: string): FileItem[] {
