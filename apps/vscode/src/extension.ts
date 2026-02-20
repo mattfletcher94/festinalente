@@ -1,29 +1,41 @@
 /**
- * Claude Kanban VSCode Extension
+ * Claude Kanban VSCode Extension - Orchestrator
  *
- * AI-powered task management for Claude Code.
- * Provides a sidebar TreeView, CodeLens actions, and integrated terminal.
+ * Coordinates capabilities and computers to provide kanban task management.
+ * Policy decisions (when/should) belong here, mechanism (how) in capabilities.
  */
 
 import * as vscode from 'vscode';
-import * as fs from 'fs';
 import * as path from 'path';
-import { TaskTreeProvider } from './tasks/task-tree-provider';
-import { KanbanCodeLensProvider } from './editor/codelens-provider';
-import { runKanbanAction } from './terminal/kanban-terminal';
+
+// Computers (pure functions)
+import { createTaskParserComputer } from './computers/task-parser.computer';
+import { createTaskActionsComputer } from './computers/task-actions.computer';
+import { createTaskGroupingComputer } from './computers/task-grouping.computer';
+
+// Capabilities (mechanism)
+import { createFileSystemCapability } from './capabilities/file-system.capability';
+import { createTerminalCapability } from './capabilities/terminal.capability';
+import { createTasksViewCapability } from './capabilities/tasks-view.capability';
+import { createCodeLensCapability } from './capabilities/codelens.capability';
+
+// Types
+import type { Task } from './types/task-types';
 
 /**
- * Find the .kanban folder in the workspace.
+ * Find the .kanban folder in the workspace (policy decision).
  */
-function findKanbanFolder(): string | undefined {
-  const workspaceFolders = vscode.workspace.workspaceFolders;
+function findKanbanFolder(
+  workspaceFolders: readonly vscode.WorkspaceFolder[] | undefined,
+  fs: ReturnType<typeof createFileSystemCapability>
+): string | undefined {
   if (!workspaceFolders) {
     return undefined;
   }
 
   for (const folder of workspaceFolders) {
-    const kanbanPath = path.join(folder.uri.fsPath, '.kanban');
-    if (fs.existsSync(kanbanPath)) {
+    const kanbanPath = fs.joinPath(folder.uri.fsPath, '.kanban');
+    if (fs.exists(kanbanPath)) {
       return kanbanPath;
     }
   }
@@ -32,56 +44,126 @@ function findKanbanFolder(): string | undefined {
 }
 
 /**
- * Get workspace root from kanban path.
- */
-function getWorkspaceRoot(kanbanPath: string): string {
-  return path.dirname(kanbanPath);
-}
-
-/**
- * Extension activation.
+ * Extension activation - orchestrates all components.
  */
 export function activate(context: vscode.ExtensionContext): void {
-  const output = vscode.window.createOutputChannel('Claude Kanban');
-  output.appendLine('Claude Kanban extension activating...');
+  // Initialize computers
+  const taskParser = createTaskParserComputer();
+  const taskActions = createTaskActionsComputer();
+  const taskGrouping = createTaskGroupingComputer();
 
-  const workspaceFolders = vscode.workspace.workspaceFolders;
-  output.appendLine(`Workspace folders: ${workspaceFolders?.length ?? 0}`);
+  // Initialize capabilities
+  const fs = createFileSystemCapability();
+  const terminal = createTerminalCapability();
 
-  if (workspaceFolders) {
-    for (const folder of workspaceFolders) {
-      output.appendLine(`  - ${folder.uri.fsPath}`);
-      const kanbanCheck = path.join(folder.uri.fsPath, '.kanban');
-      output.appendLine(`    Checking: ${kanbanCheck}`);
-      output.appendLine(`    Exists: ${fs.existsSync(kanbanCheck)}`);
-    }
-  }
-
-  const kanbanPath = findKanbanFolder();
+  // Policy: Find kanban folder
+  const kanbanPath = findKanbanFolder(vscode.workspace.workspaceFolders, fs);
 
   if (!kanbanPath) {
-    output.appendLine('No .kanban folder found, extension inactive');
     vscode.commands.executeCommand('setContext', 'kanban.hasKanbanFolder', false);
     return;
   }
 
-  output.appendLine(`Found .kanban folder at: ${kanbanPath}`);
-
-  // Set context for "when" clauses
   vscode.commands.executeCommand('setContext', 'kanban.hasKanbanFolder', true);
 
-  const workspaceRoot = getWorkspaceRoot(kanbanPath);
+  const workspaceRoot = path.dirname(kanbanPath);
 
-  // --- TreeView ---
-  const treeProvider = new TaskTreeProvider(kanbanPath);
+  // Policy: Load all tasks from kanban folder
+  function loadAllTasks(): Task[] {
+    const tasksDir = fs.joinPath(kanbanPath, 'tasks');
+    if (!fs.exists(tasksDir)) {
+      return [];
+    }
+
+    const tasks: Task[] = [];
+
+    try {
+      const entries = fs.readDir(tasksDir);
+
+      for (const entry of entries) {
+        const taskPath = fs.joinPath(tasksDir, entry);
+        if (!fs.isDirectory(taskPath)) continue;
+
+        const taskXml = fs.joinPath(taskPath, 'task.xml');
+        if (fs.exists(taskXml)) {
+          try {
+            const content = fs.readFile(taskXml);
+            const task = taskParser.parseTaskWithPath(content, taskPath);
+            tasks.push(task);
+          } catch (err) {
+            console.error(`Failed to parse ${taskXml}:`, err);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Failed to read tasks directory:', err);
+    }
+
+    return tasks;
+  }
+
+  // Policy: Get task files for a task path
+  function getTaskFiles(taskPath: string): string[] {
+    const fileNames = ['task.xml', 'spec.xml', 'plan.xml'];
+    const files: string[] = [];
+
+    for (const name of fileNames) {
+      const filePath = fs.joinPath(taskPath, name);
+      if (fs.exists(filePath)) {
+        files.push(filePath);
+      }
+    }
+
+    return files;
+  }
+
+  // Policy: Parse task from URI
+  function parseTaskFromUri(uri: vscode.Uri): Task | undefined {
+    const taskPath = path.dirname(uri.fsPath);
+    const taskXml = fs.joinPath(taskPath, 'task.xml');
+
+    if (!fs.exists(taskXml)) {
+      return undefined;
+    }
+
+    try {
+      const content = fs.readFile(taskXml);
+      return taskParser.parseTaskWithPath(content, taskPath);
+    } catch {
+      return undefined;
+    }
+  }
+
+  // Initialize view capability with dependencies
+  const tasksView = createTasksViewCapability({
+    loadTasks: loadAllTasks,
+    getColumns: taskGrouping.getColumns,
+    groupByStatus: taskGrouping.groupByStatus,
+    getVisibleColumns: taskGrouping.getVisibleColumns,
+    getTaskFiles,
+  });
+
+  // Initialize codelens capability with dependencies
+  const codelens = createCodeLensCapability({
+    parseTaskFromUri,
+    getActions: taskActions.getActions,
+  });
+
+  // Create providers
+  const treeDataProvider = tasksView.createTreeDataProvider();
+  const codeLensProvider = codelens.createCodeLensProvider();
+
+  const refreshTree = tasksView.createRefreshCallback();
+  const refreshCodeLens = codelens.createRefreshCallback();
+
+  // Register TreeView
   const treeView = vscode.window.createTreeView('kanbanTasks', {
-    treeDataProvider: treeProvider,
+    treeDataProvider,
     showCollapseAll: true,
   });
   context.subscriptions.push(treeView);
 
-  // --- CodeLens ---
-  const codeLensProvider = new KanbanCodeLensProvider(kanbanPath);
+  // Register CodeLens
   context.subscriptions.push(
     vscode.languages.registerCodeLensProvider(
       { pattern: '**/.kanban/tasks/*/task.xml' },
@@ -89,13 +171,13 @@ export function activate(context: vscode.ExtensionContext): void {
     )
   );
 
-  // --- Commands ---
+  // --- Commands (policy decisions) ---
 
   // Refresh command
   context.subscriptions.push(
     vscode.commands.registerCommand('kanban.refresh', () => {
-      treeProvider.refresh();
-      codeLensProvider.refresh();
+      refreshTree();
+      refreshCodeLens();
       vscode.window.showInformationMessage('Kanban tasks refreshed');
     })
   );
@@ -110,7 +192,7 @@ export function activate(context: vscode.ExtensionContext): void {
     })
   );
 
-  // Run action command
+  // Run action command (policy: when to run actions)
   context.subscriptions.push(
     vscode.commands.registerCommand(
       'kanban.runAction',
@@ -120,26 +202,14 @@ export function activate(context: vscode.ExtensionContext): void {
           return;
         }
 
-        const autoplay = vscode.workspace.getConfiguration('kanban').get<boolean>('autoplay');
-
-        runKanbanAction(workspaceRoot, args.command, args.taskId, () => {
-          // On completion
-          treeProvider.refresh();
-          codeLensProvider.refresh();
-
-          if (autoplay) {
-            vscode.window.showInformationMessage(
-              `Task ${args.taskId} stage complete. Autoplay enabled.`
-            );
-            // Note: Full autoplay (running next action) would require
-            // re-parsing the task and determining the new action
-          }
-        });
+        const kanbanTerminal = terminal.getOrCreateTerminal('Kanban', workspaceRoot);
+        terminal.showTerminal(kanbanTerminal);
+        terminal.sendCommand(kanbanTerminal, `claude "${args.command}"`);
       }
     )
   );
 
-  // Create task command
+  // Create task command (policy: how to create tasks)
   context.subscriptions.push(
     vscode.commands.registerCommand('kanban.createTask', async () => {
       const title = await vscode.window.showInputBox({
@@ -148,46 +218,42 @@ export function activate(context: vscode.ExtensionContext): void {
       });
 
       if (!title) {
-        return; // User cancelled
+        return;
       }
 
-      runKanbanAction(workspaceRoot, `/kanban-create ${title}`, 'new', () => {
-        treeProvider.refresh();
-        codeLensProvider.refresh();
-        vscode.window.showInformationMessage(`Task created: ${title}`);
-      });
+      const kanbanTerminal = terminal.getOrCreateTerminal('Kanban', workspaceRoot);
+      terminal.showTerminal(kanbanTerminal);
+      terminal.sendCommand(kanbanTerminal, `claude "/kanban-create ${title}"`);
     })
   );
 
-  // --- File Watcher ---
+  // --- File Watcher (policy: when to refresh) ---
   const watcher = vscode.workspace.createFileSystemWatcher(
     new vscode.RelativePattern(kanbanPath, 'tasks/**/*.xml')
   );
 
   watcher.onDidChange(() => {
-    treeProvider.refresh();
-    codeLensProvider.refresh();
+    refreshTree();
+    refreshCodeLens();
   });
 
   watcher.onDidCreate(() => {
-    treeProvider.refresh();
-    codeLensProvider.refresh();
+    refreshTree();
+    refreshCodeLens();
   });
 
   watcher.onDidDelete(() => {
-    treeProvider.refresh();
-    codeLensProvider.refresh();
+    refreshTree();
+    refreshCodeLens();
   });
 
   context.subscriptions.push(watcher);
 
-  // --- Watch for workspace changes ---
+  // --- Workspace changes (policy: when to prompt reload) ---
   context.subscriptions.push(
     vscode.workspace.onDidChangeWorkspaceFolders(() => {
-      // Re-check for kanban folder
-      const newKanbanPath = findKanbanFolder();
+      const newKanbanPath = findKanbanFolder(vscode.workspace.workspaceFolders, fs);
       if (newKanbanPath !== kanbanPath) {
-        // Reload the extension by showing a prompt
         vscode.window
           .showInformationMessage(
             'Workspace changed. Reload to update Kanban extension?',
