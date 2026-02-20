@@ -16,15 +16,18 @@ directives:
     - architecture
     - vue-integration
     - typescript
+    - design
   kanban-plan:
     - planning
     - architecture
     - vue-integration
+    - design
   kanban-implement:
     - architecture
     - vue-integration
     - typescript
     - tsdoc
+    - design
   kanban-save: []
   kanban-codecheck:
     - code-review
@@ -36,6 +39,7 @@ directives:
     - vue-integration
     - typescript
     - tsdoc
+    - design
   kanban-map-product: []
   kanban-define-product: []
   kanban-map-engineering: []
