@@ -79,7 +79,8 @@
       "Bash(code --install-extension:*)",
       "Bash(echo:*)",
       "Bash(git fetch:*)",
-      "Bash(git -C \"C:\\\\Users\\\\MattF\\\\Documents\\\\Code\\\\claudeban\" log --oneline -20)"
+      "Bash(git -C \"C:\\\\Users\\\\MattF\\\\Documents\\\\Code\\\\claudeban\" log --oneline -20)",
+      "Bash(find:*)"
     ]
   }
 }
