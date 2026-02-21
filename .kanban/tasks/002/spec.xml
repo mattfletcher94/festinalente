@@ -1,0 +1,93 @@
+<spec task="002" created="2026-02-21" updated="2026-02-21">
+  <title>Create new terminal for each kanban action instead of reusing</title>
+
+  <context>
+    When a kanban action is triggered from the VSCode extension, the current implementation reuses an existing terminal. If Claude is still running from a previous command, sending a new command results in that text being sent as input to the running Claude session rather than starting a fresh instance. This breaks the context-isolation design where each kanban action should run with a clean Claude context.
+  </context>
+
+  <scope>
+    <in-scope>
+      <item>Modify terminal capability to dispose existing terminal before creating new one</item>
+      <item>Rename getOrCreateTerminal to createFreshTerminal to reflect new behavior</item>
+      <item>Update all call sites in extension.ts</item>
+    </in-scope>
+    <out-of-scope>
+      <item>Terminal output parsing or capture</item>
+      <item>Preserving terminal history across actions</item>
+      <item>Adding confirmation dialogs before disposing</item>
+    </out-of-scope>
+  </scope>
+
+  <requirements>
+    <requirement id="FR1">The terminal capability shall dispose the existing "Claude Kanban" terminal before creating a new one</requirement>
+    <requirement id="FR2">The terminal capability function shall be renamed from getOrCreateTerminal to createFreshTerminal</requirement>
+    <requirement id="FR3">All call sites in extension.ts shall be updated to use the renamed function</requirement>
+    <requirement id="FR4">The new terminal shall be created with the same configuration (name, cwd, icon) as before</requirement>
+  </requirements>
+
+  <files>
+    <file path="apps/vscode/src/capabilities/terminal.capability.ts" action="modify">
+      Change getOrCreateTerminal to createFreshTerminal. Add logic to dispose existing terminal before creating new one.
+    </file>
+    <file path="apps/vscode/src/extension.ts" action="modify">
+      Update three call sites (lines 223, 242, 256) to use createFreshTerminal instead of getOrCreateTerminal.
+    </file>
+  </files>
+
+  <patterns>
+    <pattern name="factory-di">
+      Terminal capability uses factory function with closure for state management.
+      Reference: terminal.capability.ts:13-50
+    </pattern>
+    <pattern name="vscode-integration">
+      All VSCode API calls (including terminal.dispose()) stay in capabilities, not computers.
+      Reference: vscode-integration directive
+    </pattern>
+  </patterns>
+
+  <research>
+    <product>
+      <finding doc="vscode/terminal">
+        Current design documents "Reused for subsequent actions" as intended behavior. This task changes that design to "Disposed and recreated for each action" to ensure clean Claude context.
+      </finding>
+    </product>
+    <engineering>
+      <finding doc="systems/vscode-extension">
+        Terminal capability is one of four capabilities in the extension. The orchestrator (extension.ts) calls terminal methods from three command handlers.
+      </finding>
+    </engineering>
+    <codebase>
+      <finding>
+        Current getOrCreateTerminal checks if kanbanTerminal exists and is still in vscode.window.terminals. If yes, reuses it. The cached terminal reference is only cleared when terminal is externally closed.
+      </finding>
+      <finding>
+        Three call sites follow identical pattern: getOrCreateTerminal → showTerminal → sendCommand
+      </finding>
+    </codebase>
+    <pitfalls>
+      <finding>
+        Terminal.dispose() is the correct VSCode API for closing a terminal programmatically. No race condition concern since we create the new terminal synchronously after dispose.
+      </finding>
+    </pitfalls>
+  </research>
+
+  <constraints>
+    <constraint>Must follow capability-computer pattern - VSCode API calls only in capabilities</constraint>
+    <constraint>Must maintain explicit return types on exported functions (typescript directive)</constraint>
+  </constraints>
+
+  <dependencies>
+    <external>None - uses existing VSCode Terminal API</external>
+    <internal>None</internal>
+  </dependencies>
+
+  <risks>
+    <risk impact="low" mitigation="Expected behavior change">
+      Users accustomed to scrolling back in terminal history will lose that when terminal is recreated. This is acceptable as it enforces clean context.
+    </risk>
+  </risks>
+
+  <open-questions>
+    None - all technical decisions resolved during scoping.
+  </open-questions>
+</spec>
