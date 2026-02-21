@@ -2,9 +2,9 @@
 id: "vscode/kanban-view"
 title: "Kanban View"
 type: feature
-tldr: "Sidebar tree view displaying tasks grouped by workflow column plus config access"
-summary: "VSCode TreeDataProvider showing tasks organized by status (backlog, scoped, planned, in-progress, etc.) with priority indicators, labels, and file status. Includes a Kanban Config section for quick access to config.yaml."
-keywords: [kanban, view, treeview, sidebar, columns, status, config]
+tldr: "Sidebar tree view displaying tasks grouped by workflow column, config access, and global actions"
+summary: "VSCode TreeDataProvider showing tasks organized by status (backlog, scoped, planned, in-progress, etc.) with priority indicators, labels, and file status. Includes Kanban Config and Global Actions sections."
+keywords: [kanban, view, treeview, sidebar, columns, status, config, global-actions]
 aliases: [task-view, kanban-board, tasks-view]
 boundary: "Does NOT provide drag-and-drop; tasks move via commands"
 related: [vscode/codelens, vscode/terminal, tasks/workflow]
@@ -14,19 +14,20 @@ code_refs:
   - apps/vscode/src/extension.ts
   - apps/vscode/src/capabilities/tasks-view.capability.ts
   - apps/vscode/src/capabilities/config-view.capability.ts
+  - apps/vscode/src/capabilities/global-actions-view.capability.ts
 ---
 
 # Kanban View
 
-> **TL;DR:** Sidebar tree view displaying tasks grouped by workflow column plus config access
+> **TL;DR:** Sidebar tree view displaying tasks grouped by workflow column, config access, and global actions
 
 ## Overview
 
 Kanban View provides a sidebar TreeView showing all tasks organized by their workflow status. Each column (backlog, scoped, planned, in-progress, codecheck, qa, update-docs, pr, done) expands to show tasks with priority indicators and labels. Clicking a task opens its task.xml file.
 
-The sidebar also includes a "Kanban Config" section that provides quick access to config.yaml without navigating the file system.
+The sidebar also includes a "Kanban Config" section for quick access to config.yaml, and a "Global Actions" section providing project-wide commands like documentation mapping.
 
-**Summary:** Visual task organization matching the workflow columns, plus config access.
+**Summary:** Visual task organization matching the workflow columns, plus config and global actions.
 
 ## How It Works
 
@@ -68,7 +69,15 @@ The sidebar also includes a "Kanban Config" section that provides quick access t
 - Shows welcome message when config.yaml doesn't exist
 - Automatically refreshes when config.yaml is created, modified, or deleted
 
-**Summary:** Hierarchical display with automatic refresh.
+**Global Actions section:**
+- Provides project-wide commands not tied to specific tasks
+- "Map Product Docs" - runs `/kanban-map-product` command
+- "Map Engineering Docs" - runs `/kanban-map-engineering` command
+- Each action uses a distinct ThemeIcon (book, symbol-structure)
+- Clicking an action opens a terminal and executes the command
+- Keyboard accessible: focus with arrow keys, activate with Enter
+
+**Summary:** Hierarchical display with automatic refresh, plus global actions.
 
 ## Examples
 
@@ -125,7 +134,18 @@ KANBAN CONFIG
 
 Clicking config.yaml opens it in the editor.
 
-**Summary:** Columns with nested task items, ActionItems show next action, plus config section.
+### Global Actions Section
+
+```
+GLOBAL ACTIONS
+├── Global Actions               ← GlobalActionsGroupItem (tools icon, expanded)
+│   ├── Map Product Docs         ← GlobalActionItem (book icon)
+│   └── Map Engineering Docs     ← GlobalActionItem (symbol-structure icon)
+```
+
+Clicking an action opens a terminal and runs the corresponding `/kanban-*` command.
+
+**Summary:** Columns with nested task items, ActionItems show next action, plus config and global actions sections.
 
 ## Boundaries
 
@@ -146,6 +166,7 @@ What this feature does NOT do:
 
 - **Task files**: Reads task.xml for display
 - **ActionItem**: Triggers workflow commands via terminal
+- **GlobalActionItem**: Triggers global commands via terminal
 - **CodeLens**: Actions for clicked task
 - **File watcher**: Refreshes on changes
 
