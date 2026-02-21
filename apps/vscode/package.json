@@ -2,20 +2,13 @@
   "name": "@mattfletcher94/claudeban-vscode",
   "displayName": "Claude Kanban",
   "description": "AI-powered task management for Claude Code",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "claude-kanban",
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": [
     "Other"
-  ],
-  "bin": {
-    "claudeban-vscode": "bin/install.cjs"
-  },
-  "files": [
-    "bin",
-    "claude-kanban-vscode-*.vsix"
   ],
   "repository": {
     "type": "git",
@@ -130,8 +123,8 @@
     "compile": "npm run build",
     "watch": "npm run build -- --watch",
     "lint": "eslint src --ext ts",
-    "package": "npm run build && vsce package --no-dependencies --allow-missing-repository --skip-license",
-    "publish": "npm run build && vsce publish --no-dependencies"
+    "package": "npm run build && node scripts/package.cjs",
+    "prepublishOnly": "npm run package"
   },
   "dependencies": {
     "fast-xml-parser": "^4.5.1"
@@ -142,5 +135,12 @@
     "@vscode/vsce": "^3.2.1",
     "esbuild": "^0.27.3",
     "typescript": "^5.7.0"
+  },
+  "files": [
+    "bin",
+    "claude-kanban-vscode-*.vsix"
+  ],
+  "bin": {
+    "claudeban-vscode": "bin/install.cjs"
   }
 }

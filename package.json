@@ -11,9 +11,9 @@
     "check:dpdm": "npx dpdm -T --no-warning --exit-code circular:1 apps/vscode/src/extension.ts",
     "kanban:build": "pnpm --filter @mattfletcher94/claudeban build",
     "kanban:publish": "pnpm --filter @mattfletcher94/claudeban publish --no-git-checks",
-    "vscode:watch": "pnpm --filter claude-kanban-vscode watch",
-    "vscode:package": "pnpm --filter claude-kanban-vscode package",
-    "vscode:install": "pnpm vscode:package && code --install-extension apps/vscode/claude-kanban-vscode-0.1.0.vsix",
+    "vscode:watch": "pnpm --filter @mattfletcher94/claudeban-vscode watch",
+    "vscode:package": "pnpm --filter @mattfletcher94/claudeban-vscode package",
+    "vscode:install": "pnpm vscode:package && code --install-extension apps/vscode/claudeban-vscode-0.1.1.vsix",
     "vscode:publish": "pnpm --filter @mattfletcher94/claudeban-vscode publish --no-git-checks"
   },
   "devDependencies": {
