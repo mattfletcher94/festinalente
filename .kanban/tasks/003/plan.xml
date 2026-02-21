@@ -1,6 +1,6 @@
 <plan task="003" spec="tasks/003/spec.xml" status="approved"
       complexity="medium" created="2026-02-21" updated="2026-02-21"
-      generated-by="claude" model="claude-opus-4-5-20251101" version="1" iteration="1">
+      generated-by="claude" model="claude-opus-4-5-20251101" version="1" iteration="2">
   <title>Show action description in Run next action button</title>
 
   <overview>
@@ -36,7 +36,7 @@
   <inventory></inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-02-21T11:23:06.539Z">
       <name>Add ActionItem class to tasks-view.capability.ts</name>
       <files>apps/vscode/src/capabilities/tasks-view.capability.ts (modify)</files>
       <requirements>FR2, FR3, FR4</requirements>
@@ -55,7 +55,7 @@
       <done>ActionItem class compiles with correct label, description, green play icon, and command</done>
     </task>
 
-    <task id="2" type="auto" depends="1">
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-02-21T11:23:30.000Z">
       <name>Update TreeItem union type to include ActionItem</name>
       <files>apps/vscode/src/capabilities/tasks-view.capability.ts (modify)</files>
       <requirements>FR1</requirements>
@@ -67,7 +67,7 @@
       <done>TreeItem type includes ActionItem</done>
     </task>
 
-    <task id="3" type="auto" depends="2">
+    <task id="3" type="auto" depends="2" completed="true" completed_at="2026-02-21T11:24:30.000Z">
       <name>Modify getChildren to return ActionItem before FileItems</name>
       <files>apps/vscode/src/capabilities/tasks-view.capability.ts (modify)</files>
       <requirements>FR1, FR6</requirements>
@@ -83,7 +83,7 @@
       <done>Expanding a task shows ActionItem first (if action exists), then file items</done>
     </task>
 
-    <task id="4" type="auto" depends="3">
+    <task id="4" type="auto" depends="3" completed="true" completed_at="2026-02-21T11:25:00.000Z">
       <name>Remove inline play button from package.json menus</name>
       <files>apps/vscode/package.json (modify)</files>
       <requirements>FR7</requirements>
@@ -102,7 +102,7 @@
       <done>Inline play button no longer appears on task rows in tree view</done>
     </task>
 
-    <task id="5" type="manual" depends="4">
+    <task id="5" type="manual" depends="4" completed="true" completed_at="2026-02-21T11:27:00.000Z">
       <name>Manual verification of all acceptance criteria</name>
       <files>N/A</files>
       <requirements>FR1, FR2, FR3, FR4, FR5, FR6, FR7</requirements>
@@ -152,7 +152,21 @@
     <pitfall issue="TreeItem type union order">Add ActionItem between TaskItem and FileItem to maintain logical ordering</pitfall>
   </pitfalls>
 
-  <iterations></iterations>
+  <iterations>
+## Iterations
+
+### Attempt 1 — Code Check Failed (2026-02-21)
+**Phase:** codecheck
+**Result:** failed
+
+**Issues:**
+- [ ] ActionItem label includes "task {id}" suffix (e.g., "Run Checks task 003") - should just show the action label (e.g., "Run Checks")
+- [ ] Clicking ActionItem shows "no actions available" error - command handler not receiving task context correctly
+
+**Action:** Fix label format and command arguments, then re-verify
+
+---
+  </iterations>
   <wip></wip>
   <completeness></completeness>
 </plan>
