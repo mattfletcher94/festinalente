@@ -1,0 +1,131 @@
+<plan task="002" spec="tasks/002/spec.xml" status="approved"
+      complexity="simple" created="2026-02-21" updated="2026-02-21"
+      generated-by="claude" model="claude-opus-4-5-20251101" version="1" iteration="1">
+  <title>Create new terminal for each kanban action instead of reusing</title>
+
+  <overview>
+    Modify terminal capability to dispose the existing terminal before creating a new one,
+    ensuring each kanban action runs in a fresh Claude context. Rename getOrCreateTerminal
+    to createFreshTerminal to reflect the new behavior, and update all three call sites
+    in extension.ts.
+  </overview>
+
+  <approach>
+    <rationale>
+      The current getOrCreateTerminal function reuses an existing terminal if one exists.
+      This breaks context isolation when Claude is still running - new commands get sent
+      as input to the running session. The fix is to always dispose the existing terminal
+      before creating a new one, guaranteeing a fresh Claude instance.
+
+      Following patterns:
+      - Factory-DI pattern at terminal.capability.ts:13-50 (closure-based state)
+      - VSCode API encapsulation in capabilities (vscode-integration directive)
+      - Terminal.dispose() is the correct VSCode API per spec research
+
+      No backwards compatibility needed - direct rename and update of all callers (planning directive C2).
+    </rationale>
+    <breaking-changes>
+      <change type="rename">
+        <old>getOrCreateTerminal</old>
+        <new>createFreshTerminal</new>
+        <affects>
+          terminal.capability.ts:8 (interface)
+          terminal.capability.ts:16 (function)
+          terminal.capability.ts:46 (return object)
+          extension.ts:223 (runAction command)
+          extension.ts:242 (createTask command)
+          extension.ts:256 (runNextAction command)
+        </affects>
+      </change>
+    </breaking-changes>
+  </approach>
+
+  <inventory></inventory>
+
+  <tasks>
+    <task id="1" type="auto">
+      <name>Modify terminal capability to dispose and recreate</name>
+      <files>apps/vscode/src/capabilities/terminal.capability.ts (modify)</files>
+      <requirements>FR1, FR2, FR4</requirements>
+      <pattern>Factory-DI pattern at terminal.capability.ts:13-50</pattern>
+      <action>
+        - Rename function getOrCreateTerminal to createFreshTerminal at line 16
+        - Update interface CreateTerminalCapabilityReturn at line 8 to use new name
+        - Update return object at line 46 to use new name
+        - Add dispose logic: if kanbanTerminal exists and is in vscode.window.terminals, call kanbanTerminal.dispose()
+        - Remove the reuse check (lines 18-23), replace with dispose-then-create logic
+        - Keep the same terminal configuration (name, cwd, iconPath with ThemeIcon)
+      </action>
+      <verify>npx tsc --noEmit -p apps/vscode</verify>
+      <done>Function renamed, dispose logic added, TypeScript compiles</done>
+    </task>
+
+    <task id="2" type="auto" depends="1">
+      <name>Update call sites in extension.ts</name>
+      <files>apps/vscode/src/extension.ts (modify)</files>
+      <requirements>FR3</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Line 223: Change terminal.getOrCreateTerminal to terminal.createFreshTerminal
+        - Line 242: Change terminal.getOrCreateTerminal to terminal.createFreshTerminal
+        - Line 256: Change terminal.getOrCreateTerminal to terminal.createFreshTerminal
+      </action>
+      <verify>npx tsc --noEmit -p apps/vscode</verify>
+      <done>All three call sites updated, TypeScript compiles</done>
+    </task>
+
+    <task id="3" type="auto" depends="2">
+      <name>Build and verify no errors</name>
+      <files>N/A</files>
+      <requirements>FR1, FR2, FR3, FR4</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Run full build for vscode extension
+        - Verify no TypeScript errors
+        - Verify no runtime errors in build output
+      </action>
+      <verify>pnpm --filter @claudeban/vscode build</verify>
+      <done>Extension builds successfully with no errors</done>
+    </task>
+
+    <task id="4" type="manual" depends="3">
+      <name>Manual verification of terminal behavior</name>
+      <files>N/A</files>
+      <requirements>FR1, FR2, FR3, FR4</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Open VSCode with extension installed
+        - Trigger a kanban action (e.g., click a CodeLens action)
+        - Verify new "Kanban" terminal is created
+        - While Claude is running, trigger another kanban action
+        - Verify the old terminal is closed and a new one is created
+        - Verify the new command runs in a fresh Claude instance
+      </action>
+      <verify>Manual: Verify terminal is disposed and recreated on each action</verify>
+      <done>Both acceptance criteria scenarios pass</done>
+    </task>
+  </tasks>
+
+  <testing>
+    <automated>None required - this is a simple rename and behavior change with no complex logic to unit test. The VSCode Terminal API is mocked poorly and testing dispose behavior provides little value.</automated>
+    <manual>
+      - Trigger action with no existing terminal → new terminal created
+      - Trigger action with existing running Claude → old terminal disposed, new terminal created, command runs fresh
+    </manual>
+    <regression>Verify existing terminal commands (showTerminal, sendCommand) still work correctly</regression>
+  </testing>
+
+  <edge-cases>
+    <case scenario="Terminal externally closed by user">No dispose needed, just create new terminal (handled by existing vscode.window.terminals check)</case>
+    <case scenario="Terminal dispose called on non-existent terminal">VSCode handles gracefully, no error thrown</case>
+  </edge-cases>
+
+  <pitfalls>
+    <pitfall issue="Forgetting to update all three call sites">All three call sites listed in inventory must be updated: lines 223, 242, 256</pitfall>
+    <pitfall issue="Leaving old function name in interface">Interface at line 8 must also be renamed to match implementation</pitfall>
+  </pitfalls>
+
+  <iterations></iterations>
+  <wip></wip>
+  <completeness></completeness>
+</plan>
