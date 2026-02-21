@@ -83,7 +83,11 @@
       "Bash(find:*)",
       "Bash(npx vsce:*)",
       "Bash(pnpm vscode:install:*)",
-      "WebFetch(domain:docs.github.com)"
+      "WebFetch(domain:docs.github.com)",
+      "Bash(pnpm vscode:publish:*)",
+      "Bash(pnpm vscode:package:*)",
+      "Bash(pnpm vscode:dev:*)",
+      "Bash(pnpm vscode:local:*)"
     ]
   }
 }
