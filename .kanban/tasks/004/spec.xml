@@ -1,0 +1,90 @@
+<spec task="004" created="2026-02-21" updated="2026-02-21">
+  <title>Add secondary action support to VSCode TreeView</title>
+
+  <context>
+    The TreeView currently shows only one action per task (the first/primary action), but task-actions.computer.ts already returns multiple actions for statuses like qa (Approve/Rework), pr (Merge/Rework), and in-progress (Continue/Save WIP). Users cannot trigger secondary actions from the TreeView and must open task.xml or use the terminal manually.
+  </context>
+
+  <scope>
+    <in-scope>
+      <item>Display all available actions as ActionItems when a task is expanded</item>
+      <item>Visual distinction between primary (green play) and secondary (orange reply) actions</item>
+      <item>Clickable secondary actions that execute via terminal</item>
+    </in-scope>
+    <out-of-scope>
+      <item>Adding new actions to task-actions.computer.ts (actions already exist)</item>
+      <item>Modifying CodeLens behavior (already shows all actions)</item>
+      <item>Changing action ordering or priority logic</item>
+    </out-of-scope>
+  </scope>
+
+  <requirements>
+    <requirement id="FR1">The system shall display all available actions from getActions() as ActionItems when a task is expanded in the TreeView</requirement>
+    <requirement id="FR2">The system shall render the first action (primary) with a green play icon using ThemeIcon('play', ThemeColor('charts.green'))</requirement>
+    <requirement id="FR3">The system shall render subsequent actions (secondary) with an orange reply icon using ThemeIcon('reply', ThemeColor('charts.orange'))</requirement>
+    <requirement id="FR4">Each ActionItem shall execute its corresponding command via terminal when clicked</requirement>
+    <requirement id="FR5">Tasks in 'done' status shall continue to show no ActionItems</requirement>
+  </requirements>
+
+  <files>
+    <file path="apps/vscode/src/extension.ts" action="modify">
+      Change getNextAction to getAllActions - return full actions array instead of just first element
+    </file>
+    <file path="apps/vscode/src/capabilities/tasks-view.capability.ts" action="modify">
+      Update TasksViewCapabilityDeps interface, TaskItem constructor, ActionItem class, and getChildrenForTask to support multiple actions with primary/secondary distinction
+    </file>
+  </files>
+
+  <patterns>
+    <pattern name="ThemeIcon with ThemeColor">
+      Used for icon styling with theme compatibility. Reference: tasks-view.capability.ts:185
+    </pattern>
+    <pattern name="Factory DI">
+      Dependencies injected via factory function parameters. Reference: extension.ts:155-163
+    </pattern>
+    <pattern name="Capability-Computer separation">
+      Pure action logic in computer, rendering in capability. Reference: task-actions.computer.ts
+    </pattern>
+  </patterns>
+
+  <research>
+    <product>
+      <finding doc="vscode/kanban-view">Documents current limitation: "Does NOT: Show multiple actions (only next action in workflow)"</finding>
+      <finding doc="vscode/codelens">Already displays ALL actions - pattern to follow for consistency</finding>
+    </product>
+    <engineering>
+      <finding doc="systems/vscode-extension">Three-layer architecture: Orchestrator decides when, Capabilities handle how, Computers define what</finding>
+    </engineering>
+    <codebase>
+      <finding file="task-actions.computer.ts:49-60">in-progress returns [Continue, Save WIP]</finding>
+      <finding file="task-actions.computer.ts:71-83">qa returns [Approve, Rework]</finding>
+      <finding file="task-actions.computer.ts:94-106">pr returns [Merge, Rework]</finding>
+      <finding file="extension.ts:149-152">getNextAction only returns actions[0]</finding>
+      <finding file="tasks-view.capability.ts:310-321">getChildrenForTask creates single ActionItem</finding>
+    </codebase>
+    <pitfalls>
+      <pitfall>Array position determines primary/secondary - no interface change needed</pitfall>
+    </pitfalls>
+  </research>
+
+  <constraints>
+    <constraint>Must use VSCode ThemeIcon and ThemeColor for theme compatibility (design directive)</constraint>
+    <constraint>No lateral capability imports (architecture directive)</constraint>
+    <constraint>Explicit return types on exported functions (typescript directive)</constraint>
+  </constraints>
+
+  <dependencies>
+    <external>None - uses existing VSCode API</external>
+    <internal>task-actions.computer.ts already provides multiple actions</internal>
+  </dependencies>
+
+  <risks>
+    <risk impact="low" mitigation="Use array index to determine primary vs secondary">
+      TaskAction interface has no isPrimary flag - relying on position
+    </risk>
+  </risks>
+
+  <open-questions>
+    None - implementation approach is clear
+  </open-questions>
+</spec>
