@@ -1,4 +1,4 @@
-<task id="002" status="update-docs" priority="medium" created="2026-02-21" updated="2026-02-21">
+<task id="002" status="pr" priority="medium" created="2026-02-21" updated="2026-02-21">
   <title>Create new terminal for each kanban action instead of reusing</title>
 
   <labels>
