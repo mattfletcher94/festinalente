@@ -70,10 +70,10 @@ The tasks-view capability defines these TreeItem types:
 |----------|--------|---------|
 | StatusGroupItem | root | Column header (e.g., "Backlog", "In Progress") |
 | TaskItem | StatusGroupItem | Task entry with ID, title, priority, label |
-| ActionItem | TaskItem | Next workflow action (green play icon, clickable) |
+| ActionItem | TaskItem | Workflow action (primary: green play, secondary: orange reply) |
 | FileItem | TaskItem | Task file (task.xml, spec.xml, plan.xml) |
 
-ActionItem appears as the first child when expanding a TaskItem (unless task is in "done" status).
+ActionItems appear as the first children when expanding a TaskItem (unless task is in "done" status). Tasks may have multiple actions: primary action (index 0) uses green play icon, secondary actions (index > 0) use orange reply icon.
 
 #### TreeItem Types in config-view
 

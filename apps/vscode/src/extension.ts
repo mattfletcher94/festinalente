@@ -21,7 +21,7 @@ import { createCodeLensCapability } from './capabilities/codelens.capability';
 import { createConfigViewCapability } from './capabilities/config-view.capability';
 
 // Types
-import type { Task } from './types/task-types';
+import type { Task, TaskAction } from './types/task-types';
 
 /**
  * Find the .kanban folder in the workspace (policy decision).
@@ -145,10 +145,9 @@ export function activate(context: vscode.ExtensionContext): void {
     }
   }
 
-  // Policy: Get next action for a task
-  function getNextAction(task: Task) {
-    const actions = taskActions.getActions(task);
-    return actions.length > 0 ? actions[0] : undefined;
+  // Policy: Get all actions for a task
+  function getAllActions(task: Task): readonly TaskAction[] {
+    return taskActions.getActions(task);
   }
 
   // Initialize view capability with dependencies
@@ -159,7 +158,7 @@ export function activate(context: vscode.ExtensionContext): void {
     getVisibleColumns: taskGrouping.getVisibleColumns,
     getTaskFiles,
     checkTaskFiles,
-    getNextAction,
+    getAllActions,
   });
 
   // Policy: Check if config exists
@@ -275,14 +274,15 @@ export function activate(context: vscode.ExtensionContext): void {
   // Run next action command (from inline button)
   context.subscriptions.push(
     vscode.commands.registerCommand('kanban.runNextAction', (item: TaskItem) => {
-      if (!item?.task || !item?.nextAction) {
+      if (!item?.task || item.actions.length === 0) {
         vscode.window.showWarningMessage('No action available for this task');
         return;
       }
 
+      const primaryAction = item.actions[0];
       const kanbanTerminal = terminal.createFreshTerminal('Kanban', workspaceRoot);
       terminal.showTerminal(kanbanTerminal);
-      terminal.sendCommand(kanbanTerminal, `claude "${item.nextAction.command}"`);
+      terminal.sendCommand(kanbanTerminal, `claude "${primaryAction.command}"`);
     })
   );
 

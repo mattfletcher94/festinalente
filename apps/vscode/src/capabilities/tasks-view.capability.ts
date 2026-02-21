@@ -63,7 +63,7 @@ export class TaskItem extends vscode.TreeItem {
   constructor(
     public readonly task: Task,
     public readonly files: { hasSpec: boolean; hasPlan: boolean },
-    public readonly nextAction: TaskAction | undefined
+    public readonly actions: readonly TaskAction[]
   ) {
     super(`${task.id}: ${task.title}`, vscode.TreeItemCollapsibleState.Collapsed);
 
@@ -104,9 +104,9 @@ export class TaskItem extends vscode.TreeItem {
       parts.push(`[${fileIndicators.join('')}]`);
     }
 
-    // Next action
-    if (this.nextAction) {
-      parts.push(`→ ${this.nextAction.label}`);
+    // Next action (show primary action)
+    if (this.actions.length > 0) {
+      parts.push(`→ ${this.actions[0].label}`);
     }
 
     return parts.join(' ');
@@ -142,9 +142,9 @@ export class TaskItem extends vscode.TreeItem {
     md.appendMarkdown(`- spec.xml ${this.files.hasSpec ? '✓' : '✗'}\n`);
     md.appendMarkdown(`- plan.xml ${this.files.hasPlan ? '✓' : '✗'}\n`);
 
-    // Next action
-    if (this.nextAction) {
-      md.appendMarkdown(`\n**Next:** $(play) ${this.nextAction.label} - ${this.nextAction.description}\n`);
+    // Next action (show primary action)
+    if (this.actions.length > 0) {
+      md.appendMarkdown(`\n**Next:** $(play) ${this.actions[0].label} - ${this.actions[0].description}\n`);
     }
 
     // Dates
@@ -173,16 +173,23 @@ export class TaskItem extends vscode.TreeItem {
 
 /**
  * Action tree item (e.g., "Scope task 003").
+ *
+ * @param taskId - The task ID this action belongs to.
+ * @param action - The action definition.
+ * @param isPrimary - Whether this is the primary action (index 0) for icon styling.
  */
 class ActionItem extends vscode.TreeItem {
   constructor(
     public readonly taskId: string,
-    public readonly action: TaskAction
+    public readonly action: TaskAction,
+    public readonly isPrimary: boolean
   ) {
     super(action.label, vscode.TreeItemCollapsibleState.None);
 
     this.description = action.description;
-    this.iconPath = new vscode.ThemeIcon('play', new vscode.ThemeColor('charts.green'));
+    this.iconPath = isPrimary
+      ? new vscode.ThemeIcon('play', new vscode.ThemeColor('charts.green'))
+      : new vscode.ThemeIcon('reply', new vscode.ThemeColor('charts.orange'));
     this.contextValue = 'action';
     this.command = {
       command: 'kanban.runAction',
@@ -237,7 +244,7 @@ export interface TasksViewCapabilityDeps {
   ) => readonly TaskColumn[];
   getTaskFiles: (taskPath: string) => string[];
   checkTaskFiles: (taskPath: string) => { hasSpec: boolean; hasPlan: boolean };
-  getNextAction: (task: Task) => TaskAction | undefined;
+  getAllActions: (task: Task) => readonly TaskAction[];
 }
 
 export interface CreateTasksViewCapabilityReturn {
@@ -296,7 +303,7 @@ export function createTasksViewCapability(
     const tasks = deps.loadTasks();
     return tasks
       .filter((t) => t.status === status)
-      .map((t) => new TaskItem(t, deps.checkTaskFiles(t.taskPath), deps.getNextAction(t)));
+      .map((t) => new TaskItem(t, deps.checkTaskFiles(t.taskPath), deps.getAllActions(t)));
   }
 
   function getFilesForTask(taskPath: string): FileItem[] {
@@ -310,10 +317,13 @@ export function createTasksViewCapability(
   function getChildrenForTask(taskItem: TaskItem): (ActionItem | FileItem)[] {
     const children: (ActionItem | FileItem)[] = [];
 
-    // Prepend ActionItem if task has a next action (FR1, FR6)
-    if (taskItem.nextAction) {
-      children.push(new ActionItem(taskItem.task.id, taskItem.nextAction));
-    }
+    // Prepend ActionItems for all available actions (FR1)
+    // Primary action (index 0) gets green play icon (FR2)
+    // Secondary actions (index > 0) get orange reply icon (FR3)
+    // Done status has empty actions array, so no ActionItems (FR5)
+    taskItem.actions.forEach((action, index) => {
+      children.push(new ActionItem(taskItem.task.id, action, index === 0));
+    });
 
     // Add file items
     children.push(...getFilesForTask(taskItem.task.taskPath));
