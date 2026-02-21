@@ -124,6 +124,7 @@
     "watch": "npm run build -- --watch",
     "lint": "eslint src --ext ts",
     "package": "npm run build && node scripts/package.cjs",
+    "local": "node scripts/local-install.cjs",
     "prepublishOnly": "npm run package"
   },
   "dependencies": {
@@ -138,7 +139,7 @@
   },
   "files": [
     "bin",
-    "claude-kanban-vscode-*.vsix"
+    "claudeban-vscode.vsix"
   ],
   "bin": {
     "claudeban-vscode": "bin/install.cjs"

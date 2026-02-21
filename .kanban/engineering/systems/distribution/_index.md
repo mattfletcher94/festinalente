@@ -149,13 +149,13 @@ The installer uses SHA-256 hashing to detect changes:
 
 The VSCode extension installer (`apps/vscode/bin/install.cjs`) performs these steps:
 
-1. **Find .vsix file** - Scans package directory for `claude-kanban-vscode-*.vsix`
+1. **Find .vsix file** - Locates `claudeban-vscode.vsix` in package directory
 2. **Run installation** - Executes `code --install-extension <vsix-path>` with inherited stdio
 3. **Display next steps** - Shows instructions for using the extension
 
 #### Error Handling
 
-- If no .vsix file found: throws error with package directory path
+- If .vsix file not found: throws error with expected path
 - If `code` command fails: error propagates naturally to user (e.g., "code not found in PATH")
 - Uses ANSI colors for output following kanban patterns
 
@@ -193,7 +193,7 @@ Both packages share the same configuration pattern:
 | Setting | Description | Location |
 |---------|-------------|----------|
 | `bin.claudeban-vscode` | CLI entry point | `apps/vscode/package.json` |
-| `files` | Includes `bin` and `.vsix` pattern | `apps/vscode/package.json` |
+| `files` | Includes `bin` and `claudeban-vscode.vsix` | `apps/vscode/package.json` |
 
 ## User Setup
 

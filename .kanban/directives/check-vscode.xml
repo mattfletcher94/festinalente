@@ -20,7 +20,7 @@
 
   <validation>
     <check id="V1" type="command" severity="error">
-      <run>pnpm --filter claude-kanban-vscode build</run>
+      <run>pnpm --filter @mattfletcher94/claudeban-vscode build</run>
       <expect>Build succeeds with no errors (exit code 0)</expect>
     </check>
   </validation>

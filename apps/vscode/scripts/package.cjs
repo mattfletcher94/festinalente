@@ -30,8 +30,8 @@ delete pkg.bin;
 fs.writeFileSync(packagePath, JSON.stringify(pkg, null, 2));
 
 try {
-  // Run vsce package
-  execSync('vsce package --no-dependencies --allow-missing-repository --skip-license', {
+  // Run vsce package with fixed output name (no version suffix)
+  execSync('vsce package --no-dependencies --allow-missing-repository --skip-license --out claudeban-vscode.vsix', {
     cwd: path.join(__dirname, '..'),
     stdio: 'inherit'
   });

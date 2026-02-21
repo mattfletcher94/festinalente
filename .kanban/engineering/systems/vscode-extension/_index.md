@@ -173,7 +173,7 @@ npx @mattfletcher94/claudeban-vscode
 @mattfletcher94/claudeban-vscode
 ├── bin/
 │   └── install.cjs      # CLI installer
-├── claude-kanban-vscode-*.vsix  # Bundled extension
+├── claudeban-vscode.vsix  # Bundled extension
 └── package.json         # npm package with bin entry
 ```
 

@@ -71,21 +71,19 @@ function logError(message) {
 }
 
 /**
- * Find the .vsix file in the package directory.
+ * Get the path to the .vsix file in the package directory.
  *
  * @returns The path to the .vsix file.
- * @throws Error if no .vsix file is found.
+ * @throws Error if the .vsix file doesn't exist.
  */
 function findVsixFile() {
-  const packageDir = path.resolve(__dirname, '..');
-  const files = fs.readdirSync(packageDir);
-  const vsixFile = files.find(f => f.match(/^claude-kanban-vscode-.*\.vsix$/));
+  const vsixPath = path.resolve(__dirname, '..', 'claudeban-vscode.vsix');
 
-  if (!vsixFile) {
-    throw new Error(`No .vsix file found in ${packageDir}`);
+  if (!fs.existsSync(vsixPath)) {
+    throw new Error(`VSCode extension not found at ${vsixPath}`);
   }
 
-  return path.join(packageDir, vsixFile);
+  return vsixPath;
 }
 
 /**
