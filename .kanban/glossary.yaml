@@ -276,3 +276,14 @@ terms:
     domain: engineering
     definition: "JavaScript library for fuzzy searching"
     auto_generated: true
+
+  # Distribution terms
+  - term: "github packages"
+    aliases: ["npm.pkg.github.com", "github npm", "ghp"]
+    domain: distribution
+    definition: "GitHub's package registry for npm-compatible distribution"
+
+  - term: "npx"
+    aliases: ["npm exec", "package runner"]
+    domain: distribution
+    definition: "npm command to execute packages without installing globally"
