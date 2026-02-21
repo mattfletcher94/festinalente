@@ -151,14 +151,36 @@ function main() {
 				weight: .05
 			}
 		],
-		threshold: .35,
+		threshold: .4,
 		includeScore: true,
 		ignoreLocation: true,
-		useExtendedSearch: true,
 		findAllMatches: true
 	});
-	const query = searchTerms.join(" ");
-	const fuseResults = fuse.search(query);
+	const docScores = new Map();
+	for (const term of searchTerms) {
+		const termResults = fuse.search(term);
+		for (const result of termResults) {
+			const docId = result.item.id;
+			const score = 1 - (result.score || 0);
+			if (!docScores.has(docId)) docScores.set(docId, {
+				doc: result.item,
+				scores: [],
+				bestScore: 0
+			});
+			const entry = docScores.get(docId);
+			entry.scores.push(score);
+			entry.bestScore = Math.max(entry.bestScore, score);
+		}
+	}
+	const fuseResults = Array.from(docScores.values()).map((entry) => {
+		const avgScore = entry.scores.reduce((a, b) => a + b, 0) / searchTerms.length;
+		const matchBonus = 1 + .1 * entry.scores.length;
+		const combinedScore = Math.min(1, avgScore * matchBonus);
+		return {
+			item: entry.doc,
+			score: 1 - combinedScore
+		};
+	});
 	const results = fuseResults.map((result) => {
 		const baseScore = 1 - (result.score || 0);
 		const hasBoundaryMatch = checkBoundaryMatch(result.item.boundary, searchTerms);
