@@ -1,4 +1,4 @@
-<task id="003" status="pr" priority="medium" created="2026-02-21" updated="2026-02-21">
+<task id="003" status="done" priority="medium" created="2026-02-21" updated="2026-02-21" completed="2026-02-21">
   <title>Show action description in Run next action button</title>
 
   <labels>
