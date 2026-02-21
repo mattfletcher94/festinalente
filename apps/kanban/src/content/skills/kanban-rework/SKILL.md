@@ -15,7 +15,7 @@ Return a task to In Progress when human review finds issues. Works from both QA 
 <context>
 {{> directory-reference}}
 
-{{> helper-scripts show_find_task=true show_find_plan=true show_get_date_time=true}}
+{{> helper-scripts show_find_task=true show_find_plan=true show_get_date_time=true show_get_skill_config=true}}
 
 <note>Column Transitions:
 ```

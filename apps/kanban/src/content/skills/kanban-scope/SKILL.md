@@ -15,7 +15,7 @@ Create a functional specification through iterative conversational Q&A focused o
 <context>
 {{> directory-reference}}
 
-{{> helper-scripts show_find_task=true show_get_date_time=true}}
+{{> helper-scripts show_find_task=true show_get_date_time=true show_get_skill_config=true}}
 
 {{> engineering-docs-scripts show_search_engineering=true}}
 

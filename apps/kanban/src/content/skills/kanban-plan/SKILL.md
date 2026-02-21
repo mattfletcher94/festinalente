@@ -15,7 +15,7 @@ Create a plan file in `.kanban/tasks/{id}/` and move task from Scoped to Planned
 <context>
 {{> directory-reference}}
 
-{{> helper-scripts show_find_task=true show_find_spec=true show_get_date_time=true}}
+{{> helper-scripts show_find_task=true show_find_spec=true show_get_date_time=true show_get_skill_config=true}}
 
 {{> product-docs-scripts show_search_product=true show_list_product=true}}
 

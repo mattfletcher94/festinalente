@@ -34,6 +34,15 @@ Run code checks using user-configured directives. Directives can be automated co
 
 <command description="Get current date/time (returns JSON with iso and date formats)">node .kanban/scripts/get-date-time.cjs</command>
 
+<command description="Get skill configuration (returns JSON with directives)">node .kanban/scripts/get-skill-config.cjs {skill}</command>
+<example_code lang="json">
+{
+  "skill": "kanban-codecheck",
+  "directives": [
+    { "name": "code-review", "path": ".kanban/directives/code-review.xml", "exists": true }
+  ]
+}
+</example_code>
 
 <note>Column transition: codecheck → qa</note>
 <note>See `.kanban/workflow.yaml` for column definitions and valid transitions</note>

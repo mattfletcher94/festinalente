@@ -15,7 +15,7 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
 <context>
 {{> directory-reference}}
 
-{{> helper-scripts show_find_task=true show_find_plan=true show_get_date_time=true}}
+{{> helper-scripts show_find_task=true show_find_plan=true show_get_date_time=true show_get_skill_config=true}}
 
 {{> column-transition from="planned" to="in-progress"}}
 </context>
@@ -24,6 +24,7 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
 - Do not commit code during implementation (code stays uncommitted until verify passes)
 - Do not skip plan steps or mark them complete without executing them
 - Do not implement tasks that haven't been planned
+- Do not ask the user to manually verify or test during implementation - manual testing happens in QA phase only
 </prohibited>
 
 <process>
@@ -197,7 +198,7 @@ Warning: Some relevant docs may be outdated:
     </substep>
 
     <substep name="run_verification">
-      <branch condition="task.type is 'auto' AND task.verify does NOT start with 'Manual:'">
+      <branch condition="task.verify is an automated command (not 'Manual:')">
         <output>Running verification: {task.verify}</output>
         <command>{task.verify}</command>
         <branch condition="command succeeds (exit code 0)">
@@ -214,15 +215,10 @@ Warning: Some relevant docs may be outdated:
           </branch>
         </branch>
       </branch>
-      <branch condition="task.type is 'manual' OR task.verify starts with 'Manual:'">
-        <output>Manual verification required: {task.verify}</output>
-        <action>Use AskUserQuestion to ask: "Please verify: {task.verify}. Is it working correctly?"</action>
-        <branch condition="user confirms">
-          <output>✓ Manual verification confirmed</output>
-        </branch>
-        <branch condition="user says no">
-          <action>Ask what's wrong and attempt to fix</action>
-        </branch>
+      <branch condition="task.verify starts with 'Manual:' OR task.type is 'manual'">
+        <note>Manual verification is DEFERRED to QA phase - do NOT ask user to verify during implementation</note>
+        <output>⏭ Manual verification deferred to QA: {task.verify}</output>
+        <note>Continue with implementation - user will test during QA phase</note>
       </branch>
     </substep>
 
@@ -346,10 +342,8 @@ Done criteria met: Login endpoint responds to POST
 **Requirements:** FR1
 **Pattern:** N/A
 
-Manual verification required: Test login with valid and invalid credentials
-[User confirms: Yes]
-✓ Manual verification confirmed
-Done criteria met: Login works with valid creds, rejects invalid
+⏭ Manual verification deferred to QA: Test login with valid and invalid credentials
+Done criteria met: Implementation complete, manual testing in QA
 
 All implementation tasks complete. Moving to code check.
 - Status: codecheck

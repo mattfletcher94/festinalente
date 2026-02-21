@@ -15,7 +15,7 @@ Run code checks using user-configured directives. Directives can be automated co
 <context>
 {{> directory-reference}}
 
-{{> helper-scripts show_find_task=true show_find_plan=true show_get_date_time=true}}
+{{> helper-scripts show_find_task=true show_find_plan=true show_get_date_time=true show_get_skill_config=true}}
 
 {{> column-transition from="codecheck" to="qa"}}
 
