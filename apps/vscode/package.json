@@ -1,5 +1,5 @@
 {
-  "name": "claude-kanban-vscode",
+  "name": "@mattfletcher94/claudeban-vscode",
   "displayName": "Claude Kanban",
   "description": "AI-powered task management for Claude Code",
   "version": "0.1.0",
@@ -10,6 +10,21 @@
   "categories": [
     "Other"
   ],
+  "bin": {
+    "claudeban-vscode": "bin/install.cjs"
+  },
+  "files": [
+    "bin",
+    "claude-kanban-vscode-*.vsix"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mattfletcher94/claudeban"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
+  },
   "activationEvents": [
     "onStartupFinished"
   ],

@@ -13,7 +13,8 @@
     "kanban:publish": "pnpm --filter @mattfletcher94/claudeban publish --no-git-checks",
     "vscode:watch": "pnpm --filter claude-kanban-vscode watch",
     "vscode:package": "pnpm --filter claude-kanban-vscode package",
-    "vscode:install": "pnpm vscode:package && code --install-extension apps/vscode/claude-kanban-vscode-0.1.0.vsix"
+    "vscode:install": "pnpm vscode:package && code --install-extension apps/vscode/claude-kanban-vscode-0.1.0.vsix",
+    "vscode:publish": "pnpm --filter @mattfletcher94/claudeban-vscode publish --no-git-checks"
   },
   "devDependencies": {
     "turbo": "^2.4.0",
