@@ -1,0 +1,127 @@
+<spec task="007" created="2026-02-21" updated="2026-02-21">
+  <title>Publish VSCode Extension to GitHub Packages</title>
+
+  <context>
+    Users cannot easily install the Claude Kanban VSCode extension. Currently they must manually
+    download and install the .vsix file. This task enables single-command installation via
+    npx @mattfletcher94/claudeban-vscode, matching the existing pattern for the kanban CLI package.
+  </context>
+
+  <scope>
+    <in-scope>
+      <item>Create installer script (bin/install.cjs) in apps/vscode</item>
+      <item>Configure package.json for GitHub Packages publishing</item>
+      <item>Add vscode:publish script to root package.json</item>
+      <item>ANSI-colored CLI output following existing patterns</item>
+      <item>--help and --version flags</item>
+      <item>Run code --install-extension to install the .vsix</item>
+    </in-scope>
+    <out-of-scope>
+      <item>Public npm registry publishing</item>
+      <item>Auto-update mechanism</item>
+      <item>Alternative package managers (Yarn, Bun)</item>
+      <item>Bundling multiple .vsix versions</item>
+    </out-of-scope>
+  </scope>
+
+  <requirements>
+    <requirement id="FR1">The installer shall be invocable via npx @mattfletcher94/claudeban-vscode</requirement>
+    <requirement id="FR2">The installer shall locate the bundled .vsix file relative to its own location</requirement>
+    <requirement id="FR3">The installer shall run code --install-extension with the .vsix path</requirement>
+    <requirement id="FR4">The installer shall display ANSI-colored output using cyan, green, yellow, red color scheme</requirement>
+    <requirement id="FR5">The installer shall support --help flag showing usage information</requirement>
+    <requirement id="FR6">The installer shall support --version flag showing the extension version from package.json</requirement>
+    <requirement id="FR7">The installer shall display next steps after successful installation</requirement>
+    <requirement id="FR8">The installer shall let code CLI errors propagate naturally to the user</requirement>
+  </requirements>
+
+  <files>
+    <file path="apps/vscode/bin/install.cjs" action="create">
+      Installer script following apps/kanban/bin/install.cjs patterns
+    </file>
+    <file path="apps/vscode/package.json" action="modify">
+      Add bin entry, publishConfig, repository, files array
+    </file>
+    <file path="package.json" action="modify">
+      Add vscode:publish script
+    </file>
+  </files>
+
+  <patterns>
+    <pattern name="CLI installer structure">
+      Reference: apps/kanban/bin/install.cjs:1-279
+      - Shebang with #!/usr/bin/env node
+      - ANSI color constants object
+      - Helper functions: log, logStep, logSuccess, logWarning, logError
+      - parseArgs function for CLI flags
+      - showHelp and showVersion functions
+      - async main() with try/catch
+    </pattern>
+    <pattern name="Package publishConfig">
+      Reference: apps/kanban/package.json:35-38
+      - registry: https://npm.pkg.github.com
+      - access: restricted
+    </pattern>
+    <pattern name="Monorepo publish script">
+      Reference: package.json:13
+      - pnpm --filter {package-name} publish --no-git-checks
+    </pattern>
+  </patterns>
+
+  <research>
+    <product>
+      <finding doc="distribution/github-packages">
+        Existing npx distribution pattern for @mattfletcher94/claudeban.
+        Users configure ~/.npmrc with GitHub PAT, then run npx command.
+      </finding>
+    </product>
+    <engineering>
+      <finding doc="systems/distribution">
+        Build pipeline uses prepublishOnly hook. Package exposes CLI via bin field.
+        Installer copies files and shows colored output.
+      </finding>
+    </engineering>
+    <codebase>
+      <finding>apps/kanban/bin/install.cjs provides complete reference implementation</finding>
+      <finding>apps/vscode/package.json already has build and package scripts</finding>
+      <finding>.vsix file is generated at apps/vscode/claude-kanban-vscode-{version}.vsix</finding>
+    </codebase>
+    <pitfalls>
+      <finding issue="code CLI availability">
+        VSCode code command may not be in PATH on some systems.
+        Mitigation: Let the error from child_process propagate naturally - user will see
+        the actual error message which is more helpful than a custom check.
+      </finding>
+      <finding issue="Version synchronization" resolved="true">
+        Installer package.json version is fixed (does not change).
+        --version flag reads actual extension version from apps/vscode/package.json
+        which is embedded at build time. Single source of truth.
+      </finding>
+    </pitfalls>
+  </research>
+
+  <constraints>
+    <constraint>Must use CommonJS (.cjs) for installer to match existing pattern and Node compatibility</constraint>
+    <constraint>Package version in installer package.json is fixed - --version reads from extension package.json</constraint>
+    <constraint>Requires user to have ~/.npmrc configured with GitHub Packages registry and PAT</constraint>
+  </constraints>
+
+  <dependencies>
+    <external>
+      <dependency>Node.js child_process (built-in) - for running code CLI</dependency>
+      <dependency>VSCode code CLI - must be in user's PATH</dependency>
+    </external>
+    <internal>
+      <dependency>apps/vscode build process must produce .vsix file</dependency>
+    </internal>
+  </dependencies>
+
+  <risks>
+    <risk impact="medium" mitigation="Let error propagate with helpful message">
+      code CLI not in PATH - user sees clear error from the system
+    </risk>
+  </risks>
+
+  <open-questions>
+  </open-questions>
+</spec>
