@@ -166,6 +166,22 @@
 **Action:** Fix label format and command arguments, then re-verify
 
 ---
+
+### Attempt 2 — Rework (2026-02-21)
+**Phase:** in-progress (rework)
+**Result:** in progress
+
+**Fixes applied:**
+- [x] Changed ActionItem label from `${action.label} task ${taskId}` to just `action.label`
+- [x] Changed command from `kanban.runNextAction` to `kanban.runAction` with `{ command, taskId }` arguments
+
+**Changes made:**
+- `tasks-view.capability.ts` line 182: Label now shows just action.label
+- `tasks-view.capability.ts` line 188-190: Command now uses kanban.runAction which accepts { command, taskId }
+
+**Verification:** TypeScript compiles, build succeeds. Manual verification required.
+
+---
   </iterations>
   <wip></wip>
   <completeness></completeness>

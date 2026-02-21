@@ -55,6 +55,16 @@
         "title": "Kanban: Run Action"
       },
       {
+        "command": "kanban.runNextAction",
+        "title": "Run Next Action",
+        "icon": "$(play)"
+      },
+      {
+        "command": "kanban.openTaskFolder",
+        "title": "Open Task Folder",
+        "icon": "$(folder-opened)"
+      },
+      {
         "command": "kanban.openFile",
         "title": "Kanban: Open File"
       }
@@ -70,6 +80,13 @@
           "command": "kanban.refresh",
           "when": "view == kanbanTasks",
           "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "kanban.openTaskFolder",
+          "when": "view == kanbanTasks && viewItem == task",
+          "group": "inline@1"
         }
       ]
     },

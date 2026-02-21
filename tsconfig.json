@@ -2,6 +2,6 @@
   "files": [],
   "references": [
     { "path": "./apps/kanban" },
-    { "path": "./apps/gui" }
+    { "path": "./apps/vscode" }
   ]
 }
