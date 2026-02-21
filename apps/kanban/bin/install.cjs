@@ -10,7 +10,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const PACKAGE_NAME = 'claude-kanban';
+const PACKAGE_NAME = '@mattfletcher94/claudeban';
 const SOURCE_DIR = 'dist';
 
 // ANSI colors

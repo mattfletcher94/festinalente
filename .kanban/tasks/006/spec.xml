@@ -1,0 +1,103 @@
+<spec task="006" created="2026-02-21" updated="2026-02-21">
+  <title>Publish apps/kanban to GitHub Packages</title>
+
+  <context>
+    Currently there is no way to install claude-kanban into other repositories. The package
+    is not published to any registry. Users cannot run npx to set up kanban in their projects.
+    This blocks adoption and distribution of the kanban tooling to other codebases.
+
+    GitHub Packages provides free private npm-compatible distribution using existing GitHub
+    authentication and repository permissions.
+  </context>
+
+  <scope>
+    <in-scope>
+      - Configure apps/kanban package.json for GitHub Packages publishing
+      - Update PACKAGE_NAME constant in install.cjs
+      - Add kanban:publish script to root package.json
+      - Create .npmrc.template showing authentication setup
+    </in-scope>
+    <out-of-scope>
+      - CI/CD automation for publishing (manual publish via script)
+      - Public npm registry publishing
+      - Version bumping automation
+    </out-of-scope>
+  </scope>
+
+  <requirements>
+    - FR1: Package name shall be "@mattfletcher94/claudeban"
+    - FR2: publishConfig.registry shall point to "https://npm.pkg.github.com"
+    - FR3: repository.url shall be "https://github.com/mattfletcher94/claudeban"
+    - FR4: prepublishOnly script shall run the build before publish
+    - FR5: Root package.json shall have "kanban:publish" script
+    - FR6: PACKAGE_NAME in install.cjs shall reflect "@mattfletcher94/claudeban"
+    - FR7: Help text shall show correct npx command
+    - FR8: .npmrc.template shall document authentication setup for users
+  </requirements>
+
+  <files>
+    <file path="apps/kanban/package.json" action="modify">
+      Update name, repository.url, add publishConfig and prepublishOnly script
+    </file>
+    <file path="apps/kanban/bin/install.cjs" action="modify">
+      Update PACKAGE_NAME constant to @mattfletcher94/claudeban
+    </file>
+    <file path="package.json" action="modify">
+      Add kanban:publish script
+    </file>
+    <file path="apps/kanban/.npmrc.template" action="create">
+      Template showing GitHub Packages authentication configuration
+    </file>
+  </files>
+
+  <patterns>
+    <pattern name="pnpm workspace filtering">
+      Root scripts use pnpm --filter to target specific packages.
+      Reference: package.json:12-15 (kanban:build, vscode:watch, etc.)
+    </pattern>
+  </patterns>
+
+  <research>
+    <product>
+      distribution/github-packages: Stub doc confirming intent to use GitHub Packages
+      for private npm distribution with existing GitHub auth.
+    </product>
+    <engineering>
+      No existing engineering docs for npm publishing. This is new capability.
+    </engineering>
+    <codebase>
+      - apps/kanban/package.json already has correct files array ["bin", "dist"]
+      - Build pipeline exists: build, build:tools, build:scripts, build:content
+      - install.cjs uses PACKAGE_NAME constant at line 13, referenced in help text
+      - Repository URL currently incorrect (claude-kanban vs claudeban)
+    </codebase>
+    <pitfalls>
+      - GitHub Packages requires scoped package names matching repo owner
+      - Users must configure ~/.npmrc with PAT for authentication
+      - pnpm publish requires running from package directory or using --filter
+    </pitfalls>
+  </research>
+
+  <constraints>
+    - Package must remain private (only accessible to those with GitHub repo access)
+    - Must use existing pnpm workspace patterns for consistency
+  </constraints>
+
+  <dependencies>
+    <external>
+      GitHub Packages registry (npm.pkg.github.com)
+    </external>
+    <internal>
+      apps/kanban build pipeline must complete successfully before publish
+    </internal>
+  </dependencies>
+
+  <risks>
+    <risk impact="low" mitigation="Document in .npmrc.template">
+      Users unfamiliar with GitHub Packages auth may struggle to configure access
+    </risk>
+  </risks>
+
+  <open-questions>
+  </open-questions>
+</spec>
