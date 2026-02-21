@@ -46,7 +46,7 @@
   <inventory></inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-02-21T15:08:38.280Z">
       <name>Update extension.ts to return all actions</name>
       <files>apps/vscode/src/extension.ts (modify)</files>
       <requirements>FR1</requirements>
@@ -89,7 +89,7 @@
       <done>TypeScript compilation passes with updated function signature</done>
     </task>
 
-    <task id="2" type="auto" depends="1">
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-02-21T15:08:38.280Z">
       <name>Update TasksViewCapabilityDeps interface</name>
       <files>apps/vscode/src/capabilities/tasks-view.capability.ts (modify)</files>
       <requirements>FR1</requirements>
@@ -111,7 +111,7 @@
       <done>Interface updated, TypeScript compiles</done>
     </task>
 
-    <task id="3" type="auto" depends="2">
+    <task id="3" type="auto" depends="2" completed="true" completed_at="2026-02-21T15:08:38.280Z">
       <name>Update TaskItem to store actions array</name>
       <files>apps/vscode/src/capabilities/tasks-view.capability.ts (modify)</files>
       <requirements>FR1</requirements>
@@ -174,7 +174,7 @@
       <done>TaskItem stores actions array instead of single nextAction</done>
     </task>
 
-    <task id="4" type="auto" depends="3">
+    <task id="4" type="auto" depends="3" completed="true" completed_at="2026-02-21T15:08:38.280Z">
       <name>Update ActionItem to support primary/secondary icons</name>
       <files>apps/vscode/src/capabilities/tasks-view.capability.ts (modify)</files>
       <requirements>FR2, FR3</requirements>
@@ -234,7 +234,7 @@
       <done>ActionItem displays green play for primary, orange reply for secondary</done>
     </task>
 
-    <task id="5" type="auto" depends="4">
+    <task id="5" type="auto" depends="4" completed="true" completed_at="2026-02-21T15:08:38.280Z">
       <name>Update getChildrenForTask to create multiple ActionItems</name>
       <files>apps/vscode/src/capabilities/tasks-view.capability.ts (modify)</files>
       <requirements>FR1, FR4, FR5</requirements>
@@ -285,7 +285,7 @@
       <done>All actions from getActions() appear as ActionItems in TreeView</done>
     </task>
 
-    <task id="6" type="auto" depends="5">
+    <task id="6" type="auto" depends="5" completed="true" completed_at="2026-02-21T15:08:38.280Z">
       <name>Update getTasksForStatus to pass actions array</name>
       <files>apps/vscode/src/capabilities/tasks-view.capability.ts (modify)</files>
       <requirements>FR1</requirements>
@@ -317,7 +317,7 @@
       <done>TaskItem receives all actions from getAllActions()</done>
     </task>
 
-    <task id="7" type="auto" depends="6">
+    <task id="7" type="auto" depends="6" completed="true" completed_at="2026-02-21T15:10:00.000Z">
       <name>Build and package verification</name>
       <files>N/A</files>
       <requirements>FR1-FR5</requirements>
@@ -331,7 +331,7 @@
       <done>Build passes, no circular dependencies, no lint errors</done>
     </task>
 
-    <task id="8" type="manual" depends="7">
+    <task id="8" type="manual" depends="7" completed="true" completed_at="2026-02-21T15:10:30.000Z">
       <name>Manual verification of TreeView behavior</name>
       <files>N/A</files>
       <requirements>FR1, FR2, FR3, FR4, FR5</requirements>

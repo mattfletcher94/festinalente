@@ -82,7 +82,8 @@
       "Bash(git -C \"C:\\\\Users\\\\MattF\\\\Documents\\\\Code\\\\claudeban\" log --oneline -20)",
       "Bash(find:*)",
       "Bash(npx vsce:*)",
-      "Bash(pnpm vscode:install:*)"
+      "Bash(pnpm vscode:install:*)",
+      "WebFetch(domain:docs.github.com)"
     ]
   }
 }
