@@ -1,4 +1,4 @@
-<task id="006" status="planned" priority="high" created="2026-02-21" updated="2026-02-21">
+<task id="006" status="update-docs" priority="high" created="2026-02-21" updated="2026-02-21">
   <title>Publish apps/kanban to GitHub Packages</title>
 
   <labels>

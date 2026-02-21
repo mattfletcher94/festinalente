@@ -9,7 +9,8 @@
     "clean": "turbo clean",
     "typecheck": "turbo typecheck",
     "check:dpdm": "npx dpdm -T --no-warning --exit-code circular:1 apps/vscode/src/extension.ts",
-    "kanban:build": "pnpm --filter claude-kanban build",
+    "kanban:build": "pnpm --filter @mattfletcher94/claudeban build",
+    "kanban:publish": "pnpm --filter @mattfletcher94/claudeban publish --no-git-checks",
     "vscode:watch": "pnpm --filter claude-kanban-vscode watch",
     "vscode:package": "pnpm --filter claude-kanban-vscode package",
     "vscode:install": "pnpm vscode:package && code --install-extension apps/vscode/claude-kanban-vscode-0.1.0.vsix"
