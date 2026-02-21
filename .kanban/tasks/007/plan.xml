@@ -1,0 +1,208 @@
+<plan task="007" spec="tasks/007/spec.xml" status="approved"
+      complexity="medium" created="2026-02-21" updated="2026-02-21"
+      generated-by="claude" model="claude-opus-4-5-20251101" version="1" iteration="1">
+  <title>Publish VSCode Extension to GitHub Packages</title>
+
+  <overview>
+    Create an installer script for the VSCode extension that can be invoked via
+    npx @mattfletcher94/claudeban-vscode. The installer locates the bundled .vsix file
+    and runs code --install-extension, following the exact pattern established in
+    apps/kanban/bin/install.cjs with ANSI-colored CLI output.
+  </overview>
+
+  <approach>
+    <rationale>
+      Following two established patterns:
+      - CLI installer structure: apps/kanban/bin/install.cjs:1-132 provides the exact
+        template for ANSI colors, parseArgs, showHelp, showVersion, and main() structure
+      - Package publishConfig: apps/kanban/package.json:35-38 shows the GitHub Packages
+        registry configuration
+
+      The installer is simpler than the kanban installer because it only needs to:
+      1. Find the .vsix file (embedded in the package)
+      2. Run code --install-extension to install it
+      3. Show success message with next steps
+
+      No file copying or directory creation needed unlike the kanban installer.
+    </rationale>
+    <breaking-changes>None</breaking-changes>
+  </approach>
+
+  <inventory>
+    <set name="files-to-modify" count="2">
+      <item>apps/vscode/package.json</item>
+      <item>package.json</item>
+    </set>
+    <set name="files-to-create" count="1">
+      <item>apps/vscode/bin/install.cjs</item>
+    </set>
+  </inventory>
+
+  <tasks>
+    <task id="1" type="auto" completed="true" completed_at="2026-02-21T16:42:51.645Z">
+      <name>Create installer script</name>
+      <files>apps/vscode/bin/install.cjs (create)</files>
+      <requirements>FR1, FR2, FR3, FR4, FR5, FR6, FR7, FR8</requirements>
+      <pattern>CLI installer structure at apps/kanban/bin/install.cjs:1-132</pattern>
+      <action>
+        - Create apps/vscode/bin/ directory
+        - Create install.cjs with:
+          - #!/usr/bin/env node shebang
+          - ANSI colors object (reset, bright, green, yellow, cyan, red) from kanban installer
+          - log, logStep, logSuccess, logWarning, logError helpers (exact copies)
+          - PACKAGE_NAME = '@mattfletcher94/claudeban-vscode'
+          - parseArgs function supporting --help/-h and --version/-v
+          - showHelp function with usage: npx @mattfletcher94/claudeban-vscode
+          - showVersion function reading version from package.json
+          - main() async function:
+            1. Parse args, handle --help and --version
+            2. Log "Claude Kanban VSCode Extension Installer" header
+            3. Find .vsix file using glob pattern relative to __dirname
+            4. Run child_process.execSync('code --install-extension ' + vsixPath)
+            5. Let errors from code command propagate naturally (FR8)
+            6. Log success and next steps
+
+        Reference code structure (from apps/kanban/bin/install.cjs):
+        ```javascript
+        #!/usr/bin/env node
+        const { execSync } = require('child_process');
+        const path = require('path');
+        const fs = require('fs');
+
+        const PACKAGE_NAME = '@mattfletcher94/claudeban-vscode';
+
+        const colors = {
+          reset: '\x1b[0m',
+          bright: '\x1b[1m',
+          green: '\x1b[32m',
+          yellow: '\x1b[33m',
+          cyan: '\x1b[36m',
+          red: '\x1b[31m'
+        };
+        // ... rest of helpers
+        ```
+      </action>
+      <verify>node apps/vscode/bin/install.cjs --help</verify>
+      <done>Script runs, shows help text with correct package name and usage</done>
+    </task>
+
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-02-21T16:43:30.000Z">
+      <name>Configure package.json for publishing</name>
+      <files>apps/vscode/package.json (modify)</files>
+      <requirements>FR1</requirements>
+      <pattern>Package publishConfig at apps/kanban/package.json:31-38</pattern>
+      <action>
+        Add to apps/vscode/package.json:
+        - Change "name" from "claude-kanban-vscode" to "@mattfletcher94/claudeban-vscode"
+        - Add "bin" field pointing to bin/install.cjs
+        - Add "files" array including bin/ and the .vsix file
+        - Add "repository" field
+        - Add "publishConfig" with GitHub Packages registry
+
+        Current package.json name:
+        ```json
+        "name": "claude-kanban-vscode",
+        ```
+
+        Change to:
+        ```json
+        "name": "@mattfletcher94/claudeban-vscode",
+        "bin": {
+          "claudeban-vscode": "bin/install.cjs"
+        },
+        "files": [
+          "bin",
+          "claude-kanban-vscode-*.vsix"
+        ],
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/mattfletcher94/claudeban"
+        },
+        "publishConfig": {
+          "registry": "https://npm.pkg.github.com",
+          "access": "restricted"
+        },
+        ```
+
+        Note: prepublishOnly hook not needed - .vsix is already built by vscode:package
+      </action>
+      <verify>node -e "require('./apps/vscode/package.json')" &amp;&amp; grep -q "@mattfletcher94/claudeban-vscode" apps/vscode/package.json</verify>
+      <done>package.json has scoped name, bin, files, repository, and publishConfig</done>
+    </task>
+
+    <task id="3" type="auto" depends="2" completed="true" completed_at="2026-02-21T16:44:00.000Z">
+      <name>Add vscode:publish script to root</name>
+      <files>package.json (modify)</files>
+      <requirements>FR1</requirements>
+      <pattern>Monorepo publish script at package.json:13</pattern>
+      <action>
+        Add vscode:publish script to root package.json scripts:
+
+        Current:
+        ```json
+        "vscode:install": "pnpm vscode:package && code --install-extension apps/vscode/claude-kanban-vscode-0.1.0.vsix"
+        ```
+
+        Add after vscode:install:
+        ```json
+        "vscode:publish": "pnpm --filter @mattfletcher94/claudeban-vscode publish --no-git-checks"
+        ```
+      </action>
+      <verify>grep -q "vscode:publish" package.json</verify>
+      <done>Root package.json has vscode:publish script</done>
+    </task>
+
+    <task id="4" type="manual" depends="1,2,3" completed="true" completed_at="2026-02-21T16:44:30.000Z">
+      <name>Test installer locally</name>
+      <files>N/A</files>
+      <requirements>FR2, FR3, FR4, FR5, FR6, FR7, FR8</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        Manual verification:
+        1. Run: node apps/vscode/bin/install.cjs --help
+           - Verify usage shows npx @mattfletcher94/claudeban-vscode
+           - Verify options show -h/--help and -v/--version
+        2. Run: node apps/vscode/bin/install.cjs --version
+           - Verify version number is shown
+        3. Run: node apps/vscode/bin/install.cjs
+           - Verify it finds the .vsix file
+           - Verify it runs code --install-extension
+           - Verify ANSI colors are displayed (cyan header, green success)
+           - Verify next steps are shown after success
+        4. Test error handling:
+           - Temporarily rename the .vsix file
+           - Run installer, verify error is shown
+           - Restore the .vsix file
+      </action>
+      <verify>Manual: All acceptance criteria pass</verify>
+      <done>Installer works locally with all flags and handles errors</done>
+    </task>
+  </tasks>
+
+  <testing>
+    <automated>None - simple CLI script, manual verification sufficient</automated>
+    <manual>
+      - Run installer with --help flag, verify usage is correct
+      - Run installer with --version flag, verify version is shown
+      - Run installer without flags, verify extension installs
+      - Verify ANSI colors are displayed correctly in terminal
+      - Verify next steps message is shown after success
+    </manual>
+    <regression>Verify existing vscode:package script still works</regression>
+  </testing>
+
+  <edge-cases>
+    <case scenario="code CLI not in PATH">Let error propagate naturally - user sees clear error message from the system</case>
+    <case scenario=".vsix file not found">Show error with path where file was expected</case>
+    <case scenario="Extension already installed">code --install-extension handles this gracefully, shows "already installed" message</case>
+  </edge-cases>
+
+  <pitfalls>
+    <pitfall issue="Finding the .vsix file">Use glob pattern claude-kanban-vscode-*.vsix relative to package directory, not hardcoded version</pitfall>
+    <pitfall issue="Version in --version flag">Read from package.json version field, not hardcode it</pitfall>
+  </pitfalls>
+
+  <iterations></iterations>
+  <wip></wip>
+  <completeness></completeness>
+</plan>

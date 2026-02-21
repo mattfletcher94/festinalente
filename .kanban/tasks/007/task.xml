@@ -1,4 +1,4 @@
-<task id="007" status="backlog" priority="high" created="2026-02-21" updated="2026-02-21">
+<task id="007" status="pr" priority="high" created="2026-02-21" updated="2026-02-21">
   <title>Publish VSCode Extension to GitHub Packages</title>
 
   <labels>

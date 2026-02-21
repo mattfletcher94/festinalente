@@ -4,15 +4,17 @@ title: "VSCode Extension"
 type: system
 tldr: "Visual task management UI with TreeView, CodeLens, and terminal integration"
 summary: "VSCode extension providing visual interface for Claude Kanban task management"
-keywords: [vscode, extension, ui, treeview, codelens, terminal]
+keywords: [vscode, extension, ui, treeview, codelens, terminal, distribution, npx, install]
 aliases: [vscode, extension, ui]
 boundary: "Does not implement data logic - delegates to CLI scripts"
 related:
   - systems/cli
   - systems/storage
+  - systems/distribution
   - patterns/capability-computer
 paths:
   - apps/vscode/src
+  - apps/vscode/bin
 updated: 2026-02-21
 verified: 2026-02-21
 code_refs:
@@ -21,6 +23,8 @@ code_refs:
   - apps/vscode/src/capabilities/terminal.capability.ts
   - apps/vscode/src/capabilities/config-view.capability.ts
   - apps/vscode/src/computers/task-parser.computer.ts
+  - apps/vscode/bin/install.cjs
+  - apps/vscode/package.json
 ---
 
 # VSCode Extension
@@ -143,8 +147,37 @@ File watcher detects change → Refresh cycle
 |--------|--------------|-------|
 | [cli](../cli/_index.md) | Executes commands | Runs `claude "/kanban-{action} {id}"` via terminal |
 | [storage](../storage/_index.md) | Reads files | Monitors `.kanban/tasks/**/*.xml` |
+| [distribution](../distribution/_index.md) | Distributed via | Published to GitHub Packages, installed via npx |
 
 **Summary:** Extension reads files, renders UI, and sends commands to CLI via terminal.
+
+## Distribution
+
+The extension is distributed via GitHub Packages as an npm package containing the bundled .vsix file.
+
+### Installation
+
+```bash
+npx @mattfletcher94/claudeban-vscode
+```
+
+### How It Works
+
+1. Extension is built and packaged into a .vsix file
+2. npm package includes `bin/install.cjs` and the .vsix file
+3. When user runs npx, installer finds the .vsix and runs `code --install-extension`
+
+### Package Structure
+
+```
+@mattfletcher94/claudeban-vscode
+├── bin/
+│   └── install.cjs      # CLI installer
+├── claude-kanban-vscode-*.vsix  # Bundled extension
+└── package.json         # npm package with bin entry
+```
+
+See [distribution](../distribution/_index.md) for full publishing workflow.
 
 ## Boundaries
 
