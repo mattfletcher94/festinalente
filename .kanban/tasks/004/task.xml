@@ -1,4 +1,4 @@
-<task id="004" status="pr" priority="high" created="2026-02-21" updated="2026-02-21">
+<task id="004" status="done" priority="high" created="2026-02-21" updated="2026-02-21" completed="2026-02-21">
   <title>Add secondary action support to VSCode TreeView</title>
 
   <labels>
