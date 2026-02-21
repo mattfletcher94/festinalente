@@ -1,4 +1,4 @@
-<task id="001" status="planned" priority="high" created="2026-02-21" updated="2026-02-21">
+<task id="001" status="update-docs" priority="high" created="2026-02-21" updated="2026-02-21">
   <title>Display config.yaml in VSCode plugin panel</title>
 
   <labels>

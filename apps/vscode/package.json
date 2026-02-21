@@ -29,6 +29,10 @@
         {
           "id": "kanbanTasks",
           "name": "Tasks"
+        },
+        {
+          "id": "kanbanConfig",
+          "name": "Kanban Config"
         }
       ]
     },
@@ -37,6 +41,11 @@
         "view": "kanbanTasks",
         "contents": "No .kanban folder found in this workspace.\n\nOpen a folder containing a .kanban directory to see tasks.",
         "when": "!kanban.hasKanbanFolder"
+      },
+      {
+        "view": "kanbanConfig",
+        "contents": "No config.yaml found.\n\nCreate .kanban/config.yaml to configure Kanban.",
+        "when": "kanban.hasKanbanFolder && !kanban.hasConfigFile"
       }
     ],
     "commands": [
