@@ -220,7 +220,7 @@ export function activate(context: vscode.ExtensionContext): void {
           return;
         }
 
-        const kanbanTerminal = terminal.getOrCreateTerminal('Kanban', workspaceRoot);
+        const kanbanTerminal = terminal.createFreshTerminal('Kanban', workspaceRoot);
         terminal.showTerminal(kanbanTerminal);
         terminal.sendCommand(kanbanTerminal, `claude "${args.command}"`);
       }
@@ -239,7 +239,7 @@ export function activate(context: vscode.ExtensionContext): void {
         return;
       }
 
-      const kanbanTerminal = terminal.getOrCreateTerminal('Kanban', workspaceRoot);
+      const kanbanTerminal = terminal.createFreshTerminal('Kanban', workspaceRoot);
       terminal.showTerminal(kanbanTerminal);
       terminal.sendCommand(kanbanTerminal, `claude "/kanban-create ${title}"`);
     })
@@ -253,7 +253,7 @@ export function activate(context: vscode.ExtensionContext): void {
         return;
       }
 
-      const kanbanTerminal = terminal.getOrCreateTerminal('Kanban', workspaceRoot);
+      const kanbanTerminal = terminal.createFreshTerminal('Kanban', workspaceRoot);
       terminal.showTerminal(kanbanTerminal);
       terminal.sendCommand(kanbanTerminal, `claude "${item.nextAction.command}"`);
     })

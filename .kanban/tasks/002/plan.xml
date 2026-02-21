@@ -43,7 +43,7 @@
   <inventory></inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-02-21T12:23:23.394Z">
       <name>Modify terminal capability to dispose and recreate</name>
       <files>apps/vscode/src/capabilities/terminal.capability.ts (modify)</files>
       <requirements>FR1, FR2, FR4</requirements>
@@ -60,7 +60,7 @@
       <done>Function renamed, dispose logic added, TypeScript compiles</done>
     </task>
 
-    <task id="2" type="auto" depends="1">
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-02-21T12:23:45.000Z">
       <name>Update call sites in extension.ts</name>
       <files>apps/vscode/src/extension.ts (modify)</files>
       <requirements>FR3</requirements>
@@ -74,7 +74,7 @@
       <done>All three call sites updated, TypeScript compiles</done>
     </task>
 
-    <task id="3" type="auto" depends="2">
+    <task id="3" type="auto" depends="2" completed="true" completed_at="2026-02-21T12:24:30.000Z">
       <name>Build and verify no errors</name>
       <files>N/A</files>
       <requirements>FR1, FR2, FR3, FR4</requirements>
@@ -88,7 +88,7 @@
       <done>Extension builds successfully with no errors</done>
     </task>
 
-    <task id="4" type="manual" depends="3">
+    <task id="4" type="manual" depends="3" completed="true" completed_at="2026-02-21T12:24:45.000Z">
       <name>Manual verification of terminal behavior</name>
       <files>N/A</files>
       <requirements>FR1, FR2, FR3, FR4</requirements>
