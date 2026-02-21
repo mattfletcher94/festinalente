@@ -1,0 +1,65 @@
+<task id="006" status="backlog" priority="high" created="2026-02-21" updated="2026-02-21">
+  <title>Publish apps/kanban to GitHub Packages</title>
+
+  <labels>
+    <label>feature</label>
+  </labels>
+
+  <refs spec="tasks/006/spec.xml" plan="tasks/006/plan.xml"/>
+
+  <affects>
+    <doc id="distribution/github-packages"/>
+  </affects>
+
+  <engineering>
+  </engineering>
+
+  <description>
+Enable installing claude-kanban into any repo with `npx @mattfletcher94/claude-kanban`.
+Package stays private - only accessible to those with GitHub repo access.
+  </description>
+
+  <problem>
+Currently there is no way to install claude-kanban into other repositories. The package
+is not published to any registry. Users cannot run npx to set up kanban in their projects.
+This blocks adoption and distribution of the kanban tooling to other codebases.
+  </problem>
+
+  <value>
+- Enables private npm-compatible distribution via GitHub Packages
+- Uses existing GitHub authentication and repository permissions
+- Free for private packages (500MB storage, 1GB bandwidth)
+- Standard npx workflow familiar to developers
+- No separate registry account required
+  </value>
+
+  <acceptance-criteria>
+Given the apps/kanban package
+When I examine package.json
+Then the name is "@mattfletcher94/claude-kanban"
+And publishConfig.registry points to "https://npm.pkg.github.com"
+And repository.url matches the GitHub repo
+And a prepublishOnly script runs the build
+
+Given the apps/kanban/bin/install.cjs file
+When I examine the constants and help text
+Then PACKAGE_NAME reflects "@mattfletcher94/claude-kanban"
+And help text shows the correct npx command
+
+Given the root package.json
+When I examine the scripts
+Then there is a "kanban:publish" script
+And running it publishes to GitHub Packages
+
+Given a user with GitHub repo access
+And they have configured ~/.npmrc with the GitHub Packages registry and PAT
+When they run "npx @mattfletcher94/claude-kanban"
+Then the package installs and runs successfully
+
+Given a user without GitHub repo access
+When they try to install the package
+Then they receive an authentication error (package is private)
+  </acceptance-criteria>
+
+  <notes></notes>
+</task>
