@@ -1,0 +1,264 @@
+<plan task="005" spec="tasks/005/spec.xml" status="approved"
+      complexity="medium" created="2026-02-21" updated="2026-02-21"
+      generated-by="claude" model="claude-opus-4-5-20251101" version="1" iteration="1">
+  <title>Add global actions section to VSCode extension</title>
+
+  <overview>
+    Implement a new "Global Actions" TreeView section in the VSCode sidebar that provides
+    quick access to kanban-map-product and kanban-map-engineering commands. The view follows
+    the existing config-view.capability.ts pattern with a simple factory function returning
+    TreeDataProvider. Actions execute via terminal capability using the established
+    claude "/kanban-{command}" pattern.
+  </overview>
+
+  <approach>
+    <rationale>
+      Following two existing patterns:
+      - Capability factory: createConfigViewCapability at config-view.capability.ts:46-76 provides
+        the minimal pattern for static TreeViews with factory returning createTreeDataProvider
+      - Terminal execution: extension.ts:249-251 shows the pattern for running claude commands
+        via terminal.createFreshTerminal, showTerminal, sendCommand
+
+      The Global Actions view is intentionally simple:
+      - No file watching needed (actions are static)
+      - No computer layer needed (no data transformation)
+      - Single capability with two TreeItem classes (group + action)
+
+      ThemeIcons: "book" for Map Product Docs (matches update-docs column), "symbol-structure"
+      for Map Engineering Docs (represents system architecture).
+    </rationale>
+    <breaking-changes>None</breaking-changes>
+  </approach>
+
+  <inventory></inventory>
+
+  <tasks>
+    <task id="1" type="auto">
+      <name>Create global-actions-view capability</name>
+      <files>apps/vscode/src/capabilities/global-actions-view.capability.ts (create)</files>
+      <requirements>FR1, FR2, FR3, FR4</requirements>
+      <pattern>Capability factory at apps/vscode/src/capabilities/config-view.capability.ts:46-76</pattern>
+      <action>
+        - Create new capability file with .capability.ts suffix
+        - Define GlobalActionsGroupItem class extending vscode.TreeItem:
+          - Label: "Global Actions"
+          - CollapsibleState: Expanded (default)
+          - ThemeIcon: "tools" (represents utilities/actions)
+          - contextValue: "globalActionsGroup"
+        - Define GlobalActionItem class extending vscode.TreeItem:
+          - Constructor params: label, iconName, command
+          - CollapsibleState: None
+          - ThemeIcon: from iconName param ("book" or "symbol-structure")
+          - command: { command: "kanban.runGlobalAction", arguments: [{ command }] }
+          - contextValue: "globalAction"
+        - Create createGlobalActionsViewCapability factory function:
+          - Returns { createTreeDataProvider, createRefreshCallback }
+          - TreeDataProvider.getChildren(): returns GlobalActionsGroupItem at root
+          - GlobalActionsGroupItem returns two GlobalActionItem children:
+            1. "Map Product Docs" with icon "book" and command "/kanban-map-product"
+            2. "Map Engineering Docs" with icon "symbol-structure" and command "/kanban-map-engineering"
+        - Export factory function with explicit return type
+
+        Approximate code structure:
+        ```typescript
+        class GlobalActionsGroupItem extends vscode.TreeItem {
+          constructor() {
+            super('Global Actions', vscode.TreeItemCollapsibleState.Expanded);
+            this.iconPath = new vscode.ThemeIcon('tools');
+            this.contextValue = 'globalActionsGroup';
+          }
+        }
+
+        class GlobalActionItem extends vscode.TreeItem {
+          constructor(label: string, iconName: string, public readonly actionCommand: string) {
+            super(label, vscode.TreeItemCollapsibleState.None);
+            this.iconPath = new vscode.ThemeIcon(iconName);
+            this.command = {
+              command: 'kanban.runGlobalAction',
+              title: label,
+              arguments: [{ command: actionCommand }],
+            };
+            this.contextValue = 'globalAction';
+          }
+        }
+
+        export function createGlobalActionsViewCapability(): CreateGlobalActionsViewCapabilityReturn {
+          // Factory pattern matching config-view.capability.ts
+        }
+        ```
+      </action>
+      <verify>npx tsc --noEmit</verify>
+      <done>Capability compiles without errors, exports factory function with explicit types</done>
+    </task>
+
+    <task id="2" type="auto" depends="1">
+      <name>Register view in package.json</name>
+      <files>apps/vscode/package.json (modify)</files>
+      <requirements>FR1</requirements>
+      <pattern>View registration at apps/vscode/package.json:36-45</pattern>
+      <action>
+        - Add new view to contributes.views.kanban array
+        - Position after kanbanConfig (index 2) so it appears below Config
+        - View ID: "kanbanGlobalActions"
+        - View name: "Global Actions"
+
+        Current code (lines 36-45):
+        ```json
+        "views": {
+          "kanban": [
+            { "id": "kanbanTasks", "name": "Tasks" },
+            { "id": "kanbanConfig", "name": "Config" }
+          ]
+        }
+        ```
+
+        Change to:
+        ```json
+        "views": {
+          "kanban": [
+            { "id": "kanbanTasks", "name": "Tasks" },
+            { "id": "kanbanConfig", "name": "Config" },
+            { "id": "kanbanGlobalActions", "name": "Global Actions" }
+          ]
+        }
+        ```
+      </action>
+      <verify>node -e "const pkg = require('./apps/vscode/package.json'); const v = pkg.contributes.views.kanban; if (!v.some(x => x.id === 'kanbanGlobalActions')) throw new Error('View not found');"</verify>
+      <done>kanbanGlobalActions view appears in contributes.views.kanban array</done>
+    </task>
+
+    <task id="3" type="auto" depends="2">
+      <name>Register runGlobalAction command in package.json</name>
+      <files>apps/vscode/package.json (modify)</files>
+      <requirements>FR5, FR6</requirements>
+      <pattern>Command registration at apps/vscode/package.json:59-87</pattern>
+      <action>
+        - Add new command to contributes.commands array
+        - Command ID: "kanban.runGlobalAction"
+        - Title: "Kanban: Run Global Action"
+
+        Add to commands array:
+        ```json
+        {
+          "command": "kanban.runGlobalAction",
+          "title": "Kanban: Run Global Action"
+        }
+        ```
+      </action>
+      <verify>node -e "const pkg = require('./apps/vscode/package.json'); const c = pkg.contributes.commands; if (!c.some(x => x.command === 'kanban.runGlobalAction')) throw new Error('Command not found');"</verify>
+      <done>kanban.runGlobalAction command appears in contributes.commands array</done>
+    </task>
+
+    <task id="4" type="auto" depends="3">
+      <name>Wire capability in extension.ts</name>
+      <files>apps/vscode/src/extension.ts (modify)</files>
+      <requirements>FR1, FR2, FR3, FR4, FR5, FR6</requirements>
+      <pattern>
+        - Capability import at apps/vscode/src/extension.ts:21
+        - TreeView registration at apps/vscode/src/extension.ts:205-208
+        - Command registration at apps/vscode/src/extension.ts:240-254
+      </pattern>
+      <action>
+        1. Import the capability (after line 21):
+           ```typescript
+           import { createGlobalActionsViewCapability } from './capabilities/global-actions-view.capability';
+           ```
+
+        2. Initialize capability (after configView initialization, around line 180):
+           ```typescript
+           // Initialize global actions view capability
+           const globalActionsView = createGlobalActionsViewCapability();
+           ```
+
+        3. Create provider (after configTreeDataProvider, around line 190):
+           ```typescript
+           const globalActionsTreeDataProvider = globalActionsView.createTreeDataProvider();
+           ```
+
+        4. Register TreeView (after configTreeView registration, around line 208):
+           ```typescript
+           // Register Global Actions TreeView
+           const globalActionsTreeView = vscode.window.createTreeView('kanbanGlobalActions', {
+             treeDataProvider: globalActionsTreeDataProvider,
+           });
+           context.subscriptions.push(globalActionsTreeView);
+           ```
+
+        5. Register runGlobalAction command (after runAction command, around line 254):
+           ```typescript
+           // Run global action command (policy: when to run global actions)
+           context.subscriptions.push(
+             vscode.commands.registerCommand(
+               'kanban.runGlobalAction',
+               (args: { command: string }) => {
+                 if (!args?.command) {
+                   vscode.window.showErrorMessage('Invalid global action arguments');
+                   return;
+                 }
+
+                 const kanbanTerminal = terminal.createFreshTerminal('Kanban', workspaceRoot);
+                 terminal.showTerminal(kanbanTerminal);
+                 terminal.sendCommand(kanbanTerminal, `claude "${args.command}"`);
+               }
+             )
+           );
+           ```
+      </action>
+      <verify>npm run build --prefix apps/vscode</verify>
+      <done>Extension builds without errors, all capability wiring complete</done>
+    </task>
+
+    <task id="5" type="manual" depends="4">
+      <name>Manual verification</name>
+      <files>N/A</files>
+      <requirements>FR1, FR2, FR3, FR4, FR5, FR6, FR7</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        1. Install extension locally: npm run local --prefix apps/vscode
+        2. Open VSCode in a workspace with .kanban/ folder
+        3. Verify sidebar shows "GLOBAL ACTIONS" section below "CONFIG"
+        4. Verify "Global Actions" group is expanded by default
+        5. Verify two action items visible: "Map Product Docs" and "Map Engineering Docs"
+        6. Verify icons: book icon for Product, symbol-structure for Engineering
+        7. Click "Map Product Docs" - verify terminal opens with claude "/kanban-map-product"
+        8. Click "Map Engineering Docs" - verify terminal opens with claude "/kanban-map-engineering"
+        9. Verify keyboard navigation: Tab to action, Enter to activate
+      </action>
+      <verify>Manual: All acceptance criteria pass</verify>
+      <done>All 5 acceptance criteria from task verified</done>
+    </task>
+  </tasks>
+
+  <testing>
+    <automated>None required - simple static view with no business logic, manual verification sufficient</automated>
+    <manual>
+      - Global Actions section visible in sidebar below Config
+      - Group expanded by default showing two actions
+      - Correct ThemeIcons displayed (book, symbol-structure)
+      - Clicking Map Product Docs opens terminal with correct command
+      - Clicking Map Engineering Docs opens terminal with correct command
+      - Keyboard navigation works (native TreeView behavior)
+    </manual>
+    <regression>
+      - Tasks view still works correctly
+      - Config view still works correctly
+      - Existing terminal commands still work
+    </regression>
+  </testing>
+
+  <edge-cases>
+    <case scenario="No .kanban folder in workspace">Global Actions view hidden (inherits kanban.hasKanbanFolder context from existing views)</case>
+    <case scenario="User collapses Global Actions group">Group stays collapsed (native TreeView behavior persists state)</case>
+    <case scenario="Terminal already open">createFreshTerminal creates new terminal instance per action (existing pattern)</case>
+  </edge-cases>
+
+  <pitfalls>
+    <pitfall issue="Command string format">Must use claude "/kanban-{command}" format with quotes and leading slash - matches existing patterns at extension.ts:251, 270, 285</pitfall>
+    <pitfall issue="View order in package.json">Array order determines sidebar order - kanbanGlobalActions must be last to appear below Config</pitfall>
+    <pitfall issue="Capability importing capability">Do NOT import terminal.capability.ts - terminal is passed via orchestrator (extension.ts)</pitfall>
+  </pitfalls>
+
+  <iterations></iterations>
+  <wip></wip>
+  <completeness></completeness>
+</plan>
