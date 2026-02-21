@@ -11,6 +11,7 @@ related: [vscode/codelens, vscode/terminal, tasks/workflow]
 updated: 2026-02-21
 verified: 2026-02-21
 code_refs:
+  - apps/vscode/src/extension.ts
   - apps/vscode/src/capabilities/tasks-view.capability.ts
   - apps/vscode/src/capabilities/config-view.capability.ts
 ---
@@ -46,10 +47,16 @@ The sidebar also includes a "Kanban Config" section that provides quick access t
 - FileItems → task files (task.xml, spec.xml, plan.xml)
 
 **ActionItem behavior:**
-- Appears as first child when expanding a task (except for tasks in "done" status)
-- Shows the next action label (e.g., "Run Checks", "Approve")
-- Green play icon indicates clickability
-- Clicking executes the action command in terminal
+- Appears as first child(ren) when expanding a task (except for tasks in "done" status)
+- Shows all available actions for the task's current status
+- Primary action (first): Green play icon (e.g., "Approve", "Merge", "Continue")
+- Secondary actions: Orange reply icon (e.g., "Rework", "Save WIP")
+- Clicking any action executes its command in terminal
+
+**Multi-action statuses:**
+- qa: "Approve" (primary) + "Rework" (secondary)
+- pr: "Merge" (primary) + "Rework" (secondary)
+- in-progress: "Continue" (primary) + "Save WIP" (secondary)
 
 **Refresh triggers:**
 - Manual: Command palette "Kanban: Refresh Tasks"
@@ -84,7 +91,7 @@ KANBAN TASKS
 └── Done (0)
 ```
 
-### Expanded Task (with ActionItem)
+### Expanded Task (single action)
 
 ```
 ├── Planned (1)
@@ -95,7 +102,19 @@ KANBAN TASKS
 │       └── plan.xml
 ```
 
-Clicking the ActionItem runs the next workflow action in the terminal.
+### Expanded Task (multiple actions)
+
+```
+├── QA (1)
+│   └── ▼ 001: Add localStorage [feature] [high]
+│       ├── ▶ Approve                ← Primary action (green play icon)
+│       ├── ↩ Rework                 ← Secondary action (orange reply icon)
+│       ├── task.xml                  ← FileItem
+│       ├── spec.xml
+│       └── plan.xml
+```
+
+Clicking any ActionItem runs the corresponding workflow command in the terminal.
 
 ### Kanban Config Section
 
@@ -115,7 +134,7 @@ What this feature does NOT do:
 - **Does NOT:** Drag-and-drop to move tasks
 - **Does NOT:** Edit task content directly
 - **Does NOT:** Show spec/plan details (click to open file)
-- **Does NOT:** Show multiple actions (only next action in workflow)
+- **Does NOT:** Customize which actions appear (determined by task status)
 
 ## Configuration
 
