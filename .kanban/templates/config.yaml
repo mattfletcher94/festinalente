@@ -11,7 +11,6 @@ name: ""
 directives:
   kanban-status: []
   kanban-create: []
-  kanban-refine: []
   kanban-scope: []
   kanban-plan: []
   kanban-implement: []

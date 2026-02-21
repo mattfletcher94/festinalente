@@ -10,7 +10,8 @@ name: ""
 
 directives:
   kanban-status: []
-  kanban-create: []
+  kanban-create: 
+    - design
   kanban-refine: []
   kanban-scope:
     - architecture

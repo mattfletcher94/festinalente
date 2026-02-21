@@ -208,7 +208,7 @@ If you want to create tasks later, you can use:
 {If tasks were created:}
 The created tasks are in Backlog. Next step for each:
 ```
-/kanban-refine {task-id}
+/kanban-scope {task-id}
 ```
     </output>
     {{> skill-complete}}
@@ -309,15 +309,15 @@ Skipped.
 - Tasks created: 2
 
 The created tasks are in Backlog. Next step for each:
-/kanban-refine 009
-/kanban-refine 010
+/kanban-scope 009
+/kanban-scope 010
 ```
 </example>
 
 <next_steps>
 If tasks were created:
 ```
-/kanban-refine {task-id}
+/kanban-scope {task-id}
 ```
 
 To explore a different topic:

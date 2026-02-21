@@ -437,7 +437,7 @@ And their session is established
 - Task XML has `<acceptance-criteria>` section with Gherkin format
 - If new feature: stub doc exists at `.kanban/product/{domain}/{slug}.md` with `stub: true`
 - Git log shows `docs({nextId}): create -`
-- Next steps point to `/kanban-scope` (NOT /kanban-refine)
+- Next steps point to `/kanban-scope`
 </success_criteria>
 
 <example>
