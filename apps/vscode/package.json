@@ -106,7 +106,7 @@
     "compile": "npm run build",
     "watch": "npm run build -- --watch",
     "lint": "eslint src --ext ts",
-    "package": "npm run build && vsce package --no-dependencies",
+    "package": "npm run build && vsce package --no-dependencies --allow-missing-repository --skip-license",
     "publish": "npm run build && vsce publish --no-dependencies"
   },
   "dependencies": {

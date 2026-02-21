@@ -358,6 +358,10 @@ Run: /kanban-scope {taskId}
     </set>
   </inventory>
 
+  <!-- Code Snippets: Include approximate code snippets in <action> when helpful.
+       Show "current code" and "change to" for modifications. Snippets provide context
+       for the implementing LLM since each command runs with fresh context.
+       Snippets need not be perfect - they guide understanding. -->
   <tasks>
     <task id="1" type="auto">
       <name>First implementation step</name>
@@ -368,6 +372,16 @@ Run: /kanban-scope {taskId}
         - Step 1
         - Step 2
         - Step 3
+
+        Current code (approximate):
+        ```typescript
+        // relevant snippet showing what exists
+        ```
+
+        Change to:
+        ```typescript
+        // snippet showing the target state
+        ```
       </action>
       <verify>npx tsc --noEmit</verify>
       <done>Acceptance criteria for this task</done>

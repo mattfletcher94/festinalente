@@ -192,6 +192,9 @@ Warning: Some relevant docs may be outdated:
     </substep>
 
     <substep name="execute_action">
+      <note>**Snippets are approximate:** Code snippets in the plan are for context only.
+      Always read the actual file before making changes - line numbers and code may have
+      shifted since planning. Use snippets to understand intent, not as copy-paste source.</note>
       <action>Read and understand the action items in {task.action}</action>
       <action>Make the code changes described</action>
       <note>Follow the pattern reference if provided</note>
