@@ -1,0 +1,158 @@
+<plan task="003" spec="tasks/003/spec.xml" status="approved"
+      complexity="medium" created="2026-02-21" updated="2026-02-21"
+      generated-by="claude" model="claude-opus-4-5-20251101" version="1" iteration="1">
+  <title>Show action description in Run next action button</title>
+
+  <overview>
+    Replace inline play button with expandable ActionItem child node under each TaskItem.
+    The ActionItem displays the action label with task ID (e.g., "Scope task 003") and
+    description, using a green play ThemeIcon. Clicking the ActionItem triggers the existing
+    kanban.runNextAction command. This follows the FileItem pattern at lines 177-207.
+  </overview>
+
+  <approach>
+    <rationale>
+      VSCode inline menu buttons cannot have dynamic per-item titles (package.json is static).
+      The spec solved this by moving the action to an expandable child item that can display
+      any text. This follows the existing FileItem TreeItem pattern.
+
+      Key patterns being followed:
+      - FileItem class structure at tasks-view.capability.ts:177-207
+      - ThemeIcon with ThemeColor at tasks-view.capability.ts:161-162
+      - TreeItem.command for click handling at tasks-view.capability.ts:183-188
+
+      ActionItem will be a new TreeItem class in the capability (VSCode API belongs in
+      capabilities per architecture directive).
+    </rationale>
+    <breaking-changes>
+      <change type="config">
+        <old>view/item/context menu entry for kanban.runNextAction on task items</old>
+        <new>No inline button - action is now an expandable child ActionItem</new>
+        <affects>apps/vscode/package.json lines 86-90</affects>
+      </change>
+    </breaking-changes>
+  </approach>
+
+  <inventory></inventory>
+
+  <tasks>
+    <task id="1" type="auto">
+      <name>Add ActionItem class to tasks-view.capability.ts</name>
+      <files>apps/vscode/src/capabilities/tasks-view.capability.ts (modify)</files>
+      <requirements>FR2, FR3, FR4</requirements>
+      <pattern>FileItem class at tasks-view.capability.ts:177-207</pattern>
+      <action>
+        - Add ActionItem class after FileItem class (around line 208)
+        - Extend vscode.TreeItem with collapsibleState.None
+        - Constructor takes taskId: string, action: TaskAction
+        - Set label to "{action.label} task {taskId}" (e.g., "Scope task 003")
+        - Set description to action.description
+        - Set iconPath to new vscode.ThemeIcon('play', new vscode.ThemeColor('charts.green'))
+        - Set contextValue to 'action'
+        - Set command property to trigger kanban.runNextAction with task argument
+      </action>
+      <verify>npx tsc --noEmit</verify>
+      <done>ActionItem class compiles with correct label, description, green play icon, and command</done>
+    </task>
+
+    <task id="2" type="auto" depends="1">
+      <name>Update TreeItem union type to include ActionItem</name>
+      <files>apps/vscode/src/capabilities/tasks-view.capability.ts (modify)</files>
+      <requirements>FR1</requirements>
+      <pattern>TreeItem type at tasks-view.capability.ts:11</pattern>
+      <action>
+        - Update line 11: type TreeItem = StatusGroupItem | TaskItem | ActionItem | FileItem;
+      </action>
+      <verify>npx tsc --noEmit</verify>
+      <done>TreeItem type includes ActionItem</done>
+    </task>
+
+    <task id="3" type="auto" depends="2">
+      <name>Modify getChildren to return ActionItem before FileItems</name>
+      <files>apps/vscode/src/capabilities/tasks-view.capability.ts (modify)</files>
+      <requirements>FR1, FR6</requirements>
+      <pattern>getChildren switch at tasks-view.capability.ts:249-252</pattern>
+      <action>
+        - Modify the TaskItem branch in getChildren (line 249-252)
+        - Get nextAction from element.nextAction (already available on TaskItem)
+        - If nextAction exists, create ActionItem with element.task.id and nextAction
+        - Prepend ActionItem to the array returned by getFilesForTask
+        - If no nextAction (done status), return only FileItems as before
+      </action>
+      <verify>npx tsc --noEmit</verify>
+      <done>Expanding a task shows ActionItem first (if action exists), then file items</done>
+    </task>
+
+    <task id="4" type="auto" depends="3">
+      <name>Remove inline play button from package.json menus</name>
+      <files>apps/vscode/package.json (modify)</files>
+      <requirements>FR7</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Remove lines 86-90 from view/item/context array:
+          {
+            "command": "kanban.runNextAction",
+            "when": "view == kanbanTasks &amp;&amp; viewItem == task",
+            "group": "inline@1"
+          }
+        - Keep the kanban.openTaskFolder entry (update group to inline@1)
+        - Keep kanban.runNextAction command registered (used by ActionItem.command)
+      </action>
+      <verify>npm run build</verify>
+      <done>Inline play button no longer appears on task rows in tree view</done>
+    </task>
+
+    <task id="5" type="manual" depends="4">
+      <name>Manual verification of all acceptance criteria</name>
+      <files>N/A</files>
+      <requirements>FR1, FR2, FR3, FR4, FR5, FR6, FR7</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Build and install extension: npm run build in apps/vscode
+        - Reload VSCode window
+        - Open a task in scoped status
+        - Expand the task in tree view
+        - Verify: ActionItem appears as first child with format "Scope task {id}"
+        - Verify: ActionItem shows description text
+        - Verify: ActionItem has green play icon
+        - Click ActionItem: Verify terminal opens with correct command
+        - Check a task in done status: Verify no ActionItem appears
+        - Check task row: Verify no inline play button
+      </action>
+      <verify>Manual: All 7 acceptance criteria pass</verify>
+      <done>All functional requirements verified working</done>
+    </task>
+  </tasks>
+
+  <testing>
+    <automated>None required - UI component, manual verification sufficient</automated>
+    <manual>
+      - Expand task in scoped status, verify ActionItem shows "Scope task {id}"
+      - Verify ActionItem description matches action.description
+      - Verify green play icon renders correctly
+      - Click ActionItem, verify correct terminal command executes
+      - Check done task has no ActionItem
+      - Check task row has no inline play button
+    </manual>
+    <regression>
+      - FileItems still appear correctly when expanding tasks
+      - Other tree items (StatusGroup, Task) render as before
+      - kanban.openTaskFolder button still works
+    </regression>
+  </testing>
+
+  <edge-cases>
+    <case scenario="Task has no nextAction (done status)">Return only FileItems, no ActionItem - FR6</case>
+    <case scenario="Task expanded in narrow panel">ActionItem label truncates gracefully, description in separate field</case>
+    <case scenario="User collapses task immediately">ActionItem not visible until expansion - acceptable per spec</case>
+  </edge-cases>
+
+  <pitfalls>
+    <pitfall issue="ActionItem command needs task context">Pass task via command arguments like FileItem does with filePath</pitfall>
+    <pitfall issue="TreeItem type union order">Add ActionItem between TaskItem and FileItem to maintain logical ordering</pitfall>
+  </pitfalls>
+
+  <iterations></iterations>
+  <wip></wip>
+  <completeness></completeness>
+</plan>
