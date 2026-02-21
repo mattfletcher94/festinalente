@@ -1,4 +1,4 @@
-<task id="003" status="backlog" priority="medium" created="2026-02-21" updated="2026-02-21">
+<task id="003" status="scoped" priority="medium" created="2026-02-21" updated="2026-02-21">
   <title>Show action description in Run next action button</title>
 
   <labels>
@@ -11,6 +11,7 @@
   </affects>
 
   <engineering>
+    <doc id="systems/vscode-extension"/>
   </engineering>
 
   <description>The 'Run next action' button in the VSCode extension task list doesn't state what the action is actually going to do. Users have to guess or remember what the next workflow step is.</description>
