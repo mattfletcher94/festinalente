@@ -2,9 +2,9 @@
 id: "vscode/kanban-view"
 title: "Kanban View"
 type: feature
-tldr: "Sidebar tree view displaying tasks grouped by workflow column"
-summary: "VSCode TreeDataProvider showing tasks organized by status (backlog, scoped, planned, in-progress, etc.) with priority indicators, labels, and file status."
-keywords: [kanban, view, treeview, sidebar, columns, status]
+tldr: "Sidebar tree view displaying tasks grouped by workflow column plus config access"
+summary: "VSCode TreeDataProvider showing tasks organized by status (backlog, scoped, planned, in-progress, etc.) with priority indicators, labels, and file status. Includes a Kanban Config section for quick access to config.yaml."
+keywords: [kanban, view, treeview, sidebar, columns, status, config]
 aliases: [task-view, kanban-board, tasks-view]
 boundary: "Does NOT provide drag-and-drop; tasks move via commands"
 related: [vscode/codelens, vscode/terminal, tasks/workflow]
@@ -12,17 +12,20 @@ updated: 2026-02-21
 verified: 2026-02-21
 code_refs:
   - apps/vscode/src/capabilities/tasks-view.capability.ts
+  - apps/vscode/src/capabilities/config-view.capability.ts
 ---
 
 # Kanban View
 
-> **TL;DR:** Sidebar tree view displaying tasks grouped by workflow column
+> **TL;DR:** Sidebar tree view displaying tasks grouped by workflow column plus config access
 
 ## Overview
 
 Kanban View provides a sidebar TreeView showing all tasks organized by their workflow status. Each column (backlog, scoped, planned, in-progress, codecheck, qa, update-docs, pr, done) expands to show tasks with priority indicators and labels. Clicking a task opens its task.xml file.
 
-**Summary:** Visual task organization matching the workflow columns.
+The sidebar also includes a "Kanban Config" section that provides quick access to config.yaml without navigating the file system.
+
+**Summary:** Visual task organization matching the workflow columns, plus config access.
 
 ## How It Works
 
@@ -51,6 +54,12 @@ Kanban View provides a sidebar TreeView showing all tasks organized by their wor
 **Refresh triggers:**
 - Manual: Command palette "Kanban: Refresh Tasks"
 - Automatic: File watcher detects .kanban/tasks changes
+
+**Kanban Config section:**
+- Displays config.yaml as a clickable tree item with a gear icon
+- Clicking opens config.yaml in the editor
+- Shows welcome message when config.yaml doesn't exist
+- Automatically refreshes when config.yaml is created, modified, or deleted
 
 **Summary:** Hierarchical display with automatic refresh.
 
@@ -88,7 +97,16 @@ KANBAN TASKS
 
 Clicking the ActionItem runs the next workflow action in the terminal.
 
-**Summary:** Columns with nested task items, ActionItems show next action.
+### Kanban Config Section
+
+```
+KANBAN CONFIG
+└── config.yaml                  ← ConfigItem (gear icon, clickable)
+```
+
+Clicking config.yaml opens it in the editor.
+
+**Summary:** Columns with nested task items, ActionItems show next action, plus config section.
 
 ## Boundaries
 

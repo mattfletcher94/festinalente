@@ -18,6 +18,7 @@ import { createFileSystemCapability } from './capabilities/file-system.capabilit
 import { createTerminalCapability } from './capabilities/terminal.capability';
 import { createTasksViewCapability, TaskItem } from './capabilities/tasks-view.capability';
 import { createCodeLensCapability } from './capabilities/codelens.capability';
+import { createConfigViewCapability } from './capabilities/config-view.capability';
 
 // Types
 import type { Task } from './types/task-types';
@@ -161,6 +162,24 @@ export function activate(context: vscode.ExtensionContext): void {
     getNextAction,
   });
 
+  // Policy: Check if config exists
+  function checkConfigExists(): boolean {
+    return fs.exists(fs.joinPath(kanbanDir, 'config.yaml'));
+  }
+
+  function getConfigPath(): string {
+    return fs.joinPath(kanbanDir, 'config.yaml');
+  }
+
+  // Set context for viewsWelcome
+  vscode.commands.executeCommand('setContext', 'kanban.hasConfigFile', checkConfigExists());
+
+  // Initialize config view capability
+  const configView = createConfigViewCapability({
+    checkConfigExists,
+    getConfigPath,
+  });
+
   // Initialize codelens capability with dependencies
   const codelens = createCodeLensCapability({
     parseTaskFromUri,
@@ -169,9 +188,11 @@ export function activate(context: vscode.ExtensionContext): void {
 
   // Create providers
   const treeDataProvider = tasksView.createTreeDataProvider();
+  const configTreeDataProvider = configView.createTreeDataProvider();
   const codeLensProvider = codelens.createCodeLensProvider();
 
   const refreshTree = tasksView.createRefreshCallback();
+  const refreshConfigView = configView.createRefreshCallback();
   const refreshCodeLens = codelens.createRefreshCallback();
 
   // Register TreeView
@@ -180,6 +201,12 @@ export function activate(context: vscode.ExtensionContext): void {
     showCollapseAll: true,
   });
   context.subscriptions.push(treeView);
+
+  // Register Config TreeView
+  const configTreeView = vscode.window.createTreeView('kanbanConfig', {
+    treeDataProvider: configTreeDataProvider,
+  });
+  context.subscriptions.push(configTreeView);
 
   // Register CodeLens
   context.subscriptions.push(
@@ -291,6 +318,27 @@ export function activate(context: vscode.ExtensionContext): void {
   });
 
   context.subscriptions.push(watcher);
+
+  // --- Config File Watcher (policy: when to refresh config view) ---
+  const configWatcher = vscode.workspace.createFileSystemWatcher(
+    new vscode.RelativePattern(kanbanPath, 'config.yaml')
+  );
+
+  configWatcher.onDidChange(() => {
+    refreshConfigView();
+  });
+
+  configWatcher.onDidCreate(() => {
+    vscode.commands.executeCommand('setContext', 'kanban.hasConfigFile', true);
+    refreshConfigView();
+  });
+
+  configWatcher.onDidDelete(() => {
+    vscode.commands.executeCommand('setContext', 'kanban.hasConfigFile', false);
+    refreshConfigView();
+  });
+
+  context.subscriptions.push(configWatcher);
 
   // --- Workspace changes (policy: when to prompt reload) ---
   context.subscriptions.push(
