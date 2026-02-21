@@ -18,6 +18,7 @@ verified: 2026-02-21
 code_refs:
   - apps/vscode/src/extension.ts
   - apps/vscode/src/capabilities/tasks-view.capability.ts
+  - apps/vscode/src/capabilities/terminal.capability.ts
   - apps/vscode/src/computers/task-parser.computer.ts
 ---
 
@@ -56,7 +57,7 @@ Capabilities handle I/O and side effects. They wrap VSCode APIs and file system 
 |-----------|---------|------|
 | file-system | File I/O wrapper (read, write, exists) | `capabilities/file-system.capability.ts` |
 | tasks-view | TreeView rendering and management | `capabilities/tasks-view.capability.ts` |
-| terminal | Terminal session management | `capabilities/terminal.capability.ts` |
+| terminal | Terminal lifecycle (fresh per action) | `capabilities/terminal.capability.ts` |
 | codelens | CodeLens provider for quick actions | `capabilities/codelens.capability.ts` |
 
 #### TreeItem Types in tasks-view
