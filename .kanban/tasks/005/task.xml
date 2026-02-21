@@ -1,4 +1,4 @@
-<task id="005" status="backlog" priority="high" created="2026-02-21" updated="2026-02-21">
+<task id="005" status="scoped" priority="high" created="2026-02-21" updated="2026-02-21">
   <title>Add global actions section to VSCode extension</title>
 
   <labels>
