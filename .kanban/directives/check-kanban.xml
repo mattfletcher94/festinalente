@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<directive name="check-kanban" version="1"
+           created="2026-02-21" updated="2026-02-21">
+
+  <description>
+    Build checks for the kanban package (apps/kanban)
+  </description>
+
+  <context>
+    <principle id="C1" keywords="kanban,build,scripts,skills">
+      The kanban package contains skills, templates, and helper scripts that must build successfully
+    </principle>
+  </context>
+
+  <process>
+    <rule id="P1" phase="codecheck">
+      Run kanban build to verify scripts compile and content generates correctly
+    </rule>
+  </process>
+
+  <validation>
+    <check id="V1" type="command" severity="error">
+      <run>pnpm kanban:build</run>
+      <expect>Build succeeds with no errors (exit code 0)</expect>
+    </check>
+  </validation>
+
+</directive>

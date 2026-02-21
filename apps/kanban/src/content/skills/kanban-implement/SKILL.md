@@ -269,7 +269,7 @@ To save progress now:
     <output>Show status</output>
     <branch condition="ALL checkboxes complete">
       <output>**Next: Run code checks**</output>
-      <output>Code check runs your configured checks (tests, typecheck, lint). If they pass, the task moves to QA for you to manually test the application.</output>
+      <output>Code check runs your configured checks from directives. If they pass, the task moves to QA for you to manually test the application.</output>
       <output>
 ```
 /clear
@@ -429,7 +429,7 @@ When implementation complete:
 /clear
 /kanban-codecheck {id}
 ```
-Code check runs your automated checks (tests, typecheck, lint). If they pass, the task moves to QA for you to manually test the application.
+Code check runs your configured checks from directives. If they pass, the task moves to QA for you to manually test the application.
 
 Code stays uncommitted until you approve after QA.
 </next_steps>

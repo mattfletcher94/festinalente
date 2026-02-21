@@ -14,29 +14,27 @@ directives:
   kanban-refine: []
   kanban-scope:
     - architecture
-    - vscode-integration
     - typescript
     - design
   kanban-plan:
     - planning
     - architecture
-    - vscode-integration
     - design
   kanban-implement:
     - architecture
-    - vscode-integration
     - typescript
     - tsdoc
     - design
   kanban-save: []
   kanban-codecheck:
+    - check-kanban
+    - check-vscode
     - code-review
   kanban-approve: []
   kanban-docs: []
   kanban-merge: []
   kanban-rework:
     - architecture
-    - vscode-integration
     - typescript
     - tsdoc
     - design

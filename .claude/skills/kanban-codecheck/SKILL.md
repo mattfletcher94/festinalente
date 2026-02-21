@@ -9,7 +9,7 @@ disable-model-invocation: true
 # Code Check Kanban Task
 
 <purpose>
-Run code checks using user-configured directives. Directives can be automated commands (tests, lint) or AI-driven reviews (coding patterns, architecture). On failure, ask user whether to attempt a fix.
+Run code checks using user-configured directives. Directives define what gets checked - this skill just executes them. Examples: `npm run test`, `pnpm typecheck`, `dotnet test`, `pytest`, `cargo clippy`. Directives can also define AI-driven reviews for coding patterns or architecture compliance. On failure, ask user whether to attempt a fix.
 </purpose>
 
 <context>

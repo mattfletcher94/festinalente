@@ -64,7 +64,7 @@ export function createTaskActionsComputer(): CreateTaskActionsComputerReturn {
           {
             label: 'Run Checks',
             command: buildCommand('codecheck', id),
-            description: 'Run tests and linting',
+            description: 'Run configured checks',
           },
         ];
 

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<directive name="check-vscode" version="1"
+           created="2026-02-21" updated="2026-02-21">
+
+  <description>
+    Build checks for the VSCode extension (apps/vscode)
+  </description>
+
+  <context>
+    <principle id="C1" keywords="vscode,extension,sidebar,codelens,terminal">
+      The VSCode extension provides the kanban sidebar, CodeLens actions, and terminal integration
+    </principle>
+  </context>
+
+  <process>
+    <rule id="P1" phase="codecheck">
+      Run vscode build to verify extension bundles correctly with esbuild
+    </rule>
+  </process>
+
+  <validation>
+    <check id="V1" type="command" severity="error">
+      <run>pnpm --filter claude-kanban-vscode build</run>
+      <expect>Build succeeds with no errors (exit code 0)</expect>
+    </check>
+  </validation>
+
+</directive>
