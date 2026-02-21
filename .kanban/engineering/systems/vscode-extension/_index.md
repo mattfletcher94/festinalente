@@ -19,6 +19,7 @@ code_refs:
   - apps/vscode/src/extension.ts
   - apps/vscode/src/capabilities/tasks-view.capability.ts
   - apps/vscode/src/capabilities/terminal.capability.ts
+  - apps/vscode/src/capabilities/config-view.capability.ts
   - apps/vscode/src/computers/task-parser.computer.ts
 ---
 
@@ -59,6 +60,7 @@ Capabilities handle I/O and side effects. They wrap VSCode APIs and file system 
 | tasks-view | TreeView rendering and management | `capabilities/tasks-view.capability.ts` |
 | terminal | Terminal lifecycle (fresh per action) | `capabilities/terminal.capability.ts` |
 | codelens | CodeLens provider for quick actions | `capabilities/codelens.capability.ts` |
+| config-view | TreeView for config.yaml access | `capabilities/config-view.capability.ts` |
 
 #### TreeItem Types in tasks-view
 
@@ -72,6 +74,16 @@ The tasks-view capability defines these TreeItem types:
 | FileItem | TaskItem | Task file (task.xml, spec.xml, plan.xml) |
 
 ActionItem appears as the first child when expanding a TaskItem (unless task is in "done" status).
+
+#### TreeItem Types in config-view
+
+The config-view capability defines:
+
+| TreeItem | Parent | Purpose |
+|----------|--------|---------|
+| ConfigItem | root | Config file entry (gear icon, click-to-open) |
+
+ConfigItem uses `kanban.openFile` command to open config.yaml in editor.
 
 ### Computers Layer (Pure Functions)
 
