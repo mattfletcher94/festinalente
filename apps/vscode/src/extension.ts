@@ -16,7 +16,7 @@ import { createTaskGroupingComputer } from './computers/task-grouping.computer';
 // Capabilities (mechanism)
 import { createFileSystemCapability } from './capabilities/file-system.capability';
 import { createTerminalCapability } from './capabilities/terminal.capability';
-import { createTasksViewCapability } from './capabilities/tasks-view.capability';
+import { createTasksViewCapability, TaskItem } from './capabilities/tasks-view.capability';
 import { createCodeLensCapability } from './capabilities/codelens.capability';
 
 // Types
@@ -66,11 +66,13 @@ export function activate(context: vscode.ExtensionContext): void {
 
   vscode.commands.executeCommand('setContext', 'kanban.hasKanbanFolder', true);
 
-  const workspaceRoot = path.dirname(kanbanPath);
+  // Reassign to a non-optional const so TypeScript knows it's defined in closures below
+  const kanbanDir = kanbanPath;
+  const workspaceRoot = path.dirname(kanbanDir);
 
   // Policy: Load all tasks from kanban folder
   function loadAllTasks(): Task[] {
-    const tasksDir = fs.joinPath(kanbanPath, 'tasks');
+    const tasksDir = fs.joinPath(kanbanDir, 'tasks');
     if (!fs.exists(tasksDir)) {
       return [];
     }
@@ -142,6 +144,12 @@ export function activate(context: vscode.ExtensionContext): void {
     }
   }
 
+  // Policy: Get next action for a task
+  function getNextAction(task: Task) {
+    const actions = taskActions.getActions(task);
+    return actions.length > 0 ? actions[0] : undefined;
+  }
+
   // Initialize view capability with dependencies
   const tasksView = createTasksViewCapability({
     loadTasks: loadAllTasks,
@@ -150,6 +158,7 @@ export function activate(context: vscode.ExtensionContext): void {
     getVisibleColumns: taskGrouping.getVisibleColumns,
     getTaskFiles,
     checkTaskFiles,
+    getNextAction,
   });
 
   // Initialize codelens capability with dependencies
@@ -233,6 +242,31 @@ export function activate(context: vscode.ExtensionContext): void {
       const kanbanTerminal = terminal.getOrCreateTerminal('Kanban', workspaceRoot);
       terminal.showTerminal(kanbanTerminal);
       terminal.sendCommand(kanbanTerminal, `claude "/kanban-create ${title}"`);
+    })
+  );
+
+  // Run next action command (from inline button)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('kanban.runNextAction', (item: TaskItem) => {
+      if (!item?.task || !item?.nextAction) {
+        vscode.window.showWarningMessage('No action available for this task');
+        return;
+      }
+
+      const kanbanTerminal = terminal.getOrCreateTerminal('Kanban', workspaceRoot);
+      terminal.showTerminal(kanbanTerminal);
+      terminal.sendCommand(kanbanTerminal, `claude "${item.nextAction.command}"`);
+    })
+  );
+
+  // Open task folder command
+  context.subscriptions.push(
+    vscode.commands.registerCommand('kanban.openTaskFolder', (item: TaskItem) => {
+      if (!item?.task?.taskPath) {
+        return;
+      }
+      const uri = vscode.Uri.file(item.task.taskPath);
+      vscode.commands.executeCommand('revealInExplorer', uri);
     })
   );
 

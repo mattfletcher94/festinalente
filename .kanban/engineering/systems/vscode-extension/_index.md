@@ -13,8 +13,8 @@ related:
   - patterns/capability-computer
 paths:
   - apps/vscode/src
-updated: 2026-02-20
-verified: 2026-02-20
+updated: 2026-02-21
+verified: 2026-02-21
 code_refs:
   - apps/vscode/src/extension.ts
   - apps/vscode/src/capabilities/tasks-view.capability.ts
@@ -58,6 +58,19 @@ Capabilities handle I/O and side effects. They wrap VSCode APIs and file system 
 | tasks-view | TreeView rendering and management | `capabilities/tasks-view.capability.ts` |
 | terminal | Terminal session management | `capabilities/terminal.capability.ts` |
 | codelens | CodeLens provider for quick actions | `capabilities/codelens.capability.ts` |
+
+#### TreeItem Types in tasks-view
+
+The tasks-view capability defines these TreeItem types:
+
+| TreeItem | Parent | Purpose |
+|----------|--------|---------|
+| StatusGroupItem | root | Column header (e.g., "Backlog", "In Progress") |
+| TaskItem | StatusGroupItem | Task entry with ID, title, priority, label |
+| ActionItem | TaskItem | Next workflow action (green play icon, clickable) |
+| FileItem | TaskItem | Task file (task.xml, spec.xml, plan.xml) |
+
+ActionItem appears as the first child when expanding a TaskItem (unless task is in "done" status).
 
 ### Computers Layer (Pure Functions)
 

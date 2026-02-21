@@ -8,7 +8,10 @@ keywords: [kanban, view, treeview, sidebar, columns, status]
 aliases: [task-view, kanban-board, tasks-view]
 boundary: "Does NOT provide drag-and-drop; tasks move via commands"
 related: [vscode/codelens, vscode/terminal, tasks/workflow]
-updated: 2026-02-20
+updated: 2026-02-21
+verified: 2026-02-21
+code_refs:
+  - apps/vscode/src/capabilities/tasks-view.capability.ts
 ---
 
 # Kanban View
@@ -34,8 +37,16 @@ Kanban View provides a sidebar TreeView showing all tasks organized by their wor
 
 **View hierarchy:**
 - Columns (backlog, scoped, ...) → expandable groups
-- Tasks → clickable items with icons
+- Tasks → expandable items with icons
 - Each task shows: ID, title, priority indicator, label
+- ActionItem → first child when task expanded (shows next workflow action)
+- FileItems → task files (task.xml, spec.xml, plan.xml)
+
+**ActionItem behavior:**
+- Appears as first child when expanding a task (except for tasks in "done" status)
+- Shows the next action label (e.g., "Run Checks", "Approve")
+- Green play icon indicates clickability
+- Clicking executes the action command in terminal
 
 **Refresh triggers:**
 - Manual: Command palette "Kanban: Refresh Tasks"
@@ -45,7 +56,7 @@ Kanban View provides a sidebar TreeView showing all tasks organized by their wor
 
 ## Examples
 
-### Typical Display
+### Typical Display (Collapsed)
 
 ```
 KANBAN TASKS
@@ -64,7 +75,20 @@ KANBAN TASKS
 └── Done (0)
 ```
 
-**Summary:** Columns with nested task items.
+### Expanded Task (with ActionItem)
+
+```
+├── Planned (1)
+│   └── ▼ 002: Add user auth [feature] [medium]
+│       ├── ▶ Implement              ← ActionItem (green play icon)
+│       ├── task.xml                  ← FileItem
+│       ├── spec.xml
+│       └── plan.xml
+```
+
+Clicking the ActionItem runs the next workflow action in the terminal.
+
+**Summary:** Columns with nested task items, ActionItems show next action.
 
 ## Boundaries
 
@@ -73,6 +97,7 @@ What this feature does NOT do:
 - **Does NOT:** Drag-and-drop to move tasks
 - **Does NOT:** Edit task content directly
 - **Does NOT:** Show spec/plan details (click to open file)
+- **Does NOT:** Show multiple actions (only next action in workflow)
 
 ## Configuration
 
@@ -83,6 +108,7 @@ What this feature does NOT do:
 ## Interactions
 
 - **Task files**: Reads task.xml for display
+- **ActionItem**: Triggers workflow commands via terminal
 - **CodeLens**: Actions for clicked task
 - **File watcher**: Refreshes on changes
 

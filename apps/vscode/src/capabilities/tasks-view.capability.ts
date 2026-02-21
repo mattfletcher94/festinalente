@@ -3,12 +3,12 @@
  */
 
 import * as vscode from 'vscode';
-import type { Task, TaskStatus, TaskColumn } from '../types/task-types';
+import type { Task, TaskStatus, TaskColumn, TaskAction } from '../types/task-types';
 
 /**
  * Tree item types.
  */
-type TreeItem = StatusGroupItem | TaskItem | FileItem;
+type TreeItem = StatusGroupItem | TaskItem | ActionItem | FileItem;
 
 /**
  * Status group tree item (e.g., "In Progress (2)").
@@ -59,10 +59,11 @@ class StatusGroupItem extends vscode.TreeItem {
 /**
  * Task tree item (e.g., "001: Add settings panel").
  */
-class TaskItem extends vscode.TreeItem {
+export class TaskItem extends vscode.TreeItem {
   constructor(
     public readonly task: Task,
-    public readonly files: { hasSpec: boolean; hasPlan: boolean }
+    public readonly files: { hasSpec: boolean; hasPlan: boolean },
+    public readonly nextAction: TaskAction | undefined
   ) {
     super(`${task.id}: ${task.title}`, vscode.TreeItemCollapsibleState.Collapsed);
 
@@ -103,6 +104,11 @@ class TaskItem extends vscode.TreeItem {
       parts.push(`[${fileIndicators.join('')}]`);
     }
 
+    // Next action
+    if (this.nextAction) {
+      parts.push(`→ ${this.nextAction.label}`);
+    }
+
     return parts.join(' ');
   }
 
@@ -136,6 +142,11 @@ class TaskItem extends vscode.TreeItem {
     md.appendMarkdown(`- spec.xml ${this.files.hasSpec ? '✓' : '✗'}\n`);
     md.appendMarkdown(`- plan.xml ${this.files.hasPlan ? '✓' : '✗'}\n`);
 
+    // Next action
+    if (this.nextAction) {
+      md.appendMarkdown(`\n**Next:** $(play) ${this.nextAction.label} - ${this.nextAction.description}\n`);
+    }
+
     // Dates
     if (this.task.created) {
       md.appendMarkdown(`\n---\n*Created: ${this.task.created}*`);
@@ -157,6 +168,27 @@ class TaskItem extends vscode.TreeItem {
       default:
         return new vscode.ThemeIcon('circle-outline');
     }
+  }
+}
+
+/**
+ * Action tree item (e.g., "Scope task 003").
+ */
+class ActionItem extends vscode.TreeItem {
+  constructor(
+    public readonly taskId: string,
+    public readonly action: TaskAction
+  ) {
+    super(action.label, vscode.TreeItemCollapsibleState.None);
+
+    this.description = action.description;
+    this.iconPath = new vscode.ThemeIcon('play', new vscode.ThemeColor('charts.green'));
+    this.contextValue = 'action';
+    this.command = {
+      command: 'kanban.runAction',
+      title: 'Run Action',
+      arguments: [{ command: action.command, taskId }],
+    };
   }
 }
 
@@ -205,6 +237,7 @@ export interface TasksViewCapabilityDeps {
   ) => readonly TaskColumn[];
   getTaskFiles: (taskPath: string) => string[];
   checkTaskFiles: (taskPath: string) => { hasSpec: boolean; hasPlan: boolean };
+  getNextAction: (task: Task) => TaskAction | undefined;
 }
 
 export interface CreateTasksViewCapabilityReturn {
@@ -235,7 +268,7 @@ export function createTasksViewCapability(
         }
 
         if (element instanceof TaskItem) {
-          return getFilesForTask(element.task.taskPath);
+          return getChildrenForTask(element);
         }
 
         return [];
@@ -263,7 +296,7 @@ export function createTasksViewCapability(
     const tasks = deps.loadTasks();
     return tasks
       .filter((t) => t.status === status)
-      .map((t) => new TaskItem(t, deps.checkTaskFiles(t.taskPath)));
+      .map((t) => new TaskItem(t, deps.checkTaskFiles(t.taskPath), deps.getNextAction(t)));
   }
 
   function getFilesForTask(taskPath: string): FileItem[] {
@@ -272,6 +305,20 @@ export function createTasksViewCapability(
       const fileName = filePath.split(/[/\\]/).pop() || '';
       return new FileItem(fileName, filePath);
     });
+  }
+
+  function getChildrenForTask(taskItem: TaskItem): (ActionItem | FileItem)[] {
+    const children: (ActionItem | FileItem)[] = [];
+
+    // Prepend ActionItem if task has a next action (FR1, FR6)
+    if (taskItem.nextAction) {
+      children.push(new ActionItem(taskItem.task.id, taskItem.nextAction));
+    }
+
+    // Add file items
+    children.push(...getFilesForTask(taskItem.task.taskPath));
+
+    return children;
   }
 
   function createRefreshCallback(): () => void {
