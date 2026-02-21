@@ -1,0 +1,102 @@
+<spec task="001" created="2026-02-21" updated="2026-02-21">
+  <title>Display config.yaml in VSCode plugin panel</title>
+
+  <context>
+    Users cannot easily locate or access the config.yaml file within the Kanban system.
+    They must navigate the file system manually to find and open the configuration file.
+    This feature provides quick access to config.yaml directly from the VSCode sidebar,
+    keeping configuration accessible alongside tasks.
+  </context>
+
+  <scope>
+    <in-scope>
+      <item>Add a new collapsible "Kanban Config" TreeView section to the sidebar</item>
+      <item>Display config.yaml as a clickable tree item within the section</item>
+      <item>Open config.yaml in editor when clicked</item>
+      <item>Refresh config view when config.yaml changes</item>
+    </in-scope>
+    <out-of-scope>
+      <item>Editing config.yaml content directly in the sidebar</item>
+      <item>Validating config.yaml schema</item>
+      <item>Displaying config.yaml contents/preview in the tree</item>
+    </out-of-scope>
+  </scope>
+
+  <requirements>
+    <requirement id="FR1">The extension shall register a new TreeView with id "kanbanConfig" in the kanban viewsContainer</requirement>
+    <requirement id="FR2">The TreeView shall display with name "Kanban Config" (title case) in the sidebar</requirement>
+    <requirement id="FR3">The TreeView shall show config.yaml as a single clickable tree item when .kanban/config.yaml exists</requirement>
+    <requirement id="FR4">Clicking the config.yaml item shall open the file in the VSCode editor</requirement>
+    <requirement id="FR5">The TreeView shall display an appropriate empty state when config.yaml does not exist</requirement>
+    <requirement id="FR6">The file watcher shall trigger a refresh of the config view when config.yaml is created, modified, or deleted</requirement>
+    <requirement id="FR7">The config.yaml item shall use a ThemeIcon appropriate for configuration files</requirement>
+  </requirements>
+
+  <files>
+    <file path="apps/vscode/package.json" action="modify">Add kanbanConfig view definition to views.kanban array</file>
+    <file path="apps/vscode/src/capabilities/config-view.capability.ts" action="create">New TreeDataProvider capability for config view</file>
+    <file path="apps/vscode/src/extension.ts" action="modify">Wire up config view, extend file watcher pattern to include config.yaml</file>
+  </files>
+
+  <patterns>
+    <pattern name="TreeDataProvider">
+      <description>VSCode TreeDataProvider pattern with EventEmitter for refresh</description>
+      <reference file="apps/vscode/src/capabilities/tasks-view.capability.ts" line="253-276"/>
+    </pattern>
+    <pattern name="FileItem click-to-open">
+      <description>TreeItem with command property that opens file in editor</description>
+      <reference file="apps/vscode/src/capabilities/tasks-view.capability.ts" line="198-214"/>
+    </pattern>
+    <pattern name="Factory with DI">
+      <description>Capability factory function receiving dependencies</description>
+      <reference file="apps/vscode/src/capabilities/tasks-view.capability.ts" line="248-250"/>
+    </pattern>
+    <pattern name="ThemeIcon usage">
+      <description>Use vscode.ThemeIcon for theme-compatible icons</description>
+      <reference file="apps/vscode/src/capabilities/tasks-view.capability.ts" line="216-227"/>
+    </pattern>
+  </patterns>
+
+  <research>
+    <product>
+      <finding doc="vscode/kanban-view">Sidebar TreeView displays tasks with StatusGroupItem > TaskItem > FileItem hierarchy. Click-to-open pattern exists for task files.</finding>
+    </product>
+    <engineering>
+      <finding doc="systems/vscode-extension">Three-layer architecture: Orchestrator coordinates Capabilities (I/O) and Computers (pure). New view needs a capability, wired in orchestrator.</finding>
+    </engineering>
+    <codebase>
+      <finding>package.json defines viewsContainers.activitybar and views.kanban - adding a second view creates a collapsible section automatically</finding>
+      <finding>File watcher pattern at extension.ts:274-293 watches .kanban/tasks/**/*.xml - can be extended to watch config.yaml</finding>
+      <finding>Config file lives at .kanban/config.yaml - simple YAML structure</finding>
+    </codebase>
+    <pitfalls>
+      <finding>Config file may not exist - must handle gracefully with empty state or message</finding>
+      <finding>No existing multi-view pattern in codebase - this is the first additional view</finding>
+    </pitfalls>
+  </research>
+
+  <constraints>
+    <constraint>Must use vscode.ThemeIcon, not custom icons (design directive)</constraint>
+    <constraint>Capability must not import other capabilities (architecture directive)</constraint>
+    <constraint>All exported functions must have explicit return types (typescript directive)</constraint>
+    <constraint>New module must use .capability.ts suffix (architecture directive)</constraint>
+  </constraints>
+
+  <dependencies>
+    <external>None - uses existing VSCode API and fast-xml-parser already in dependencies</external>
+    <internal>
+      <dependency>file-system.capability.ts for file existence check and path operations</dependency>
+      <dependency>Existing kanban.openFile command for opening files</dependency>
+    </internal>
+  </dependencies>
+
+  <risks>
+    <risk impact="low" mitigation="Handle with empty state message">
+      config.yaml may not exist in workspace
+    </risk>
+  </risks>
+
+  <open-questions>
+    <!-- None - all questions resolved during scoping -->
+  </open-questions>
+</spec>
