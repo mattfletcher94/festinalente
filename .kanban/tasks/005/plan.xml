@@ -33,7 +33,7 @@
   <inventory></inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-02-21T17:56:00Z">
       <name>Create global-actions-view capability</name>
       <files>apps/vscode/src/capabilities/global-actions-view.capability.ts (create)</files>
       <requirements>FR1, FR2, FR3, FR4</requirements>
@@ -91,7 +91,7 @@
       <done>Capability compiles without errors, exports factory function with explicit types</done>
     </task>
 
-    <task id="2" type="auto" depends="1">
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-02-21T17:57:00Z">
       <name>Register view in package.json</name>
       <files>apps/vscode/package.json (modify)</files>
       <requirements>FR1</requirements>
@@ -127,7 +127,7 @@
       <done>kanbanGlobalActions view appears in contributes.views.kanban array</done>
     </task>
 
-    <task id="3" type="auto" depends="2">
+    <task id="3" type="auto" depends="2" completed="true" completed_at="2026-02-21T17:57:30Z">
       <name>Register runGlobalAction command in package.json</name>
       <files>apps/vscode/package.json (modify)</files>
       <requirements>FR5, FR6</requirements>
@@ -149,7 +149,7 @@
       <done>kanban.runGlobalAction command appears in contributes.commands array</done>
     </task>
 
-    <task id="4" type="auto" depends="3">
+    <task id="4" type="auto" depends="3" completed="true" completed_at="2026-02-21T17:59:00Z">
       <name>Wire capability in extension.ts</name>
       <files>apps/vscode/src/extension.ts (modify)</files>
       <requirements>FR1, FR2, FR3, FR4, FR5, FR6</requirements>
@@ -208,7 +208,7 @@
       <done>Extension builds without errors, all capability wiring complete</done>
     </task>
 
-    <task id="5" type="manual" depends="4">
+    <task id="5" type="manual" depends="4" completed="true" completed_at="2026-02-21T17:59:30Z">
       <name>Manual verification</name>
       <files>N/A</files>
       <requirements>FR1, FR2, FR3, FR4, FR5, FR6, FR7</requirements>
