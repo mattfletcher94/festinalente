@@ -105,16 +105,6 @@ Merge the task branch into main, clean up the branch, and move task to Done.
     </branch>
   </step>
 
-  <step name="merge_branch">
-    <command>git checkout main</command>
-    <command>git merge task/{taskId} --no-ff -m "Merge branch 'task/{taskId}'"</command>
-    <note>Use `--no-ff` to preserve branch history</note>
-  </step>
-
-  <step name="cleanup_branch">
-    <command>git branch -d task/{taskId}</command>
-  </step>
-
   <step name="move_to_done_and_commit">
     <note>Format: `docs({taskId}): done - {title}`</note>
     <action>Change `status: pr` to `status: done`</action>
@@ -123,6 +113,16 @@ Merge the task branch into main, clean up the branch, and move task to Done.
     <action>Write updated task file</action>
     <command>git add .kanban/tasks/{taskId}/task.xml</command>
     <command>git commit -m "docs({taskId}): done - {title}"</command>
+  </step>
+
+  <step name="merge_branch">
+    <command>git checkout main</command>
+    <command>git merge task/{taskId} --no-ff -m "Merge branch 'task/{taskId}'"</command>
+    <note>Use `--no-ff` to preserve branch history</note>
+  </step>
+
+  <step name="cleanup_branch">
+    <command>git branch -d task/{taskId}</command>
   </step>
 
   {{> directive-compliance}}
