@@ -41,6 +41,10 @@
         {
           "id": "kanbanConfig",
           "name": "Config"
+        },
+        {
+          "id": "kanbanGlobalActions",
+          "name": "Global Actions"
         }
       ]
     },
@@ -84,6 +88,10 @@
       {
         "command": "kanban.openFile",
         "title": "Kanban: Open File"
+      },
+      {
+        "command": "kanban.runGlobalAction",
+        "title": "Kanban: Run Global Action"
       }
     ],
     "menus": {

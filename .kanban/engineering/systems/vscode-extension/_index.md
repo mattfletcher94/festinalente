@@ -22,6 +22,7 @@ code_refs:
   - apps/vscode/src/capabilities/tasks-view.capability.ts
   - apps/vscode/src/capabilities/terminal.capability.ts
   - apps/vscode/src/capabilities/config-view.capability.ts
+  - apps/vscode/src/capabilities/global-actions-view.capability.ts
   - apps/vscode/src/computers/task-parser.computer.ts
   - apps/vscode/bin/install.cjs
   - apps/vscode/package.json
@@ -65,6 +66,7 @@ Capabilities handle I/O and side effects. They wrap VSCode APIs and file system 
 | terminal | Terminal lifecycle (fresh per action) | `capabilities/terminal.capability.ts` |
 | codelens | CodeLens provider for quick actions | `capabilities/codelens.capability.ts` |
 | config-view | TreeView for config.yaml access | `capabilities/config-view.capability.ts` |
+| global-actions-view | TreeView for global project commands | `capabilities/global-actions-view.capability.ts` |
 
 #### TreeItem Types in tasks-view
 
@@ -88,6 +90,17 @@ The config-view capability defines:
 | ConfigItem | root | Config file entry (gear icon, click-to-open) |
 
 ConfigItem uses `kanban.openFile` command to open config.yaml in editor.
+
+#### TreeItem Types in global-actions-view
+
+The global-actions-view capability defines:
+
+| TreeItem | Parent | Purpose |
+|----------|--------|---------|
+| GlobalActionsGroupItem | root | Container for global actions (tools icon, expanded by default) |
+| GlobalActionItem | GlobalActionsGroupItem | Clickable action (e.g., "Map Product Docs", "Map Engineering Docs") |
+
+GlobalActionItem uses `kanban.runGlobalAction` command to execute the action in a terminal.
 
 ### Computers Layer (Pure Functions)
 

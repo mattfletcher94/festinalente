@@ -19,6 +19,7 @@ import { createTerminalCapability } from './capabilities/terminal.capability';
 import { createTasksViewCapability, TaskItem } from './capabilities/tasks-view.capability';
 import { createCodeLensCapability } from './capabilities/codelens.capability';
 import { createConfigViewCapability } from './capabilities/config-view.capability';
+import { createGlobalActionsViewCapability } from './capabilities/global-actions-view.capability';
 
 // Types
 import type { Task, TaskAction } from './types/task-types';
@@ -179,6 +180,9 @@ export function activate(context: vscode.ExtensionContext): void {
     getConfigPath,
   });
 
+  // Initialize global actions view capability
+  const globalActionsView = createGlobalActionsViewCapability();
+
   // Initialize codelens capability with dependencies
   const codelens = createCodeLensCapability({
     parseTaskFromUri,
@@ -188,6 +192,7 @@ export function activate(context: vscode.ExtensionContext): void {
   // Create providers
   const treeDataProvider = tasksView.createTreeDataProvider();
   const configTreeDataProvider = configView.createTreeDataProvider();
+  const globalActionsTreeDataProvider = globalActionsView.createTreeDataProvider();
   const codeLensProvider = codelens.createCodeLensProvider();
 
   const refreshTree = tasksView.createRefreshCallback();
@@ -206,6 +211,12 @@ export function activate(context: vscode.ExtensionContext): void {
     treeDataProvider: configTreeDataProvider,
   });
   context.subscriptions.push(configTreeView);
+
+  // Register Global Actions TreeView
+  const globalActionsTreeView = vscode.window.createTreeView('kanbanGlobalActions', {
+    treeDataProvider: globalActionsTreeDataProvider,
+  });
+  context.subscriptions.push(globalActionsTreeView);
 
   // Register CodeLens
   context.subscriptions.push(
@@ -243,6 +254,23 @@ export function activate(context: vscode.ExtensionContext): void {
       (args: { command: string; taskId: string }) => {
         if (!args?.command || !args?.taskId) {
           vscode.window.showErrorMessage('Invalid action arguments');
+          return;
+        }
+
+        const kanbanTerminal = terminal.createFreshTerminal('Kanban', workspaceRoot);
+        terminal.showTerminal(kanbanTerminal);
+        terminal.sendCommand(kanbanTerminal, `claude "${args.command}"`);
+      }
+    )
+  );
+
+  // Run global action command (policy: when to run global actions)
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'kanban.runGlobalAction',
+      (args: { command: string }) => {
+        if (!args?.command) {
+          vscode.window.showErrorMessage('Invalid global action arguments');
           return;
         }
 
