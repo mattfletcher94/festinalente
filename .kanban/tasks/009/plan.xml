@@ -32,7 +32,7 @@
   <inventory></inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-02-22T10:37:00Z">
       <name>Add startDiscovery command to package.json</name>
       <files>apps/vscode/package.json (modify)</files>
       <requirements>FR1, FR4, FR6, FR7</requirements>
@@ -72,7 +72,7 @@
       <done>Command "kanban.startDiscovery" exists in package.json with correct title and icon</done>
     </task>
 
-    <task id="2" type="auto" depends="1">
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-02-22T10:37:30Z">
       <name>Update createTask command title</name>
       <files>apps/vscode/package.json (modify)</files>
       <requirements>FR5</requirements>
@@ -103,7 +103,7 @@
       <done>createTask command has updated descriptive title</done>
     </task>
 
-    <task id="3" type="auto" depends="2">
+    <task id="3" type="auto" depends="2" completed="true" completed_at="2026-02-22T10:38:00Z">
       <name>Add discovery button to view/title menu</name>
       <files>apps/vscode/package.json (modify)</files>
       <requirements>FR1, FR2</requirements>
@@ -154,7 +154,7 @@
       <done>Discovery button appears in KANBAN TASKS header before the + button</done>
     </task>
 
-    <task id="4" type="auto" depends="3">
+    <task id="4" type="auto" depends="3" completed="true" completed_at="2026-02-22T10:38:30Z">
       <name>Register startDiscovery command handler in extension.ts</name>
       <files>apps/vscode/src/extension.ts (modify)</files>
       <requirements>FR3</requirements>
@@ -181,7 +181,7 @@
       <done>Command handler registered, clicking button opens terminal with /kanban-discover</done>
     </task>
 
-    <task id="5" type="manual" depends="4">
+    <task id="5" type="manual" depends="4" completed="true" completed_at="2026-02-22T10:39:00Z">
       <name>Verify acceptance criteria</name>
       <files>N/A</files>
       <requirements>FR1, FR2, FR3, FR4, FR5, FR6, FR7</requirements>
