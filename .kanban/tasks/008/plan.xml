@@ -31,7 +31,7 @@
   <inventory></inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-02-22T09:40:14.848Z">
       <name>Reorder steps in kanban-merge skill</name>
       <files>apps/kanban/src/content/skills/kanban-merge/SKILL.md (modify)</files>
       <requirements>FR1, FR2, FR3, FR4</requirements>
@@ -83,7 +83,7 @@
       <done>Steps are reordered so status update happens before checkout main</done>
     </task>
 
-    <task id="2" type="manual" depends="1">
+    <task id="2" type="manual" depends="1" completed="true" completed_at="2026-02-22T09:40:14.848Z">
       <name>Verify the fix manually</name>
       <files>N/A</files>
       <requirements>FR1, FR2, FR3, FR4</requirements>
