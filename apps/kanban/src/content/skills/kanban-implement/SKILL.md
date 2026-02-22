@@ -147,7 +147,14 @@ Warning: Some relevant docs may be outdated:
 
       <branch condition="user selects review first">
         <action>For each stale doc, read and present content</action>
-        <prompt>Is this doc still accurate enough to guide implementation?</prompt>
+        <action>Use AskUserQuestion tool with:
+          - header: "Accurate?"
+          - question: "Is this doc still accurate enough to guide implementation?"
+          - options:
+            - label: "Yes", description: "Doc is accurate, proceed"
+            - label: "No", description: "Doc is outdated, note discrepancies"
+          - multiSelect: false
+        </action>
       </branch>
     </branch>
 

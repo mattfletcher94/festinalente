@@ -190,14 +190,28 @@ Update product documentation, commit the changes, push to remote, and move task 
     <note>**Verification Prompt:**</note>
     <action>Read implemented code for this task</action>
     <action>Compare to doc content</action>
-    <prompt>Does this doc accurately reflect the implementation? (Yes/No/Needs correction)</prompt>
-    <branch condition="user confirms">
+    <action>Use AskUserQuestion tool with:
+      - header: "Verify"
+      - question: "Does this doc accurately reflect the implementation?"
+      - options:
+        - label: "Yes", description: "Doc is accurate, no changes needed"
+        - label: "Needs correction", description: "Some parts need to be fixed"
+      - multiSelect: false
+    </action>
+    <branch condition="user selects Yes">
       <command description="Get current date">node .kanban/scripts/get-date-time.cjs</command>
       <action>Update `verified: {YYYY-MM-DD}` in frontmatter</action>
       <action>Update `code_refs` with files touched by this task</action>
     </branch>
-    <branch condition="user says needs correction">
-      <prompt>What needs to be corrected?</prompt>
+    <branch condition="user selects Needs correction">
+      <action>Use AskUserQuestion tool with:
+        - header: "Corrections"
+        - question: "What needs to be corrected?"
+        - options:
+          - label: "Skip", description: "I'll describe the corrections"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe what needs correction</note>
       <action>Make corrections</action>
       <action>Re-verify with user</action>
       <action>Update `verified: {YYYY-MM-DD}` in frontmatter</action>

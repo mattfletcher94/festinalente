@@ -215,7 +215,15 @@ Create a functional specification through iterative conversational Q&A focused o
     <branch condition="user asks to research packages/libraries">
       <action>Use WebSearch to research npm packages, documentation, best practices</action>
       <action>Compare options and present findings</action>
-      <prompt>Ask if findings influence the approach</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Findings"
+        - question: "Do these findings influence your approach?"
+        - options:
+          - label: "Yes", description: "Adjust approach based on findings"
+          - label: "No", description: "Keep original approach"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to explain how findings affect the approach</note>
     </branch>
 
     <action>Continue until you have enough information to write a complete functional spec</action>

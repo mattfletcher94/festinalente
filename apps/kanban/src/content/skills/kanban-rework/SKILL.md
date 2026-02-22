@@ -99,7 +99,14 @@ See `.kanban/workflow.yaml` for column definitions and valid transitions.
   </step>
 
   <step name="prompt_for_issues" outputs="issues">
-    <prompt>What issues need to be fixed?</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Issues"
+      - question: "What issues need to be fixed?"
+      - options:
+        - label: "Skip", description: "I'll describe the issues"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to describe the issues that need fixing</note>
     <action>Collect detailed description of problems</action>
     <action>Parse into individual issues if multiple provided</action>
   </step>

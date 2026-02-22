@@ -1,7 +1,7 @@
 ---
 name: kanban-report-user
 description: Query what tasks a git user has worked on
-allowed-tools: Read, Glob, Grep, Bash(git log *)
+allowed-tools: Read, Glob, Grep, Bash(git log *), AskUserQuestion
 argument-hint: "{name} [question]"
 disable-model-invocation: true
 ---
@@ -52,7 +52,16 @@ Query what tasks a specific git user has worked on using natural language.
   </step>
 
   <step name="prompt_for_question" when="no question provided">
-    <prompt>What would you like to know about this user's tasks?</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Question"
+      - question: "What would you like to know about this user's tasks?"
+      - options:
+        - label: "Active tasks", description: "Currently in-progress tasks"
+        - label: "Completed", description: "Tasks this user completed"
+        - label: "All tasks", description: "Full list of tasks"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to ask a custom question</note>
   </step>
 
   <step name="answer_question" when="question provided">

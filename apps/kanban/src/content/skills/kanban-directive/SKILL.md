@@ -41,7 +41,16 @@ Create a new directive through conversational Q&A. Captures context principles, 
       <action>Use $ARGUMENTS as name</action>
     </branch>
     <branch condition="$ARGUMENTS not provided">
-      <prompt>What should this directive be called? (lowercase, hyphenated, e.g., "code-style", "testing")</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Name"
+        - question: "What should this directive be called? (lowercase, hyphenated, e.g., 'code-style', 'testing')"
+        - options:
+          - label: "code-style", description: "For code formatting and naming conventions"
+          - label: "testing", description: "For test coverage and patterns"
+          - label: "security", description: "For security practices and checks"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to type a custom name</note>
     </branch>
     <validate>Name must be lowercase, alphanumeric with hyphens only</validate>
     <validate>Check `.kanban/directives/{name}.xml` doesn't already exist</validate>
@@ -54,11 +63,40 @@ Create a new directive through conversational Q&A. Captures context principles, 
   <step name="understand_purpose">
     <note>This is a **conversational session** to understand the directive's purpose.</note>
 
-    <prompt>What is this directive for? What problem does it solve?</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Purpose"
+      - question: "What is this directive for? What problem does it solve?"
+      - options:
+        - label: "Code quality", description: "Enforce formatting, naming, patterns"
+        - label: "Testing", description: "Test coverage and test patterns"
+        - label: "Security", description: "Security practices and checks"
+        - label: "Process", description: "Workflow and process rules"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to describe a custom purpose</note>
 
     <action>Based on the answer, ask follow-up questions:</action>
-    <prompt>Is this about code constraints, process rules, running checks, or general guidance?</prompt>
-    <prompt>Which workflow phases should this apply to? (scope, plan, implement, codecheck, rework)</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Type"
+      - question: "Is this about code constraints, process rules, running checks, or general guidance?"
+      - options:
+        - label: "Code constraints", description: "Rules about code structure/style"
+        - label: "Process rules", description: "Rules about workflow steps"
+        - label: "Validation", description: "Automated checks to run"
+        - label: "Guidance", description: "General principles and advice"
+      - multiSelect: true
+    </action>
+
+    <action>Use AskUserQuestion tool with:
+      - header: "Phases"
+      - question: "Which workflow phases should this apply to?"
+      - options:
+        - label: "scope", description: "During requirements research"
+        - label: "plan", description: "During implementation planning"
+        - label: "implement", description: "During coding"
+        - label: "codecheck", description: "During code review"
+      - multiSelect: true
+    </action>
 
     <action>Summarize understanding before proceeding</action>
     <output>
@@ -94,8 +132,24 @@ Create a new directive through conversational Q&A. Captures context principles, 
   <step name="collect_context" when="user selected Context">
     <note>Gather principles/mindset items</note>
 
-    <prompt>What principles should the LLM keep in mind while working?</prompt>
-    <prompt>Are there any key concepts or mental models to maintain?</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Principles"
+      - question: "What principles should the LLM keep in mind while working?"
+      - options:
+        - label: "Skip", description: "Move to next question"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to describe principles</note>
+
+    <action>Use AskUserQuestion tool with:
+      - header: "Concepts"
+      - question: "Are there any key concepts or mental models to maintain?"
+      - options:
+        - label: "Skip", description: "Move to next question"
+        - label: "None", description: "No specific mental models"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to describe concepts</note>
 
     <action>For each principle mentioned:</action>
     <action>Ask for keywords that indicate when this principle is relevant</action>
@@ -116,7 +170,14 @@ Create a new directive through conversational Q&A. Captures context principles, 
   <step name="collect_process" when="user selected Process">
     <note>Gather phase-specific rules</note>
 
-    <prompt>What rules should apply during specific phases?</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Rules"
+      - question: "What rules should apply during specific phases?"
+      - options:
+        - label: "Skip", description: "Move to next section"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to describe phase rules</note>
 
     <action>For each rule mentioned:</action>
     <action>Ask which phase(s) it applies to (scope, plan, implement, codecheck, rework)</action>
@@ -137,7 +198,17 @@ Create a new directive through conversational Q&A. Captures context principles, 
   <step name="collect_validation" when="user selected Validation">
     <note>Gather validation checks</note>
 
-    <prompt>What checks should run to verify compliance?</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Checks"
+      - question: "What checks should run to verify compliance?"
+      - options:
+        - label: "Lint command", description: "Run a linter (eslint, prettier, etc.)"
+        - label: "Test command", description: "Run tests (jest, vitest, etc.)"
+        - label: "Custom check", description: "Define a custom check"
+        - label: "Skip", description: "Move to next section"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to describe custom checks</note>
 
     <action>For each check mentioned, determine type:</action>
     <action>Use AskUserQuestion tool with:
@@ -151,16 +222,66 @@ Create a new directive through conversational Q&A. Captures context principles, 
     </action>
 
     <branch condition="type is Command">
-      <prompt>What command should run?</prompt>
-      <prompt>What does success look like?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Command"
+        - question: "What command should run?"
+        - options:
+          - label: "pnpm lint", description: "Run the lint command"
+          - label: "pnpm test", description: "Run the test command"
+          - label: "pnpm build", description: "Run the build command"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to specify a custom command</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Success"
+        - question: "What does success look like?"
+        - options:
+          - label: "Exit code 0", description: "Command exits successfully"
+          - label: "No errors", description: "No error output"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe success criteria</note>
     </branch>
     <branch condition="type is Pattern">
-      <prompt>What pattern should be forbidden or required?</prompt>
-      <prompt>Which files should this apply to? (glob pattern)</prompt>
-      <prompt>Why is this pattern forbidden/required?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Pattern"
+        - question: "What pattern should be forbidden or required?"
+        - options:
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to specify a regex pattern</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Files"
+        - question: "Which files should this apply to? (glob pattern)"
+        - options:
+          - label: "**/*.ts", description: "All TypeScript files"
+          - label: "**/*.tsx", description: "All React TSX files"
+          - label: "src/**/*", description: "All source files"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to specify a custom glob</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Reason"
+        - question: "Why is this pattern forbidden/required?"
+        - options:
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to explain the reason</note>
     </branch>
     <branch condition="type is Checklist">
-      <prompt>What items should be manually verified?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Checklist"
+        - question: "What items should be manually verified?"
+        - options:
+          - label: "Skip", description: "Move to next section"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to list checklist items</note>
     </branch>
 
     <action>Ask for severity: error, warning, or info</action>
@@ -181,11 +302,41 @@ Create a new directive through conversational Q&A. Captures context principles, 
   <step name="collect_examples" when="user selected Examples">
     <note>Gather correct and incorrect examples</note>
 
-    <prompt>Can you show me an example of CORRECT behavior/code?</prompt>
-    <prompt>Why is this correct?</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Good Example"
+      - question: "Can you show me an example of CORRECT behavior/code?"
+      - options:
+        - label: "Skip", description: "Skip correct example"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to provide a correct example</note>
 
-    <prompt>Can you show me an example of INCORRECT behavior/code?</prompt>
-    <prompt>Why is this wrong?</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Why Good"
+      - question: "Why is this correct?"
+      - options:
+        - label: "Skip", description: "Move to next question"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to explain why it's correct</note>
+
+    <action>Use AskUserQuestion tool with:
+      - header: "Bad Example"
+      - question: "Can you show me an example of INCORRECT behavior/code?"
+      - options:
+        - label: "Skip", description: "Skip incorrect example"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to provide an incorrect example</note>
+
+    <action>Use AskUserQuestion tool with:
+      - header: "Why Bad"
+      - question: "Why is this wrong?"
+      - options:
+        - label: "Skip", description: "Move to next section"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to explain why it's wrong</note>
 
     <action>Link each example to a relevant rule/check ID if applicable</action>
 

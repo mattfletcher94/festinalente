@@ -200,7 +200,14 @@ Merge the task branch into main, clean up the branch, and move task to Done.
       <action>Find `<example>` elements where ref matches failed check</action>
       <action>Show violation examples to illustrate the problem</action>
       <action>Show correct examples to illustrate the fix</action>
-      <prompt>Fix now or acknowledge and continue?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Violation"
+        - question: "Directive check failed. How would you like to proceed?"
+        - options:
+          - label: "Fix now", description: "Address the violation before continuing"
+          - label: "Continue anyway", description: "Acknowledge and proceed despite violation"
+        - multiSelect: false
+      </action>
     </branch>
   </step>
 

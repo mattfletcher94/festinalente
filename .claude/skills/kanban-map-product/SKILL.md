@@ -54,8 +54,15 @@ Analyze existing codebase and create product documentation through parallel expl
     <action>Check if `.kanban/product/` has files OTHER than `overview.md`</action>
     <command>node .kanban/scripts/list-product.cjs</command>
     <branch condition="count > 1, OR if count == 1 and the doc is not `overview`">
-      <prompt>I found existing product docs. How should I proceed?</prompt>
-      <note>Options: Preserve and extend / Merge with findings / Start fresh</note>
+      <action>Use AskUserQuestion tool with:
+        - header: "Existing Docs"
+        - question: "I found existing product docs. How should I proceed?"
+        - options:
+          - label: "Preserve and extend", description: "Keep existing docs, add new findings"
+          - label: "Merge with findings", description: "Combine existing docs with new discoveries"
+          - label: "Start fresh", description: "Replace existing docs entirely"
+        - multiSelect: false
+      </action>
     </branch>
     <branch condition="only `overview.md` exists (or no docs)">
       <action>Proceed without prompting (this is expected for new installs)</action>
@@ -163,8 +170,26 @@ For each gap, provide:
 
   <step name="create_product_overview">
     <note>Based on synthesis, draft overview content:</note>
-    <prompt>What is this product called?</prompt>
-    <prompt>In one sentence, what does it do?</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Product"
+      - question: "What is this product called?"
+      - options:
+        - label: "Use detected name", description: "Use name found in codebase analysis"
+        - label: "Skip for now", description: "I'll provide the name later"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to type a custom product name</note>
+
+    <action>Use AskUserQuestion tool with:
+      - header: "Purpose"
+      - question: "In one sentence, what does this product do?"
+      - options:
+        - label: "Generate", description: "Auto-generate based on codebase analysis"
+        - label: "Skip for now", description: "I'll provide this later"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to type a custom description</note>
+
     <action>Confirm target users based on what you found</action>
     <warning>IMMEDIATELY create overview.md:</warning>
     <action>Create `.kanban/product/overview.md`</action>
@@ -186,33 +211,177 @@ For each gap, provide:
     <warning>CRITICAL: Write docs incrementally to prevent context loss</warning>
 
     <note>**Suggest domain organization:**</note>
-    <prompt>Based on the codebase, I suggest organizing features into these domains: {list}. Does this make sense, or would you prefer a different grouping?</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Domains"
+      - question: "Based on the codebase, I suggest organizing features into these domains: {list}. Does this make sense?"
+      - options:
+        - label: "Looks good", description: "Proceed with this domain grouping"
+        - label: "Change it", description: "I want to reorganize the domains"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to suggest different domains</note>
 
     <note>**For each feature (depth-first), ask Discovery Questions:**</note>
     <questions name="discovery">
-      <prompt>What does {feature} do? (basic understanding)</prompt>
-      <prompt>Why does {feature} exist? What business problem does it solve?</prompt>
-      <prompt>Who uses {feature}? (user persona)</prompt>
-      <prompt>How is {feature} typically used? (happy path workflow)</prompt>
-      <prompt>What happens when {feature} fails? (error cases)</prompt>
-      <prompt>What does {feature} NOT do? (boundaries)</prompt>
-      <prompt>What other features does {feature} interact with? (relationships)</prompt>
-      <prompt>Are there any performance or security concerns? (constraints)</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Purpose"
+        - question: "What does {feature} do? (basic understanding)"
+        - options:
+          - label: "Skip", description: "Move to next question"
+          - label: "Unsure", description: "Need to investigate the code"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe the feature</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Why"
+        - question: "Why does {feature} exist? What business problem does it solve?"
+        - options:
+          - label: "Skip", description: "Move to next question"
+          - label: "Unsure", description: "Need to investigate the code"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to explain the purpose</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Users"
+        - question: "Who uses {feature}? (user persona)"
+        - options:
+          - label: "All users", description: "General feature for everyone"
+          - label: "Admins", description: "Administrative feature"
+          - label: "Developers", description: "Developer-facing feature"
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Workflow"
+        - question: "How is {feature} typically used? (happy path workflow)"
+        - options:
+          - label: "Skip", description: "Move to next question"
+          - label: "Unsure", description: "Need to investigate the code"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe the workflow</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Errors"
+        - question: "What happens when {feature} fails? (error cases)"
+        - options:
+          - label: "Standard errors", description: "Uses generic error handling"
+          - label: "Skip", description: "Move to next question"
+          - label: "Unsure", description: "Need to investigate the code"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe error handling</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Boundaries"
+        - question: "What does {feature} NOT do? (boundaries)"
+        - options:
+          - label: "Skip", description: "Move to next question"
+          - label: "None", description: "No specific limitations"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe boundaries</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Relations"
+        - question: "What other features does {feature} interact with? (relationships)"
+        - options:
+          - label: "Skip", description: "Move to next question"
+          - label: "Standalone", description: "This feature is independent"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to list related features</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Constraints"
+        - question: "Are there any performance or security concerns? (constraints)"
+        - options:
+          - label: "Skip", description: "Move to next question"
+          - label: "None", description: "No special concerns"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe constraints</note>
     </questions>
 
     <note>**Follow up with Depth Questions:**</note>
     <questions name="depth">
-      <prompt>You mentioned {X} - can you give a specific example?</prompt>
-      <prompt>When you say {Y}, what specifically triggers that?</prompt>
-      <prompt>How would a new developer know to do {Z}?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Example"
+        - question: "You mentioned {X} - can you give a specific example?"
+        - options:
+          - label: "Skip", description: "Move to next question"
+          - label: "Unsure", description: "Need to think about this"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to provide an example</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Trigger"
+        - question: "When you say {Y}, what specifically triggers that?"
+        - options:
+          - label: "Skip", description: "Move to next question"
+          - label: "Unsure", description: "Need to investigate"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe the trigger</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Guidance"
+        - question: "How would a new developer know to do {Z}?"
+        - options:
+          - label: "Code comments", description: "It's documented in the code"
+          - label: "Convention", description: "It follows project conventions"
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to explain the guidance</note>
     </questions>
 
     <note>**Ask Boundary Questions:**</note>
     <questions name="boundary">
-      <prompt>What features are adjacent but separate from {feature}?</prompt>
-      <prompt>What does {feature} assume is already done?</prompt>
-      <prompt>What happens after {feature} completes?</prompt>
-      <prompt>What are common mistakes or misunderstandings?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Adjacent"
+        - question: "What features are adjacent but separate from {feature}?"
+        - options:
+          - label: "Skip", description: "Move to next question"
+          - label: "None", description: "No adjacent features"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to list adjacent features</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Prereqs"
+        - question: "What does {feature} assume is already done?"
+        - options:
+          - label: "Auth required", description: "User must be authenticated"
+          - label: "No prereqs", description: "No prerequisites"
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe prerequisites</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "After"
+        - question: "What happens after {feature} completes?"
+        - options:
+          - label: "Skip", description: "Move to next question"
+          - label: "Nothing", description: "No follow-up actions"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe next steps</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Gotchas"
+        - question: "What are common mistakes or misunderstandings?"
+        - options:
+          - label: "Skip", description: "Move to next question"
+          - label: "None", description: "No common mistakes"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe gotchas</note>
     </questions>
 
     <warning>IMMEDIATELY write the product doc after Q&A for each feature:</warning>
@@ -295,20 +464,80 @@ updated: {YYYY-MM-DD from get-date-time}
 
     <note>**Documentation Review (per feature):**</note>
     <action>Read the draft back to user</action>
-    <prompt>Is this accurate? What's missing?</prompt>
-    <prompt>Would this help a new developer understand?</prompt>
-    <prompt>What would YOU add to this?</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Accuracy"
+      - question: "Is this documentation accurate? What's missing?"
+      - options:
+        - label: "Looks good", description: "Documentation is accurate"
+        - label: "Needs changes", description: "Some parts need correction"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to specify what's missing</note>
+
+    <action>Use AskUserQuestion tool with:
+      - header: "Clarity"
+      - question: "Would this help a new developer understand?"
+      - options:
+        - label: "Yes", description: "Clear enough for newcomers"
+        - label: "Needs more detail", description: "Add more explanation"
+      - multiSelect: false
+    </action>
+
+    <action>Use AskUserQuestion tool with:
+      - header: "Additions"
+      - question: "What would YOU add to this documentation?"
+      - options:
+        - label: "Nothing", description: "It's complete as-is"
+        - label: "Skip", description: "Move on for now"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to suggest additions</note>
 
     <note>**After all features:**</note>
-    <prompt>What's the overall value proposition of this product?</prompt>
-    <prompt>Are there any performance or security requirements I should document?</prompt>
-    <prompt>Did I miss any important features or capabilities?</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Value"
+      - question: "What's the overall value proposition of this product?"
+      - options:
+        - label: "Generate", description: "Auto-generate based on features"
+        - label: "Skip", description: "I'll add this later"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to describe the value proposition</note>
+
+    <action>Use AskUserQuestion tool with:
+      - header: "Requirements"
+      - question: "Are there any performance or security requirements I should document?"
+      - options:
+        - label: "None", description: "No special requirements"
+        - label: "Skip", description: "I'll add this later"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to describe requirements</note>
+
+    <action>Use AskUserQuestion tool with:
+      - header: "Coverage"
+      - question: "Did I miss any important features or capabilities?"
+      - options:
+        - label: "No", description: "All features covered"
+        - label: "Yes", description: "There are missing features"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to list missing features</note>
+
     <branch condition="new features mentioned">
       <action>Create docs for them immediately</action>
     </branch>
 
     <note>**Exit:**</note>
-    <prompt>Is there anything else you'd like to add about the product?</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Wrap Up"
+      - question: "Is there anything else you'd like to add about the product?"
+      - options:
+        - label: "No, done", description: "Proceed to validation"
+        - label: "Yes, more", description: "I have more to add"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to add more details</note>
     <branch condition="user says no/nothing/that's all">
       <action>Proceed to validation</action>
     </branch>
@@ -335,7 +564,18 @@ terms:
     auto_generated: true
     </example_code>
 
-    <prompt>Review glossary - any terms to add, remove, or rename?</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Glossary"
+      - question: "Review glossary - any terms to add, remove, or rename?"
+      - options:
+        - label: "Looks good", description: "Glossary is complete"
+        - label: "Add terms", description: "I want to add more terms"
+        - label: "Remove terms", description: "Some terms should be removed"
+        - label: "Rename terms", description: "Some terms need renaming"
+      - multiSelect: true
+    </action>
+    <note>User can select "Other" to specify changes</note>
+
     <action>Update glossary based on feedback</action>
   </step>
 
@@ -363,8 +603,17 @@ Coverage: {percentage} of discovered features documented
     </output>
 
     <branch condition="issues found">
-      <prompt>Would you like to fix these issues now?</prompt>
-      <action>Fix each issue interactively</action>
+      <action>Use AskUserQuestion tool with:
+        - header: "Fix Issues"
+        - question: "Would you like to fix these issues now?"
+        - options:
+          - label: "Yes", description: "Fix issues before completing"
+          - label: "No", description: "Skip, I'll fix them later"
+        - multiSelect: false
+      </action>
+      <branch condition="user selects Yes">
+        <action>Fix each issue interactively</action>
+      </branch>
     </branch>
   </step>
 

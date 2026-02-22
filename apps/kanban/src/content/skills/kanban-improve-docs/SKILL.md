@@ -66,44 +66,100 @@ WARNINGS ({warning_count}):
 
     <substep name="fix_tldr" when="has-tldr failed">
       <action>Read the doc content</action>
-      <prompt>The tldr should be a single sentence (max 100 chars) summarizing this doc. What should the tldr be?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "TL;DR"
+        - question: "The tldr should be a single sentence (max 100 chars). What should the tldr be?"
+        - options:
+          - label: "Generate", description: "Auto-generate based on doc content"
+          - label: "Skip", description: "I'll add this later"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to type a custom tldr</note>
       <action>Update frontmatter with new tldr</action>
     </substep>
 
     <substep name="fix_summary" when="has-summary failed">
       <action>Read the doc content</action>
-      <prompt>The summary should be 2-3 sentences explaining this doc (for LLM discovery). What should the summary be?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Summary"
+        - question: "The summary should be 2-3 sentences explaining this doc (for LLM discovery). What should the summary be?"
+        - options:
+          - label: "Generate", description: "Auto-generate based on doc content"
+          - label: "Skip", description: "I'll add this later"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to type a custom summary</note>
       <action>Update frontmatter with new summary</action>
     </substep>
 
     <substep name="fix_keywords" when="has-keywords failed">
       <action>Read the doc content</action>
       <action>Suggest keywords based on content</action>
-      <prompt>Suggested keywords: {suggestions}. Are these good, or would you prefer different ones?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Keywords"
+        - question: "Suggested keywords: {suggestions}. Are these good?"
+        - options:
+          - label: "Use suggested", description: "Use the suggested keywords"
+          - label: "Skip", description: "I'll add keywords later"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to specify different keywords</note>
       <action>Update frontmatter with keywords</action>
     </substep>
 
     <substep name="fix_overview" when="has-overview failed">
       <action>Read the doc content</action>
-      <prompt>This doc is missing an Overview section. Can you describe what this doc covers and why it exists?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Overview"
+        - question: "This doc is missing an Overview section. Can you describe what this doc covers and why it exists?"
+        - options:
+          - label: "Generate", description: "Auto-generate based on doc content"
+          - label: "Skip", description: "I'll add this later"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to provide the overview content</note>
       <action>Add ## Overview section with content</action>
     </substep>
 
     <substep name="fix_examples" when="has-examples failed">
       <action>Read the doc content</action>
-      <prompt>This doc has no code examples. Can you provide a typical usage example?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Examples"
+        - question: "This doc has no code examples. Can you provide a typical usage example?"
+        - options:
+          - label: "Generate", description: "Auto-generate a basic example"
+          - label: "Skip", description: "I'll add examples later"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to provide example code</note>
       <action>Add example code block</action>
     </substep>
 
     <substep name="fix_boundaries" when="has-boundaries failed">
       <action>Read the doc content</action>
-      <prompt>What does this doc NOT cover? (This helps prevent search false positives)</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Boundaries"
+        - question: "What does this doc NOT cover? (This helps prevent search false positives)"
+        - options:
+          - label: "Generate", description: "Auto-generate based on doc content"
+          - label: "Skip", description: "I'll add this later"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe boundaries</note>
       <action>Update boundary field or add ## Boundaries section</action>
     </substep>
 
     <substep name="fix_too_short" when="not-too-short failed">
       <action>Read the doc content</action>
-      <prompt>This doc is too short. What additional details should we add?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Expand"
+        - question: "This doc is too short. What additional details should we add?"
+        - options:
+          - label: "Generate", description: "Auto-expand based on topic"
+          - label: "Skip", description: "I'll expand this later"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to provide additional details</note>
       <action>Expand content based on response</action>
     </substep>
 
@@ -124,7 +180,14 @@ WARNINGS ({warning_count}):
     <branch condition="some still have issues">
       <output>Some issues remain:</output>
       <action>List remaining issues</action>
-      <prompt>Would you like to fix these now?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Continue"
+        - question: "Would you like to fix these remaining issues now?"
+        - options:
+          - label: "Yes", description: "Continue fixing issues"
+          - label: "No", description: "Skip, commit what we have"
+        - multiSelect: false
+      </action>
     </branch>
   </step>
 

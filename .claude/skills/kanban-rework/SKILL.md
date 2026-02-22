@@ -156,7 +156,14 @@ See `.kanban/workflow.yaml` for column definitions and valid transitions.
   </step>
 
   <step name="prompt_for_issues" outputs="issues">
-    <prompt>What issues need to be fixed?</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Issues"
+      - question: "What issues need to be fixed?"
+      - options:
+        - label: "Skip", description: "I'll describe the issues"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to describe the issues that need fixing</note>
     <action>Collect detailed description of problems</action>
     <action>Parse into individual issues if multiple provided</action>
   </step>
@@ -226,7 +233,14 @@ See `.kanban/workflow.yaml` for column definitions and valid transitions.
       <action>Find `<example>` elements where ref matches failed check</action>
       <action>Show violation examples to illustrate the problem</action>
       <action>Show correct examples to illustrate the fix</action>
-      <prompt>Fix now or acknowledge and continue?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Violation"
+        - question: "Directive check failed. How would you like to proceed?"
+        - options:
+          - label: "Fix now", description: "Address the violation before continuing"
+          - label: "Continue anyway", description: "Acknowledge and proceed despite violation"
+        - multiSelect: false
+      </action>
     </branch>
   </step>
 

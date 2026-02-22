@@ -51,8 +51,14 @@ Define a new product through Socratic Q&A and generate product documentation.
     <action>Check if `.kanban/product/` has files OTHER than `overview.md`</action>
     <command>node .kanban/scripts/list-product.cjs</command>
     <branch condition="count > 1, OR if count == 1 and the doc is not `overview`">
-      <prompt>I found existing product docs. How should I proceed?</prompt>
-      <note>Options: Preserve and extend / Start fresh</note>
+      <action>Use AskUserQuestion tool with:
+        - header: "Existing Docs"
+        - question: "I found existing product docs. How should I proceed?"
+        - options:
+          - label: "Preserve and extend", description: "Keep existing docs, add new features"
+          - label: "Start fresh", description: "Replace existing docs entirely"
+        - multiSelect: false
+      </action>
     </branch>
     <branch condition="only `overview.md` exists (or no docs)">
       <action>Proceed without prompting (this is expected for new installs)</action>
@@ -60,9 +66,36 @@ Define a new product through Socratic Q&A and generate product documentation.
   </step>
 
   <step name="create_product_overview">
-    <prompt>What is this product called?</prompt>
-    <prompt>In one sentence, what does it do?</prompt>
-    <prompt>Who are the target users?</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Product"
+      - question: "What is this product called?"
+      - options:
+        - label: "Skip for now", description: "I'll provide the name later"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to type the product name</note>
+
+    <action>Use AskUserQuestion tool with:
+      - header: "Purpose"
+      - question: "In one sentence, what does this product do?"
+      - options:
+        - label: "Skip for now", description: "I'll provide this later"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to describe the product purpose</note>
+
+    <action>Use AskUserQuestion tool with:
+      - header: "Users"
+      - question: "Who are the target users?"
+      - options:
+        - label: "Developers", description: "Software developers and engineers"
+        - label: "Businesses", description: "Business users and teams"
+        - label: "Consumers", description: "General consumer users"
+        - label: "Skip for now", description: "I'll provide this later"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to specify target users</note>
+
     <warning>IMMEDIATELY create overview.md:</warning>
     <action>Create `.kanban/product/overview.md`</action>
     <action>Use template from `.kanban/templates/overview.md`</action>
@@ -75,14 +108,66 @@ Define a new product through Socratic Q&A and generate product documentation.
     <warning>CRITICAL: Write docs incrementally to prevent context loss</warning>
 
     <note>**Identify features and domains:**</note>
-    <prompt>What are the main capabilities or features you want to build?</prompt>
-    <prompt>How would you group these features? (e.g., auth, billing, users)</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Features"
+      - question: "What are the main capabilities or features you want to build?"
+      - options:
+        - label: "Skip", description: "I'll describe features later"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to list the main features</note>
+
+    <action>Use AskUserQuestion tool with:
+      - header: "Domains"
+      - question: "How would you group these features? (e.g., auth, billing, users)"
+      - options:
+        - label: "Auth + Users", description: "Authentication and user management"
+        - label: "Core + Admin", description: "Core features and admin panel"
+        - label: "Skip", description: "I'll figure this out later"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to specify custom domain groupings</note>
 
     <note>**For each feature (depth-first):**</note>
-    <prompt>How should {feature} work from the user's perspective?</prompt>
-    <prompt>What are the key interactions or workflows?</prompt>
-    <prompt>Are there any constraints or limitations to consider?</prompt>
-    <prompt>Does this relate to any other features?</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Workflow"
+      - question: "How should {feature} work from the user's perspective?"
+      - options:
+        - label: "Skip", description: "Move to next question"
+        - label: "Unsure", description: "Need to think about this"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to describe the workflow</note>
+
+    <action>Use AskUserQuestion tool with:
+      - header: "Interactions"
+      - question: "What are the key interactions or workflows?"
+      - options:
+        - label: "Skip", description: "Move to next question"
+        - label: "Unsure", description: "Need to think about this"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to describe interactions</note>
+
+    <action>Use AskUserQuestion tool with:
+      - header: "Constraints"
+      - question: "Are there any constraints or limitations to consider?"
+      - options:
+        - label: "None", description: "No special constraints"
+        - label: "Skip", description: "Move to next question"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to describe constraints</note>
+
+    <action>Use AskUserQuestion tool with:
+      - header: "Relations"
+      - question: "Does this relate to any other features?"
+      - options:
+        - label: "Standalone", description: "This feature is independent"
+        - label: "Skip", description: "Move to next question"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to list related features</note>
 
     <warning>IMMEDIATELY write the product doc:</warning>
     <action>Determine domain folder (e.g., `auth`, `billing`, `users`)</action>
@@ -142,17 +227,54 @@ updated: {YYYY-MM-DD from get-date-time}
     <note>This preserves context even if session is long</note>
 
     <note>**Expand:**</note>
-    <prompt>Does this product need to integrate with any external services?</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Integrations"
+      - question: "Does this product need to integrate with any external services?"
+      - options:
+        - label: "None", description: "No external integrations needed"
+        - label: "Skip", description: "I'll add integrations later"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to list integrations</note>
+
     <branch condition="new integrations mentioned">
       <action>Create/update relevant docs immediately</action>
     </branch>
-    <prompt>Are there specific technical requirements (performance, security, etc.)?</prompt>
+
+    <action>Use AskUserQuestion tool with:
+      - header: "Requirements"
+      - question: "Are there specific technical requirements (performance, security, etc.)?"
+      - options:
+        - label: "None", description: "No special requirements"
+        - label: "Skip", description: "I'll add requirements later"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to describe requirements</note>
+
     <action>Update existing docs with constraints</action>
-    <prompt>What's the minimum viable version of this product?</prompt>
+
+    <action>Use AskUserQuestion tool with:
+      - header: "MVP"
+      - question: "What's the minimum viable version of this product?"
+      - options:
+        - label: "All features", description: "MVP includes all described features"
+        - label: "Skip", description: "I'll define MVP scope later"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to describe MVP scope</note>
+
     <action>Note MVP scope in doc limitations sections</action>
 
     <note>**Exit:**</note>
-    <prompt>Is there anything else you'd like to add about the product?</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Wrap Up"
+      - question: "Is there anything else you'd like to add about the product?"
+      - options:
+        - label: "No, done", description: "Proceed to final review"
+        - label: "Yes, more", description: "I have more to add"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to add more details</note>
     <branch condition="user says no/nothing/that's all">
       <action>Proceed to final review</action>
     </branch>

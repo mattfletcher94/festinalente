@@ -133,7 +133,14 @@ Create and refine a new task through conversational Q&A, then commit to Backlog.
       <action>Use $ARGUMENTS as title</action>
     </branch>
     <branch condition="$ARGUMENTS not provided">
-      <prompt>What is the task title?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Title"
+        - question: "What is the task title?"
+        - options:
+          - label: "Skip", description: "I'll provide the title"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to type the task title</note>
     </branch>
     <action>Ensure title follows best practices (suggest improvements if needed)</action>
     <action>Generate slug from title for file naming</action>
@@ -464,7 +471,14 @@ And their session is established
       <action>Find `<example>` elements where ref matches failed check</action>
       <action>Show violation examples to illustrate the problem</action>
       <action>Show correct examples to illustrate the fix</action>
-      <prompt>Fix now or acknowledge and continue?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Violation"
+        - question: "Directive check failed. How would you like to proceed?"
+        - options:
+          - label: "Fix now", description: "Address the violation before continuing"
+          - label: "Continue anyway", description: "Acknowledge and proceed despite violation"
+        - multiSelect: false
+      </action>
     </branch>
   </step>
 

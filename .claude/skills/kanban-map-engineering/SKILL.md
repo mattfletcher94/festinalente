@@ -60,8 +60,15 @@ Analyze existing codebase and create engineering documentation through parallel 
     <action>Check if `.kanban/engineering/` has files OTHER than `overview.md`</action>
     <command>node .kanban/scripts/list-engineering.cjs</command>
     <branch condition="count > 1, OR if count == 1 and the doc is not `overview`">
-      <prompt>I found existing engineering docs. How should I proceed?</prompt>
-      <note>Options: Preserve and extend / Merge with findings / Start fresh</note>
+      <action>Use AskUserQuestion tool with:
+        - header: "Existing Docs"
+        - question: "I found existing engineering docs. How should I proceed?"
+        - options:
+          - label: "Preserve and extend", description: "Keep existing docs, add new findings"
+          - label: "Merge with findings", description: "Combine existing docs with new discoveries"
+          - label: "Start fresh", description: "Replace existing docs entirely"
+        - multiSelect: false
+      </action>
     </branch>
     <branch condition="only `overview.md` exists (or no docs)">
       <action>Proceed without prompting (this is expected for new installs)</action>
@@ -184,8 +191,26 @@ For each issue, provide:
 
   <step name="create_engineering_overview">
     <note>Based on synthesis, draft overview content:</note>
-    <prompt>What is the main technology stack?</prompt>
-    <prompt>What's the high-level architecture approach?</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Tech Stack"
+      - question: "What is the main technology stack?"
+      - options:
+        - label: "Use detected", description: "Use stack found by Stack Analyzer"
+        - label: "Skip", description: "I'll provide this later"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to specify a different stack</note>
+
+    <action>Use AskUserQuestion tool with:
+      - header: "Architecture"
+      - question: "What's the high-level architecture approach?"
+      - options:
+        - label: "Use detected", description: "Use architecture found by mapper"
+        - label: "Skip", description: "I'll provide this later"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to describe the architecture</note>
+
     <warning>IMMEDIATELY create overview.md:</warning>
     <action>Create `.kanban/engineering/overview.md`</action>
     <action>Use template from `.kanban/templates/engineering-overview.md`</action>
@@ -208,12 +233,66 @@ For each issue, provide:
 
     <note>**For each system (depth-first), ask Discovery Questions:**</note>
     <questions name="system_discovery">
-      <prompt>I found {system} that appears to handle {description}. Is this accurate?</prompt>
-      <prompt>What are the key components within {system}?</prompt>
-      <prompt>Why was this system designed this way? What alternatives were considered?</prompt>
-      <prompt>What are the performance or scalability constraints?</prompt>
-      <prompt>What does this system NOT handle? (boundaries)</prompt>
-      <prompt>Are there any known issues or technical debt?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Verify"
+        - question: "I found {system} that appears to handle {description}. Is this accurate?"
+        - options:
+          - label: "Yes", description: "Description is accurate"
+          - label: "Partly", description: "Needs some corrections"
+          - label: "No", description: "This is incorrect"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to provide corrections</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Components"
+        - question: "What are the key components within {system}?"
+        - options:
+          - label: "Use detected", description: "Use components found in analysis"
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to list key components</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Design"
+        - question: "Why was this system designed this way? What alternatives were considered?"
+        - options:
+          - label: "Skip", description: "Move to next question"
+          - label: "Unsure", description: "Don't know the history"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to explain design decisions</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Scale"
+        - question: "What are the performance or scalability constraints?"
+        - options:
+          - label: "None", description: "No special constraints"
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe constraints</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Boundaries"
+        - question: "What does this system NOT handle? (boundaries)"
+        - options:
+          - label: "Skip", description: "Move to next question"
+          - label: "None", description: "No specific boundaries"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe boundaries</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Debt"
+        - question: "Are there any known issues or technical debt?"
+        - options:
+          - label: "None known", description: "No known issues"
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe known issues</note>
     </questions>
 
     <warning>IMMEDIATELY write the engineering doc:</warning>
@@ -225,10 +304,45 @@ For each issue, provide:
 
     <note>**For patterns discovered:**</note>
     <questions name="pattern_discovery">
-      <prompt>I noticed a {pattern} pattern. Can you tell me more about when/how to apply it?</prompt>
-      <prompt>What problem does this pattern solve?</prompt>
-      <prompt>When should this pattern NOT be used?</prompt>
-      <prompt>Can you show me a good example and a bad example?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Pattern"
+        - question: "I noticed a {pattern} pattern. Can you tell me more about when/how to apply it?"
+        - options:
+          - label: "Skip", description: "Move to next question"
+          - label: "Unsure", description: "Need to investigate"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to explain the pattern</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Problem"
+        - question: "What problem does this pattern solve?"
+        - options:
+          - label: "Skip", description: "Move to next question"
+          - label: "Unsure", description: "Need to investigate"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe the problem</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Anti-use"
+        - question: "When should this pattern NOT be used?"
+        - options:
+          - label: "Always use it", description: "Use pattern everywhere applicable"
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe anti-patterns</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Examples"
+        - question: "Can you show me a good example and a bad example?"
+        - options:
+          - label: "Use detected", description: "Use examples found in codebase"
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to provide examples</note>
     </questions>
 
     <action>Create `.kanban/engineering/patterns/{pattern}.md`</action>
@@ -237,9 +351,36 @@ For each issue, provide:
 
     <note>**For conventions discovered:**</note>
     <questions name="convention_discovery">
-      <prompt>I see a convention for {thing}. Are there specific rules to follow?</prompt>
-      <prompt>What happens if someone violates this convention?</prompt>
-      <prompt>Are there any exceptions to this convention?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Rules"
+        - question: "I see a convention for {thing}. Are there specific rules to follow?"
+        - options:
+          - label: "Use detected", description: "Use rules found in analysis"
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to specify rules</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Violations"
+        - question: "What happens if someone violates this convention?"
+        - options:
+          - label: "CI fails", description: "Linting/CI catches violations"
+          - label: "Code review", description: "Caught in code review"
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe consequences</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Exceptions"
+        - question: "Are there any exceptions to this convention?"
+        - options:
+          - label: "None", description: "No exceptions, always follow"
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe exceptions</note>
     </questions>
 
     <action>Create `.kanban/engineering/conventions/{convention}.md`</action>
@@ -247,11 +388,35 @@ For each issue, provide:
 
     <note>**Documentation Review (per doc):**</note>
     <action>Read the draft back to user</action>
-    <prompt>Is this accurate? What's missing?</prompt>
-    <prompt>Would this help a new developer understand the system?</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Accuracy"
+      - question: "Is this documentation accurate? What's missing?"
+      - options:
+        - label: "Looks good", description: "Documentation is accurate"
+        - label: "Needs changes", description: "Some parts need correction"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to specify what's missing</note>
+
+    <action>Use AskUserQuestion tool with:
+      - header: "Clarity"
+      - question: "Would this help a new developer understand the system?"
+      - options:
+        - label: "Yes", description: "Clear enough for newcomers"
+        - label: "Needs more detail", description: "Add more explanation"
+      - multiSelect: false
+    </action>
 
     <note>**Exit:**</note>
-    <prompt>Is there anything else about the engineering/architecture you'd like to document?</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Wrap Up"
+      - question: "Is there anything else about the engineering/architecture you'd like to document?"
+      - options:
+        - label: "No, done", description: "Proceed to glossary update"
+        - label: "Yes, more", description: "I have more to document"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to add more details</note>
     <branch condition="user says no/nothing/that's all">
       <action>Proceed to glossary update</action>
     </branch>
@@ -283,7 +448,17 @@ terms:
     auto_generated: true
     </example_code>
 
-    <prompt>Review technical terms - any to add, remove, or rename?</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Glossary"
+      - question: "Review technical terms - any to add, remove, or rename?"
+      - options:
+        - label: "Looks good", description: "Glossary is complete"
+        - label: "Add terms", description: "I want to add more terms"
+        - label: "Remove terms", description: "Some terms should be removed"
+        - label: "Rename terms", description: "Some terms need renaming"
+      - multiSelect: true
+    </action>
+    <note>User can select "Other" to specify changes</note>
   </step>
 
   <step name="validation_phase">
@@ -312,8 +487,17 @@ Risks documented: {count} from Risk Identifier
     </output>
 
     <branch condition="issues found">
-      <prompt>Would you like to fix these issues now?</prompt>
-      <action>Fix each issue interactively</action>
+      <action>Use AskUserQuestion tool with:
+        - header: "Fix Issues"
+        - question: "Would you like to fix these issues now?"
+        - options:
+          - label: "Yes", description: "Fix issues before completing"
+          - label: "No", description: "Skip, I'll fix them later"
+        - multiSelect: false
+      </action>
+      <branch condition="user selects Yes">
+        <action>Fix each issue interactively</action>
+      </branch>
     </branch>
   </step>
 

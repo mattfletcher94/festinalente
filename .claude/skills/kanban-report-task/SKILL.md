@@ -1,7 +1,7 @@
 ---
 name: kanban-report-task
 description: Query a specific task's history and current state
-allowed-tools: Read, Glob, Grep, Bash(git log *)
+allowed-tools: Read, Glob, Grep, Bash(git log *), AskUserQuestion
 argument-hint: "{id} [question]"
 disable-model-invocation: true
 ---
@@ -50,7 +50,16 @@ Query a specific task's history and current state using natural language.
   </step>
 
   <step name="prompt_for_question" when="no question provided">
-    <prompt>What would you like to know about the task?</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Question"
+      - question: "What would you like to know about the task?"
+      - options:
+        - label: "Status", description: "Current status and progress"
+        - label: "History", description: "Git history and changes"
+        - label: "Details", description: "Full task details and spec"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to ask a custom question</note>
   </step>
 
   <step name="answer_question" when="question provided">

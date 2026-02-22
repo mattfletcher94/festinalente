@@ -182,7 +182,14 @@ Warning: Some relevant docs may be outdated:
 
       <branch condition="user selects review first">
         <action>For each stale doc, read and present content</action>
-        <prompt>Is this doc still accurate enough to guide implementation?</prompt>
+        <action>Use AskUserQuestion tool with:
+          - header: "Accurate?"
+          - question: "Is this doc still accurate enough to guide implementation?"
+          - options:
+            - label: "Yes", description: "Doc is accurate, proceed"
+            - label: "No", description: "Doc is outdated, note discrepancies"
+          - multiSelect: false
+        </action>
       </branch>
     </branch>
 
@@ -346,7 +353,14 @@ To save progress now:
       <action>Find `<example>` elements where ref matches failed check</action>
       <action>Show violation examples to illustrate the problem</action>
       <action>Show correct examples to illustrate the fix</action>
-      <prompt>Fix now or acknowledge and continue?</prompt>
+      <action>Use AskUserQuestion tool with:
+        - header: "Violation"
+        - question: "Directive check failed. How would you like to proceed?"
+        - options:
+          - label: "Fix now", description: "Address the violation before continuing"
+          - label: "Continue anyway", description: "Acknowledge and proceed despite violation"
+        - multiSelect: false
+      </action>
     </branch>
   </step>
 

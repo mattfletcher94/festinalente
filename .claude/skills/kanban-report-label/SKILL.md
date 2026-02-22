@@ -1,7 +1,7 @@
 ---
 name: kanban-report-label
 description: Query tasks filtered by label (bug, feature, docs, refactor)
-allowed-tools: Read, Glob, Grep, Bash(git log *)
+allowed-tools: Read, Glob, Grep, Bash(git log *), AskUserQuestion
 argument-hint: "{label} [question]"
 disable-model-invocation: true
 ---
@@ -53,7 +53,16 @@ Query tasks filtered by label using natural language.
   </step>
 
   <step name="prompt_for_question" when="no question provided">
-    <prompt>What would you like to know about these tasks?</prompt>
+    <action>Use AskUserQuestion tool with:
+      - header: "Question"
+      - question: "What would you like to know about these tasks?"
+      - options:
+        - label: "Count", description: "How many tasks with this label"
+        - label: "Status", description: "Status breakdown"
+        - label: "List", description: "List all matching tasks"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to ask a custom question</note>
   </step>
 
   <step name="answer_question" when="question provided">
