@@ -1,4 +1,4 @@
-<task id="009" status="update-docs" priority="medium" created="2026-02-22" updated="2026-02-22">
+<task id="009" status="pr" priority="medium" created="2026-02-22" updated="2026-02-22">
   <title>Add discovery session button to Tasks view</title>
 
   <labels>

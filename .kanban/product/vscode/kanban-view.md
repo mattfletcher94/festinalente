@@ -8,8 +8,8 @@ keywords: [kanban, view, treeview, sidebar, columns, status, config, global-acti
 aliases: [task-view, kanban-board, tasks-view]
 boundary: "Does NOT provide drag-and-drop; tasks move via commands"
 related: [vscode/codelens, vscode/terminal, tasks/workflow]
-updated: 2026-02-21
-verified: 2026-02-21
+updated: 2026-02-22
+verified: 2026-02-22
 code_refs:
   - apps/vscode/src/extension.ts
   - apps/vscode/src/capabilities/tasks-view.capability.ts
@@ -37,6 +37,20 @@ The sidebar also includes a "Kanban Config" section for quick access to config.y
 4. Groups tasks by status column
 5. Displays in sidebar with expand/collapse
 6. File watcher triggers refresh on changes
+
+### Header Actions
+
+The KANBAN TASKS view header includes action buttons (left to right):
+
+| Button | Icon | Action |
+|--------|------|--------|
+| Discovery | `comment-discussion` | Opens terminal and runs `/kanban-discover` |
+| Create Task | `add` | Prompts for title, then runs `/kanban-create {title}` |
+| Refresh | `refresh` | Refreshes task list |
+
+**Rich tooltips:**
+- Discovery button: "**Discovery Session**\nExplore questions and analyze the codebase through Socratic Q&A before creating tasks."
+- Create Task button: "**Create Task**\nCreate a new task through conversational Q&A. Captures problem, value, and acceptance criteria."
 
 ### Key Workflows
 
@@ -81,10 +95,19 @@ The sidebar also includes a "Kanban Config" section for quick access to config.y
 
 ## Examples
 
+### Header Buttons
+
+```
+KANBAN TASKS                    [💬] [+] [↻]
+                                 │    │   └── Refresh
+                                 │    └── Create Task
+                                 └── Discovery Session
+```
+
 ### Typical Display (Collapsed)
 
 ```
-KANBAN TASKS
+KANBAN TASKS                    [💬] [+] [↻]
 ├── Backlog (2)
 │   ├── 003: Add dark mode [feature] [medium]
 │   └── 004: Fix login bug [bug] [high]
