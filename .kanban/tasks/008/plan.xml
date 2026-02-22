@@ -1,0 +1,128 @@
+<plan task="008" spec="tasks/008/spec.xml" status="approved"
+      complexity="simple" created="2026-02-22" updated="2026-02-22"
+      generated-by="claude" model="claude-opus-4-5-20251101" version="1" iteration="1">
+  <title>Fix kanban-merge to mark task done BEFORE merging</title>
+
+  <overview>
+    Reorder steps in the kanban-merge skill to update task status to "done" and commit
+    while still on the task branch, before checking out main and merging. This ensures
+    the status change commit is part of the task branch history, not an extra commit on main.
+  </overview>
+
+  <approach>
+    <rationale>
+      The current step order is:
+      1. merge_branch (checkout main, merge task branch)
+      2. cleanup_branch (delete task branch)
+      3. move_to_done_and_commit (update status, commit on main)
+
+      The fix reorders to:
+      1. move_to_done_and_commit (update status, commit on task branch) - BEFORE checkout main
+      2. merge_branch (checkout main, merge task branch)
+      3. cleanup_branch (delete task branch)
+
+      This is a pure step reorder with no logic changes. The skill uses independent XML step
+      blocks that can be safely reordered. The key constraint from spec research is that
+      branch deletion must remain after merge (cannot delete a branch we're merging from).
+    </rationale>
+    <breaking-changes>None - internal skill step reorder only</breaking-changes>
+  </approach>
+
+  <inventory></inventory>
+
+  <tasks>
+    <task id="1" type="auto">
+      <name>Reorder steps in kanban-merge skill</name>
+      <files>apps/kanban/src/content/skills/kanban-merge/SKILL.md (modify)</files>
+      <requirements>FR1, FR2, FR3, FR4</requirements>
+      <pattern>N/A - simple step reorder</pattern>
+      <action>
+        Move the `move_to_done_and_commit` step (lines 118-126) to BEFORE the `merge_branch` step.
+
+        Current order at lines 108-126:
+        ```xml
+        &lt;step name="merge_branch"&gt;
+          &lt;command&gt;git checkout main&lt;/command&gt;
+          &lt;command&gt;git merge task/{taskId} --no-ff -m "Merge branch 'task/{taskId}'"&lt;/command&gt;
+          &lt;note&gt;Use `--no-ff` to preserve branch history&lt;/note&gt;
+        &lt;/step&gt;
+
+        &lt;step name="cleanup_branch"&gt;
+          &lt;command&gt;git branch -d task/{taskId}&lt;/command&gt;
+        &lt;/step&gt;
+
+        &lt;step name="move_to_done_and_commit"&gt;
+          ...
+        &lt;/step&gt;
+        ```
+
+        New order:
+        ```xml
+        &lt;step name="move_to_done_and_commit"&gt;
+          &lt;note&gt;Format: `docs({taskId}): done - {title}`&lt;/note&gt;
+          &lt;action&gt;Change `status: pr` to `status: done`&lt;/action&gt;
+          &lt;action&gt;Add `updated: {YYYY-MM-DD}`&lt;/action&gt;
+          &lt;action&gt;Add `completed: {YYYY-MM-DD}`&lt;/action&gt;
+          &lt;action&gt;Write updated task file&lt;/action&gt;
+          &lt;command&gt;git add .kanban/tasks/{taskId}/task.xml&lt;/command&gt;
+          &lt;command&gt;git commit -m "docs({taskId}): done - {title}"&lt;/command&gt;
+        &lt;/step&gt;
+
+        &lt;step name="merge_branch"&gt;
+          &lt;command&gt;git checkout main&lt;/command&gt;
+          &lt;command&gt;git merge task/{taskId} --no-ff -m "Merge branch 'task/{taskId}'"&lt;/command&gt;
+          &lt;note&gt;Use `--no-ff` to preserve branch history&lt;/note&gt;
+        &lt;/step&gt;
+
+        &lt;step name="cleanup_branch"&gt;
+          &lt;command&gt;git branch -d task/{taskId}&lt;/command&gt;
+        &lt;/step&gt;
+        ```
+      </action>
+      <verify>Grep for step names to confirm order: move_to_done_and_commit appears before merge_branch</verify>
+      <done>Steps are reordered so status update happens before checkout main</done>
+    </task>
+
+    <task id="2" type="manual" depends="1">
+      <name>Verify the fix manually</name>
+      <files>N/A</files>
+      <requirements>FR1, FR2, FR3, FR4</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Read the modified SKILL.md file
+        - Trace through the step order mentally:
+          1. prompt_merge_confirmation (user confirms)
+          2. move_to_done_and_commit (status update + commit on task branch)
+          3. merge_branch (checkout main, merge)
+          4. cleanup_branch (delete task branch)
+        - Verify no steps reference values that would only exist after a later step
+        - Confirm output_result step still makes sense (should say "Task completed" which is accurate)
+      </action>
+      <verify>Manual: Confirm step order in file and logical flow</verify>
+      <done>Step order verified as correct for all FRs</done>
+    </task>
+  </tasks>
+
+  <testing>
+    <automated>None - skill files are markdown/XML process definitions, not executable code</automated>
+    <manual>
+      - Read modified file and trace step execution order
+      - Verify move_to_done_and_commit comes before merge_branch
+      - Verify cleanup_branch still comes after merge_branch
+    </manual>
+    <regression>Verify output_result step text still makes sense after reorder</regression>
+  </testing>
+
+  <edge-cases>
+    <case scenario="Status commit fails">Normal git error handling - user must fix and retry, same as before</case>
+  </edge-cases>
+
+  <pitfalls>
+    <pitfall issue="Branch deletion order">Must keep cleanup_branch after merge_branch - cannot delete branch being merged from</pitfall>
+    <pitfall issue="Step content unchanged">Only move the step block, do not modify any commands or actions within it</pitfall>
+  </pitfalls>
+
+  <iterations></iterations>
+  <wip></wip>
+  <completeness></completeness>
+</plan>
