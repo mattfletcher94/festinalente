@@ -1,4 +1,4 @@
-<task id="008" status="pr" priority="high" created="2026-02-22" updated="2026-02-22">
+<task id="008" status="done" priority="high" created="2026-02-22" updated="2026-02-22" completed="2026-02-22">
   <title>Fix kanban-merge to mark task done BEFORE merging</title>
 
   <labels>
