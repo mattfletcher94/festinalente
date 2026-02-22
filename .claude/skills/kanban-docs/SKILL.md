@@ -201,30 +201,32 @@ Update product documentation, commit the changes, push to remote, and move task 
     </action>
   </step>
 
-  <step name="analyze_engineering_doc_impact">
+  <step name="analyze_engineering_doc_impact" outputs="engStubDocs, engExistingDocs, engMissingDocs">
     <note>a. **Check engineering field:**</note>
     <action>Read task's `engineering` element from XML</action>
     <branch condition="engineering has IDs">
       <command>node .kanban/scripts/check-engineering.cjs {engineering IDs}</command>
     </branch>
-    <action>Categorize: existing docs vs missing docs</action>
 
-    <note>b. **Analyze task for unlisted impacts:**</note>
+    <note>b. **Categorize docs:**</note>
+    <action>For each doc ID in engineering:</action>
+    <action>- Read the doc file if it exists</action>
+    <action>- Check for `stub: true` in frontmatter</action>
+    <action>Categorize into: engStubDocs (need completing), engExistingDocs (need updating), engMissingDocs (need creating)</action>
+
+    <note>c. **Analyze task for unlisted impacts:**</note>
     <action>Read task description, spec, and implementation context</action>
     <command>node .kanban/scripts/search-engineering.cjs {technical keywords}</command>
     <branch condition="high-scoring docs NOT in engineering">
       <output>Suggest adding to engineering</output>
     </branch>
 
-    <note>c. **Determine action for each:**</note>
-    <action>Existing docs → Will UPDATE if implementation changed patterns</action>
-    <action>Missing docs → Will CREATE (new pattern/system)</action>
-
     <note>d. **Present analysis to user:**</note>
     <output>Engineering Doc Analysis for Task {taskId}:</output>
-    <output>Will UPDATE: {id} - {summary}</output>
-    <output>Will CREATE: {id} - (new doc needed)</output>
-    <output>No changes needed: {reason if applicable}</output>
+    <output>Will COMPLETE (stub exists): {id} - stub created during /kanban-create</output>
+    <output>Will UPDATE (doc exists): {id} - {summary}</output>
+    <output>Will CREATE (new doc needed): {id}</output>
+    <output>Unaffected (internal change): {reason if applicable}</output>
     <action>Use AskUserQuestion tool with:
       - header: "Eng docs"
       - question: "Proceed with engineering documentation updates?"
@@ -235,9 +237,16 @@ Update product documentation, commit the changes, push to remote, and move task 
     </action>
   </step>
 
-  <step name="load_smart_context" when="creating or completing docs">
+  <step name="load_smart_context" when="creating or completing product OR engineering docs">
     <note>**Load similar docs for reference on quality/structure**</note>
-    <command>node .kanban/scripts/select-context.cjs {taskId} --tier=standard --max=3</command>
+    <branch condition="product docs being created/completed">
+      <command>node .kanban/scripts/select-context.cjs {taskId} --tier=standard --max=3 --type=product</command>
+      <action>Note product doc structure patterns</action>
+    </branch>
+    <branch condition="engineering docs being created/completed">
+      <command>node .kanban/scripts/select-context.cjs {taskId} --tier=standard --max=3 --type=engineering</command>
+      <action>Note engineering doc structure patterns</action>
+    </branch>
     <action>Parse JSON output</action>
     <action>For each doc in output, note the structure and quality patterns</action>
     <note>Use these as reference when writing new docs - match their level of detail</note>
@@ -294,6 +303,53 @@ Update product documentation, commit the changes, push to remote, and move task 
     <action>Reference actual code paths where relevant</action>
   </step>
 
+  <step name="complete_stub_engineering_docs" when="engineering stub docs exist">
+    <note>**Complete stub docs created during /kanban-create**</note>
+    <action>Read the stub doc</action>
+    <action>Remove `stub: true` and `task:` from frontmatter</action>
+    <command description="Get current date">node .kanban/scripts/get-date-time.cjs</command>
+
+    <note>**Required frontmatter fields:**</note>
+    <action>Fill `tldr:` - Single sentence, max 100 chars, explains core purpose</action>
+    <action>Fill `summary:` - One sentence for LLM discovery</action>
+    <action>Fill `keywords:` - 3-5 technical terms</action>
+    <action>Fill `aliases:` - Alternative names for this system/pattern/convention</action>
+    <action>Fill `boundary:` - What this does NOT cover</action>
+    <action>Update `updated:` with current date</action>
+    <action>Add `verified:` with current date</action>
+    <action>Add `code_refs:` with files touched by this task</action>
+
+    <note>**Required content sections (varies by type):**</note>
+    <action>TL;DR blockquote at top</action>
+    <action>Overview section with summary</action>
+
+    <branch condition="type is system">
+      <action>Architecture section - high-level design</action>
+      <action>Components section - key parts and responsibilities</action>
+      <action>Data Flow section - how data moves through system</action>
+      <action>Integration section - how to use from other code</action>
+    </branch>
+
+    <branch condition="type is pattern">
+      <action>Problem section - what problem this solves</action>
+      <action>Solution section - the pattern approach</action>
+      <action>When to Use section - applicable scenarios</action>
+      <action>Implementation section - how to implement</action>
+      <action>Examples section - code examples from this task</action>
+    </branch>
+
+    <branch condition="type is convention">
+      <action>Rule section - the convention stated clearly</action>
+      <action>Rationale section - why this convention exists</action>
+      <action>Examples section - correct usage</action>
+      <action>Exceptions section - when to deviate</action>
+    </branch>
+
+    <action>Boundaries section - what this does NOT cover</action>
+    <action>Write content based on what was actually implemented</action>
+    <action>Reference actual code paths where relevant</action>
+  </step>
+
   <step name="create_new_docs" when="new docs needed (no stub exists)">
     <action>Create domain folder if doesn't exist: `.kanban/product/{domain}/`</action>
     <command description="Get current date">node .kanban/scripts/get-date-time.cjs</command>
@@ -341,13 +397,42 @@ Update product documentation, commit the changes, push to remote, and move task 
     <warning>SCOPE RESTRICTION: Only update docs to reflect what THIS task implemented</warning>
   </step>
 
-  <step name="create_new_engineering_docs" when="new engineering docs needed">
-    <action>Determine doc type (system, component, pattern, convention)</action>
-    <action>Create appropriate folder structure</action>
+  <step name="create_new_engineering_docs" when="new engineering docs needed (no stub exists)">
+    <action>Determine doc type based on what was implemented:</action>
+    <action>- **system**: New subsystem/service (e.g., auth system, cache layer)</action>
+    <action>- **pattern**: Recurring solution (e.g., error handling, state management)</action>
+    <action>- **convention**: Team standard (e.g., naming, file structure)</action>
+
+    <action>Use AskUserQuestion to confirm type if unclear</action>
+    <action>Create folder if needed: `.kanban/engineering/{type}s/`</action>
     <command description="Get current date">node .kanban/scripts/get-date-time.cjs</command>
-    <action>Use appropriate template from `.kanban/templates/engineering-*.md`</action>
-    <action>Fill ALL frontmatter fields including tldr, aliases, boundary</action>
-    <action>Fill content based on what was implemented</action>
+
+    <note>**For systems** (use `.kanban/templates/engineering-system.md`):</note>
+    <action>Fill ALL frontmatter fields:</action>
+    <action>- `id:` {type}s/{name}</action>
+    <action>- `type:` system</action>
+    <action>- `title:` Human-readable title</action>
+    <action>- `tldr:` Single sentence, max 100 chars</action>
+    <action>- `summary:` One sentence for LLM discovery</action>
+    <action>- `keywords:` 3-5 technical terms</action>
+    <action>- `aliases:` Alternative names</action>
+    <action>- `boundary:` What this does NOT cover</action>
+    <action>- `related:` IDs of related docs</action>
+    <action>- `updated:` Current date</action>
+    <action>- `verified:` Current date</action>
+    <action>- `code_refs:` Files implementing this system</action>
+    <action>Fill sections: Overview, Architecture, Components, Data Flow, Integration, Boundaries</action>
+
+    <note>**For patterns** (use `.kanban/templates/engineering-pattern.md`):</note>
+    <action>Same frontmatter fields</action>
+    <action>Fill sections: Problem, Solution, When to Use, Implementation, Examples, Boundaries</action>
+
+    <note>**For conventions** (use `.kanban/templates/engineering-convention.md`):</note>
+    <action>Same frontmatter fields</action>
+    <action>Fill sections: Rule, Rationale, Examples, Exceptions, Boundaries</action>
+
+    <action>Write content based on what was implemented</action>
+    <action>Keep scope focused on THIS system/pattern/convention only</action>
   </step>
 
   <step name="update_domain_index" when="new doc created in a domain">
@@ -360,6 +445,19 @@ Update product documentation, commit the changes, push to remote, and move task 
     </branch>
     <branch condition="_index.md doesn't exist">
       <note>Consider creating one if multiple docs now exist in this domain</note>
+    </branch>
+  </step>
+
+  <step name="update_engineering_index" when="new engineering doc created in a type folder">
+    <note>**Update the type's _index.md to include the new doc**</note>
+    <action>Check if `.kanban/engineering/{type}s/_index.md` exists</action>
+    <branch condition="_index.md exists">
+      <action>Read the _index.md file</action>
+      <action>Add the new doc to the appropriate section</action>
+      <action>Add a one-line description matching the doc's tldr</action>
+    </branch>
+    <branch condition="_index.md doesn't exist">
+      <note>Consider creating one if multiple docs now exist in this type folder</note>
     </branch>
   </step>
 
@@ -597,6 +695,70 @@ Task 002 moved to PR column.
 Create PR on GitHub, then run:
 /clear
 /kanban-merge 002
+```
+
+**Completing engineering stub doc (with product stub):**
+
+User: `/kanban-docs 004`
+
+```
+Completing documentation for task 004 "Add caching layer for API responses"...
+
+Task: 004 - Add caching layer for API responses
+Labels: [feature]
+Affects: performance/api-caching
+Engineering: systems/api-cache
+
+Product Doc Analysis:
+Will COMPLETE (stub exists): performance/api-caching - stub created during /kanban-create
+
+Proceed with product documentation updates? [Yes (Recommended)]
+
+Engineering Doc Analysis:
+Will COMPLETE (stub exists): systems/api-cache - stub created during /kanban-create
+
+Proceed with engineering documentation updates? [Yes (Recommended)]
+
+Loading context from similar docs...
+Found: systems/auth.md, systems/database.md (using as reference for engineering)
+Found: performance/lazy-loading.md (using as reference for product)
+
+Completing product stub doc: .kanban/product/performance/api-caching.md
+... (product doc completion) ...
+
+Completing engineering stub doc: .kanban/engineering/systems/api-cache.md
+
+Filling frontmatter:
+- tldr: "Redis-backed cache layer for external API responses"
+- keywords: [cache, redis, api, performance, ttl]
+- aliases: [api cache, response cache, redis cache]
+- boundary: "Does not handle database query caching"
+- verified: 2026-02-22
+- code_refs: [src/cache/api-cache.ts, src/cache/redis-client.ts]
+
+Writing content sections:
+- Overview with summary
+- Architecture (Redis connection, key strategy)
+- Components (CacheManager, TTLPolicy, Invalidator)
+- Data Flow (request → cache check → API call → store → response)
+- Integration (how to wrap API calls)
+- Boundaries (what it doesn't cache)
+
+Updating type index: .kanban/engineering/systems/_index.md
+Added: api-cache - Redis-backed cache layer for external API responses
+
+Running quality validation...
+Quality check passed
+
+Commit: d4e5f6g docs(004): product+engineering - add api caching documentation
+
+Task 004 moved to PR column.
+
+Create PR on GitHub, then run:
+/clear
+/kanban-merge 004
+
+Or if PR needs changes: /kanban-rework 004
 ```
 
 **Internal change (no docs needed):**

@@ -101,7 +101,7 @@ Create and refine a new task through conversational Q&A, then commit to Backlog.
     </branch>
   </step>
 
-  <step name="search_engineering_docs" when="`.kanban/engineering/` directory exists and is not empty">
+  <step name="search_engineering_docs" when="`.kanban/engineering/` directory exists and is not empty" outputs="newEngDocId, newEngDocPath, engDocType">
     <action>Extract keywords from the established title (technical terms, patterns, system names)</action>
     <command>node .kanban/scripts/search-engineering.cjs {keyword1} {keyword2} ...</command>
 
@@ -112,8 +112,28 @@ Create and refine a new task through conversational Q&A, then commit to Backlog.
     </branch>
 
     <branch condition="no docs with score ≥ 0.3 found">
-      <note>This may involve new patterns/systems not yet documented</note>
-      <action>Leave `engineering: []` empty - docs will be created during /kanban-docs if needed</action>
+      <note>This may involve new patterns/systems not yet documented - we'll create a stub doc</note>
+      <action>If existing type folders are known from `.kanban/engineering/` folder structure, use AskUserQuestion tool with:
+        - header: "Eng type"
+        - question: "This task may introduce new technical patterns. What type of engineering doc should be created?"
+        - options:
+          - label: "System", description: "New subsystem or service (e.g., auth system, cache layer)"
+          - label: "Pattern", description: "Recurring solution (e.g., error handling, state management)"
+          - label: "Convention", description: "Team standard (e.g., naming, file structure)"
+          - label: "None needed", description: "No new engineering documentation required"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to type a custom type</note>
+      <branch condition="user selects type (not 'None needed')">
+        <action>Set engDocType = selected type (lowercase: system, pattern, convention)</action>
+        <action>Set newEngDocId = `{engDocType}s/{slug-from-title}`</action>
+        <action>Set newEngDocPath = `.kanban/engineering/{engDocType}s/{slug-from-title}.md`</action>
+        <action>Set `engineering: [{newEngDocId}]` in task XML</action>
+        <note>Stub doc will be created in step create_engineering_stub_doc</note>
+      </branch>
+      <branch condition="user selects 'None needed'">
+        <action>Leave `engineering: []` empty</action>
+      </branch>
     </branch>
 
     <branch condition="`.kanban/engineering/` is empty or doesn't exist">
@@ -161,6 +181,48 @@ This is a stub document created during task creation. It will be completed with 
 - [ ] Boundaries section
     </example_code>
     <output>Created stub doc: {newDocPath}</output>
+    <note>The `stub: true` frontmatter marks this for completion during /kanban-docs</note>
+  </step>
+
+  <step name="create_engineering_stub_doc" when="newEngDocId was set (new engineering doc detected)">
+    <note>Create a minimal stub doc so the `engineering` link is valid immediately</note>
+    <command description="Get current date">node .kanban/scripts/get-date-time.cjs</command>
+    <action>Create type folder if doesn't exist: `.kanban/engineering/{engDocType}s/`</action>
+    <action>Create stub doc at {newEngDocPath} with minimal content:</action>
+    <example_code lang="markdown">
+---
+id: "{newEngDocId}"
+title: "{Title derived from task title}"
+type: {engDocType}
+tldr: ""
+summary: "Stub - to be completed during /kanban-docs"
+keywords: [{keywords from task title}]
+aliases: []
+boundary: ""
+related: []
+updated: {date from get-date-time}
+stub: true
+task: "{nextId}"
+---
+
+# {Title}
+
+> **TL;DR:** (To be completed)
+
+## Overview
+
+This is a stub document created during task creation. It will be completed with full content during the `/kanban-docs` phase after implementation.
+
+**Related task:** {nextId} - {task title}
+
+## Status
+
+- [ ] Overview section
+- [ ] Implementation details
+- [ ] Examples section
+- [ ] Boundaries section
+    </example_code>
+    <output>Created engineering stub doc: {newEngDocPath}</output>
     <note>The `stub: true` frontmatter marks this for completion during /kanban-docs</note>
   </step>
 
@@ -296,8 +358,11 @@ And their session is established
   <step name="commit">
     <note>Format: `docs({nextId}): create - {title}`</note>
     <command>git add .kanban/tasks/{nextId}/task.xml</command>
-    <branch condition="stub doc was created">
+    <branch condition="product stub doc was created">
       <command>git add {newDocPath}</command>
+    </branch>
+    <branch condition="engineering stub doc was created">
+      <command>git add {newEngDocPath}</command>
     </branch>
     <command>git commit -m "docs({nextId}): create - {title}"</command>
   </step>
@@ -329,6 +394,7 @@ And their session is established
 - Task XML has `<value>` section filled
 - Task XML has `<acceptance-criteria>` section with Gherkin format
 - If new feature: stub doc exists at `.kanban/product/{domain}/{slug}.md` with `stub: true`
+- If new engineering pattern: stub doc exists at `.kanban/engineering/{type}s/{slug}.md` with `stub: true`
 - Git log shows `docs({nextId}): create -`
 - Next steps point to `/kanban-scope`
 </success_criteria>
@@ -424,6 +490,64 @@ Task 003 created in Backlog
 Next:
 /clear
 /kanban-scope 003
+```
+
+**New feature with engineering pattern:**
+
+User: `/kanban-create Add caching layer for API responses`
+
+```
+Creating task...
+
+Title: Add caching layer for API responses
+Auto-detected label: feature
+Is this correct? [Yes / No] > Yes
+
+Searching product docs...
+No matching docs found (new feature detected).
+What domain should it belong to? > performance
+
+Creating stub doc: .kanban/product/performance/api-caching.md
+
+Searching engineering docs...
+No matching docs found (new pattern detected).
+This task may introduce new technical patterns. What type?
+[System] New subsystem or service
+[Pattern] Recurring solution
+[Convention] Team standard
+[None needed] No new engineering documentation required
+> System
+
+Creating engineering stub doc: .kanban/engineering/systems/api-cache.md
+
+What priority should this task have? > High
+
+What problem are you trying to solve?
+> API calls are slow and we're hitting rate limits on external services.
+
+What value would solving this provide?
+> Faster response times and reduced API costs.
+
+I think I have enough information to create this task.
+- **Problem:** Slow API calls and rate limit issues
+- **Value:** Faster responses, reduced costs
+- **Acceptance criteria:** Cache responses with configurable TTL, invalidation support
+
+Is there anything else? > That's good.
+
+Task 004 created in Backlog
+- Labels: [feature]
+- Affects: performance/api-caching (stub created)
+- Engineering: systems/api-cache (stub created)
+- Files:
+  - .kanban/tasks/004/task.xml
+  - .kanban/product/performance/api-caching.md (stub)
+  - .kanban/engineering/systems/api-cache.md (stub)
+- Commit: c3d4e5f docs(004): create - Add caching layer for API responses
+
+Next:
+/clear
+/kanban-scope 004
 ```
 </example>
 
