@@ -1,0 +1,91 @@
+<spec task="009" created="2026-02-22" updated="2026-02-22">
+  <title>Add discovery session button to Tasks view</title>
+
+  <context>
+    The KANBAN TASKS view currently has a + button for creating tasks, but there is no way to
+    start a discovery session from the sidebar. Users must know the /kanban-discover slash
+    command. Adding a discovery button makes the workflow more discoverable and accessible.
+  </context>
+
+  <scope>
+    <in-scope>
+      <item>Add comment-discussion icon button to KANBAN TASKS view header</item>
+      <item>Register kanban.startDiscovery command with descriptive title</item>
+      <item>Command handler opens terminal and runs /kanban-discover</item>
+      <item>Update existing createTask command title to be more descriptive</item>
+      <item>Button ordering: discovery first, then create, then refresh</item>
+    </in-scope>
+    <out-of-scope>
+      <item>Custom markdown tooltips (using standard VSCode command titles instead)</item>
+      <item>Changes to the kanban-discover skill itself</item>
+      <item>Changes to Global Actions view</item>
+    </out-of-scope>
+  </scope>
+
+  <requirements>
+    <requirement id="FR1">The system shall display a comment-discussion icon button in the KANBAN TASKS view header</requirement>
+    <requirement id="FR2">The discovery button shall appear before the existing + (create task) button</requirement>
+    <requirement id="FR3">Clicking the discovery button shall open a terminal and execute the /kanban-discover command</requirement>
+    <requirement id="FR4">The discovery command title shall be "Kanban: Start Discovery - Explore questions through Socratic Q&A"</requirement>
+    <requirement id="FR5">The create task command title shall be updated to "Kanban: Create Task - Capture problem, value, and acceptance criteria"</requirement>
+    <requirement id="FR6">The discovery button shall use ThemeIcon to adapt to light/dark themes</requirement>
+    <requirement id="FR7">The discovery command shall be accessible via the command palette</requirement>
+  </requirements>
+
+  <files>
+    <file path="apps/vscode/package.json" action="modify">Add kanban.startDiscovery command definition and view/title menu entry, update createTask title</file>
+    <file path="apps/vscode/src/extension.ts" action="modify">Register kanban.startDiscovery command handler</file>
+  </files>
+
+  <patterns>
+    <pattern name="Command registration">
+      Commands defined in package.json contributes.commands with icon using $(icon-name) syntax.
+      Reference: apps/vscode/package.json:63-95
+    </pattern>
+    <pattern name="View title menu">
+      Header buttons configured in contributes.menus.view/title with group: "navigation@N" for ordering.
+      Reference: apps/vscode/package.json:98-109
+    </pattern>
+    <pattern name="Terminal command execution">
+      Commands run via terminal.createFreshTerminal() and terminal.sendCommand() with claude prefix.
+      Reference: apps/vscode/src/extension.ts:260-265
+    </pattern>
+  </patterns>
+
+  <research>
+    <product>
+      <finding doc="vscode/kanban-view">View header has existing + button at navigation@1, refresh at navigation@2. Actions execute commands in terminal.</finding>
+    </product>
+    <engineering>
+      <finding doc="systems/vscode-extension">Three-layer architecture: orchestrator (extension.ts), capabilities, computers. Commands registered in orchestrator.</finding>
+    </engineering>
+    <codebase>
+      <finding file="apps/vscode/src/extension.ts:285-300">Existing kanban.createTask command shows pattern: prompt for input, create terminal, send command.</finding>
+      <finding file="apps/vscode/package.json:98-109">Menu ordering uses group: "navigation@N" where lower N appears first.</finding>
+    </codebase>
+    <pitfalls>
+      <finding>VSCode view/title buttons don't support markdown tooltips natively - using descriptive command titles instead.</finding>
+    </pitfalls>
+  </research>
+
+  <constraints>
+    <constraint>Must use ThemeIcon ($(comment-discussion)) for theme compatibility</constraint>
+    <constraint>Must follow existing command registration pattern in extension.ts</constraint>
+    <constraint>Button must be accessible via command palette per design directive P5</constraint>
+  </constraints>
+
+  <dependencies>
+    <internal>
+      <dependency>Terminal capability (existing) - apps/vscode/src/capabilities/terminal.capability.ts</dependency>
+    </internal>
+  </dependencies>
+
+  <risks>
+    <risk impact="low" mitigation="Use standard $(comment-discussion) codicon">
+      Icon may not exist in older VSCode versions
+    </risk>
+  </risks>
+
+  <open-questions>
+  </open-questions>
+</spec>

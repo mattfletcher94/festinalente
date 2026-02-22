@@ -67,8 +67,13 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "kanban.startDiscovery",
+        "title": "Kanban: Start Discovery - Explore questions through Socratic Q&A",
+        "icon": "$(comment-discussion)"
+      },
+      {
         "command": "kanban.createTask",
-        "title": "Kanban: Create Task",
+        "title": "Kanban: Create Task - Capture problem, value, and acceptance criteria",
         "icon": "$(add)"
       },
       {
@@ -96,6 +101,11 @@
     ],
     "menus": {
       "view/title": [
+        {
+          "command": "kanban.startDiscovery",
+          "when": "view == kanbanTasks && kanban.hasKanbanFolder",
+          "group": "navigation@0"
+        },
         {
           "command": "kanban.createTask",
           "when": "view == kanbanTasks && kanban.hasKanbanFolder",

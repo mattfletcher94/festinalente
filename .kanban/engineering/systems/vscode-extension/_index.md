@@ -15,8 +15,8 @@ related:
 paths:
   - apps/vscode/src
   - apps/vscode/bin
-updated: 2026-02-21
-verified: 2026-02-21
+updated: 2026-02-22
+verified: 2026-02-22
 code_refs:
   - apps/vscode/src/extension.ts
   - apps/vscode/src/capabilities/tasks-view.capability.ts
@@ -51,6 +51,7 @@ The `extension.ts` file acts as the orchestrator, making policy decisions (when/
 | Activation | Starts on `onStartupFinished`, initializes all capabilities |
 | File monitoring | Watches `.kanban/tasks/**/*.xml` for changes |
 | Command routing | Routes VSCode commands to appropriate handlers |
+| Header actions | Registers view/title menu items (discovery, create, refresh) |
 | Composition | Wires capabilities and computers together |
 
 **File:** `apps/vscode/src/extension.ts`
@@ -101,6 +102,18 @@ The global-actions-view capability defines:
 | GlobalActionItem | GlobalActionsGroupItem | Clickable action (e.g., "Map Product Docs", "Map Engineering Docs") |
 
 GlobalActionItem uses `kanban.runGlobalAction` command to execute the action in a terminal.
+
+#### Header Action Commands
+
+Header buttons are registered via `contributes.menus.view/title` in package.json:
+
+| Command | Icon | Group | Behavior |
+|---------|------|-------|----------|
+| `kanban.startDiscovery` | `comment-discussion` | navigation@0 | Runs `/kanban-discover` in terminal |
+| `kanban.createTask` | `add` | navigation@1 | Prompts for title, runs `/kanban-create` |
+| `kanban.refresh` | `refresh` | navigation@2 | Triggers TreeView refresh |
+
+Commands use VSCode's extended title syntax for rich markdown tooltips (e.g., "Kanban: Start Discovery - Explore questions through Socratic Q&A").
 
 ### Computers Layer (Pure Functions)
 
