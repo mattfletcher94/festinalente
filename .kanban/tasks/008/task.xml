@@ -1,0 +1,42 @@
+<task id="008" status="backlog" priority="high" created="2026-02-22" updated="2026-02-22">
+  <title>Fix kanban-merge to mark task done BEFORE merging</title>
+
+  <labels>
+    <label>bug</label>
+  </labels>
+
+  <refs spec="tasks/008/spec.xml" plan="tasks/008/plan.xml"/>
+
+  <affects>
+    <doc id="tasks/workflow"/>
+  </affects>
+
+  <engineering>
+  </engineering>
+
+  <description>kanban-merge currently updates task status to "done" after merging the branch, creating an extra commit on main. The status update should happen before the merge.</description>
+
+  <problem>
+    The kanban-merge workflow performs operations in the wrong order:
+    1. Merges the task branch into main
+    2. Updates task status to "done"
+    3. Commits the status change on main
+
+    This creates an unnecessary extra commit on main after every merge, polluting the git history.
+  </problem>
+
+  <value>
+    Cleaner git history with no extra commits on main after merging. The status update commit will be part of the task branch history, keeping main clean with just the merge commit.
+  </value>
+
+  <acceptance-criteria>
+Given a task in "pr" status with a ready-to-merge branch
+When the user runs /kanban-merge
+Then the task status is updated to "done" BEFORE the merge
+And a commit for the status change is created on the task branch
+And the branch is then merged into main
+And no additional commits are created on main after the merge
+  </acceptance-criteria>
+
+  <notes></notes>
+</task>
