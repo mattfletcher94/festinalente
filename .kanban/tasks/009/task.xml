@@ -1,4 +1,4 @@
-<task id="009" status="backlog" priority="medium" created="2026-02-22" updated="2026-02-22">
+<task id="009" status="scoped" priority="medium" created="2026-02-22" updated="2026-02-22">
   <title>Add discovery session button to Tasks view</title>
 
   <labels>
