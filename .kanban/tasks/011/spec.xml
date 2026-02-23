@@ -1,0 +1,138 @@
+<spec task="011" created="2026-02-23" updated="2026-02-23">
+  <title>Implement pseudoterminal autoplay for single-path workflow transitions</title>
+
+  <context>
+    The current terminal integration sends commands but does not process output. Users must manually trigger each workflow action after every skill completes, making the kanban workflow tedious for predictable transitions. This friction breaks flow and requires constant attention even when the next step is deterministic.
+
+    When kanban.autoplay is enabled and a skill completes with [KANBAN_COMPLETE], automatically trigger the next action for single-path statuses. This creates a seamless workflow experience where plan to implement to codecheck flows automatically, stopping only when user decision is needed.
+  </context>
+
+  <scope>
+    <in-scope>
+      - Create TypeScript pseudoterminal to intercept Claude CLI output
+      - Detect [KANBAN_COMPLETE] marker in terminal output
+      - Auto-trigger next action for single-path statuses (planned, in-progress, update-docs)
+      - Stop autoplay for multi-choice statuses (codecheck, qa, pr)
+      - Status bar showing autoplay state with spinning icon
+      - Handle terminal closure to stop autoplay chain
+      - Respect kanban.autoplay setting before each auto-trigger
+      - 1-2 second visibility delay before auto-triggering
+    </in-scope>
+    <out-of-scope>
+      - Interactive terminal input handling (skills run non-interactively)
+      - Timeout mechanisms (let Claude run, user can close terminal)
+      - Multi-workspace state isolation (single workspace expected)
+      - Real-time config change listener (check before each action is sufficient)
+      - Error parsing beyond exit codes (terminal shows errors to user)
+    </out-of-scope>
+  </scope>
+
+  <requirements>
+    - FR1: The system shall create a pseudoterminal that spawns the Claude CLI process and intercepts stdout/stderr
+    - FR2: The system shall detect the [KANBAN_COMPLETE] marker in terminal output buffer
+    - FR3: The system shall wait 1-2 seconds after detecting completion marker before triggering next action (user sees "Next steps" output)
+    - FR4: The system shall dispose the current terminal and create a fresh one for each auto-triggered action
+    - FR5: The system shall re-read task.xml after completion to determine current status
+    - FR6: The system shall auto-trigger the primary action when current status is planned, in-progress, or update-docs
+    - FR7: The system shall stop autoplay when current status is codecheck, qa, pr, done, backlog, or scoped
+    - FR8: The system shall check kanban.autoplay setting before each auto-trigger attempt
+    - FR9: The system shall stop autoplay chain when user closes the terminal
+    - FR10: The system shall display status bar item showing "$(sync~spin) Autoplay: task {id}" during autoplay execution
+    - FR11: The system shall stop autoplay when process exits with non-zero exit code
+  </requirements>
+
+  <files>
+    <file path="apps/vscode/src/terminal/kanban-terminal.ts" action="create">
+      Pseudoterminal class implementing VSCode Pseudoterminal interface. Spawns Claude CLI, intercepts output, detects [KANBAN_COMPLETE] marker, emits completion callback. Based on existing compiled implementation in out/terminal/kanban-terminal.js.
+    </file>
+    <file path="apps/vscode/src/extension.ts" action="modify">
+      Replace terminal capability calls with pseudoterminal in command handlers (kanban.runAction, kanban.runGlobalAction, kanban.startDiscovery, kanban.createTask, kanban.runNextAction). Add autoplay orchestration logic in onComplete callback. Create status bar item. Handle terminal closure detection.
+    </file>
+    <file path="apps/vscode/src/computers/task-actions.computer.ts" action="modify">
+      Add isSinglePathStatus helper function returning true for planned, in-progress, update-docs statuses.
+    </file>
+    <file path="apps/vscode/src/capabilities/terminal.capability.ts" action="modify">
+      May need minor updates to coordinate with pseudoterminal, or may be replaced entirely by pseudoterminal for kanban commands.
+    </file>
+  </files>
+
+  <patterns>
+    <pattern name="Capability-Computer Separation">
+      Pseudoterminal handles I/O (process spawning, output interception). Orchestrator in extension.ts handles policy (when to auto-trigger). Task-actions computer handles pure logic (is status single-path).
+      Reference: apps/vscode/src/capabilities/terminal.capability.ts:13-45
+    </pattern>
+    <pattern name="Factory Function DI">
+      Pseudoterminal uses factory pattern with typed dependencies (cwd, command, onComplete callback).
+      Reference: apps/vscode/out/terminal/kanban-terminal.js:47-58
+    </pattern>
+    <pattern name="VSCode EventEmitter">
+      Pseudoterminal uses writeEmitter and closeEmitter for terminal output events.
+      Reference: apps/vscode/out/terminal/kanban-terminal.js:52-55
+    </pattern>
+    <pattern name="Status-Based Action Selection">
+      Use existing getActions(task) pattern to retrieve primary action for auto-trigger.
+      Reference: apps/vscode/src/computers/task-actions.computer.ts:17-114
+    </pattern>
+  </patterns>
+
+  <research>
+    <product>
+      - vscode/terminal: Currently does NOT parse command output (boundary). Autoplay extends this to detect markers while maintaining fresh terminal per action.
+      - vscode/kanban-view: kanban.autoplay setting already exists (boolean, default false). ActionItems show primary/secondary actions per status.
+    </product>
+    <engineering>
+      - systems/vscode-extension: Three-layer architecture (Orchestrator, Capabilities, Computers). Terminal capability manages lifecycle. Autoplay logic belongs in orchestrator layer.
+      - patterns/capability-computer: Terminal output processing should separate I/O from logic.
+      - patterns/factory-di: All components use factory functions for dependency injection.
+    </engineering>
+    <codebase>
+      - Compiled pseudoterminal exists at apps/vscode/out/terminal/kanban-terminal.js with marker detection, process spawning, 500ms delay pattern.
+      - TypeScript source does NOT exist - needs creation at apps/vscode/src/terminal/kanban-terminal.ts.
+      - Command handlers at extension.ts:250-324 use terminal.createFreshTerminal/sendCommand pattern.
+      - task-actions.computer.ts:17-114 defines actions per status via switch statement.
+    </codebase>
+    <pitfalls>
+      - Output buffer capped at 4000 chars: Acceptable - marker appears at end of output, never truncated.
+      - Process termination race: Use sequential execution - wait for process exit before next action.
+      - No error detection: Check exit code - non-zero stops autoplay, user sees error in terminal.
+      - File watcher race: Wait for process exit (includes file write) before re-reading task.xml.
+    </pitfalls>
+  </research>
+
+  <constraints>
+    - Must maintain fresh terminal per action (existing context isolation guarantee)
+    - Must use VSCode Pseudoterminal interface for output interception
+    - Single-path status list is hardcoded (planned, in-progress, update-docs), not derived from action count
+    - in-progress status uses primary action (Continue) for autoplay, ignoring secondary (Save WIP)
+    - Status bar must use VSCode ThemeIcon for spinning animation
+  </constraints>
+
+  <dependencies>
+    <external>
+      - VSCode Pseudoterminal API (vscode.Pseudoterminal interface)
+      - VSCode StatusBarItem API (vscode.window.createStatusBarItem)
+      - Node.js child_process.spawn for CLI execution
+    </external>
+    <internal>
+      - task-actions.computer.ts for action lookup
+      - task-parser.computer.ts for re-reading task status
+      - file-system.capability.ts for reading task.xml
+    </internal>
+  </dependencies>
+
+  <risks>
+    <risk impact="low" mitigation="500ms delay before process kill allows output flush">
+      Terminal output may be truncated if process killed too quickly
+    </risk>
+    <risk impact="low" mitigation="Check exit code and stop autoplay on non-zero">
+      Failed commands could cause infinite autoplay loops
+    </risk>
+    <risk impact="medium" mitigation="Document Windows compatibility in testing">
+      Windows environment may handle FORCE_COLOR/TERM differently than Unix
+    </risk>
+  </risks>
+
+  <open-questions>
+    None - all technical decisions resolved during Q&A dialogue.
+  </open-questions>
+</spec>
