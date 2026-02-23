@@ -1,14 +1,14 @@
 ---
 name: kanban-discover
-description: Explore questions and analyze codebases through Socratic Q&A before creating tasks
-allowed-tools: Read, Glob, Grep, WebSearch, WebFetch, AskUserQuestion, Skill
-argument-hint: "[exploration question]"
+description: Investigate problems through structured exploration and create tasks for findings
+allowed-tools: Read, Glob, Grep, WebSearch, WebFetch, AskUserQuestion, Skill, Task
+argument-hint: "[problem to investigate]"
 ---
 
-# Discover and Explore
+# Discover and Investigate
 
 <purpose>
-Explore questions and analyze codebases through conversational Socratic Q&A before committing to task creation. This enables discovery workflows where you understand the user's intent, perform research/analysis/audits, and optionally convert findings into actionable tasks via kanban-create.
+Investigate a problem in the codebase through structured exploration, produce concrete findings with locations, and create tasks for each finding via kanban-create.
 </purpose>
 
 <context>
@@ -22,199 +22,252 @@ Explore questions and analyze codebases through conversational Socratic Q&A befo
 - **`.kanban/directives/`** — User-defined directives (custom instructions for skills)
 </note>
 
-<note>Exploration types this skill supports:</note>
-- **Codebase audit:** Find issues, patterns, bottlenecks, or opportunities in the code
-- **Research:** Investigate implementation approaches, best practices, or how other systems solve problems
-- **Analysis:** Understand how something works, trace data flow, or map dependencies
+<note>**Exploration Types:**</note>
+- **Audit:** Find issues, inconsistencies, or gaps (docs, code quality, security, etc.)
+- **Investigate:** Trace a specific problem, understand how something works
+- **Research:** Find best practices, compare approaches, gather external information
 
-<note>Key principle: No files are created during exploration. All findings are conversational.</note>
+<note>**Key Principle:** Every finding becomes a task offer. This skill DISCOVERS work, it doesn't DO work.</note>
 </context>
 
 <prohibited>
-- Do not persist exploration findings to files (output is conversational only)
-- Do not create tasks without explicit user confirmation for each finding
-- Do not skip the clarification phase - always ensure you deeply understand what the user wants to explore
-- Do not make assumptions about the exploration scope without validating with the user
+- Do not skip the problem validation step
+- Do not skip the structured exploration phase
+- Do not present findings without offering task creation
 </prohibited>
 
 <process>
-  <step name="get_question" outputs="question">
+  <step name="get_problem" outputs="problem">
     <branch condition="$ARGUMENTS provided">
-      <action>Use $ARGUMENTS as the starting exploration question</action>
-      <output>Starting exploration: "{question}"</output>
+      <action>Use $ARGUMENTS as the problem statement</action>
     </branch>
     <branch condition="$ARGUMENTS not provided">
       <action>Use AskUserQuestion tool with:
-        - header: "Explore"
-        - question: "What would you like to explore or analyze?"
+        - header: "Investigate"
+        - question: "What problem would you like to investigate?"
         - options:
-          - label: "Audit codebase", description: "Find issues, patterns, or opportunities in the code"
-          - label: "Research approach", description: "Investigate how to implement something"
-          - label: "Analyze system", description: "Understand how something works"
+          - label: "Audit codebase", description: "Find issues, gaps, or inconsistencies"
+          - label: "Investigate issue", description: "Trace a specific problem"
+          - label: "Research approach", description: "Find best practices or compare approaches"
         - multiSelect: false
       </action>
-      <branch condition="user selects an option">
-        <action>Ask follow-up: "What specifically would you like to {explore/audit/analyze}?"</action>
-      </branch>
-      <branch condition="user selects Other">
-        <action>Use their custom input as the starting question</action>
-      </branch>
+      <action>Ask follow-up: "What specifically should I look for?"</action>
     </branch>
   </step>
 
-  <step name="clarify_intent" outputs="scope, explorationPlan">
-    <note>Use Socratic questioning to deeply understand what the user wants</note>
+  <step name="validate_problem">
+    <note>Ensure this is a concrete problem, not a meta-question</note>
 
-    <action>Based on the initial question, ask clarifying questions to understand:</action>
-    <note>- What specifically are they looking for?</note>
-    <note>- What areas of the codebase or topics are relevant?</note>
-    <note>- What would a successful exploration outcome look like?</note>
-    <note>- Are there any constraints or focus areas?</note>
-
-    <action>Ask 1-3 focused clarifying questions using AskUserQuestion or conversational prompts</action>
-    <note>Don't ask too many questions - just enough to focus the exploration</note>
-
-    <branch condition="user provides clear scope">
-      <action>Summarize understanding and confirm before proceeding</action>
+    <branch condition="user asks about kanban workflow or skill selection">
       <output>
-**Here's what I understand you want to explore:**
-- {scope summary}
-- {focus areas}
-- {success criteria}
+I investigate problems in your codebase - I don't advise on kanban workflow.
 
-**Is this correct, or would you like to adjust the focus?**
+What outcome are you trying to achieve? I can investigate that and create tasks for any work needed.
+      </output>
+      <action>Wait for user to provide concrete problem</action>
+    </branch>
+
+    <branch condition="problem is concrete">
+      <output>
+**Investigating:** {problem}
+
+Let me explore this and find concrete issues.
       </output>
     </branch>
-
-    <branch condition="user wants broad exploration">
-      <action>Suggest narrowing the scope for more useful findings</action>
-      <action>Offer 2-3 specific angles to choose from</action>
-    </branch>
   </step>
 
-  <step name="perform_exploration">
-    <note>Execute the exploration based on the clarified scope</note>
+  <step name="classify_and_explore" outputs="findings">
+    <note>Select exploration strategy based on problem type and spawn agents in parallel using Task tool</note>
 
-    <branch condition="codebase audit/analysis">
-      <action>Use Glob to find relevant files matching patterns</action>
-      <action>Use Grep to search for specific patterns, keywords, or code constructs</action>
-      <action>Use Read to examine file contents in detail</action>
-      <note>Look for: patterns, inconsistencies, potential issues, opportunities</note>
+    <branch condition="audit type (docs, code quality, security, etc.)">
+      <parallel>
+        <agent name="Issue Scanner" subagent_type="Explore">
+          <prompt>
+Find issues related to: {problem}
+
+For each issue found, provide:
+- title: Short description
+- location: File path and line (if applicable)
+- description: What the issue is
+- impact: Why it matters
+- suggested_task: What task would fix this
+
+Be specific. Include file paths and line numbers.
+          </prompt>
+        </agent>
+        <agent name="Gap Finder" subagent_type="Explore">
+          <prompt>
+Find gaps or missing elements related to: {problem}
+
+For each gap found, provide:
+- title: What's missing
+- location: Where it should be (if applicable)
+- description: What should exist
+- impact: Why it matters
+- suggested_task: What task would address this
+
+Be specific. Reference existing patterns to compare against.
+          </prompt>
+        </agent>
+      </parallel>
     </branch>
 
-    <branch condition="research/investigation">
-      <action>Use WebSearch to find relevant articles, documentation, best practices</action>
-      <action>Use WebFetch to retrieve and analyze specific resources</action>
-      <action>Use codebase tools to compare with existing implementation</action>
-      <note>Synthesize findings from multiple sources</note>
+    <branch condition="investigate type (trace problem, understand system)">
+      <parallel>
+        <agent name="Tracer" subagent_type="Explore">
+          <prompt>
+Trace this problem: {problem}
+
+Map:
+- Entry points: Where does this start?
+- Flow: How does data/control flow through?
+- Dependencies: What does it depend on?
+- Exit points: Where does it end?
+
+For each issue or complexity found, provide:
+- title: Short description
+- location: File path and line
+- description: What you found
+- suggested_task: What task would address this
+          </prompt>
+        </agent>
+        <agent name="Impact Analyzer" subagent_type="Explore">
+          <prompt>
+Analyze impact of: {problem}
+
+Find:
+- What depends on this?
+- What would break if this changes?
+- What else is affected?
+
+For each finding, provide:
+- title: Short description
+- location: File paths involved
+- description: The relationship/impact
+- suggested_task: What task would address this (if needed)
+          </prompt>
+        </agent>
+      </parallel>
     </branch>
 
-    <branch condition="mixed exploration">
-      <action>Combine codebase analysis with web research as needed</action>
+    <branch condition="research type (best practices, approaches)">
+      <parallel>
+        <agent name="Web Researcher" subagent_type="Explore">
+          <prompt>
+Research best practices for: {problem}
+
+Use WebSearch and WebFetch to find:
+- How do other projects solve this?
+- What are the recommended approaches?
+- What are the trade-offs?
+
+For each recommendation, provide:
+- title: The approach/practice
+- source: Where you found it
+- description: How it works
+- applicability: How it applies to this codebase
+- suggested_task: What task would implement this
+          </prompt>
+        </agent>
+        <agent name="Codebase Comparator" subagent_type="Explore">
+          <prompt>
+Compare current implementation to best practices for: {problem}
+
+Find:
+- What does the codebase currently do?
+- How does it differ from best practices?
+- What gaps exist?
+
+For each gap, provide:
+- title: The gap
+- location: Current implementation location
+- description: Current vs recommended
+- suggested_task: What task would address this
+          </prompt>
+        </agent>
+      </parallel>
     </branch>
 
-    <action>As you explore, note key findings</action>
-    <note>Findings should be concrete and actionable when possible</note>
+    <action>Wait for all agents to complete</action>
+    <action>Combine and deduplicate findings</action>
   </step>
 
   <step name="present_findings">
-    <note>Present findings conversationally - do not create files</note>
+    <branch condition="no findings">
+      <output>
+**Investigation Complete**
 
-    <output>
-**Exploration Complete**
+I explored {problem} but didn't find significant issues.
 
-Here's what I found:
+What was checked:
+{summary of exploration}
+
+Would you like me to investigate a different angle?
+      </output>
+      <action>Offer to explore differently or exit</action>
+    </branch>
+
+    <branch condition="findings exist">
+      <output>
+**Investigation Complete**
+
+I found {count} items related to: {problem}
 
 {For each finding:}
-**Finding {n}: {title}**
-{Description of what was found}
-{Why it matters / implications}
-{Relevant file locations if applicable}
+**{n}. {title}**
+- Location: {location}
+- {description}
+- Impact: {impact}
 
 ---
-    </output>
-
-    <branch condition="no actionable findings">
-      <output>
-I explored the {scope} but didn't find significant issues or opportunities.
-
-{Explain what was checked and why nothing notable was found}
-
-Would you like me to explore a different angle?
       </output>
-      <action>Offer to explore a different aspect or conclude</action>
     </branch>
   </step>
 
-  <step name="offer_task_creation">
-    <action>After presenting findings, ask if the user wants to create tasks</action>
+  <step name="create_tasks">
+    <note>This is THE POINT of the skill - not optional</note>
 
-    <action>Use AskUserQuestion tool with:
-      - header: "Tasks"
-      - question: "Would you like to create tasks from any of these findings?"
-      - options:
-        - label: "Yes, review findings", description: "Go through findings and decide which become tasks"
-        - label: "No, exploration complete", description: "End exploration without creating tasks"
-      - multiSelect: false
-    </action>
+    <output>Let's create tasks for these findings.</output>
 
-    <branch condition="user selects No">
-      <output>
-Exploration complete. No tasks created.
-
-If you want to create tasks later, you can use:
-```
-/kanban-create {suggested title based on a finding}
-```
-      </output>
-      <action>Exit</action>
-    </branch>
-  </step>
-
-  <step name="iterate_findings">
-    <note>For each finding, offer task creation</note>
-
-    <action>For each finding in order:</action>
+    <action>For each finding:</action>
 
     <output>
-**Finding {n}: {title}**
-{Brief reminder of the finding}
+**{n}. {title}**
+{brief description}
     </output>
 
     <action>Use AskUserQuestion tool with:
-      - header: "Task?"
-      - question: "Create a task for this finding?"
+      - header: "Task"
+      - question: "Create task: {suggested_task}?"
       - options:
-        - label: "Yes", description: "Create task: {suggested title}"
-        - label: "No", description: "Skip this finding"
+        - label: "Yes", description: "Create this task"
+        - label: "Skip", description: "Don't create task for this"
+        - label: "Modify", description: "Create with different title"
       - multiSelect: false
     </action>
 
-    <branch condition="user selects Yes">
-      <action>Invoke /kanban-create using the Skill tool</action>
-      <action>Pass suggested title as argument: skill: "kanban-create", args: "{suggested title}"</action>
-      <output>Task creation started for: {title}</output>
-      <note>After kanban-create completes, continue to next finding</note>
+    <branch condition="Yes or Modify">
+      <action>Invoke /kanban-create using Skill tool</action>
+      <action>Pass title as argument</action>
     </branch>
 
-    <branch condition="user selects No">
+    <branch condition="Skip">
       <output>Skipped.</output>
-      <action>Continue to next finding</action>
     </branch>
 
-    <action>Repeat until all findings are processed</action>
+    <action>Continue to next finding</action>
   </step>
 
-  <step name="output_result">
+  <step name="output_summary">
     <output>
-**Exploration Summary**
+**Investigation Summary**
 
-- Exploration topic: {original question}
-- Findings reviewed: {total}
+- Problem: {original problem}
+- Findings: {total}
 - Tasks created: {count}
 
-{If tasks were created:}
-The created tasks are in Backlog. Next step for each:
+{If tasks created:}
+Next steps:
 ```
 /kanban-scope {task-id}
 ```
@@ -232,112 +285,111 @@ The created tasks are in Backlog. Next step for each:
 </process>
 
 <success_criteria>
-- User's exploration intent is clearly understood before exploration begins
-- Exploration uses appropriate tools (codebase tools or web research) based on intent
-- Findings are presented conversationally (no files created during exploration)
-- User is offered opportunity to create tasks from findings
-- For each finding, user confirms before task creation
-- Skill tool successfully chains to kanban-create when user confirms task creation
+- Problem validated as concrete (not meta-question)
+- Structured exploration completed with bounded agents
+- Findings presented with locations and details
+- Task creation offered for each finding
+- Summary shows tasks created
 </success_criteria>
 
 <example>
-User: `/kanban-discover audit performance bottlenecks`
+User: `/kanban-discover audit the documentation for inconsistencies`
 
 ```
-Starting exploration: "audit performance bottlenecks"
+**Investigating:** audit the documentation for inconsistencies
 
-To focus this audit, I have a few questions:
+Let me explore this and find concrete issues.
 
-Q: What area of the application are you most concerned about?
-> The API response times have been slow lately, especially for list endpoints
+[Spawns Issue Scanner and Gap Finder agents in parallel]
 
-Q: Are there specific endpoints or features you've noticed issues with?
-> The task list endpoint and the search feature
+**Investigation Complete**
 
-Got it. I'll focus on:
-- Task list API endpoint performance
-- Search feature performance
-- Common patterns that might cause slowdowns
+I found 4 items related to: documentation inconsistencies
 
-Is this the right focus?
-> Yes
+**1. Outdated verified date**
+- Location: .kanban/product/auth/login.md
+- The verified date is 2025-08-15, but the file was modified 2026-01-20
+- Impact: Documentation may not reflect current implementation
 
-Exploring...
+**2. Missing Overview section**
+- Location: .kanban/product/tasks/assignment.md
+- This doc has no Overview section (required by quality standards)
+- Impact: AI discovery may not understand the feature
 
-[Uses Grep to find API endpoints]
-[Uses Read to examine endpoint implementations]
-[Looks for common performance issues: N+1 queries, missing indexes, large payloads]
+**3. Inconsistent keyword usage**
+- Location: .kanban/product/auth/*.md
+- "authentication" vs "auth" used inconsistently across docs
+- Impact: Search may miss related docs
 
----
-
-**Exploration Complete**
-
-Here's what I found:
-
-**Finding 1: N+1 query pattern in task list**
-The task list endpoint fetches tasks then separately fetches labels for each task in a loop.
-Location: src/api/tasks.ts:45-60
-Impact: Each additional task adds a database query
-
-**Finding 2: Missing pagination on search results**
-Search returns all matching results without pagination, causing large response payloads.
-Location: src/api/search.ts:23
-Impact: Slow responses and high memory usage for broad searches
-
-**Finding 3: No caching on frequently-accessed reference data**
-Label and status definitions are fetched from DB on every request.
-Location: src/api/tasks.ts:12, src/api/search.ts:8
-Impact: Unnecessary repeated queries
+**4. Broken related link**
+- Location: .kanban/product/notifications/email.md
+- References "users/preferences" but that doc doesn't exist
+- Impact: Navigation broken
 
 ---
 
-Would you like to create tasks from any of these findings?
-> Yes, review findings
+Let's create tasks for these findings.
 
-**Finding 1: N+1 query pattern in task list**
-Create a task for this finding?
+**1. Outdated verified date**
+Create task: Update auth/login documentation to match implementation?
 > Yes
 
-[Invokes /kanban-create "Fix N+1 query pattern in task list endpoint"]
+[Invokes /kanban-create "Update auth/login documentation"]
+Task 011 created.
 
-Task 009 created.
-
-**Finding 2: Missing pagination on search results**
-Create a task for this finding?
+**2. Missing Overview section**
+Create task: Add Overview section to tasks/assignment.md?
 > Yes
 
-[Invokes /kanban-create "Add pagination to search results"]
+[Invokes /kanban-create "Add Overview section to tasks/assignment"]
+Task 012 created.
 
-Task 010 created.
-
-**Finding 3: No caching on frequently-accessed reference data**
-Create a task for this finding?
-> No
+**3. Inconsistent keyword usage**
+Create task: Standardize authentication keywords across auth docs?
+> Skip
 
 Skipped.
 
+**4. Broken related link**
+Create task: Fix broken link in notifications/email.md?
+> Yes
+
+[Invokes /kanban-create "Fix broken related link in notifications/email"]
+Task 013 created.
+
 ---
 
-**Exploration Summary**
+**Investigation Summary**
 
-- Exploration topic: audit performance bottlenecks
-- Findings reviewed: 3
-- Tasks created: 2
+- Problem: audit the documentation for inconsistencies
+- Findings: 4
+- Tasks created: 3
 
-The created tasks are in Backlog. Next step for each:
-/kanban-scope 009
-/kanban-scope 010
+Next steps:
+/kanban-scope 011
+```
+</example>
+
+<example name="meta_question_redirect">
+User: `/kanban-discover which skill should I use for documentation?`
+
+```
+I investigate problems in your codebase - I don't advise on kanban workflow.
+
+What outcome are you trying to achieve? I can investigate that and create tasks for any work needed.
+
+> I want to make sure the docs are up to date
+
+**Investigating:** ensure documentation is up to date
+
+Let me explore this and find concrete issues.
+
+[Proceeds with structured exploration...]
 ```
 </example>
 
 <next_steps>
-If tasks were created:
 ```
 /kanban-scope {task-id}
-```
-
-To explore a different topic:
-```
-/kanban-discover [new question]
 ```
 </next_steps>

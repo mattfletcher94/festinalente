@@ -97,7 +97,7 @@ What this feature does NOT do:
 ## Interactions
 
 - **Docs**: Validates product and engineering docs
-- **/kanban-quality-check**: Uses this validation
+- **validate-docs.cjs**: Script that implements this validation
 
 ## Limitations
 
