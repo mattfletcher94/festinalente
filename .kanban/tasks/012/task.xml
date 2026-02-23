@@ -1,4 +1,4 @@
-<task id="012" status="backlog" priority="high" created="2026-02-23" updated="2026-02-23">
+<task id="012" status="scoped" priority="high" created="2026-02-23" updated="2026-02-23">
   <title>Fix TreeDataProvider getParent method for find task reveal</title>
 
   <labels>
