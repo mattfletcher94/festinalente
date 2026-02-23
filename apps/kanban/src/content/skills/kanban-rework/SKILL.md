@@ -1,6 +1,6 @@
 ---
 name: kanban-rework
-description: Return task to In Progress for fixes. Works from QA or PR columns.
+description: Return task to In Progress with structured issue report. Works from QA or PR columns.
 allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *, gh pr *), AskUserQuestion
 argument-hint: "[task-id]"
 disable-model-invocation: true
@@ -9,7 +9,7 @@ disable-model-invocation: true
 # Rework Kanban Task
 
 <purpose>
-Return a task to In Progress when human review finds issues. Works from both QA and PR columns.
+Return a task to In Progress when human review finds issues. Gather structured issue information to create an actionable rework report in the plan file.
 </purpose>
 
 <context>
@@ -27,7 +27,7 @@ See `.kanban/workflow.yaml` for column definitions and valid transitions.
 </context>
 
 <prohibited>
-- Do not skip documenting issues in the plan file
+- Do not skip gathering issue details
 - Do not forget to close PR if task was in PR column
 - Do not skip the commit step
 </prohibited>
@@ -55,7 +55,7 @@ See `.kanban/workflow.yaml` for column definitions and valid transitions.
     </branch>
   </step>
 
-  <step name="read_task_file" outputs="taskPath, title, currentStatus">
+  <step name="read_task_file" outputs="taskPath, title, currentStatus, acceptanceCriteria">
     <command>node .kanban/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse XML</action>
@@ -70,7 +70,7 @@ See `.kanban/workflow.yaml` for column definitions and valid transitions.
         - multiSelect: false
       </action>
     </branch>
-    <action>Note current title, status, and acceptance criteria</action>
+    <action>Note title, status, and acceptance criteria for context</action>
     <branch condition="task not found">
       <output>Error: Task not found</output>
       <action>Exit</action>
@@ -81,12 +81,13 @@ See `.kanban/workflow.yaml` for column definitions and valid transitions.
     {{> branch-verify-task}}
   </step>
 
-  <step name="read_plan_file" outputs="planPath">
+  <step name="read_plan_file" outputs="planPath, currentIteration">
     <action>Check for `.kanban/tasks/{taskId}/plan.xml`</action>
     <branch condition="plan found">
       <action>Read plan content</action>
+      <action>Get current iteration number from plan</action>
     </branch>
-    <note>Plan will be updated with issues to address</note>
+    <note>Plan will be updated with structured issue report</note>
   </step>
 
   <step name="load_directives">
@@ -98,41 +99,156 @@ See `.kanban/workflow.yaml` for column definitions and valid transitions.
     <output>PR closed</output>
   </step>
 
-  <step name="prompt_for_issues" outputs="issues">
+  <!-- ============================================ -->
+  <!-- STRUCTURED ISSUE GATHERING                  -->
+  <!-- ============================================ -->
+
+  <step name="get_issue_type" outputs="issueType">
     <action>Use AskUserQuestion tool with:
-      - header: "Issues"
-      - question: "What issues need to be fixed?"
+      - header: "Type"
+      - question: "What type of issue was found?"
       - options:
-        - label: "Skip", description: "I'll describe the issues"
+        - label: "Bug", description: "Something is broken or behaves incorrectly"
+        - label: "Incomplete", description: "Missing functionality or acceptance criteria not met"
+        - label: "Design change", description: "Works but needs a different approach"
+        - label: "Performance", description: "Too slow or resource-intensive"
       - multiSelect: false
     </action>
-    <note>User can select "Other" to describe the issues that need fixing</note>
-    <action>Collect detailed description of problems</action>
-    <action>Parse into individual issues if multiple provided</action>
   </step>
+
+  <step name="get_severity" outputs="severity">
+    <action>Use AskUserQuestion tool with:
+      - header: "Severity"
+      - question: "How severe is this issue?"
+      - options:
+        - label: "Blocker", description: "Cannot ship until fixed"
+        - label: "Major", description: "Significant issue, high priority fix"
+        - label: "Minor", description: "Small issue, can be fixed quickly"
+      - multiSelect: false
+    </action>
+  </step>
+
+  <step name="gather_issue_details" outputs="issueDetails">
+    <note>Conversational gathering based on issue type</note>
+
+    <output>
+**Task:** {taskId} - {title}
+**Issue type:** {issueType}
+**Severity:** {severity}
+
+Let me gather the details needed for a proper issue report.
+    </output>
+
+    <branch condition="issueType is Bug">
+      <action>Ask: "What's happening? (the actual behavior)"</action>
+      <action>Ask: "What should happen instead? (expected behavior)"</action>
+      <action>Ask: "How do you reproduce it? (steps)"</action>
+    </branch>
+
+    <branch condition="issueType is Incomplete">
+      <action>Ask: "What's missing from the implementation?"</action>
+      <action>Ask: "Which acceptance criteria are not met?"</action>
+    </branch>
+
+    <branch condition="issueType is Design change">
+      <action>Ask: "What's the current behavior?"</action>
+      <action>Ask: "What should it be instead and why?"</action>
+    </branch>
+
+    <branch condition="issueType is Performance">
+      <action>Ask: "What's slow or resource-intensive?"</action>
+      <action>Ask: "What's the expected performance?"</action>
+      <action>Ask: "How did you measure it?"</action>
+    </branch>
+
+    <note>User can provide all details at once or answer one at a time</note>
+    <note>If user provides partial info, ask follow-up questions</note>
+  </step>
+
+  <step name="synthesize_and_confirm" outputs="confirmedIssue">
+    <action>Parse gathered details into structured format</action>
+    <action>Determine specific actions needed to address the issue</action>
+
+    <output>
+**Issue Report**
+
+**Type:** {issueType}
+**Severity:** {severity}
+
+**Summary:** {one-line summary}
+
+{If Bug:}
+**Actual behavior:** {what's happening}
+**Expected behavior:** {what should happen}
+**Reproduction steps:**
+1. {step 1}
+2. {step 2}
+3. {step 3}
+
+{If Incomplete:}
+**Missing:** {what's missing}
+**Acceptance criteria not met:**
+- {criteria 1}
+- {criteria 2}
+
+{If Design change:}
+**Current:** {current behavior}
+**Requested:** {new behavior}
+**Reason:** {why the change}
+
+{If Performance:}
+**Issue:** {what's slow}
+**Current:** {measured performance}
+**Expected:** {target performance}
+
+**Actions to address:**
+- [ ] {action 1}
+- [ ] {action 2}
+- [ ] {action 3}
+
+---
+**Does this capture the issue correctly? Anything to add or change?**
+    </output>
+
+    <branch condition="user confirms">
+      <action>Proceed to update plan</action>
+    </branch>
+    <branch condition="user has corrections">
+      <action>Update issue report and confirm again</action>
+    </branch>
+    <branch condition="user adds more details">
+      <action>Incorporate and confirm again</action>
+    </branch>
+  </step>
+
+  <!-- ============================================ -->
+  <!-- UPDATE PLAN WITH STRUCTURED ITERATION       -->
+  <!-- ============================================ -->
 
   <step name="update_plan_with_iteration">
     <note>Following template at `.kanban/templates/plan.xml`</note>
     <action>Increment `iteration` attribute in plan XML</action>
     <action>Determine phase name based on original status:
-- `qa` → "QA Failed"
-- `pr` → "PR Rejected"</action>
-    <action>Add to `## Iterations` section (create if doesn't exist)</action>
-    <example_code lang="markdown">
-## Iterations
+- `qa` → "QA"
+- `pr` → "PR"</action>
+    <action>Add to `<iterations>` section</action>
 
-### Attempt {n} — {phase name} ({YYYY-MM-DD})
-**Phase:** {qa|pr}
-**Result:** failed
-
-**Issues:**
-- [ ] {issue 1}
-- [ ] {issue 2}
-- [ ] {issue 3}
-
-**Action:** Address issues above, then re-verify
-
----
+    <example_code lang="xml">
+<iteration number="{n}" phase="{qa|pr}" result="failed" date="{YYYY-MM-DD}">
+  <issue type="{issueType}" severity="{severity}">
+    <summary>{one-line summary}</summary>
+    <expected>{expected behavior or target}</expected>
+    <actual>{actual behavior or current state}</actual>
+    <reproduce>
+{reproduction steps, if applicable}
+    </reproduce>
+  </issue>
+  <actions>
+    <action status="pending">{action 1}</action>
+    <action status="pending">{action 2}</action>
+    <action status="pending">{action 3}</action>
+  </actions>
+</iteration>
     </example_code>
   </step>
 
@@ -153,15 +269,22 @@ See `.kanban/workflow.yaml` for column definitions and valid transitions.
 
   <step name="output_result">
     <output>Print commit hash</output>
-    <output>Print: "Task {taskId} returned to In Progress for rework"</output>
-    <output>Print iteration number</output>
-    <output>Print number of issues to address</output>
-    <output>**Next: Fix the issues, then re-verify**</output>
     <output>
+**Task {taskId} returned to In Progress**
+
+- Iteration: {n}
+- Issue type: {issueType}
+- Severity: {severity}
+- Actions: {count} items to address
+
+The issue report has been added to the plan file. When you resume implementation, you'll see exactly what needs to be fixed.
+
+**Next: Fix the issues**
 ```
 /clear
 /kanban-implement {taskId}
 ```
+
 Then re-verify:
 ```
 /clear
@@ -176,45 +299,187 @@ Then re-verify:
 - Task file exists at `.kanban/tasks/{taskId}/task.xml`
 - Plan file exists at `.kanban/tasks/{taskId}/plan.xml`
 - Task XML has `status="in-progress"`
-- Plan contains `## Iterations` section with rework entry
+- Plan contains `<iterations>` section with structured issue entry
+- Issue entry has type, severity, summary, expected, actual
+- Issue entry has actionable items with status="pending"
 - Git log shows `docs({taskId}): rework -`
-- If was in PR: PR is closed (verify with `gh pr view --json state`)
+- If was in PR: PR is closed
 - Next steps shown to user
 </success_criteria>
 
-<example>
-User: `/kanban-rework 001`
+<example label="Bug from QA">
+User: `/kanban-rework 007`
 
 ```
-Handling rework for task 001 "Add user authentication"...
-
-Task: 001 - Add user authentication
+Task: 007 - Add user authentication
 Status: qa
 
-What issues need to be fixed?
-> 1. Password validation is missing minimum length check
-> 2. JWT token expiry is not being checked
-> 3. Error messages expose internal details
+What type of issue was found?
+> Bug
 
-Updating plan with iteration...
+How severe is this issue?
+> Major
 
-Commit: g7h8i9j docs(001): rework - Add user authentication
+**Task:** 007 - Add user authentication
+**Issue type:** Bug
+**Severity:** Major
 
-Task 001 returned to In Progress for rework.
+Let me gather the details needed for a proper issue report.
+
+What's happening? (the actual behavior)
+> When you enter a wrong password, nothing happens. The form just sits there.
+
+What should happen instead?
+> Should show an error message like "Invalid credentials"
+
+How do you reproduce it?
+> Go to login, enter a valid email but wrong password, click submit
+
+**Issue Report**
+
+**Type:** Bug
+**Severity:** Major
+
+**Summary:** Login fails silently on incorrect password
+
+**Actual behavior:** Form does nothing when wrong password entered
+**Expected behavior:** Show "Invalid credentials" error message
+**Reproduction steps:**
+1. Go to /login
+2. Enter valid email with incorrect password
+3. Click submit
+4. Observe: no feedback, form remains unchanged
+
+**Actions to address:**
+- [ ] Add error state handling in login form
+- [ ] Display API error response to user
+- [ ] Add visual feedback (red border, error text)
+
+---
+Does this capture the issue correctly?
+> Yes
+
+Commit: h8i9j0k docs(007): rework - Add user authentication
+
+**Task 007 returned to In Progress**
+
 - Iteration: 2
-- Status: in-progress
-- Issues to address: 3
+- Issue type: Bug
+- Severity: Major
+- Actions: 3 items to address
 
 Next:
 /clear
-/kanban-implement 001
+/kanban-implement 007
+```
+</example>
 
-Then re-verify: /kanban-codecheck 001
+<example label="Incomplete from QA">
+User: `/kanban-rework 008`
+
+```
+Task: 008 - Add password reset flow
+Status: qa
+
+What type of issue was found?
+> Incomplete
+
+How severe is this issue?
+> Major
+
+What's missing from the implementation?
+> The email is sent but there's no actual reset page. Clicking the link 404s.
+
+Which acceptance criteria are not met?
+> "User can set a new password via the reset link" - the page doesn't exist
+
+**Issue Report**
+
+**Type:** Incomplete
+**Severity:** Major
+
+**Summary:** Password reset page not implemented
+
+**Missing:** Reset password page at /reset-password
+**Acceptance criteria not met:**
+- User can set a new password via the reset link
+
+**Actions to address:**
+- [ ] Create /reset-password route
+- [ ] Add ResetPasswordForm component
+- [ ] Connect to password update API endpoint
+- [ ] Add success/error feedback
+
+---
+Does this capture the issue correctly?
+> Yes
+
+Commit: i9j0k1l docs(008): rework - Add password reset flow
+
+**Task 008 returned to In Progress**
+
+- Iteration: 2
+- Issue type: Incomplete
+- Severity: Major
+- Actions: 4 items to address
+```
+</example>
+
+<example label="Design change from PR">
+User: `/kanban-rework 009`
+
+```
+Task: 009 - Add dark mode toggle
+Status: pr
+
+Closing PR...
+PR closed.
+
+What type of issue was found?
+> Design change
+
+How severe is this issue?
+> Minor
+
+What's the current behavior?
+> Toggle is in the footer, hard to find
+
+What should it be instead and why?
+> Should be in the header nav. Users expect theme toggles to be easily accessible, not buried in footer.
+
+**Issue Report**
+
+**Type:** Design change
+**Severity:** Minor
+
+**Summary:** Move dark mode toggle from footer to header
+
+**Current:** Toggle located in footer
+**Requested:** Toggle in header navigation
+**Reason:** Better discoverability, matches user expectations
+
+**Actions to address:**
+- [ ] Remove toggle from Footer component
+- [ ] Add toggle to Header component
+- [ ] Update header layout to accommodate toggle
+
+---
+Does this capture the issue correctly?
+> Yes
+
+Commit: j0k1l2m docs(009): rework - Add dark mode toggle
+
+**Task 009 returned to In Progress**
+
+- Iteration: 2
+- Issue type: Design change
+- Severity: Minor
+- Actions: 3 items to address
 ```
 </example>
 
 <next_steps>
-Fix the issues (see plan's Iterations for checkboxes):
+Fix the issues (see plan's iterations section):
 ```
 /clear
 /kanban-implement {id}
