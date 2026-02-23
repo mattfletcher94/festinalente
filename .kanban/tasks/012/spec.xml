@@ -1,0 +1,85 @@
+<spec task="012" created="2026-02-23" updated="2026-02-23">
+  <title>Fix TreeDataProvider getParent method for find task reveal</title>
+
+  <context>The Find Task command in the VSCode extension throws an error when selecting a task from the quick pick. VSCode's TreeView.reveal() API requires the TreeDataProvider to implement a getParent() method to traverse the tree hierarchy and locate the item to reveal. Currently, the tasks-view capability's TreeDataProvider does not implement this method.</context>
+
+  <scope>
+    <in-scope>
+      <item>Implement getParent() method in tasks-view TreeDataProvider</item>
+      <item>Track parent relationships for TaskItem, ActionItem, and FileItem</item>
+      <item>Enable reveal() to work for finding and highlighting tasks</item>
+    </in-scope>
+    <out-of-scope>
+      <item>Changes to the Find Task QuickPick UI</item>
+      <item>Changes to other TreeDataProviders (config-view, global-actions-view)</item>
+      <item>Adding reveal functionality to other tree views</item>
+    </out-of-scope>
+  </scope>
+
+  <requirements>
+    <requirement id="FR1">The TreeDataProvider shall implement a getParent(element) method that returns the parent TreeItem for any given element</requirement>
+    <requirement id="FR2">When getParent is called with a StatusGroupItem, it shall return undefined (root level)</requirement>
+    <requirement id="FR3">When getParent is called with a TaskItem, it shall return the parent StatusGroupItem</requirement>
+    <requirement id="FR4">When getParent is called with an ActionItem or FileItem, it shall return the parent TaskItem</requirement>
+    <requirement id="FR5">The getParent implementation shall use cached TreeItem instances to ensure reveal() receives the same object references returned by getChildren()</requirement>
+  </requirements>
+
+  <files>
+    <file action="modify" path="apps/vscode/src/capabilities/tasks-view.capability.ts">Add getParent() method to TreeDataProvider and implement parent tracking using Maps</file>
+  </files>
+
+  <patterns>
+    <pattern name="TreeItem caching">
+      <description>Existing pattern uses Maps to cache StatusGroupItems and TaskItems for reveal() compatibility</description>
+      <reference>apps/vscode/src/capabilities/tasks-view.capability.ts:263-264</reference>
+    </pattern>
+    <pattern name="TreeItem hierarchy">
+      <description>StatusGroupItem -> TaskItem -> ActionItem/FileItem</description>
+      <reference>apps/vscode/src/capabilities/tasks-view.capability.ts:11</reference>
+    </pattern>
+    <pattern name="Capability mechanism pattern">
+      <description>Capabilities handle I/O and VSCode API interactions without policy decisions</description>
+      <reference>apps/vscode/src/capabilities/tasks-view.capability.ts:257-402</reference>
+    </pattern>
+  </patterns>
+
+  <research>
+    <product>
+      <finding doc="vscode/kanban-view">Find Task workflow: QuickPick opens, user selects task, task should be revealed and highlighted in TreeView. Currently fails with getParent error.</finding>
+    </product>
+    <engineering>
+      <finding doc="systems/vscode-extension">Tasks-view capability defines TreeItem types: StatusGroupItem, TaskItem, ActionItem, FileItem. Uses factory-di pattern with dependency injection.</finding>
+    </engineering>
+    <codebase>
+      <finding>TreeDataProvider at lines 266-289 implements getTreeItem and getChildren but not getParent</finding>
+      <finding>reveal() is called at extension.ts:366-367 with statusGroup and taskItem</finding>
+      <finding>Existing caching uses cachedStatusGroups array and cachedTaskItems Map</finding>
+    </codebase>
+    <pitfalls>
+      <finding>getParent must return the exact same object instance that getChildren returned, otherwise reveal() will fail to match elements</finding>
+      <finding>ActionItem and FileItem are created fresh in getChildrenForTask(), need to cache these or track their parent differently</finding>
+      <finding>Cache must be cleared on refresh to avoid stale parent references</finding>
+    </pitfalls>
+  </research>
+
+  <constraints>
+    <constraint>Must use same cached instances for parent lookup that getChildren() returns</constraint>
+    <constraint>Must follow capability pattern - no policy logic, only mechanism</constraint>
+    <constraint>Must clear parent tracking on tree refresh</constraint>
+  </constraints>
+
+  <dependencies>
+    <internal>
+      <dependency>VSCode TreeDataProvider API - getParent is optional but required for reveal()</dependency>
+    </internal>
+    <external>None</external>
+  </dependencies>
+
+  <risks>
+    <risk impact="low" mitigation="Use Maps keyed by task ID and status, clear on refresh">
+      Parent cache could become stale if not properly invalidated on refresh
+    </risk>
+  </risks>
+
+  <open-questions>None</open-questions>
+</spec>

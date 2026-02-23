@@ -262,6 +262,9 @@ export function createTasksViewCapability(
   // Cache for TreeItems to enable reveal() to work with same references
   let cachedStatusGroups: StatusGroupItem[] | null = null;
   const cachedTaskItems: Map<string, TaskItem> = new Map();
+  // Parent tracking for getParent() - enables reveal() to traverse tree
+  const taskToStatusGroup: Map<string, StatusGroupItem> = new Map();
+  const childToTask: Map<ActionItem | FileItem, TaskItem> = new Map();
 
   function createTreeDataProvider(): vscode.TreeDataProvider<TreeItem> {
     return {
@@ -277,7 +280,7 @@ export function createTasksViewCapability(
         }
 
         if (element instanceof StatusGroupItem) {
-          return getTasksForStatus(element.status);
+          return getTasksForStatus(element.status, element);
         }
 
         if (element instanceof TaskItem) {
@@ -285,6 +288,22 @@ export function createTasksViewCapability(
         }
 
         return [];
+      },
+
+      getParent(element: TreeItem): TreeItem | undefined {
+        if (element instanceof StatusGroupItem) {
+          return undefined;
+        }
+
+        if (element instanceof TaskItem) {
+          return taskToStatusGroup.get(element.task.id);
+        }
+
+        if (element instanceof ActionItem || element instanceof FileItem) {
+          return childToTask.get(element);
+        }
+
+        return undefined;
       },
     };
   }
@@ -308,14 +327,17 @@ export function createTasksViewCapability(
     return groups;
   }
 
-  function getTasksForStatus(status: TaskStatus): TaskItem[] {
+  function getTasksForStatus(status: TaskStatus, parentGroup: StatusGroupItem): TaskItem[] {
     const tasks = deps.loadTasks();
     const items = tasks
       .filter((t) => t.status === status)
       .map((t) => new TaskItem(t, deps.checkTaskFiles(t.taskPath), deps.getAllActions(t)));
 
-    // Update cache
-    items.forEach((item) => cachedTaskItems.set(item.task.id, item));
+    // Update cache and track parent
+    items.forEach((item) => {
+      cachedTaskItems.set(item.task.id, item);
+      taskToStatusGroup.set(item.task.id, parentGroup);
+    });
 
     return items;
   }
@@ -336,11 +358,17 @@ export function createTasksViewCapability(
     // Secondary actions (index > 0) get orange reply icon (FR3)
     // Done status has empty actions array, so no ActionItems (FR5)
     taskItem.actions.forEach((action, index) => {
-      children.push(new ActionItem(taskItem.task.id, action, index === 0));
+      const actionItem = new ActionItem(taskItem.task.id, action, index === 0);
+      children.push(actionItem);
+      childToTask.set(actionItem, taskItem);
     });
 
-    // Add file items
-    children.push(...getFilesForTask(taskItem.task.taskPath));
+    // Add file items and track parent
+    const fileItems = getFilesForTask(taskItem.task.taskPath);
+    fileItems.forEach((fileItem) => {
+      children.push(fileItem);
+      childToTask.set(fileItem, taskItem);
+    });
 
     return children;
   }
@@ -350,6 +378,8 @@ export function createTasksViewCapability(
       // Clear caches on refresh
       cachedStatusGroups = null;
       cachedTaskItems.clear();
+      taskToStatusGroup.clear();
+      childToTask.clear();
       onDidChangeTreeData.fire();
     };
   }
