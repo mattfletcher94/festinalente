@@ -8,13 +8,14 @@ keywords: [kanban, view, treeview, sidebar, columns, status, config, global-acti
 aliases: [task-view, kanban-board, tasks-view]
 boundary: "Does NOT provide drag-and-drop; tasks move via commands"
 related: [vscode/codelens, vscode/terminal, tasks/workflow]
-updated: 2026-02-22
-verified: 2026-02-22
+updated: 2026-02-23
+verified: 2026-02-23
 code_refs:
   - apps/vscode/src/extension.ts
   - apps/vscode/src/capabilities/tasks-view.capability.ts
   - apps/vscode/src/capabilities/config-view.capability.ts
   - apps/vscode/src/capabilities/global-actions-view.capability.ts
+  - apps/vscode/package.json
 ---
 
 # Kanban View
@@ -46,11 +47,13 @@ The KANBAN TASKS view header includes action buttons (left to right):
 |--------|------|--------|
 | Discovery | `comment-discussion` | Opens terminal and runs `/kanban-discover` |
 | Create Task | `add` | Prompts for title, then runs `/kanban-create {title}` |
+| Find Task | `search` | Opens QuickPick to search and reveal tasks |
 | Refresh | `refresh` | Refreshes task list |
 
 **Rich tooltips:**
 - Discovery button: "**Discovery Session**\nExplore questions and analyze the codebase through Socratic Q&A before creating tasks."
 - Create Task button: "**Create Task**\nCreate a new task through conversational Q&A. Captures problem, value, and acceptance criteria."
+- Find Task button: "**Find Task**\nSearch tasks by ID or title. Select to reveal in tree."
 
 ### Key Workflows
 
@@ -72,6 +75,14 @@ The KANBAN TASKS view header includes action buttons (left to right):
 - qa: "Approve" (primary) + "Rework" (secondary)
 - pr: "Merge" (primary) + "Rework" (secondary)
 - in-progress: "Continue" (primary) + "Save WIP" (secondary)
+
+**Find Task workflow:**
+- Click search icon in header or use command palette "Kanban: Find Task"
+- QuickPick opens showing all tasks with fuzzy search
+- Each item displays: "ID: Title" with labels and status/priority
+- Type to filter by task ID, title, labels, or status
+- Select a task to reveal it in the TreeView
+- Parent column expands automatically, task is highlighted
 
 **Refresh triggers:**
 - Manual: Command palette "Kanban: Refresh Tasks"
@@ -98,8 +109,9 @@ The KANBAN TASKS view header includes action buttons (left to right):
 ### Header Buttons
 
 ```
-KANBAN TASKS                    [💬] [+] [↻]
-                                 │    │   └── Refresh
+KANBAN TASKS                    [💬] [+] [🔍] [↻]
+                                 │    │    │   └── Refresh
+                                 │    │    └── Find Task
                                  │    └── Create Task
                                  └── Discovery Session
 ```
@@ -107,7 +119,7 @@ KANBAN TASKS                    [💬] [+] [↻]
 ### Typical Display (Collapsed)
 
 ```
-KANBAN TASKS                    [💬] [+] [↻]
+KANBAN TASKS                    [💬] [+] [🔍] [↻]
 ├── Backlog (2)
 │   ├── 003: Add dark mode [feature] [medium]
 │   └── 004: Fix login bug [bug] [high]
@@ -167,6 +179,27 @@ GLOBAL ACTIONS
 ```
 
 Clicking an action opens a terminal and runs the corresponding `/kanban-*` command.
+
+### Find Task QuickPick
+
+```
+Search tasks by ID or title...
+┌─────────────────────────────────────────────────────────┐
+│ 001: Add localStorage                #feature          │
+│ Status: in-progress | Priority: high                   │
+├─────────────────────────────────────────────────────────┤
+│ 002: Add user auth                   #feature          │
+│ Status: planned | Priority: medium                     │
+├─────────────────────────────────────────────────────────┤
+│ 003: Add dark mode                   #feature          │
+│ Status: backlog | Priority: medium                     │
+├─────────────────────────────────────────────────────────┤
+│ 004: Fix login bug                   #bug              │
+│ Status: backlog | Priority: high                       │
+└─────────────────────────────────────────────────────────┘
+```
+
+Type to filter by ID, title, labels, or status. Select to reveal in tree.
 
 **Summary:** Columns with nested task items, ActionItems show next action, plus config and global actions sections.
 
