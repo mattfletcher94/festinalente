@@ -13,7 +13,7 @@ type TreeItem = StatusGroupItem | TaskItem | ActionItem | FileItem;
 /**
  * Status group tree item (e.g., "In Progress (2)").
  */
-class StatusGroupItem extends vscode.TreeItem {
+export class StatusGroupItem extends vscode.TreeItem {
   constructor(
     public readonly status: TaskStatus,
     public readonly statusName: string,
@@ -250,12 +250,18 @@ export interface TasksViewCapabilityDeps {
 export interface CreateTasksViewCapabilityReturn {
   createTreeDataProvider(): vscode.TreeDataProvider<TreeItem>;
   createRefreshCallback(): () => void;
+  findTaskItem(taskId: string): TaskItem | undefined;
+  findStatusGroup(status: TaskStatus): StatusGroupItem | undefined;
 }
 
 export function createTasksViewCapability(
   deps: TasksViewCapabilityDeps
 ): CreateTasksViewCapabilityReturn {
   const onDidChangeTreeData = new vscode.EventEmitter<TreeItem | undefined | void>();
+
+  // Cache for TreeItems to enable reveal() to work with same references
+  let cachedStatusGroups: StatusGroupItem[] | null = null;
+  const cachedTaskItems: Map<string, TaskItem> = new Map();
 
   function createTreeDataProvider(): vscode.TreeDataProvider<TreeItem> {
     return {
@@ -296,14 +302,22 @@ export function createTasksViewCapability(
       groups.push(new StatusGroupItem(column.id, column.name, columnTasks.length, collapsed));
     }
 
+    // Update cache
+    cachedStatusGroups = groups;
+
     return groups;
   }
 
   function getTasksForStatus(status: TaskStatus): TaskItem[] {
     const tasks = deps.loadTasks();
-    return tasks
+    const items = tasks
       .filter((t) => t.status === status)
       .map((t) => new TaskItem(t, deps.checkTaskFiles(t.taskPath), deps.getAllActions(t)));
+
+    // Update cache
+    items.forEach((item) => cachedTaskItems.set(item.task.id, item));
+
+    return items;
   }
 
   function getFilesForTask(taskPath: string): FileItem[] {
@@ -332,11 +346,57 @@ export function createTasksViewCapability(
   }
 
   function createRefreshCallback(): () => void {
-    return () => onDidChangeTreeData.fire();
+    return () => {
+      // Clear caches on refresh
+      cachedStatusGroups = null;
+      cachedTaskItems.clear();
+      onDidChangeTreeData.fire();
+    };
+  }
+
+  /**
+   * Find a TaskItem by task ID.
+   *
+   * @param taskId - The task ID to find.
+   * @returns The TaskItem if found, undefined otherwise.
+   */
+  function findTaskItem(taskId: string): TaskItem | undefined {
+    // Check cache first
+    if (cachedTaskItems.has(taskId)) {
+      return cachedTaskItems.get(taskId);
+    }
+
+    // If not cached, load all tasks to populate cache
+    const tasks = deps.loadTasks();
+    for (const task of tasks) {
+      if (!cachedTaskItems.has(task.id)) {
+        cachedTaskItems.set(
+          task.id,
+          new TaskItem(task, deps.checkTaskFiles(task.taskPath), deps.getAllActions(task))
+        );
+      }
+    }
+
+    return cachedTaskItems.get(taskId);
+  }
+
+  /**
+   * Find a StatusGroupItem by status.
+   *
+   * @param status - The task status to find.
+   * @returns The StatusGroupItem if found, undefined otherwise.
+   */
+  function findStatusGroup(status: TaskStatus): StatusGroupItem | undefined {
+    if (!cachedStatusGroups) {
+      getStatusGroups(); // Populate cache
+    }
+    return cachedStatusGroups?.find((g) => g.status === status);
   }
 
   return {
     createTreeDataProvider,
     createRefreshCallback,
+    findTaskItem,
+    findStatusGroup,
   };
 }
