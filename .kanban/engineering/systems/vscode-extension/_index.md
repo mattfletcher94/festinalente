@@ -15,8 +15,8 @@ related:
 paths:
   - apps/vscode/src
   - apps/vscode/bin
-updated: 2026-02-22
-verified: 2026-02-22
+updated: 2026-02-23
+verified: 2026-02-23
 code_refs:
   - apps/vscode/src/extension.ts
   - apps/vscode/src/capabilities/tasks-view.capability.ts
@@ -81,6 +81,22 @@ The tasks-view capability defines these TreeItem types:
 | FileItem | TaskItem | Task file (task.xml, spec.xml, plan.xml) |
 
 ActionItems appear as the first children when expanding a TaskItem (unless task is in "done" status). Tasks may have multiple actions: primary action (index 0) uses green play icon, secondary actions (index > 0) use orange reply icon.
+
+#### Parent Tracking for reveal()
+
+The TreeDataProvider implements `getParent()` to enable VSCode's `TreeView.reveal()` API (used by Find Task). Parent relationships are tracked using Maps populated when children are created:
+
+| Map | Key | Value | Purpose |
+|-----|-----|-------|---------|
+| `taskToStatusGroup` | task.id | StatusGroupItem | FR3: TaskItem → parent column |
+| `childToTask` | ActionItem\|FileItem | TaskItem | FR4: child → parent task |
+
+`getParent()` returns:
+- `undefined` for StatusGroupItem (root level)
+- StatusGroupItem lookup for TaskItem
+- TaskItem lookup for ActionItem/FileItem
+
+Maps are cleared on refresh alongside existing caches to avoid stale references.
 
 #### TreeItem Types in config-view
 
