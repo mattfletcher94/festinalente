@@ -1,0 +1,413 @@
+<plan task="010" spec="tasks/010/spec.xml" status="approved"
+      complexity="medium" created="2026-02-23" updated="2026-02-23"
+      generated-by="claude" model="claude-opus-4-5-20251101" version="1" iteration="1">
+  <title>Task View Filtering &amp; Search</title>
+
+  <overview>
+    Implement a QuickPick-based "Find Task" command accessible from the KANBAN TASKS header.
+    The command populates a QuickPick with all tasks showing ID, title, labels, status, and
+    priority. When user selects a task, it reveals that task in the TreeView by expanding
+    its parent column and selecting it. This follows VSCode's native navigation pattern
+    (Cmd+P, Cmd+Shift+O) since TreeView API does not support inline filtering.
+  </overview>
+
+  <approach>
+    <rationale>
+      VSCode TreeView API does not support inline filter/search (GitHub issue #50062 open since 2018).
+      QuickPick is the standard VSCode pattern for search/navigation. This approach:
+      - Uses native VSCode QuickPick with matchOnDescription and matchOnDetail for fuzzy search
+      - Leverages existing loadAllTasks() function to populate QuickPick items
+      - Uses TreeView.reveal() API to expand column and highlight selected task
+      - Follows existing header action pattern for button placement (see package.json:103-118)
+      - Follows existing command registration pattern (see extension.ts:232-238)
+    </rationale>
+    <breaking-changes>None</breaking-changes>
+  </approach>
+
+  <inventory></inventory>
+
+  <tasks>
+    <task id="1" type="auto">
+      <name>Add kanban.findTask command contribution and header button</name>
+      <files>apps/vscode/package.json (modify)</files>
+      <requirements>FR1</requirements>
+      <pattern>Header action commands at apps/vscode/package.json:103-118</pattern>
+      <action>
+        - Add kanban.findTask to contributes.commands array with search icon and title
+        - Add menu entry to view/title for kanbanTasks view with group navigation@3
+
+        Current code (approximate):
+        ```json
+        "commands": [
+          { "command": "kanban.refresh", "title": "Kanban: Refresh Tasks", "icon": "$(refresh)" },
+          ...
+        ],
+        "menus": {
+          "view/title": [
+            { "command": "kanban.refresh", "when": "view == kanbanTasks", "group": "navigation@2" }
+          ]
+        }
+        ```
+
+        Add to commands array:
+        ```json
+        {
+          "command": "kanban.findTask",
+          "title": "Kanban: Find Task - Search by ID or title",
+          "icon": "$(search)"
+        }
+        ```
+
+        Add to view/title menus after refresh entry:
+        ```json
+        {
+          "command": "kanban.findTask",
+          "when": "view == kanbanTasks && kanban.hasKanbanFolder",
+          "group": "navigation@3"
+        }
+        ```
+      </action>
+      <verify>npm run build --prefix apps/vscode</verify>
+      <done>package.json has kanban.findTask command with search icon in view/title menu</done>
+    </task>
+
+    <task id="2" type="auto" depends="1">
+      <name>Register kanban.findTask command with QuickPick implementation</name>
+      <files>apps/vscode/src/extension.ts (modify)</files>
+      <requirements>FR2, FR3, FR4, FR5, FR6</requirements>
+      <pattern>Command registration at apps/vscode/src/extension.ts:232-238</pattern>
+      <action>
+        - Register kanban.findTask command in the Commands section (after line 308)
+        - Call loadAllTasks() to get all tasks
+        - Map tasks to QuickPickItem format:
+          - label: "{id}: {title}" (FR3)
+          - description: labels as "#label1 #label2" (FR4)
+          - detail: "Status: {status} | Priority: {priority}" (FR5)
+        - Show QuickPick with matchOnDescription: true, matchOnDetail: true (FR6)
+        - On selection, call treeView.reveal() with the TaskItem
+
+        Add command registration after kanban.createTask command (around line 308):
+        ```typescript
+        context.subscriptions.push(
+          vscode.commands.registerCommand('kanban.findTask', async () => {
+            const tasks = loadAllTasks();
+
+            if (tasks.length === 0) {
+              vscode.window.showInformationMessage('No tasks found');
+              return;
+            }
+
+            const items = tasks.map(task => ({
+              label: `${task.id}: ${task.title}`,
+              description: task.labels.map(l => `#${l}`).join(' '),
+              detail: `Status: ${task.status} | Priority: ${task.priority || 'none'}`,
+              task,
+            }));
+
+            const selected = await vscode.window.showQuickPick(items, {
+              placeHolder: 'Search tasks by ID or title...',
+              matchOnDescription: true,
+              matchOnDetail: true,
+            });
+
+            if (selected) {
+              // Reveal task in tree view (implemented in next step)
+            }
+          })
+        );
+        ```
+      </action>
+      <verify>npm run build --prefix apps/vscode</verify>
+      <done>Command registered, QuickPick shows tasks with ID, title, labels, status, priority</done>
+    </task>
+
+    <task id="3" type="auto" depends="2">
+      <name>Implement TreeView.reveal() to show selected task</name>
+      <files>apps/vscode/src/extension.ts (modify)</files>
+      <requirements>FR7, FR8</requirements>
+      <pattern>VSCode TreeView.reveal() API</pattern>
+      <action>
+        - After QuickPick selection, find the TaskItem for the selected task
+        - Need to get TaskItem from the TreeDataProvider to reveal it
+        - TreeView.reveal() requires the actual TreeItem instance
+        - Add a method to tasks-view capability to find TaskItem by task ID
+        - Call treeView.reveal(taskItem, { expand: true, select: true, focus: true })
+
+        The challenge: treeView.reveal() needs the actual TaskItem instance, not just task data.
+
+        Solution: Create TaskItems for all tasks in the status group, find the matching one.
+
+        In the findTask command handler, after selection:
+        ```typescript
+        if (selected) {
+          // Load tasks and find the TaskItem
+          const statusTasks = loadAllTasks().filter(t => t.status === selected.task.status);
+          const taskItems = statusTasks.map(t =>
+            new TaskItem(t, checkTaskFiles(t.taskPath), getAllActions(t))
+          );
+          const taskItem = taskItems.find(item => item.task.id === selected.task.id);
+
+          if (taskItem) {
+            // First reveal the status group to expand it
+            const columns = taskGrouping.getColumns();
+            const column = columns.find(c => c.id === selected.task.status);
+            if (column) {
+              const grouped = taskGrouping.groupByStatus(loadAllTasks());
+              const count = (grouped.get(column.id) || []).length;
+              const statusGroup = new StatusGroupItem(column.id, column.name, count, false);
+              await treeView.reveal(statusGroup, { expand: true });
+            }
+
+            // Then reveal the task
+            await treeView.reveal(taskItem, { select: true, focus: true });
+          }
+        }
+        ```
+
+        Issue: StatusGroupItem and TaskItem are created fresh, so reveal may not work since
+        TreeView compares by reference. Need to implement getParent() in TreeDataProvider
+        or use a different approach.
+
+        Better approach: Export a getTaskItemById helper from tasks-view capability that
+        returns a TaskItem given a task ID. The TreeDataProvider can cache items.
+
+        Alternative (simpler): TreeView.reveal() can work with freshly created items if
+        we implement a proper element equality check. But VSCode TreeView doesn't support
+        custom equality.
+
+        Final approach: Have the findTask command:
+        1. Find the StatusGroupItem for the task's status in the tree
+        2. Expand it using reveal()
+        3. Find the TaskItem within that group
+        4. Reveal it
+
+        Since we need the actual TreeItem instances from the provider, we'll need to either:
+        - Make tasks-view capability expose a method to get items by task ID
+        - Or recreate items that match what the provider creates
+
+        The simplest working approach: Re-use the same TreeItem creation logic and trust
+        that reveal() will match by structural equality for the expand/select to work.
+
+        Actually, VSCode TreeView.reveal() uses the same reference internally if the item
+        comes from getChildren(). We need to ensure we're using items from the provider.
+
+        Simplest fix: Add a findTaskItem(taskId) method to tasks-view capability that
+        returns a TaskItem or undefined. This way we get the same reference.
+      </action>
+      <verify>npm run build --prefix apps/vscode</verify>
+      <done>Selected task is revealed in TreeView with parent column expanded</done>
+    </task>
+
+    <task id="4" type="auto" depends="3">
+      <name>Export StatusGroupItem and add findTaskItem helper</name>
+      <files>apps/vscode/src/capabilities/tasks-view.capability.ts (modify)</files>
+      <requirements>FR7, FR8</requirements>
+      <pattern>Existing TaskItem export at line 62</pattern>
+      <action>
+        - Export StatusGroupItem class (currently private)
+        - Add findTaskItem(taskId: string) method to capability return type
+        - Add findStatusGroup(status: TaskStatus) method to capability return type
+        - These methods return the same instances used by getChildren()
+
+        Problem: Current implementation creates new TaskItem instances each time getTasksForStatus
+        is called. To support reveal(), we need to cache the items.
+
+        Solution: Add caching layer to the capability:
+
+        ```typescript
+        // Add cache at capability level
+        let cachedStatusGroups: StatusGroupItem[] | null = null;
+        let cachedTaskItems: Map<string, TaskItem> = new Map();
+
+        function getStatusGroups(): StatusGroupItem[] {
+          // ... existing logic ...
+          cachedStatusGroups = groups;
+          return groups;
+        }
+
+        function getTasksForStatus(status: TaskStatus): TaskItem[] {
+          const tasks = deps.loadTasks();
+          const items = tasks
+            .filter((t) => t.status === status)
+            .map((t) => new TaskItem(t, deps.checkTaskFiles(t.taskPath), deps.getAllActions(t)));
+
+          // Cache items
+          items.forEach(item => cachedTaskItems.set(item.task.id, item));
+
+          return items;
+        }
+
+        function findTaskItem(taskId: string): TaskItem | undefined {
+          // First check cache
+          if (cachedTaskItems.has(taskId)) {
+            return cachedTaskItems.get(taskId);
+          }
+
+          // If not cached, load all tasks to populate cache
+          const tasks = deps.loadTasks();
+          for (const task of tasks) {
+            if (!cachedTaskItems.has(task.id)) {
+              cachedTaskItems.set(task.id,
+                new TaskItem(task, deps.checkTaskFiles(task.taskPath), deps.getAllActions(task)));
+            }
+          }
+
+          return cachedTaskItems.get(taskId);
+        }
+
+        function findStatusGroup(status: TaskStatus): StatusGroupItem | undefined {
+          if (!cachedStatusGroups) {
+            getStatusGroups(); // Populate cache
+          }
+          return cachedStatusGroups?.find(g => g.status === status);
+        }
+
+        function createRefreshCallback(): () => void {
+          return () => {
+            // Clear caches on refresh
+            cachedStatusGroups = null;
+            cachedTaskItems.clear();
+            onDidChangeTreeData.fire();
+          };
+        }
+        ```
+
+        Update return type:
+        ```typescript
+        export interface CreateTasksViewCapabilityReturn {
+          createTreeDataProvider(): vscode.TreeDataProvider<TreeItem>;
+          createRefreshCallback(): () => void;
+          findTaskItem(taskId: string): TaskItem | undefined;
+          findStatusGroup(status: TaskStatus): StatusGroupItem | undefined;
+        }
+        ```
+
+        Export StatusGroupItem:
+        ```typescript
+        export class StatusGroupItem extends vscode.TreeItem {
+          // ... existing code ...
+        }
+        ```
+      </action>
+      <verify>npm run build --prefix apps/vscode</verify>
+      <done>StatusGroupItem exported, findTaskItem and findStatusGroup methods available</done>
+    </task>
+
+    <task id="5" type="auto" depends="4">
+      <name>Wire up reveal in findTask command using cached items</name>
+      <files>apps/vscode/src/extension.ts (modify)</files>
+      <requirements>FR7, FR8</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Import StatusGroupItem from tasks-view.capability
+        - Update findTask command to use tasksView.findTaskItem() and tasksView.findStatusGroup()
+        - Call treeView.reveal() with the actual cached items
+
+        Update import:
+        ```typescript
+        import { createTasksViewCapability, TaskItem, StatusGroupItem } from './capabilities/tasks-view.capability';
+        ```
+
+        Update findTask command:
+        ```typescript
+        context.subscriptions.push(
+          vscode.commands.registerCommand('kanban.findTask', async () => {
+            const tasks = loadAllTasks();
+
+            if (tasks.length === 0) {
+              vscode.window.showInformationMessage('No tasks found');
+              return;
+            }
+
+            const items = tasks.map(task => ({
+              label: `${task.id}: ${task.title}`,
+              description: task.labels.map(l => `#${l}`).join(' '),
+              detail: `Status: ${task.status} | Priority: ${task.priority || 'none'}`,
+              task,
+            }));
+
+            const selected = await vscode.window.showQuickPick(items, {
+              placeHolder: 'Search tasks by ID or title...',
+              matchOnDescription: true,
+              matchOnDetail: true,
+            });
+
+            if (selected) {
+              // Find cached items for reveal
+              const statusGroup = tasksView.findStatusGroup(selected.task.status);
+              const taskItem = tasksView.findTaskItem(selected.task.id);
+
+              if (statusGroup && taskItem) {
+                // Expand the status group first
+                await treeView.reveal(statusGroup, { expand: true });
+                // Then reveal and select the task
+                await treeView.reveal(taskItem, { select: true, focus: true });
+              }
+            }
+          })
+        );
+        ```
+      </action>
+      <verify>npm run build --prefix apps/vscode</verify>
+      <done>findTask command reveals selected task using cached TreeItem instances</done>
+    </task>
+
+    <task id="6" type="manual" depends="5">
+      <name>Manual verification of find task feature</name>
+      <files>N/A</files>
+      <requirements>FR1-FR8</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Open VSCode with a workspace containing .kanban/tasks/ folder
+        - Verify search icon appears in KANBAN TASKS header (FR1)
+        - Click the search icon
+        - Verify QuickPick appears with all tasks (FR2)
+        - Verify each item shows "ID: Title" format (FR3)
+        - Verify labels shown as "#label1 #label2" (FR4)
+        - Verify detail shows "Status: ... | Priority: ..." (FR5)
+        - Type partial task ID or title, verify fuzzy matching works (FR6)
+        - Select a task
+        - Verify the task's parent column expands (FR8)
+        - Verify the task is highlighted/selected in TreeView (FR7)
+        - Clear filter by pressing Escape, verify all tasks visible again
+      </action>
+      <verify>Manual: All acceptance criteria from task.xml verified</verify>
+      <done>Find task feature works end-to-end with QuickPick and TreeView reveal</done>
+    </task>
+  </tasks>
+
+  <testing>
+    <automated>None required - this is UI functionality that relies on VSCode APIs. Unit testing QuickPick and TreeView.reveal() would require mocking VSCode internals which provides limited value.</automated>
+    <manual>
+      - Click search icon in KANBAN TASKS header
+      - Verify QuickPick shows all tasks with proper formatting
+      - Type partial ID (e.g., "00") and verify matching tasks shown
+      - Type partial title and verify matching tasks shown
+      - Select a task and verify it's revealed in TreeView
+      - Verify parent column expands when task is selected
+      - Press Escape to cancel and verify tree unchanged
+    </manual>
+    <regression>
+      - Verify existing header buttons (Discovery, Create, Refresh) still work
+      - Verify TreeView still displays correctly after using find
+      - Verify file watcher refresh still works
+    </regression>
+  </testing>
+
+  <edge-cases>
+    <case scenario="No tasks exist">Show informational message "No tasks found" and return early</case>
+    <case scenario="User cancels QuickPick (Escape)">No action taken, tree unchanged</case>
+    <case scenario="Task deleted after QuickPick opens">findTaskItem returns undefined, fail silently (no reveal)</case>
+    <case scenario="TreeView not yet rendered">reveal() handles this gracefully per VSCode API</case>
+  </edge-cases>
+
+  <pitfalls>
+    <pitfall issue="TreeView.reveal() requires same TreeItem instance">Cache TreeItems in tasks-view capability to ensure reveal gets the same reference used by getChildren</pitfall>
+    <pitfall issue="Cache invalidation">Clear caches when refresh callback fires to ensure stale items aren't used</pitfall>
+    <pitfall issue="StatusGroupItem needs to be revealed first">TreeView.reveal() with expand option on parent StatusGroupItem before revealing TaskItem</pitfall>
+  </pitfalls>
+
+  <iterations></iterations>
+  <wip></wip>
+  <completeness></completeness>
+</plan>
