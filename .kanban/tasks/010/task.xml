@@ -1,4 +1,4 @@
-<task id="010" status="backlog" priority="medium" created="2026-02-23" updated="2026-02-23">
+<task id="010" status="scoped" priority="medium" created="2026-02-23" updated="2026-02-23">
   <title>Task View Filtering &amp; Search</title>
 
   <labels>

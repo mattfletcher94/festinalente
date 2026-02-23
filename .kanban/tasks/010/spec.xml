@@ -1,0 +1,116 @@
+<spec task="010" created="2026-02-23" updated="2026-02-23">
+  <title>Task View Filtering &amp; Search</title>
+
+  <context>
+    Users with many tasks must scroll through columns to find specific items. This becomes increasingly painful as task count grows, slowing down navigation and task discovery. Power users need a way to quickly locate tasks by ID or title.
+  </context>
+
+  <scope>
+    <in-scope>
+      - Add "Find Task" command accessible from KANBAN TASKS header
+      - QuickPick UI showing all tasks with fuzzy search
+      - Search across task ID and title
+      - Reveal selected task in TreeView (expand column, highlight task)
+      - Keyboard shortcut for quick access
+    </in-scope>
+    <out-of-scope>
+      - Inline filter input within TreeView panel (not supported by VSCode API)
+      - WebviewView implementation
+      - Filtering by status, priority, or labels (future enhancement)
+      - Persistent filter state
+    </out-of-scope>
+  </scope>
+
+  <requirements>
+    - FR1: The system shall register a "kanban.findTask" command with search icon in view header
+    - FR2: The system shall display a QuickPick populated with all tasks from all columns
+    - FR3: The system shall show task ID and title as QuickPickItem label (e.g., "001: Add settings panel")
+    - FR4: The system shall show task labels as QuickPickItem description (e.g., "#feature #bug")
+    - FR5: The system shall show task status and priority as QuickPickItem detail
+    - FR6: The system shall enable matchOnDescription and matchOnDetail for fuzzy search
+    - FR7: The system shall reveal the selected task in the TreeView when user confirms selection
+    - FR8: The system shall expand the parent StatusGroupItem to show the selected task
+  </requirements>
+
+  <files>
+    <file action="modify" path="apps/vscode/src/extension.ts">
+      Register kanban.findTask command, implement QuickPick logic, call TreeView.reveal()
+    </file>
+    <file action="modify" path="apps/vscode/src/capabilities/tasks-view.capability.ts">
+      Export TaskItem class (already exported), ensure TreeView reveal works with TaskItem
+    </file>
+    <file action="modify" path="apps/vscode/package.json">
+      Add kanban.findTask command contribution and view/title menu entry with search icon
+    </file>
+  </files>
+
+  <patterns>
+    <pattern name="Header action commands">
+      Existing pattern for Discovery, Create, Refresh buttons in view/title menu.
+      Reference: apps/vscode/package.json:103-118
+    </pattern>
+    <pattern name="Command registration">
+      Commands registered via vscode.commands.registerCommand with args handling.
+      Reference: apps/vscode/src/extension.ts:232-238
+    </pattern>
+    <pattern name="TreeView.reveal()">
+      VSCode TreeView API supports reveal(element, options) to expand and select items.
+      Reference: VSCode API - TreeView.reveal()
+    </pattern>
+    <pattern name="QuickPick with matching">
+      Use showQuickPick with matchOnDescription: true and matchOnDetail: true for fuzzy search.
+      Reference: VSCode API - QuickPickOptions
+    </pattern>
+  </patterns>
+
+  <research>
+    <product>
+      - vscode/kanban-view: TreeView showing tasks grouped by status columns. Header includes Discovery, Create, Refresh buttons. Tasks display ID, title, priority, labels.
+    </product>
+    <engineering>
+      - systems/vscode-extension: Three-layer architecture (Orchestrator, Capabilities, Computers). TreeDataProvider pattern with custom TreeItem classes.
+    </engineering>
+    <codebase>
+      - TaskItem class already exported from tasks-view.capability.ts
+      - TreeView created at extension.ts:203 with treeDataProvider
+      - Header actions registered via package.json view/title menu
+      - loadAllTasks() function available in extension.ts for getting all tasks
+    </codebase>
+    <pitfalls>
+      - VSCode TreeView API does not support inline filter/search (GitHub issue #50062 open since 2018)
+      - WebviewView would be required for inline search box - rejected per user preference
+      - QuickPick is the standard VSCode pattern for search/navigation (Cmd+P, Cmd+Shift+O)
+    </pitfalls>
+  </research>
+
+  <constraints>
+    - Must use native VSCode APIs only (no external dependencies)
+    - Must follow existing header action pattern for consistency
+    - TreeView.reveal() requires the TreeView instance to be accessible from command handler
+    - QuickPickItems must map back to TaskItems for reveal to work
+  </constraints>
+
+  <dependencies>
+    <external>None - uses native VSCode QuickPick and TreeView APIs</external>
+    <internal>
+      - Existing loadAllTasks() function for populating QuickPick
+      - Existing TaskItem class for TreeView reveal
+      - Existing treeView instance for reveal() calls
+    </internal>
+  </dependencies>
+
+  <risks>
+    <risk impact="low">
+      <description>Large task counts may slow QuickPick population</description>
+      <mitigation>Tasks are already loaded for TreeView - reuse same data</mitigation>
+    </risk>
+    <risk impact="low">
+      <description>TreeView.reveal() may not work if tree not yet rendered</description>
+      <mitigation>TreeView is rendered on extension activation before command is available</mitigation>
+    </risk>
+  </risks>
+
+  <open-questions>
+    <!-- None - all questions resolved during scoping -->
+  </open-questions>
+</spec>
