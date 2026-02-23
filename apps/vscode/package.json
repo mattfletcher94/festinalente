@@ -77,6 +77,11 @@
         "icon": "$(add)"
       },
       {
+        "command": "kanban.findTask",
+        "title": "Kanban: Find Task - Search by ID or title",
+        "icon": "$(search)"
+      },
+      {
         "command": "kanban.runAction",
         "title": "Kanban: Run Action"
       },
@@ -115,6 +120,11 @@
           "command": "kanban.refresh",
           "when": "view == kanbanTasks",
           "group": "navigation@2"
+        },
+        {
+          "command": "kanban.findTask",
+          "when": "view == kanbanTasks && kanban.hasKanbanFolder",
+          "group": "navigation@3"
         }
       ],
       "view/item/context": [

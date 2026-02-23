@@ -334,6 +334,42 @@ export function activate(context: vscode.ExtensionContext): void {
     })
   );
 
+  // Find task command (QuickPick search)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('kanban.findTask', async () => {
+      const tasks = loadAllTasks();
+
+      if (tasks.length === 0) {
+        vscode.window.showInformationMessage('No tasks found');
+        return;
+      }
+
+      const items = tasks.map((task) => ({
+        label: `${task.id}: ${task.title}`,
+        description: task.labels.map((l) => `#${l}`).join(' '),
+        detail: `Status: ${task.status} | Priority: ${task.priority || 'none'}`,
+        task,
+      }));
+
+      const selected = await vscode.window.showQuickPick(items, {
+        placeHolder: 'Search tasks by ID or title...',
+        matchOnDescription: true,
+        matchOnDetail: true,
+      });
+
+      if (selected) {
+        // Reveal task in tree view (implemented in next step)
+        const statusGroup = tasksView.findStatusGroup(selected.task.status);
+        const taskItem = tasksView.findTaskItem(selected.task.id);
+
+        if (statusGroup && taskItem) {
+          await treeView.reveal(statusGroup, { expand: true });
+          await treeView.reveal(taskItem, { select: true, focus: true });
+        }
+      }
+    })
+  );
+
   // --- File Watcher (policy: when to refresh) ---
   const watcher = vscode.workspace.createFileSystemWatcher(
     new vscode.RelativePattern(kanbanPath, 'tasks/**/*.xml')
