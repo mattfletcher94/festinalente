@@ -21,6 +21,7 @@ Show the current state of the board or specific tasks. Starts by asking what the
 
 <command description="List all tasks (returns JSON with count and tasks array)">node .kanban/scripts/list-tasks.cjs</command>
 <command description="List tasks filtered by status">node .kanban/scripts/list-tasks.cjs --status=in-progress</command>
+<command description="List tasks excluding a status">node .kanban/scripts/list-tasks.cjs --exclude-status=done</command>
 
 
 

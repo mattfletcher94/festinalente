@@ -40,6 +40,7 @@ function main() {
 			labels: parsed.labels
 		};
 		if (args.status && task.status !== args.status) continue;
+		if (args["exclude-status"] && task.status === args["exclude-status"]) continue;
 		if (args.priority && task.priority !== args.priority) continue;
 		if (args.label && !task.labels.includes(args.label)) continue;
 		tasks.push(task);

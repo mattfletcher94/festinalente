@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // List all tasks with optional filtering
-// Usage: node list-tasks.cjs [--status=X] [--label=X] [--priority=X]
+// Usage: node list-tasks.cjs [--status=X] [--exclude-status=X] [--label=X] [--priority=X]
 // Returns JSON with array of tasks
 
 import fs from 'fs';
@@ -82,6 +82,7 @@ function main(): void {
 
     // Apply filters
     if (args.status && task.status !== args.status) continue;
+    if (args['exclude-status'] && task.status === args['exclude-status']) continue;
     if (args.priority && task.priority !== args.priority) continue;
     if (args.label && !task.labels.includes(args.label)) continue;
 
