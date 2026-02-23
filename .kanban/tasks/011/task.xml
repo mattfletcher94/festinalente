@@ -1,38 +1,58 @@
-<task id="011" status="backlog" priority="high" created="2026-02-23" updated="2026-02-23">
-  <title>Fix TreeDataProvider getParent method for find task reveal</title>
+<task id="011" status="backlog" priority="medium" created="2026-02-23" updated="2026-02-23">
+  <title>Implement pseudoterminal autoplay for single-path workflow transitions</title>
 
   <labels>
-    <label>bug</label>
+    <label>feature</label>
   </labels>
 
   <refs spec="tasks/011/spec.xml" plan="tasks/011/plan.xml"/>
 
   <affects>
-    <doc>vscode/kanban-view</doc>
+    <doc id="vscode/terminal"/>
   </affects>
 
   <engineering>
-    <doc>systems/vscode-extension</doc>
+    <doc id="systems/vscode-extension"/>
   </engineering>
 
-  <description>The Find Task command in the VSCode extension throws an error when selecting a task from the quick pick. The error states: "Required registered TreeDataProvider to implement 'getParent' method to access 'reveal' method." This prevents users from navigating to tasks via search.</description>
+  <description>
+    Implement a pseudoterminal in the VSCode extension to intercept Claude Code output and detect [KANBAN_COMPLETE] markers. When detected and kanban.autoplay is enabled, automatically trigger the next workflow action for statuses with a single action path (e.g., planned to implement, in-progress to continue). Skip autoplay for statuses with multiple choices like codecheck and qa where the user must decide between approve/rework.
+  </description>
 
-  <problem>The Find Task command successfully searches and displays tasks in a quick pick, but selecting a task throws an error because the TreeDataProvider doesn't implement the required getParent() method. VSCode's TreeView.reveal() API requires getParent to traverse the tree hierarchy and locate the item to reveal.</problem>
+  <problem>
+    The current terminal integration sends commands but does not process output. Users must manually trigger each workflow action after every skill completes, making the kanban workflow tedious for predictable transitions. This friction breaks flow and requires constant attention even when the next step is deterministic.
+  </problem>
 
-  <value>Users can use the Find Task feature to quickly locate and reveal tasks in the Kanban View tree, improving navigation efficiency especially in large task boards with many items.</value>
+  <value>
+    When kanban.autoplay is enabled and a skill completes with [KANBAN_COMPLETE], automatically trigger the next action for single-path statuses. This creates a seamless workflow experience where planned to implement to codecheck flows automatically, stopping only when user decision is needed. Users can start a workflow and let it run hands-free until human judgment is required.
+  </value>
 
   <acceptance-criteria>
-Given a user invokes the Find Task command (kanban.findTask)
-And they search for and select a task from the quick pick results
-When the selection is confirmed
-Then the task should be revealed and highlighted in the Kanban View tree
-And no error should be thrown
+    Given a task is in a single-path status (planned, in-progress, update-docs)
+    And kanban.autoplay setting is enabled
+    When a skill completes and outputs [KANBAN_COMPLETE]
+    Then the pseudoterminal detects the marker
+    And waits 1-2 seconds for visibility
+    And creates a fresh terminal (disposing the current one)
+    And automatically triggers the next workflow action
 
-Given the Kanban View TreeDataProvider
-When the getParent method is called with a task item
-Then it should return the parent column item
-And when called with a column item
-Then it should return undefined (root level)
+    Given a task is in a multi-choice status (codecheck, qa, pr)
+    And kanban.autoplay setting is enabled
+    When a skill completes and outputs [KANBAN_COMPLETE]
+    Then autoplay does NOT trigger
+    And the user must manually choose the next action
+
+    Given autoplay is running
+    When the user closes the terminal
+    Then autoplay stops and does not continue the chain
+
+    Given autoplay is running
+    When the user disables kanban.autoplay setting
+    Then autoplay stops after the current action completes
+
+    Given autoplay is enabled and running
+    When transitions occur
+    Then the status bar shows the current autoplay state and progress
   </acceptance-criteria>
 
   <notes></notes>
