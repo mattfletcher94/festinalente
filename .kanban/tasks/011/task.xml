@@ -1,0 +1,39 @@
+<task id="011" status="backlog" priority="high" created="2026-02-23" updated="2026-02-23">
+  <title>Fix TreeDataProvider getParent method for find task reveal</title>
+
+  <labels>
+    <label>bug</label>
+  </labels>
+
+  <refs spec="tasks/011/spec.xml" plan="tasks/011/plan.xml"/>
+
+  <affects>
+    <doc>vscode/kanban-view</doc>
+  </affects>
+
+  <engineering>
+    <doc>systems/vscode-extension</doc>
+  </engineering>
+
+  <description>The Find Task command in the VSCode extension throws an error when selecting a task from the quick pick. The error states: "Required registered TreeDataProvider to implement 'getParent' method to access 'reveal' method." This prevents users from navigating to tasks via search.</description>
+
+  <problem>The Find Task command successfully searches and displays tasks in a quick pick, but selecting a task throws an error because the TreeDataProvider doesn't implement the required getParent() method. VSCode's TreeView.reveal() API requires getParent to traverse the tree hierarchy and locate the item to reveal.</problem>
+
+  <value>Users can use the Find Task feature to quickly locate and reveal tasks in the Kanban View tree, improving navigation efficiency especially in large task boards with many items.</value>
+
+  <acceptance-criteria>
+Given a user invokes the Find Task command (kanban.findTask)
+And they search for and select a task from the quick pick results
+When the selection is confirmed
+Then the task should be revealed and highlighted in the Kanban View tree
+And no error should be thrown
+
+Given the Kanban View TreeDataProvider
+When the getParent method is called with a task item
+Then it should return the parent column item
+And when called with a column item
+Then it should return undefined (root level)
+  </acceptance-criteria>
+
+  <notes></notes>
+</task>
