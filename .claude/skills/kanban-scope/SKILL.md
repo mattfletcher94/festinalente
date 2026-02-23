@@ -1,7 +1,7 @@
 ---
 name: kanban-scope
 description: Research codebase and create functional specification through conversational Q&A. Focuses on engineering analysis - HOW to build it technically.
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *, git checkout *), Glob, Grep, AskUserQuestion, WebSearch, WebFetch
+allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *, git checkout *), Glob, Grep, AskUserQuestion, WebSearch, WebFetch, Task
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---
@@ -104,7 +104,7 @@ Create a functional specification through iterative conversational Q&A focused o
     </branch>
   </step>
 
-  <step name="read_task_file" outputs="taskPath, title, acceptanceCriteria, status">
+  <step name="read_task_file" outputs="taskPath, title, acceptanceCriteria, status, affects, engineering">
     <command>node .kanban/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse XML</action>
@@ -120,7 +120,7 @@ Create a functional specification through iterative conversational Q&A focused o
         - multiSelect: false
       </action>
     </branch>
-    <action>Extract problem, value, and acceptance criteria for reference</action>
+    <action>Extract problem, value, acceptance criteria, affects, and engineering fields for reference</action>
     <branch condition="task not found">
       <output>Error: Task not found</output>
       <action>Exit</action>
@@ -154,68 +154,199 @@ Create a functional specification through iterative conversational Q&A focused o
     </example_code>
   </step>
 
+  <step name="choose_research_depth" outputs="researchDepth">
+    <action>Use AskUserQuestion tool with:
+      - header: "Research"
+      - question: "How thorough should the codebase research be?"
+      - options:
+        - label: "Quick", description: "For simple, well-understood changes. Faster, uses fewer tokens."
+        - label: "Deep", description: "For complex or unfamiliar areas. Parallel exploration, more thorough."
+      - multiSelect: false
+    </action>
+  </step>
+
   <step name="structured_research" outputs="researchFindings">
-    <note>Conduct structured research in four areas BEFORE the Q&A dialogue.</note>
-    <note>This ensures thorough exploration and pattern discovery.</note>
+    <branch condition="researchDepth is 'Quick'">
+      <note>Sequential research - faster, fewer tokens</note>
 
-    <substep name="research_product_context">
-      <note>Understand existing product behavior that may constrain implementation.</note>
-      <branch condition="task has `affects` field">
-        <action>For each ID in `affects`: Read `.kanban/product/{id}.md`</action>
-        <action>Note: current behavior, constraints, user flows, feature interactions</action>
-      </branch>
-      <action>Search for additional relevant product docs</action>
-      <command>node .kanban/scripts/search-product.cjs {keywords from title and description}</command>
-      <branch condition="docs with score ≥ 0.3 found">
-        <action>Read top matches not already read</action>
-      </branch>
-      <output_variable>productFindings: list of {docId, keyInsight}</output_variable>
-    </substep>
+      <substep name="research_product_context">
+        <note>Understand existing product behavior that may constrain implementation.</note>
+        <branch condition="task has `affects` field">
+          <action>For each ID in `affects`: Read `.kanban/product/{id}.md`</action>
+          <action>Note: current behavior, constraints, user flows, feature interactions</action>
+        </branch>
+        <action>Search for additional relevant product docs</action>
+        <command>node .kanban/scripts/search-product.cjs {keywords from title and description}</command>
+        <branch condition="docs with score ≥ 0.3 found">
+          <action>Read top matches not already read</action>
+        </branch>
+        <output_variable>productFindings: list of {docId, keyInsight}</output_variable>
+      </substep>
 
-    <substep name="research_engineering_patterns">
-      <note>Find established patterns and conventions to follow.</note>
-      <branch condition="task has `engineering` field">
-        <action>For each ID: Read engineering doc using ID→path rules</action>
-        <action>Note: patterns to follow, conventions, system interactions</action>
-      </branch>
-      <action>Search for additional relevant engineering docs</action>
-      <command>node .kanban/scripts/search-engineering.cjs {technical keywords}</command>
-      <branch condition="docs with score ≥ 0.3 found">
-        <action>Read top matches not already read</action>
-      </branch>
-      <output_variable>engineeringFindings: list of {docId, pattern, reference}</output_variable>
-    </substep>
+      <substep name="research_engineering_patterns">
+        <note>Find established patterns and conventions to follow.</note>
+        <branch condition="task has `engineering` field">
+          <action>For each ID: Read engineering doc using ID→path rules</action>
+          <action>Note: patterns to follow, conventions, system interactions</action>
+        </branch>
+        <action>Search for additional relevant engineering docs</action>
+        <command>node .kanban/scripts/search-engineering.cjs {technical keywords}</command>
+        <branch condition="docs with score ≥ 0.3 found">
+          <action>Read top matches not already read</action>
+        </branch>
+        <output_variable>engineeringFindings: list of {docId, pattern, reference}</output_variable>
+      </substep>
 
-    <substep name="research_codebase_architecture">
-      <note>Find similar implementations to use as references.</note>
-      <action>Use Glob to find potentially affected files based on task description</action>
-      <action>Use Grep to search for similar implementations, related functions, types</action>
-      <action>Read key files to understand existing patterns with file:line references</action>
-      <output_variable>codebaseFindings: list of {component, filePath, relevance}</output_variable>
-    </substep>
+      <substep name="research_codebase_architecture">
+        <note>Find similar implementations to use as references.</note>
+        <action>Use Glob to find potentially affected files based on task description</action>
+        <action>Use Grep to search for similar implementations, related functions, types</action>
+        <action>Read key files to understand existing patterns with file:line references</action>
+        <output_variable>codebaseFindings: list of {component, filePath, relevance}</output_variable>
+      </substep>
 
-    <substep name="research_pitfalls">
-      <note>Identify known issues and constraints to avoid.</note>
-      <action>Search for error handling patterns in affected areas</action>
-      <action>Look for TODO/FIXME/HACK comments in related code</action>
-      <action>Check engineering docs for documented constraints or gotchas</action>
-      <action>Search for closed issues or known problems in the area</action>
-      <output_variable>pitfallFindings: list of {issue, impact, mitigation}</output_variable>
-    </substep>
+      <substep name="research_pitfalls">
+        <note>Identify known issues and constraints to avoid.</note>
+        <action>Search for error handling patterns in affected areas</action>
+        <action>Look for TODO/FIXME/HACK comments in related code</action>
+        <action>Check engineering docs for documented constraints or gotchas</action>
+        <output_variable>pitfallFindings: list of {issue, impact, mitigation}</output_variable>
+      </substep>
+    </branch>
 
-    <substep name="research_ui_patterns" condition="task affects user-facing output">
-      <note>When the task affects UI/UX, find existing patterns to follow.</note>
-      <action>Use Glob to find existing components in affected areas</action>
-      <action>Read key UI files to identify reusable patterns with file:line references</action>
-      <output_variable>uiPatternFindings: list of {pattern, reference}</output_variable>
-    </substep>
+    <branch condition="researchDepth is 'Deep'">
+      <note>**CRITICAL: Spawn 4 agents in parallel using Task tool**</note>
+      <action>Use the Task tool 4 times in a SINGLE message to achieve parallelism</action>
+
+      <parallel>
+        <agent name="Product Context Researcher" subagent_type="Explore">
+          <description>Find product docs and constraints</description>
+          <prompt>
+Research product context for task: "{title}"
+
+Task details:
+- Problem: {problem}
+- Value: {value}
+- Acceptance criteria: {acceptanceCriteria}
+{If affects field exists: - Affects docs: {affects}}
+
+Your job:
+1. If the task has `affects` field, read those product docs from `.kanban/product/{id}.md`
+2. Search for additional relevant product docs using keywords from the task
+3. Identify current behavior, constraints, user flows, and feature interactions
+
+For each relevant doc found, provide:
+- docId: The document ID
+- keyInsight: How this doc relates to the task (1-2 sentences)
+- constraints: Any constraints this imposes on implementation
+
+Output as a structured list.
+          </prompt>
+        </agent>
+
+        <agent name="Pattern Finder" subagent_type="Explore">
+          <description>Find engineering patterns to follow</description>
+          <prompt>
+Find engineering patterns for task: "{title}"
+
+Task details:
+- Problem: {problem}
+- Value: {value}
+{If engineering field exists: - Engineering docs: {engineering}}
+
+Your job:
+1. If the task has `engineering` field, read those docs from `.kanban/engineering/`
+2. Search for additional relevant engineering docs
+3. Find established patterns and conventions to follow
+
+For each pattern found, provide:
+- pattern: Name of the pattern
+- description: What it does and how it applies
+- reference: File path and line number (e.g., `src/utils/api.ts:42`)
+- usage: How to apply this pattern to the task
+
+Output as a structured list.
+          </prompt>
+        </agent>
+
+        <agent name="Codebase Analyzer" subagent_type="Explore">
+          <description>Find similar implementations</description>
+          <prompt>
+Analyze codebase for task: "{title}"
+
+Task details:
+- Problem: {problem}
+- Value: {value}
+- Acceptance criteria: {acceptanceCriteria}
+
+Your job:
+1. Use Glob to find potentially affected files based on task description
+2. Use Grep to search for similar implementations, related functions, types
+3. Read key files to understand existing patterns
+4. Identify files that will likely need modification
+
+For each finding, provide:
+- component: Name of the component/feature
+- filePath: Full file path
+- relevance: Why this is relevant (1-2 sentences)
+- pattern: Any pattern this demonstrates with file:line reference
+
+Also provide a summary of:
+- Likely files to modify
+- Likely files to create
+- Key functions/types to understand
+
+Output as a structured list.
+          </prompt>
+        </agent>
+
+        <agent name="Pitfall Detector" subagent_type="Explore">
+          <description>Find known issues and constraints</description>
+          <prompt>
+Find pitfalls and constraints for task: "{title}"
+
+Task details:
+- Problem: {problem}
+- Value: {value}
+- Acceptance criteria: {acceptanceCriteria}
+
+Your job:
+1. Search for error handling patterns in areas related to this task
+2. Look for TODO/FIXME/HACK comments in related code
+3. Check engineering docs for documented constraints or gotchas
+4. Look for edge cases or known issues in similar implementations
+
+For each pitfall found, provide:
+- issue: What the issue is
+- location: Where it was found (file:line or doc reference)
+- impact: Why it matters for this task
+- mitigation: How to avoid or handle it
+
+Output as a structured list.
+          </prompt>
+        </agent>
+      </parallel>
+
+      <action>Wait for all 4 agents to complete</action>
+    </branch>
   </step>
 
   <step name="synthesize_research" outputs="synthesis">
     <note>Consolidate all research findings into a structured summary.</note>
     <note>Present to user for approval BEFORE proceeding to Q&A.</note>
 
-    <action>Consolidate findings from all four research areas</action>
+    <branch condition="researchDepth is 'Deep'">
+      <action>Combine outputs from all 4 agents</action>
+      <action>Deduplicate findings (same file/pattern mentioned by multiple agents)</action>
+      <action>Resolve conflicts using these rules:</action>
+      <rule>If Product Context and Codebase Analyzer identify different affected areas, include both</rule>
+      <rule>If Pattern Finder and Codebase Analyzer find same pattern, use Pattern Finder's description</rule>
+      <rule>If Pitfall Detector contradicts other agents, flag as open question</rule>
+    </branch>
+
+    <branch condition="researchDepth is 'Quick'">
+      <action>Consolidate findings from all sequential research substeps</action>
+    </branch>
 
     <output>
 **Research Synthesis**
@@ -502,108 +633,103 @@ updated: {YYYY-MM-DD}
 - Next steps shown to user
 </success_criteria>
 
-<example>
+<example label="Quick Research Path">
 User: `/kanban-scope 001`
 
 ```
-Scoping task 001 "Add localStorage persistence for app state"...
+Scoping task 001 "Fix button alignment on mobile"...
 
 Reading task details...
-- Problem: App state is lost on page refresh
-- Value: Better UX, users don't lose work
-- Acceptance: State persists across refreshes, loads on startup
+- Problem: Button is misaligned on mobile devices
+- Value: Better mobile UX
+- Acceptance: Button aligned correctly on all screen sizes
 
-Let me search the codebase for existing patterns...
+How thorough should the codebase research be?
+> Quick
+
+Researching (sequential)...
 
 Found:
-- State management in src/store/index.ts (using Zustand)
-- No existing persistence layer
-- Config loading pattern in src/utils/config.ts
+- Component in src/components/Button.tsx
+- Mobile styles in src/styles/mobile.css
+- Similar fix in src/components/Header.tsx:45
 
-I see you're using Zustand for state management. There are a few approaches
-for adding persistence:
+**Research Synthesis**
 
-1. Zustand's built-in persist middleware
-2. A separate localStorage abstraction
-3. A reactive localStorage hook
+### Product Context
+- **ui/buttons**: Standard button component with variants
 
-Do you have a preference, or should I research options?
-> Research reactive localStorage packages for React, I want something that
-> handles sync across tabs.
+### Engineering Patterns
+- **responsive-pattern**: Mobile-first breakpoints — Reference: `src/styles/breakpoints.ts:12`
 
-Let me research that...
+### Codebase Architecture
+- **Button.tsx**: `src/components/Button.tsx` — Main component to modify
 
-[Searches for reactive localStorage React packages]
+### Pitfalls & Constraints
+- **z-index stacking**: Mobile nav uses z-index 100 — Mitigation: Use lower value
 
-Found several options:
+Does this synthesis look complete?
+> Looks good
 
-| Package | Weekly Downloads | Last Update | Tab Sync |
-|---------|-----------------|-------------|----------|
-| use-local-storage-state | 150k | 2 months ago | Yes |
-| @rehooks/local-storage | 80k | 1 year ago | Yes |
-| zustand persist | (built-in) | Active | No |
+[Q&A dialogue continues...]
+```
+</example>
 
-**use-local-storage-state** looks promising:
-- Active maintenance
-- Built-in tab sync via storage events
-- SSR safe
-- TypeScript support
+<example label="Deep Research Path">
+User: `/kanban-scope 002`
 
-Would you like to go with this, or should I look into others?
-> That looks good. How would it integrate with our Zustand store?
+```
+Scoping task 002 "Add real-time collaboration features"...
 
-Good question. We have two options:
+Reading task details...
+- Problem: Users can't see each other's changes in real-time
+- Value: Better collaboration, reduced conflicts
+- Acceptance: Changes sync within 500ms, presence indicators shown
 
-1. **Replace Zustand with the hook directly** - simpler but loses Zustand benefits
-2. **Use alongside Zustand** - hook for persistence, Zustand for state logic
+How thorough should the codebase research be?
+> Deep
 
-Looking at your store... you have computed values and actions. I'd recommend
-option 2 - use the hook to persist, sync to Zustand on load/change.
+Launching parallel research agents...
 
-Let me check if there are existing hydration patterns in the codebase...
+[Product Context Researcher] Finding product docs and constraints...
+[Pattern Finder] Finding engineering patterns...
+[Codebase Analyzer] Analyzing codebase structure...
+[Pitfall Detector] Finding known issues...
 
-[Searches for hydration patterns]
+All agents complete. Synthesizing findings...
 
-Found a pattern in src/store/settings.ts that loads from config on mount.
-We could follow that pattern.
+**Research Synthesis**
 
-> Sounds good. Any other technical considerations?
+### Product Context
+- **collaboration/overview**: Existing sharing model is document-level
+- **state/persistence**: Uses localStorage, will need WebSocket layer
 
-A few things:
-- Storage key naming convention (found "app_" prefix in config.ts)
-- Error handling for localStorage quota exceeded
-- Migration strategy if storage schema changes
+### Engineering Patterns
+- **event-system**: Pub/sub pattern at `src/events/emitter.ts:23`
+- **state-sync**: Optimistic updates at `src/store/sync.ts:45`
 
-Should we address migration now or defer?
-> Defer migration for now, just note it as a risk.
+### Codebase Architecture
+- **WebSocket client**: Existing in `src/api/socket.ts` (inactive)
+- **State store**: Zustand at `src/store/index.ts`
+- **Presence UI**: No existing implementation
 
-I think I have enough information to write the functional spec. Here's what I understand:
+### Pitfalls & Constraints
+- **Race conditions**: Concurrent edits need conflict resolution
+- **Reconnection**: Socket reconnect logic is incomplete at `src/api/socket.ts:78`
+- **Performance**: Frequent updates may cause render thrashing
 
-- **Approach:** use-local-storage-state for persistence with tab sync, hydrate Zustand on mount
-- **Key files:** src/store/index.ts (modify), src/hooks/usePersistedState.ts (create)
-- **Dependencies:** use-local-storage-state (new)
-- **Patterns to follow:** Hydration pattern from src/store/settings.ts, "app_" key prefix
+Does this synthesis look complete?
+> Can you look more into conflict resolution patterns?
 
-Is there anything else you'd like to discuss before I write the spec?
-> No, that's good.
+[Additional research...]
 
-Writing functional specification...
+Found CRDT pattern documented in engineering docs...
 
-Spec created: .kanban/tasks/001/spec.md
-- 4 functional requirements
-- 2 files to modify, 1 new file
-- 1 external dependency (use-local-storage-state)
-- 1 existing pattern referenced
-- 1 risk flagged (migration strategy deferred)
+[Updated synthesis presented]
 
-Task 001 scoped.
-- Status: scoped
-- Spec: tasks/001/spec.md
-Commit: d4e5f6g docs(001): scope - Add localStorage persistence for app state
+> Looks good now
 
-Next:
-/clear
-/kanban-plan 001
+[Q&A dialogue continues...]
 ```
 </example>
 
