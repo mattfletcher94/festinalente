@@ -325,7 +325,7 @@ Output as a structured list.
 
     <branch condition="user says 'looks good' / 'continue' / 'that's fine'">
       <action>Store synthesis for inclusion in spec</action>
-      <action>Proceed to conduct_qa_dialogue step</action>
+      <action>Proceed to resolve_pitfalls step</action>
     </branch>
     <branch condition="user requests more research in specific area">
       <action>Conduct additional research in requested area</action>

@@ -14,12 +14,13 @@ related:
 paths:
   - apps/kanban/src/scripts
   - apps/kanban/src/lib
-updated: 2026-02-20
-verified: 2026-02-20
+updated: 2026-02-24
+verified: 2026-02-24
 code_refs:
   - apps/kanban/src/scripts/find-task.ts
   - apps/kanban/src/scripts/list-tasks.ts
   - apps/kanban/src/scripts/search-hybrid.ts
+  - apps/kanban/src/scripts/validate-xml.ts
 ---
 
 # CLI Script Engine
@@ -58,7 +59,7 @@ The CLI Script Engine is a collection of Node.js scripts that power the kanban s
 
 | Component | Purpose | File |
 |-----------|---------|------|
-| validate-xml | Validate task XML structure | `apps/kanban/src/scripts/validate-xml.ts` |
+| validate-xml | Validate task XML structure (supports task ID for targeted validation) | `apps/kanban/src/scripts/validate-xml.ts` |
 | validate-yaml | Validate YAML frontmatter | `apps/kanban/src/scripts/validate-yaml.ts` |
 | validate-docs | Check documentation quality | `apps/kanban/src/scripts/validate-docs.ts` |
 | check-freshness | Check if docs are stale | `apps/kanban/src/scripts/check-freshness.ts` |

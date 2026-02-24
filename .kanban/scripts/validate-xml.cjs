@@ -24,6 +24,21 @@ function validateFile(filePath) {
 		};
 	}
 }
+function getXmlFilesForTask(taskId) {
+	const taskDir = path.default.join(TASKS_DIR, taskId);
+	if (!fs.default.existsSync(taskDir) || !fs.default.statSync(taskDir).isDirectory()) return null;
+	const files = [];
+	const xmlFiles = [
+		"task.xml",
+		"spec.xml",
+		"plan.xml"
+	];
+	for (const xmlFile of xmlFiles) {
+		const filePath = path.default.join(taskDir, xmlFile);
+		if (fs.default.existsSync(filePath)) files.push(filePath);
+	}
+	return files;
+}
 function getAllXmlFiles() {
 	const files = [];
 	if (!fs.default.existsSync(TASKS_DIR)) return files;
@@ -44,7 +59,21 @@ function getAllXmlFiles() {
 	return files;
 }
 function main() {
-	const files = getAllXmlFiles();
+	const args = process.argv.slice(2);
+	let files;
+	if (args.length > 0) {
+		const taskId = args[0];
+		const taskFiles = getXmlFilesForTask(taskId);
+		if (taskFiles === null) {
+			console.log(JSON.stringify({
+				valid: false,
+				error: true,
+				message: `Task not found: ${taskId}`
+			}));
+			process.exit(1);
+		}
+		files = taskFiles;
+	} else files = getAllXmlFiles();
 	if (files.length === 0) {
 		console.log(JSON.stringify({
 			valid: true,

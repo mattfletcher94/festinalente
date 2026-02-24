@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
 // Validate XML in task files
-// Usage: node validate-xml.cjs
+// Usage: node validate-xml.cjs [taskId]
+// If taskId provided: validates only task.xml, spec.xml, plan.xml in .kanban/tasks/{taskId}/
+// If no arguments: validates all XML files in .kanban/tasks/
 // Checks for XML parsing errors in task.xml, spec.xml, plan.xml
 
 import fs from 'fs';
@@ -41,6 +43,22 @@ function validateFile(filePath: string): ValidationError | null {
   }
 }
 
+function getXmlFilesForTask(taskId: string): string[] | null {
+  const taskDir = path.join(TASKS_DIR, taskId);
+  if (!fs.existsSync(taskDir) || !fs.statSync(taskDir).isDirectory()) {
+    return null;
+  }
+  const files: string[] = [];
+  const xmlFiles = ['task.xml', 'spec.xml', 'plan.xml'];
+  for (const xmlFile of xmlFiles) {
+    const filePath = path.join(taskDir, xmlFile);
+    if (fs.existsSync(filePath)) {
+      files.push(filePath);
+    }
+  }
+  return files;
+}
+
 function getAllXmlFiles(): string[] {
   const files: string[] = [];
 
@@ -67,7 +85,24 @@ function getAllXmlFiles(): string[] {
 }
 
 function main(): void {
-  const files = getAllXmlFiles();
+  const args = process.argv.slice(2);
+  let files: string[];
+
+  if (args.length > 0) {
+    const taskId = args[0];
+    const taskFiles = getXmlFilesForTask(taskId);
+    if (taskFiles === null) {
+      console.log(JSON.stringify({
+        valid: false,
+        error: true,
+        message: `Task not found: ${taskId}`
+      }));
+      process.exit(1);
+    }
+    files = taskFiles;
+  } else {
+    files = getAllXmlFiles();
+  }
 
   if (files.length === 0) {
     console.log(JSON.stringify({

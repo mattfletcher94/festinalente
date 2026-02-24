@@ -1,4 +1,4 @@
-<task id="013" status="backlog" priority="high" created="2026-02-24" updated="2026-02-24">
+<task id="013" status="done" priority="high" created="2026-02-24" updated="2026-02-24" completed="2026-02-24">
   <title>validate-xml script seems to validate all XML files, not just the one(s) in question</title>
 
   <labels>

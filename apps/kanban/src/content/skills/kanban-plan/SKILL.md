@@ -426,6 +426,68 @@ Run: /kanban-scope {taskId}
     </output>
   </step>
 
+  <step name="validate_plan">
+    <note>Validate plan will achieve spec goals, not just complete tasks (GSD plan-checker pattern)</note>
+
+    <action name="requirement_coverage">
+      <note>Every functional requirement must have at least one task addressing it</note>
+      <action>List all FRs from spec (FR1, FR2, etc.)</action>
+      <action>For each FR, find tasks that reference it in their requirements field</action>
+      <branch condition="any FR has no addressing task">
+        <output>BLOCKER: FR{n} "{description}" has no task addressing it</output>
+        <action>Add task to plan or update existing task to cover FR</action>
+      </branch>
+    </action>
+
+    <action name="dependency_check">
+      <note>No circular dependencies allowed</note>
+      <action>Build dependency graph from task depends attributes</action>
+      <branch condition="circular dependency detected">
+        <output>BLOCKER: Circular dependency: {cycle}</output>
+        <action>Fix dependency chain</action>
+      </branch>
+    </action>
+
+    <action name="scope_sanity">
+      <note>Plans should be reasonably sized</note>
+      <branch condition="plan has more than 7 tasks">
+        <output>WARNING: Plan has {n} tasks. Consider whether spec should be split.</output>
+      </branch>
+    </action>
+
+    <action name="done_criteria_quality">
+      <note>Done criteria should be observable outcomes, not implementation details</note>
+      <action>Review each task's done element</action>
+      <branch condition="done criteria describes implementation rather than outcome">
+        <output>WARNING: Task {id} done criteria "{done}" describes implementation, not observable outcome</output>
+        <note>Good: "User can log in with email and password"</note>
+        <note>Bad: "Added validateCredentials function to auth.ts"</note>
+      </branch>
+    </action>
+
+    <action name="wiring_check">
+      <note>New components should be connected to existing code</note>
+      <action>For each file marked as "create" in plan:</action>
+      <action>Verify another task imports/uses/wires it</action>
+      <branch condition="orphan file detected">
+        <output>WARNING: {file} is created but never imported/used in plan</output>
+      </branch>
+    </action>
+
+    <branch condition="any BLOCKER exists">
+      <action>Fix blocking issues</action>
+      <action>Re-run validate_plan</action>
+    </branch>
+
+    <branch condition="only WARNINGs exist">
+      <output>Plan validated with warnings. Proceeding.</output>
+    </branch>
+
+    <branch condition="no issues">
+      <output>Plan validated successfully.</output>
+    </branch>
+  </step>
+
   <step name="update_task_file">
     <action>Change `status: scoped` to `status: planned`</action>
     <action>Add `plan="tasks/{taskId}/plan.xml"` to task refs element</action>

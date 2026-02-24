@@ -244,8 +244,112 @@ Warning: Some relevant docs may be outdated:
     </substep>
   </step>
 
+  <step name="verify_implementation_quality">
+    <note>Verify implementation achieved spec goals, not just task completion (GSD verifier pattern)</note>
+    <note>Work backward from requirements to confirm implementation exists</note>
+
+    <action name="get_modified_files">
+      <note>Use the plan's files list to identify what was modified</note>
+      <action>Read plan.xml's tasks elements</action>
+      <action>Extract all file paths from each task's files element</action>
+      <action>These are the files that should have been modified during implementation</action>
+    </action>
+
+    <action name="anti_pattern_scan">
+      <note>Search modified files for incomplete work markers</note>
+      <action>Grep modified files for patterns indicating incomplete work:</action>
+      <patterns>
+        - TODO
+        - FIXME
+        - HACK
+        - XXX
+        - "not implemented"
+        - "placeholder"
+        - throw new Error("Not implemented")
+        - console.log without actual logic
+      </patterns>
+
+      <branch condition="anti-patterns found">
+        <output>
+WARNING: Found incomplete work markers:
+        </output>
+        <action>List each finding with file:line reference</action>
+        <action>Use AskUserQuestion with:
+          - header: "Incomplete code"
+          - question: "Found {n} incomplete markers (TODO, FIXME, etc). How to proceed?"
+          - options:
+            - label: "Fix now", description: "Address these before moving to codecheck"
+            - label: "Proceed anyway", description: "These are intentional or will be addressed later"
+          - multiSelect: false
+        </action>
+        <branch condition="user says fix now">
+          <action>Create remediation tasks for each anti-pattern</action>
+          <action>Return to execute_tasks step</action>
+        </branch>
+      </branch>
+    </action>
+
+    <action name="requirement_trace">
+      <note>Verify each functional requirement has implementation evidence</note>
+      <action>Read spec's functional requirements (FR1, FR2, etc.)</action>
+      <action>For each FR:</action>
+      <action>- Identify which files/code implements it</action>
+      <action>- Verify the code is substantive (not a stub)</action>
+      <action>- Verify the code is wired (imported/called somewhere)</action>
+
+      <branch condition="any FR lacks clear implementation">
+        <output>
+WARNING: These requirements may not be fully implemented:
+        </output>
+        <action>List each FR with concern</action>
+        <action>Use AskUserQuestion with:
+          - header: "Requirements"
+          - question: "Some requirements may not be fully implemented. How to proceed?"
+          - options:
+            - label: "Review and fix", description: "Examine each and address gaps"
+            - label: "Proceed to codecheck", description: "Implementation is complete, will verify in QA"
+          - multiSelect: false
+        </action>
+      </branch>
+    </action>
+
+    <action name="wiring_verification">
+      <note>Verify new code is actually connected (80% of stubs hide in unwired code)</note>
+      <action>For each new file created during implementation:</action>
+      <action>- Check if it's imported somewhere</action>
+      <action>- Check if its exports are used</action>
+
+      <branch condition="orphan files detected">
+        <output>
+WARNING: New files created but not imported anywhere:
+        </output>
+        <action>List orphan files</action>
+        <action>Use AskUserQuestion with:
+          - header: "Unwired files"
+          - question: "Some new files aren't imported anywhere. How to proceed?"
+          - options:
+            - label: "Fix wiring", description: "Add imports/usage for these files"
+            - label: "Proceed anyway", description: "Files are intentionally standalone (e.g., config)"
+          - multiSelect: false
+        </action>
+        <branch condition="user says fix wiring">
+          <action>Add necessary imports/wiring</action>
+          <action>Return to execute_tasks if code changes needed</action>
+        </branch>
+      </branch>
+    </action>
+
+    <output>
+**Implementation Quality Check Complete**
+- Files modified: {count}
+- Anti-patterns found: {count}
+- Requirements traced: {count}/{total}
+- Wiring verified: {status}
+    </output>
+  </step>
+
   <step name="check_completion">
-    <branch condition="all tasks have completed='true'">
+    <branch condition="all tasks have completed='true' AND verification passed">
       <action>Update task status to `codecheck`</action>
       <output>All implementation tasks complete. Moving to code check.</output>
       <output>
