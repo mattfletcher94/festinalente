@@ -3,8 +3,8 @@ id: "systems/vscode-extension"
 title: "VSCode Extension"
 type: system
 tldr: "Visual task management UI with TreeView, CodeLens, and terminal integration"
-summary: "VSCode extension providing visual interface for Claude Kanban task management"
-keywords: [vscode, extension, ui, treeview, codelens, terminal, distribution, npx, install]
+summary: "VSCode extension providing visual interface for Claude Kanban task management with YOLO mode support"
+keywords: [vscode, extension, ui, treeview, codelens, terminal, distribution, npx, install, yolo, permissions]
 aliases: [vscode, extension, ui]
 boundary: "Does not implement data logic - delegates to CLI scripts"
 related:
@@ -15,15 +15,17 @@ related:
 paths:
   - apps/vscode/src
   - apps/vscode/bin
-updated: 2026-02-23
-verified: 2026-02-23
+updated: 2026-02-24
+verified: 2026-02-24
 code_refs:
   - apps/vscode/src/extension.ts
   - apps/vscode/src/capabilities/tasks-view.capability.ts
   - apps/vscode/src/capabilities/terminal.capability.ts
+  - apps/vscode/src/capabilities/claude-settings.capability.ts
   - apps/vscode/src/capabilities/config-view.capability.ts
   - apps/vscode/src/capabilities/global-actions-view.capability.ts
   - apps/vscode/src/computers/task-parser.computer.ts
+  - apps/vscode/src/computers/claude-settings.computer.ts
   - apps/vscode/bin/install.cjs
   - apps/vscode/package.json
 ---
@@ -65,6 +67,7 @@ Capabilities handle I/O and side effects. They wrap VSCode APIs and file system 
 | file-system | File I/O wrapper (read, write, exists) | `capabilities/file-system.capability.ts` |
 | tasks-view | TreeView rendering and management | `capabilities/tasks-view.capability.ts` |
 | terminal | Terminal lifecycle (fresh per action) | `capabilities/terminal.capability.ts` |
+| claude-settings | Read Claude settings from project/global paths | `capabilities/claude-settings.capability.ts` |
 | codelens | CodeLens provider for quick actions | `capabilities/codelens.capability.ts` |
 | config-view | TreeView for config.yaml access | `capabilities/config-view.capability.ts` |
 | global-actions-view | TreeView for global project commands | `capabilities/global-actions-view.capability.ts` |
@@ -140,6 +143,7 @@ Computers contain pure functions with no side effects. They transform data.
 | task-parser | Parses XML task files using fast-xml-parser | `computers/task-parser.computer.ts` |
 | task-grouping | Groups tasks by status, defines columns | `computers/task-grouping.computer.ts` |
 | task-actions | Generates available actions per task status | `computers/task-actions.computer.ts` |
+| claude-settings | YOLO mode detection from Claude settings | `computers/claude-settings.computer.ts` |
 
 ### Types Layer
 
@@ -178,7 +182,11 @@ Generate CodeLens via CodeLens Capability
   ↓
 User clicks action → Execute command via Terminal Capability
   ↓
-Terminal runs CLI script → Returns JSON
+Claude Settings Capability reads .claude/settings.json (project & global)
+  ↓
+Claude Settings Computer determines YOLO mode status
+  ↓
+Terminal runs claude command (with --dangerously-skip-permissions if YOLO)
   ↓
 File watcher detects change → Refresh cycle
 ```
@@ -192,6 +200,49 @@ File watcher detects change → Refresh cycle
 | [distribution](../distribution/_index.md) | Distributed via | Published to GitHub Packages, installed via npx |
 
 **Summary:** Extension reads files, renders UI, and sends commands to CLI via terminal.
+
+## YOLO Mode Detection
+
+The extension reads Claude's settings files to detect if YOLO mode (bypass permissions) is enabled.
+
+### Settings Locations
+
+| Location | Priority | Example Path |
+|----------|----------|--------------|
+| Project | Higher | `.claude/settings.json` |
+| Global | Lower | `~/.claude/settings.json` |
+
+Project-level settings take precedence over global settings.
+
+### Detection Logic
+
+YOLO mode is enabled when either of these conditions is true:
+- `"dangerously-skip-permissions": true` (strict boolean equality)
+- `"defaultMode": "bypassPermissions"` (exact string match)
+
+### Implementation
+
+The feature follows the capability-computer pattern:
+
+| Layer | Component | Responsibility |
+|-------|-----------|----------------|
+| Capability | `claude-settings.capability.ts` | I/O: Read settings files from disk |
+| Computer | `claude-settings.computer.ts` | Pure: Determine YOLO status from settings |
+| Orchestrator | `extension.ts:getClaudeCommand()` | Policy: Build command with/without flag |
+
+### Command Format
+
+```typescript
+// YOLO enabled:
+`claude --dangerously-skip-permissions "/kanban-{action} {id}"`
+
+// YOLO disabled:
+`claude "/kanban-{action} {id}"`
+```
+
+### Silent Degradation
+
+If settings files are missing, unreadable, or contain invalid JSON, the system silently falls back to normal mode (no flag). This ensures the extension works without errors even when Claude isn't configured.
 
 ## Distribution
 

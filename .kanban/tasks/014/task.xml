@@ -1,4 +1,4 @@
-<task id="014" status="update-docs" priority="high" created="2026-02-24" updated="2026-02-24">
+<task id="014" status="pr" priority="high" created="2026-02-24" updated="2026-02-24">
   <title>VSCode extension YOLO mode - read Claude settings and pass --dangerously-skip-permissions flag</title>
 
   <labels>
