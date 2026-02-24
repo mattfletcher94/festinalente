@@ -1,4 +1,4 @@
-<task id="011" status="pr" priority="medium" created="2026-02-23" updated="2026-02-24">
+<task id="011" status="done" priority="medium" created="2026-02-23" updated="2026-02-24" completed="2026-02-24">
   <title>Implement pseudoterminal autoplay for single-path workflow transitions</title>
 
   <labels>
