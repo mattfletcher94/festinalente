@@ -1,0 +1,126 @@
+<spec task="014" created="2026-02-24" updated="2026-02-24">
+  <title>VSCode extension YOLO mode - read Claude settings and pass --dangerously-skip-permissions flag</title>
+
+  <context>
+    Users who have YOLO mode enabled in Claude's settings (via .claude/settings.json or ~/.claude/settings.json) still get prompted for permissions when using the kanban extension. The extension creates terminals and runs `claude "/kanban-..."` commands, but doesn't pass the --dangerously-skip-permissions flag even when the user has configured Claude for bypass permissions mode. This creates friction for users who've opted into YOLO mode and expect seamless workflow matching their Claude configuration.
+  </context>
+
+  <scope>
+    <in-scope>
+      <item>Read Claude settings from .claude/settings.json (project-level)</item>
+      <item>Read Claude settings from ~/.claude/settings.json (global)</item>
+      <item>Detect YOLO mode via "dangerously-skip-permissions": true OR "defaultMode": "bypassPermissions"</item>
+      <item>Pass --dangerously-skip-permissions flag when creating terminal commands</item>
+      <item>Project-level settings take precedence over global settings</item>
+      <item>Create new settings capability following existing architecture</item>
+    </in-scope>
+    <out-of-scope>
+      <item>Modifying Claude's settings files</item>
+      <item>UI for configuring YOLO mode (uses existing Claude settings)</item>
+      <item>Caching or file watching (read on every command for real-time updates)</item>
+      <item>Error notifications to user (silent degradation to normal behavior)</item>
+    </out-of-scope>
+  </scope>
+
+  <requirements>
+    <requirement id="FR1">The system shall read .claude/settings.json from the workspace root when executing kanban commands</requirement>
+    <requirement id="FR2">The system shall read ~/.claude/settings.json from the user's home directory as fallback when project-level settings don't exist</requirement>
+    <requirement id="FR3">The system shall detect YOLO mode when settings contain "dangerously-skip-permissions": true (strict equality)</requirement>
+    <requirement id="FR4">The system shall detect YOLO mode when settings contain "defaultMode": "bypassPermissions" (exact string match)</requirement>
+    <requirement id="FR5">The system shall prepend --dangerously-skip-permissions flag to claude commands when YOLO mode is detected</requirement>
+    <requirement id="FR6">The system shall use project-level settings when both project and global settings exist</requirement>
+    <requirement id="FR7">The system shall default to normal behavior (no flag) when settings files don't exist or are unparseable</requirement>
+    <requirement id="FR8">The system shall read settings before each command execution for real-time updates</requirement>
+  </requirements>
+
+  <files>
+    <file action="create" path="apps/vscode/src/capabilities/claude-settings.capability.ts">
+      New capability for reading Claude settings files. Uses FileSystemCapability for file I/O. Returns parsed settings or null on error.
+    </file>
+    <file action="create" path="apps/vscode/src/computers/claude-settings.computer.ts">
+      Pure logic computer for determining YOLO mode from settings object. Handles precedence logic and strict equality checks.
+    </file>
+    <file action="modify" path="apps/vscode/src/extension.ts">
+      Initialize settings capability in activate(). Update 5 command locations (lines 262, 279, 289, 307, 322) to read settings and conditionally add flag.
+    </file>
+  </files>
+
+  <patterns>
+    <pattern name="Factory DI">
+      Use factory function with FileSystemCapability injected for testability.
+      Reference: apps/vscode/src/capabilities/file-system.capability.ts:16-48
+    </pattern>
+    <pattern name="Capability/Computer Separation">
+      File I/O in capability, pure logic in computer. Capabilities handle HOW, computers handle WHAT.
+      Reference: .kanban/engineering/patterns/capability-computer.md:33-49
+    </pattern>
+    <pattern name="Safe JSON Parsing">
+      Wrap JSON.parse in try-catch with type guard: err instanceof Error ? err.message : String(err)
+      Reference: apps/kanban/src/scripts/get-skill-config.ts:40-62
+    </pattern>
+    <pattern name="Cross-Platform Paths">
+      Use os.homedir() + path.join() for platform-agnostic home directory resolution.
+      Reference: apps/vscode/src/capabilities/file-system.capability.ts:37-39
+    </pattern>
+    <pattern name="Explicit Return Types">
+      All factory functions define explicit return type interfaces.
+      Reference: .kanban/engineering/patterns/factory-di.md:65-72
+    </pattern>
+  </patterns>
+
+  <research>
+    <product>
+      <finding doc="vscode/terminal">Terminal capability sends commands via sendText(). Commands formatted as `claude "/kanban-..."`. Flag must be inserted before command path.</finding>
+      <finding doc="vscode/_index">Extension works across multiple entry points (CodeLens, command palette, header buttons, tree view). All route through terminal capability.</finding>
+    </product>
+    <engineering>
+      <finding doc="systems/vscode-extension">Three-layer architecture: Orchestrator (extension.ts), Capabilities (I/O), Computers (pure logic). Settings reading should be a capability.</finding>
+      <finding doc="patterns/capability-computer">Capabilities handle mechanism (file reading), orchestrators make policy decisions (when to add flag).</finding>
+    </engineering>
+    <codebase>
+      <finding>Terminal capability at apps/vscode/src/capabilities/terminal.capability.ts provides sendCommand() that calls terminal.sendText()</finding>
+      <finding>File system capability at apps/vscode/src/capabilities/file-system.capability.ts provides readFile(), exists(), joinPath()</finding>
+      <finding>5 command locations in extension.ts: lines 262 (runAction), 279 (runGlobalAction), 289 (startDiscovery), 307 (createTask), 322 (runNextAction)</finding>
+    </codebase>
+    <pitfalls>
+      <pitfall issue="Cross-platform paths" mitigation="Use os.homedir() + path.join() for platform-agnostic resolution"/>
+      <pitfall issue="Race conditions" mitigation="Read settings on every command execution for real-time updates"/>
+      <pitfall issue="Precedence logic" mitigation="Check project .claude/settings.json first, fallback to global ~/.claude/settings.json"/>
+      <pitfall issue="Boolean detection" mitigation="Strict equality (=== true for dangerously-skip-permissions, === 'bypassPermissions' for defaultMode)"/>
+      <pitfall issue="Code placement" mitigation="Create new claude-settings.capability.ts following existing architecture"/>
+      <pitfall issue="File not existing" mitigation="Check with fs.existsSync() before reading, default to normal behavior"/>
+      <pitfall issue="Invalid JSON" mitigation="Wrap JSON.parse in try-catch, default to normal behavior on error"/>
+      <pitfall issue="Permission issues" mitigation="Wrap file read in try-catch, silently degrade to normal behavior"/>
+      <pitfall issue="Error handling" mitigation="Silent degradation matches existing extension pattern (no error UI)"/>
+    </pitfalls>
+  </research>
+
+  <constraints>
+    <constraint>Use only Node.js built-ins (fs, path, os) - no new npm dependencies</constraint>
+    <constraint>Follow existing capability/computer architecture pattern</constraint>
+    <constraint>Silent degradation on errors - no error UI (matches extension philosophy)</constraint>
+    <constraint>No caching - read settings fresh on each command for real-time updates</constraint>
+    <constraint>Must work across all 5 command execution paths in extension.ts</constraint>
+  </constraints>
+
+  <dependencies>
+    <external>
+      <dependency>Node.js fs module (already used)</dependency>
+      <dependency>Node.js path module (already used)</dependency>
+      <dependency>Node.js os module (needs import for homedir())</dependency>
+    </external>
+    <internal>
+      <dependency>FileSystemCapability for file I/O abstraction</dependency>
+      <dependency>Terminal capability for command execution</dependency>
+    </internal>
+  </dependencies>
+
+  <risks>
+    <risk impact="low" mitigation="Check existence before reading, silent fallback to normal behavior">Settings file doesn't exist for new users</risk>
+    <risk impact="low" mitigation="Try-catch around JSON.parse, silent fallback">Malformed JSON in settings file</risk>
+    <risk impact="low" mitigation="Slight I/O cost acceptable for real-time accuracy">Performance impact from reading on every command</risk>
+  </risks>
+
+  <open-questions>
+  </open-questions>
+</spec>
