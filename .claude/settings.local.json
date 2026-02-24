@@ -91,7 +91,8 @@
       "Bash(npm run deploy:*)",
       "Bash(npm run init:dev:*)",
       "Bash(npm run:*)",
-      "Bash(git -C \"C:\\\\Users\\\\MattF\\\\Documents\\\\Code\\\\claudeban\" diff HEAD)"
+      "Bash(git -C \"C:\\\\Users\\\\MattF\\\\Documents\\\\Code\\\\claudeban\" diff HEAD)",
+      "Bash(git revert:*)"
     ]
   }
 }
