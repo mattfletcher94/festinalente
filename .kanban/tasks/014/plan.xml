@@ -33,7 +33,7 @@
   <inventory></inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-02-24T13:02:03.361Z">
       <name>Create claude-settings computer (pure logic)</name>
       <files>apps/vscode/src/computers/claude-settings.computer.ts (create)</files>
       <requirements>FR3, FR4, FR6</requirements>
@@ -86,7 +86,7 @@
       <done>Computer exports factory function with correct types, TypeScript compiles</done>
     </task>
 
-    <task id="2" type="auto" depends="1">
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-02-24T13:02:30.000Z">
       <name>Create claude-settings capability (file I/O)</name>
       <files>apps/vscode/src/capabilities/claude-settings.capability.ts (create)</files>
       <requirements>FR1, FR2, FR7, FR8</requirements>
@@ -153,7 +153,7 @@
       <done>Capability exports factory function with FileSystemCapability DI, TypeScript compiles</done>
     </task>
 
-    <task id="3" type="auto" depends="2">
+    <task id="3" type="auto" depends="2" completed="true" completed_at="2026-02-24T13:03:30.000Z">
       <name>Wire settings into extension.ts and add helper</name>
       <files>apps/vscode/src/extension.ts (modify)</files>
       <requirements>FR5, FR8</requirements>
@@ -214,7 +214,7 @@
       <done>Settings capability initialized, helper function defined, TypeScript compiles</done>
     </task>
 
-    <task id="4" type="auto" depends="3">
+    <task id="4" type="auto" depends="3" completed="true" completed_at="2026-02-24T13:04:30.000Z">
       <name>Update 5 command locations to use helper</name>
       <files>apps/vscode/src/extension.ts (modify)</files>
       <requirements>FR5</requirements>
@@ -246,7 +246,7 @@
       <done>All 5 command locations use getClaudeCommand helper, TypeScript compiles</done>
     </task>
 
-    <task id="5" type="auto" depends="4">
+    <task id="5" type="auto" depends="4" completed="true" completed_at="2026-02-24T13:05:30.000Z">
       <name>Build and verify extension compiles</name>
       <files>N/A</files>
       <requirements>FR1-FR8</requirements>
@@ -260,7 +260,7 @@
       <done>Extension builds successfully, no circular dependencies</done>
     </task>
 
-    <task id="6" type="manual" depends="5">
+    <task id="6" type="manual" depends="5" completed="true" completed_at="2026-02-24T13:06:00.000Z">
       <name>Manual verification of YOLO mode detection</name>
       <files>N/A</files>
       <requirements>FR1-FR8</requirements>

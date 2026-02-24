@@ -12,10 +12,12 @@ import * as path from 'path';
 import { createTaskParserComputer } from './computers/task-parser.computer';
 import { createTaskActionsComputer } from './computers/task-actions.computer';
 import { createTaskGroupingComputer } from './computers/task-grouping.computer';
+import { createClaudeSettingsComputer } from './computers/claude-settings.computer';
 
 // Capabilities (mechanism)
 import { createFileSystemCapability } from './capabilities/file-system.capability';
 import { createTerminalCapability } from './capabilities/terminal.capability';
+import { createClaudeSettingsCapability } from './capabilities/claude-settings.capability';
 import { createTasksViewCapability, TaskItem } from './capabilities/tasks-view.capability';
 import { createCodeLensCapability } from './capabilities/codelens.capability';
 import { createConfigViewCapability } from './capabilities/config-view.capability';
@@ -53,10 +55,12 @@ export function activate(context: vscode.ExtensionContext): void {
   const taskParser = createTaskParserComputer();
   const taskActions = createTaskActionsComputer();
   const taskGrouping = createTaskGroupingComputer();
+  const claudeSettings = createClaudeSettingsComputer();
 
   // Initialize capabilities
   const fs = createFileSystemCapability();
   const terminal = createTerminalCapability();
+  const settings = createClaudeSettingsCapability({ fs });
 
   // Policy: Find kanban folder
   const kanbanPath = findKanbanFolder(vscode.workspace.workspaceFolders, fs);
@@ -71,6 +75,18 @@ export function activate(context: vscode.ExtensionContext): void {
   // Reassign to a non-optional const so TypeScript knows it's defined in closures below
   const kanbanDir = kanbanPath;
   const workspaceRoot = path.dirname(kanbanDir);
+
+  // Policy: Build claude command with optional YOLO flag
+  function getClaudeCommand(command: string): string {
+    const projectSettings = settings.readProjectSettings(workspaceRoot);
+    const globalSettings = settings.readGlobalSettings();
+    const isYolo = claudeSettings.isYoloEnabled(projectSettings, globalSettings);
+
+    if (isYolo) {
+      return `claude --dangerously-skip-permissions "${command}"`;
+    }
+    return `claude "${command}"`;
+  }
 
   // Policy: Load all tasks from kanban folder
   function loadAllTasks(): Task[] {
@@ -259,7 +275,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
         const kanbanTerminal = terminal.createFreshTerminal('Kanban', workspaceRoot);
         terminal.showTerminal(kanbanTerminal);
-        terminal.sendCommand(kanbanTerminal, `claude "${args.command}"`);
+        terminal.sendCommand(kanbanTerminal, getClaudeCommand(args.command));
       }
     )
   );
@@ -276,7 +292,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
         const kanbanTerminal = terminal.createFreshTerminal('Kanban', workspaceRoot);
         terminal.showTerminal(kanbanTerminal);
-        terminal.sendCommand(kanbanTerminal, `claude "${args.command}"`);
+        terminal.sendCommand(kanbanTerminal, getClaudeCommand(args.command));
       }
     )
   );
@@ -286,7 +302,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('kanban.startDiscovery', () => {
       const kanbanTerminal = terminal.createFreshTerminal('Kanban', workspaceRoot);
       terminal.showTerminal(kanbanTerminal);
-      terminal.sendCommand(kanbanTerminal, 'claude "/kanban-discover"');
+      terminal.sendCommand(kanbanTerminal, getClaudeCommand('/kanban-discover'));
     })
   );
 
@@ -304,7 +320,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
       const kanbanTerminal = terminal.createFreshTerminal('Kanban', workspaceRoot);
       terminal.showTerminal(kanbanTerminal);
-      terminal.sendCommand(kanbanTerminal, `claude "/kanban-create ${title}"`);
+      terminal.sendCommand(kanbanTerminal, getClaudeCommand(`/kanban-create ${title}`));
     })
   );
 
@@ -319,7 +335,7 @@ export function activate(context: vscode.ExtensionContext): void {
       const primaryAction = item.actions[0];
       const kanbanTerminal = terminal.createFreshTerminal('Kanban', workspaceRoot);
       terminal.showTerminal(kanbanTerminal);
-      terminal.sendCommand(kanbanTerminal, `claude "${primaryAction.command}"`);
+      terminal.sendCommand(kanbanTerminal, getClaudeCommand(primaryAction.command));
     })
   );
 
