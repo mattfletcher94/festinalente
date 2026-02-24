@@ -210,7 +210,15 @@ Create a functional specification through iterative conversational Q&A focused o
         <action>Search for error handling patterns in affected areas</action>
         <action>Look for TODO/FIXME/HACK comments in related code</action>
         <action>Check engineering docs for documented constraints or gotchas</action>
-        <output_variable>pitfallFindings: list of {issue, impact, mitigation}</output_variable>
+
+        <note>Categorize each pitfall found:</note>
+        <action>For each pitfall, determine category:
+          - "decision": Multiple valid approaches exist, trade-offs involved, user preference matters
+          - "fyi": Only one reasonable approach, obvious/standard mitigation, constraint to be aware of</action>
+        <action>For "decision" pitfalls: Generate 2-4 suggested mitigation options</action>
+        <action>For "fyi" pitfalls: Provide the single recommended mitigation</action>
+
+        <output_variable>pitfallFindings: list of {issue, impact, category, suggestedMitigations[]}</output_variable>
       </substep>
     </branch>
 
@@ -320,7 +328,12 @@ For each pitfall found, provide:
 - issue: What the issue is
 - location: Where it was found (file:line or doc reference)
 - impact: Why it matters for this task
-- mitigation: How to avoid or handle it
+- category: "decision" or "fyi"
+  - Use "decision" when: multiple valid approaches exist, trade-offs involved, user preference matters
+  - Use "fyi" when: only one reasonable approach, obvious/standard mitigation
+- suggestedMitigations: Array of approaches
+  - For "decision": provide 2-4 options the user can choose from
+  - For "fyi": provide single recommended mitigation
 
 Output as a structured list.
           </prompt>
@@ -364,8 +377,17 @@ Output as a structured list.
 - **{component/feature}**: `{file}` — {what it does that's relevant}
 
 ### Pitfalls & Constraints
-{List known issues to avoid}
-- **{issue}**: {why it matters} — Mitigation: {approach}
+
+**Decisions needed** (we'll discuss these next):
+{For each pitfall where category is "decision":}
+- **{issue}**: {impact}
+
+**For your awareness** (standard mitigations apply):
+{For each pitfall where category is "fyi":}
+- **{issue}**: {impact} → {mitigation}
+
+{If no decision-needed pitfalls, omit that section}
+{If no fyi pitfalls, omit that section}
 
 ---
 
@@ -382,6 +404,50 @@ Output as a structured list.
     </branch>
   </step>
 
+  <step name="resolve_pitfalls" outputs="resolvedPitfalls">
+    <note>For each pitfall categorized as "decision", ask the user how to handle it.</note>
+    <note>Follow the structured AskUserQuestion pattern used in kanban-rework and kanban-create.</note>
+
+    <branch condition="no decision-needed pitfalls exist">
+      <output>All identified pitfalls have standard mitigations. Proceeding to technical Q&A.</output>
+      <action>Add all fyi pitfalls to resolvedPitfalls with their mitigations</action>
+    </branch>
+
+    <branch condition="decision-needed pitfalls exist">
+      <output>
+**Resolving Pitfalls**
+
+Let's decide how to handle the pitfalls that have multiple valid approaches.
+      </output>
+
+      <action>For each pitfall where category is "decision":</action>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Pitfall"
+        - question: "{issue} — {impact}. How should we handle this?"
+        - options: Build from suggestedMitigations (2-4 options), each with:
+          - label: Short action phrase (e.g., "Use locks", "Accept risk", "Add retry logic")
+          - description: Fuller explanation of what this approach means and its trade-offs
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to type a custom mitigation</note>
+
+      <action>Record the user's choice: {issue, chosenMitigation, source: "user"}</action>
+    </branch>
+
+    <action>For each pitfall where category is "fyi":</action>
+    <action>Record with standard mitigation: {issue, mitigation, source: "standard"}</action>
+
+    <output>
+**Pitfall Decisions Recorded**
+
+{For each resolved pitfall:}
+- **{issue}**: {chosenMitigation}
+
+Proceeding to technical Q&A. You can raise any concerns about the standard mitigations there.
+    </output>
+  </step>
+
   <step name="conduct_qa_dialogue">
     <note>This is a **conversational session** focused on **technical decisions**:
 - Architecture and approach
@@ -389,6 +455,10 @@ Output as a structured list.
 - Dependencies and libraries
 - Technical constraints
 - Files to modify/create</note>
+
+    <note>**FYI Pitfalls:** User may want to discuss pitfalls that were shown as "for your awareness" earlier.
+If user raises concerns about a standard mitigation, discuss alternatives and update resolvedPitfalls.
+The Q&A phase is the natural place to challenge any assumption made during synthesis.</note>
 
     <note>**For UI tasks:** Propose, don't interrogate.
 - INFER decisions from context and acceptance criteria
@@ -507,7 +577,13 @@ updated: {YYYY-MM-DD}
 {From synthesis - similar implementations found}
 
 ### Pitfalls Identified
-{From synthesis - known issues and constraints to avoid}
+{From resolvedPitfalls - list each with the confirmed mitigation}
+- {issue}: {mitigation}
+
+<note>Pitfalls section in spec should reflect the ACTUAL decisions made:</note>
+<note>- Include all pitfalls from resolvedPitfalls</note>
+<note>- For user-decided pitfalls: "{issue}: {user's chosen mitigation}"</note>
+<note>- For standard mitigations: "{issue}: {standard mitigation}"</note>
 
 ## Technical Constraints
 - {Constraints discovered during research}
@@ -532,6 +608,13 @@ updated: {YYYY-MM-DD}
 
 ## Open Questions
 - [ ] {Unresolved items}
+
+<note>Open questions should only contain genuinely unresolved items:</note>
+<note>- If user selected "Other" during pitfall resolution but gave unclear answer → add as open question</note>
+<note>- If user explicitly deferred ("decide during implementation") → add as open question</note>
+<note>- If user raised a concern during Q&A that wasn't fully resolved → add as open question</note>
+<note>- Do NOT write "None - all resolved" if there are genuine uncertainties</note>
+<note>- Empty open-questions section is fine if everything was actually resolved</note>
     </example_code>
   </step>
 
@@ -666,10 +749,14 @@ Found:
 - **Button.tsx**: `src/components/Button.tsx` — Main component to modify
 
 ### Pitfalls & Constraints
-- **z-index stacking**: Mobile nav uses z-index 100 — Mitigation: Use lower value
+
+**For your awareness** (standard mitigations apply):
+- **z-index stacking**: Mobile nav uses z-index 100 → Use lower value
 
 Does this synthesis look complete?
 > Looks good
+
+All identified pitfalls have standard mitigations. Proceeding to technical Q&A.
 
 [Q&A dialogue continues...]
 ```
@@ -714,9 +801,13 @@ All agents complete. Synthesizing findings...
 - **Presence UI**: No existing implementation
 
 ### Pitfalls & Constraints
+
+**Decisions needed** (we'll discuss these next):
 - **Race conditions**: Concurrent edits need conflict resolution
-- **Reconnection**: Socket reconnect logic is incomplete at `src/api/socket.ts:78`
-- **Performance**: Frequent updates may cause render thrashing
+
+**For your awareness** (standard mitigations apply):
+- **Reconnection**: Socket reconnect logic is incomplete → Complete reconnect handler at `src/api/socket.ts:78`
+- **Performance**: Frequent updates may cause render thrashing → Throttle state updates
 
 Does this synthesis look complete?
 > Can you look more into conflict resolution patterns?
@@ -728,6 +819,21 @@ Found CRDT pattern documented in engineering docs...
 [Updated synthesis presented]
 
 > Looks good now
+
+**Resolving Pitfalls**
+
+Let's decide how to handle the pitfalls that have multiple valid approaches.
+
+Race conditions — Concurrent edits need conflict resolution. How should we handle this?
+[Use CRDTs] Conflict-free replicated data types, automatic merge
+[Last-write-wins] Simple timestamp-based resolution, may lose edits
+[Operational transform] Complex but preserves intent, like Google Docs
+> Use CRDTs
+
+**Pitfall Decisions Recorded**
+- **Race conditions**: Use CRDTs for automatic conflict-free merging
+
+Proceeding to technical Q&A. You can raise any concerns about the standard mitigations there.
 
 [Q&A dialogue continues...]
 ```
