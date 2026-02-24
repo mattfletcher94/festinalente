@@ -1,6 +1,6 @@
 <plan task="015" spec="tasks/015/spec.xml" status="approved"
       complexity="medium" created="2026-02-24" updated="2026-02-24"
-      generated-by="claude" model="claude-opus-4-5-20251101" version="1" iteration="1">
+      generated-by="claude" model="claude-opus-4-5-20251101" version="1" iteration="2">
   <title>Add documentation browser TreeView sections to sidebar</title>
 
   <overview>
@@ -275,7 +275,22 @@
     <pitfall issue="FileSystemWatcher glob pattern">Use **/*.md pattern to capture all nested .md files in docs folders</pitfall>
   </pitfalls>
 
-  <iterations></iterations>
+  <iterations>
+    <iteration number="2" phase="pr" result="failed" date="2026-02-24">
+      <issue type="incomplete" severity="blocker">
+        <summary>Global Actions buttons not integrated into docs TreeViews</summary>
+        <expected>Global Actions removed; action buttons appear at top of each docs section</expected>
+        <actual>Global Actions still exists separately; docs TreeViews only show file/folder hierarchy</actual>
+      </issue>
+      <actions>
+        <action status="pending">Remove Global Actions TreeView registration and capability</action>
+        <action status="pending">Remove kanbanGlobalActions view declaration from package.json</action>
+        <action status="pending">Add "Map Product" action item at top of Product Docs TreeView (with play icon, triggers existing command)</action>
+        <action status="pending">Add action item at top of Engineering Docs TreeView (with play icon)</action>
+        <action status="pending">Update spec.xml with new acceptance criteria</action>
+      </actions>
+    </iteration>
+  </iterations>
   <wip></wip>
   <completeness></completeness>
 </plan>
