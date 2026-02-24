@@ -43,8 +43,7 @@ export class KanbanPseudoterminal implements vscode.Pseudoterminal {
     this.writeEmitter.fire(`\x1b[36m$ claude ${this.deps.command}\x1b[0m\r\n\r\n`);
 
     // Spawn claude CLI process
-    // Use full command string with shell: true so shell parses arguments correctly
-    this.process = spawn(`claude ${this.deps.command}`, [], {
+    this.process = spawn('claude', [this.deps.command], {
       cwd: this.deps.cwd,
       shell: true,
       env: {
