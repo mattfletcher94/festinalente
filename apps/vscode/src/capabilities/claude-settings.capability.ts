@@ -41,6 +41,18 @@ export function createClaudeSettingsCapability(deps: {
   const { fs } = deps;
 
   function readProjectSettings(workspaceRoot: string): ClaudeSettings | null {
+    // Check settings.local.json first (takes precedence, typically gitignored)
+    const localPath = fs.joinPath(workspaceRoot, '.claude', 'settings.local.json');
+    if (fs.exists(localPath)) {
+      try {
+        const content = fs.readFile(localPath);
+        return JSON.parse(content) as ClaudeSettings;
+      } catch {
+        // Fall through to settings.json
+      }
+    }
+
+    // Fall back to settings.json
     const settingsPath = fs.joinPath(workspaceRoot, '.claude', 'settings.json');
     if (!fs.exists(settingsPath)) return null;
 

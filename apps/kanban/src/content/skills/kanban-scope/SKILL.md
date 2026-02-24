@@ -318,16 +318,25 @@ Output as a structured list.
 {If no decision-needed pitfalls, omit that section}
 {If no fyi pitfalls, omit that section}
 
----
-
-**Does this synthesis look complete? Any areas you'd like me to explore further?**
     </output>
 
-    <branch condition="user says 'looks good' / 'continue' / 'that's fine'">
+    <action>Use AskUserQuestion tool with:
+      - header: "Synthesis"
+      - question: "Does this research synthesis look complete?"
+      - options:
+        - label: "Looks complete (Recommended)", description: "Proceed to resolve pitfalls and technical Q&A"
+        - label: "Explore product docs", description: "Research additional product documentation"
+        - label: "Explore codebase", description: "Analyze more code patterns or implementations"
+        - label: "Explore pitfalls", description: "Identify additional risks or constraints"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to describe specific areas to explore</note>
+
+    <branch condition="user selects 'Looks complete'">
       <action>Store synthesis for inclusion in spec</action>
       <action>Proceed to resolve_pitfalls step</action>
     </branch>
-    <branch condition="user requests more research in specific area">
+    <branch condition="user selects exploration option OR provides custom input">
       <action>Conduct additional research in requested area</action>
       <action>Update synthesis and present again</action>
     </branch>
@@ -638,8 +647,11 @@ Found:
 **For your awareness** (standard mitigations apply):
 - **z-index stacking**: Mobile nav uses z-index 100 → Use lower value
 
-Does this synthesis look complete?
-> Looks good
+Does this research synthesis look complete?
+- [x] Looks complete (Recommended)
+- [ ] Explore product docs
+- [ ] Explore codebase
+- [ ] Explore pitfalls
 
 All identified pitfalls have standard mitigations. Proceeding to technical Q&A.
 
@@ -694,8 +706,12 @@ All agents complete. Synthesizing findings...
 - **Reconnection**: Socket reconnect logic is incomplete → Complete reconnect handler at `src/api/socket.ts:78`
 - **Performance**: Frequent updates may cause render thrashing → Throttle state updates
 
-Does this synthesis look complete?
-> Can you look more into conflict resolution patterns?
+Does this research synthesis look complete?
+- [ ] Looks complete (Recommended)
+- [ ] Explore product docs
+- [x] Explore codebase
+- [ ] Explore pitfalls
+> Other: Can you look more into conflict resolution patterns?
 
 [Additional research...]
 
@@ -703,7 +719,8 @@ Found CRDT pattern documented in engineering docs...
 
 [Updated synthesis presented]
 
-> Looks good now
+Does this research synthesis look complete?
+- [x] Looks complete (Recommended)
 
 **Resolving Pitfalls**
 
