@@ -1,0 +1,156 @@
+<spec task="015" created="2026-02-24" updated="2026-02-24">
+  <title>Add documentation browser TreeView sections to sidebar</title>
+
+  <context>
+    Existing product and engineering documentation in the .kanban/ folder is difficult to discover.
+    Users must manually navigate the file system or remember file paths to find relevant docs.
+    There is no integrated way to browse available documentation while working on tasks.
+
+    This feature adds quick sidebar access to browse all product and engineering documentation,
+    improving discoverability and aligning with VSCode patterns where users expect sidebar trees
+    for project navigation.
+  </context>
+
+  <scope>
+    <in-scope>
+      - Two new collapsible TreeView sections in the Kanban sidebar
+      - "Product Docs" section mirroring .kanban/product/ folder hierarchy
+      - "Engineering Docs" section mirroring .kanban/engineering/ folder hierarchy
+      - Recursive folder traversal showing folders and .md files
+      - Clicking a .md file opens it in the editor
+      - FileSystemWatcher for auto-refresh when docs change
+      - Path-based parent tracking for reveal() support
+    </in-scope>
+    <out-of-scope>
+      - Parsing markdown headers/sections (folders + files only)
+      - Search/filter functionality within TreeView
+      - Creating/editing docs from TreeView (use existing commands)
+      - Syntax highlighting or preview in TreeView
+      - Custom icons per doc type (use standard folder/file icons)
+    </out-of-scope>
+  </scope>
+
+  <requirements>
+    - FR1: The system shall display a "Product Docs" TreeView section in the Kanban sidebar
+    - FR2: The system shall display an "Engineering Docs" TreeView section in the Kanban sidebar
+    - FR3: Each section shall show a tree structure mirroring the folder hierarchy of its respective directory
+    - FR4: Folders shall be expandable/collapsible showing their contents
+    - FR5: Markdown files (.md) shall appear as clickable leaf items
+    - FR6: Clicking a markdown file shall open it in the editor using the kanban.openFile command
+    - FR7: The system shall auto-refresh TreeViews when files change in the docs folders
+    - FR8: The system shall handle missing or empty folders gracefully (return empty array)
+    - FR9: The system shall use path-based identity for parent tracking to support reveal()
+  </requirements>
+
+  <files>
+    <file action="create" path="apps/vscode/src/capabilities/docs-view.capability.ts">
+      Main capability implementing TreeDataProviders for both Product and Engineering docs.
+      Contains DocsFolderItem and DocsFileItem TreeItem classes.
+      Uses factory DI pattern with FileSystemCapability dependency.
+      Implements recursive folder traversal and path-based parent tracking.
+    </file>
+    <file action="modify" path="apps/vscode/package.json">
+      Add two view declarations to contributes.views.kanban:
+      - kanbanProductDocs with name "Product Docs"
+      - kanbanEngineeringDocs with name "Engineering Docs"
+    </file>
+    <file action="modify" path="apps/vscode/src/extension.ts">
+      Import and instantiate docs-view capability.
+      Create TreeDataProviders and register TreeViews.
+      Setup FileSystemWatchers for .kanban/product/**/*.md and .kanban/engineering/**/*.md.
+      Connect watchers to refresh callbacks.
+    </file>
+  </files>
+
+  <patterns>
+    <pattern name="TreeView Registration" reference="extension.ts:219-235">
+      Create capability factory, register TreeDataProvider, register TreeView with vscode.window.createTreeView()
+    </pattern>
+    <pattern name="Capability-Computer Separation" reference="tasks-view.capability.ts">
+      I/O operations in capability, pure logic separate. TreeItem classes extend vscode.TreeItem.
+    </pattern>
+    <pattern name="Factory DI Pattern" reference="factory-di.md">
+      Factory function accepts typed DependenciesInterface, returns CreateCapabilityReturn interface.
+    </pattern>
+    <pattern name="TreeItem Class Hierarchy" reference="tasks-view.capability.ts:16-233">
+      Extend vscode.TreeItem for each node type (DocsFolderItem, DocsFileItem).
+      Set iconPath, command, contextValue in constructor.
+    </pattern>
+    <pattern name="Parent Tracking" reference="tasks-view.capability.ts:260-305">
+      Use path-based identity instead of Maps. Compute parent from file path string.
+    </pattern>
+    <pattern name="EventEmitter Refresh" reference="tasks-view.capability.ts:258">
+      Create EventEmitter, fire on changes. Return refresh callback from factory.
+    </pattern>
+    <pattern name="Command Binding" reference="config-view.capability.ts:14-18">
+      Reuse kanban.openFile command with filePath argument for clickable items.
+    </pattern>
+  </patterns>
+
+  <research>
+    <product>
+      - vscode/kanban-view: Core TreeView architecture with multiple sections, parent tracking pattern
+      - docs/_index: Product docs in .kanban/product/, engineering docs in .kanban/engineering/
+      - docs/product: User-facing feature docs organized as {domain}/{feature}.md
+      - docs/engineering: Technical docs organized by type: systems/, patterns/, conventions/
+      - vscode/file-watcher: Currently watches only task XMLs, need new watchers for docs
+    </product>
+    <engineering>
+      - systems/vscode-extension: Capability/Computer/Orchestrator architecture
+      - patterns/factory-di: Factory functions with typed dependencies
+      - patterns/capability-computer: I/O in capabilities, pure logic in computers
+      - conventions/file-naming: kebab-case.capability.ts naming
+    </engineering>
+    <codebase>
+      - tasks-view.capability.ts: Complex TreeView with hierarchy, caching, parent tracking
+      - config-view.capability.ts: Simple flat TreeView, good minimal example
+      - global-actions-view.capability.ts: Collapsible group + action items pattern
+      - file-system.capability.ts: readDir(), isDirectory(), exists() methods available
+      - extension.ts:209-235: TreeView registration pattern
+      - package.json:26-50: View declarations in contributes.views.kanban
+    </codebase>
+    <pitfalls>
+      - File system watching: Add separate FileSystemWatcher for docs folders (user decision)
+      - Recursive traversal: Implement in capability with depth limiting
+      - Parent tracking: Use path-based identity, compute parent from path string (user decision)
+      - Performance: Filter by .md extension in code after readDir() (user decision)
+      - Missing folders: Wrap readDir() in try-catch, return empty array on error
+      - Empty state: Not a concern - map buttons remain visible regardless (user clarification)
+      - Command binding: Reuse kanban.openFile command for markdown files
+    </pitfalls>
+  </research>
+
+  <constraints>
+    - Must follow Capability/Computer/Orchestrator architecture (architecture directive)
+    - Must use correct file suffixes: .capability.ts (architecture directive)
+    - No any type - use unknown and narrow (typescript directive)
+    - All exported functions must have explicit return types (typescript directive)
+    - Use VSCode ThemeIcons, no hardcoded colors (design directive)
+    - Commands accessible via command palette (design directive)
+    - Capabilities cannot import other capabilities (architecture directive)
+  </constraints>
+
+  <dependencies>
+    <internal>
+      - FileSystemCapability: readDir(), isDirectory(), exists(), joinPath()
+      - kanban.openFile command: existing command for opening files in editor
+    </internal>
+    <external>
+      - VSCode TreeView API: TreeDataProvider, TreeItem, createTreeView
+      - VSCode EventEmitter: for refresh signals
+      - VSCode FileSystemWatcher: for auto-refresh on file changes
+    </external>
+  </dependencies>
+
+  <risks>
+    <risk impact="low">
+      Large doc hierarchies may slow initial render. Mitigation: Filter by extension in code, avoid extra stat calls.
+    </risk>
+    <risk impact="low">
+      Deeply nested folders could cause performance issues. Mitigation: Reasonable depth in practice, could add limit if needed.
+    </risk>
+  </risks>
+
+  <open-questions>
+  </open-questions>
+</spec>

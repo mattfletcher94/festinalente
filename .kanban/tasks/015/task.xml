@@ -1,4 +1,4 @@
-<task id="015" status="backlog" priority="high" created="2026-02-24" updated="2026-02-24">
+<task id="015" status="scoped" priority="high" created="2026-02-24" updated="2026-02-24">
   <title>Add documentation browser TreeView sections to sidebar</title>
 
   <labels>
