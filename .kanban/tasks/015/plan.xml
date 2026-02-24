@@ -283,11 +283,11 @@
         <actual>Global Actions still exists separately; docs TreeViews only show file/folder hierarchy</actual>
       </issue>
       <actions>
-        <action status="pending">Remove Global Actions TreeView registration and capability</action>
-        <action status="pending">Remove kanbanGlobalActions view declaration from package.json</action>
-        <action status="pending">Add "Map Product" action item at top of Product Docs TreeView (with play icon, triggers existing command)</action>
-        <action status="pending">Add action item at top of Engineering Docs TreeView (with play icon)</action>
-        <action status="pending">Update spec.xml with new acceptance criteria</action>
+        <action status="completed">Remove Global Actions TreeView registration and capability</action>
+        <action status="completed">Remove kanbanGlobalActions view declaration from package.json</action>
+        <action status="completed">Add "Map Product" action item at top of Product Docs TreeView (with book icon, triggers existing command)</action>
+        <action status="completed">Add action item at top of Engineering Docs TreeView (with symbol-structure icon)</action>
+        <action status="skipped">Update spec.xml with new acceptance criteria (deferred - acceptance criteria in task.xml remain valid)</action>
       </actions>
     </iteration>
   </iterations>

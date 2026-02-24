@@ -21,7 +21,6 @@ import { createClaudeSettingsCapability } from './capabilities/claude-settings.c
 import { createTasksViewCapability, TaskItem } from './capabilities/tasks-view.capability';
 import { createCodeLensCapability } from './capabilities/codelens.capability';
 import { createConfigViewCapability } from './capabilities/config-view.capability';
-import { createGlobalActionsViewCapability } from './capabilities/global-actions-view.capability';
 import { createDocsViewCapability } from './capabilities/docs-view.capability';
 
 // Types
@@ -197,9 +196,6 @@ export function activate(context: vscode.ExtensionContext): void {
     getConfigPath,
   });
 
-  // Initialize global actions view capability
-  const globalActionsView = createGlobalActionsViewCapability();
-
   // Initialize docs view capability
   const docsView = createDocsViewCapability(
     {
@@ -220,7 +216,6 @@ export function activate(context: vscode.ExtensionContext): void {
   // Create providers
   const treeDataProvider = tasksView.createTreeDataProvider();
   const configTreeDataProvider = configView.createTreeDataProvider();
-  const globalActionsTreeDataProvider = globalActionsView.createTreeDataProvider();
   const codeLensProvider = codelens.createCodeLensProvider();
 
   const refreshTree = tasksView.createRefreshCallback();
@@ -245,12 +240,6 @@ export function activate(context: vscode.ExtensionContext): void {
     treeDataProvider: configTreeDataProvider,
   });
   context.subscriptions.push(configTreeView);
-
-  // Register Global Actions TreeView
-  const globalActionsTreeView = vscode.window.createTreeView('kanbanGlobalActions', {
-    treeDataProvider: globalActionsTreeDataProvider,
-  });
-  context.subscriptions.push(globalActionsTreeView);
 
   // Register Product Docs TreeView
   const productDocsTreeView = vscode.window.createTreeView('kanbanProductDocs', {

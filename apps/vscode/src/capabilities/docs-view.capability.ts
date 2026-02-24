@@ -1,9 +1,30 @@
 /**
  * Docs view capability - mechanism for Product and Engineering docs TreeViews.
  * Provides recursive folder traversal with path-based parent tracking.
+ * Includes action items at the top of each section for doc mapping commands.
  */
 
 import * as vscode from 'vscode';
+
+/**
+ * Action item tree item (clickable command at top of section).
+ */
+export class DocsActionItem extends vscode.TreeItem {
+  constructor(
+    label: string,
+    iconName: string,
+    public readonly actionCommand: string
+  ) {
+    super(label, vscode.TreeItemCollapsibleState.None);
+    this.iconPath = new vscode.ThemeIcon(iconName);
+    this.command = {
+      command: 'kanban.runGlobalAction',
+      title: label,
+      arguments: [{ command: actionCommand }],
+    };
+    this.contextValue = 'docsAction';
+  }
+}
 
 /**
  * Docs folder tree item (collapsible container).
@@ -47,7 +68,7 @@ export class DocsFileItem extends vscode.TreeItem {
 /**
  * Combined type for all docs tree items.
  */
-export type DocsTreeItem = DocsFolderItem | DocsFileItem;
+export type DocsTreeItem = DocsActionItem | DocsFolderItem | DocsFileItem;
 
 /**
  * Dependencies for docs view capability.
@@ -141,6 +162,7 @@ export function createDocsViewCapability(
    */
   function createDocsProvider(
     docsFolder: string,
+    actionItem: DocsActionItem,
     emitter: vscode.EventEmitter<DocsTreeItem | undefined | void>,
     parentMap: Map<string, DocsTreeItem>
   ): vscode.TreeDataProvider<DocsTreeItem> {
@@ -155,30 +177,47 @@ export function createDocsViewCapability(
 
       getChildren(element?: DocsTreeItem): DocsTreeItem[] {
         if (!element) {
-          // Root level - get children of docs folder
-          return getChildrenForPath(docsPath, undefined, parentMap);
+          // Root level - action item first, then docs folder children
+          const children = getChildrenForPath(docsPath, undefined, parentMap);
+          return [actionItem, ...children];
         }
         if (element instanceof DocsFolderItem) {
           // Folder - get its children
           return getChildrenForPath(element.folderPath, element, parentMap);
         }
-        // Files have no children
+        // Action items and files have no children
         return [];
       },
 
       getParent(element: DocsTreeItem): DocsTreeItem | undefined {
-        const path = element instanceof DocsFolderItem ? element.folderPath : element.filePath;
-        return parentMap.get(path);
+        if (element instanceof DocsActionItem) {
+          // Action items are at root level
+          return undefined;
+        }
+        const itemPath = element instanceof DocsFolderItem ? element.folderPath : element.filePath;
+        return parentMap.get(itemPath);
       },
     };
   }
 
+  // Action items for each docs section
+  const productActionItem = new DocsActionItem(
+    'Map Product Docs',
+    'book',
+    '/kanban-map-product'
+  );
+  const engineeringActionItem = new DocsActionItem(
+    'Map Engineering Docs',
+    'symbol-structure',
+    '/kanban-map-engineering'
+  );
+
   function createProductDocsProvider(): vscode.TreeDataProvider<DocsTreeItem> {
-    return createDocsProvider('product', productEmitter, productParentMap);
+    return createDocsProvider('product', productActionItem, productEmitter, productParentMap);
   }
 
   function createEngineeringDocsProvider(): vscode.TreeDataProvider<DocsTreeItem> {
-    return createDocsProvider('engineering', engineeringEmitter, engineeringParentMap);
+    return createDocsProvider('engineering', engineeringActionItem, engineeringEmitter, engineeringParentMap);
   }
 
   function createProductRefresh(): () => void {
