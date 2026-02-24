@@ -95,6 +95,63 @@ Run code checks using user-configured directives. Directives define what gets ch
     </branch>
   </step>
 
+  <step name="read_spec" outputs="functionalRequirements, acceptanceCriteria">
+    <action>Get spec path from plan.xml's spec attribute</action>
+    <action>Read spec file at `.kanban/tasks/{taskId}/spec.xml`</action>
+    <action>Extract functional requirements (FR1, FR2, etc.)</action>
+    <action>Extract acceptance criteria from task.xml</action>
+  </step>
+
+  <step name="verify_requirements_met">
+    <note>Before running code checks, verify spec requirements are addressed</note>
+    <note>This is the final gate before QA - requirements must be traceable</note>
+
+    <action>Read spec's functional requirements</action>
+    <action>Read spec's acceptance criteria</action>
+
+    <action name="trace_requirements">
+      <action>For each functional requirement:</action>
+      <action>1. Identify the code change that addresses it</action>
+      <action>2. Verify the code is not a stub (no TODO/placeholder in that path)</action>
+      <action>3. Verify the code is reachable (wired into the application)</action>
+    </action>
+
+    <action name="trace_acceptance_criteria">
+      <action>For each acceptance criterion:</action>
+      <action>1. Identify how it would be tested</action>
+      <action>2. Verify the implementation supports that test</action>
+    </action>
+
+    <branch condition="gaps found">
+      <output>
+**Requirement Gaps Detected**
+
+The following requirements may not be fully implemented:
+{list gaps with details}
+      </output>
+
+      <action>Use AskUserQuestion with:
+        - header: "Gaps found"
+        - question: "Some requirements may have gaps. How to proceed?"
+        - options:
+          - label: "Return to implement", description: "Go back and address the gaps"
+          - label: "Proceed with checks", description: "Gaps are acceptable, continue to directive checks"
+        - multiSelect: false
+      </action>
+
+      <branch condition="user says return to implement">
+        <action>Create gap closure tasks in plan.xml</action>
+        <action>Update task status back to in-progress</action>
+        <output>Run /kanban-implement {taskId} to address gaps</output>
+        <action>Exit</action>
+      </branch>
+    </branch>
+
+    <branch condition="all requirements traced">
+      <output>All requirements verified. Proceeding to directive checks.</output>
+    </branch>
+  </step>
+
   <step name="load_check_directives" outputs="checkDirectives, hasChecks">
     <action>Read `.kanban/config.yaml`</action>
     <action>Find `directives.kanban-codecheck` array</action>
