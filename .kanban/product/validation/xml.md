@@ -3,12 +3,16 @@ id: "validation/xml"
 title: "XML Validation"
 type: feature
 tldr: "Validate syntax of task.xml, spec.xml, and plan.xml files"
-summary: "Uses fast-xml-parser to validate XML syntax in task files. Reports parsing errors with line/column information for quick fixes."
-keywords: [xml, validation, syntax, task, spec, plan]
+summary: "Uses fast-xml-parser to validate XML syntax in task files. Supports targeted validation by task ID or validates all tasks when run without arguments."
+keywords: [xml, validation, syntax, task, spec, plan, targeted]
 aliases: [validate-xml, xml-validator]
 boundary: "Does NOT validate XML schema or content; only syntax parsing"
 related: [validation/yaml, tasks/create]
-updated: 2026-02-20
+updated: 2026-02-24
+verified: 2026-02-24
+code_refs:
+  - .kanban/scripts/validate-xml.cjs
+  - apps/kanban/src/scripts/validate-xml.ts
 ---
 
 # XML Validation
@@ -23,14 +27,23 @@ XML Validation checks that task XML files parse correctly. It uses fast-xml-pars
 
 ## How It Works
 
-1. Scan `.kanban/tasks/` for XML files
-2. Parse each file with fast-xml-parser
-3. Report parsing errors with location
-4. Return summary of valid/invalid files
+1. **With task ID argument:** Validate only that task's XML files (task.xml, spec.xml, plan.xml)
+2. **Without arguments:** Scan all `.kanban/tasks/` subdirectories for XML files
+3. Parse each file with fast-xml-parser
+4. Report parsing errors with file path and message
+5. Return JSON summary of valid/invalid files
 
 ### Key Workflows
 
-**Manual validation:**
+**Targeted validation (single task):**
+```bash
+node .kanban/scripts/validate-xml.cjs 013
+```
+- Validates only task 013's XML files
+- Faster feedback during development
+- Ideal for pre-commit hooks
+
+**Full validation (all tasks):**
 ```bash
 node .kanban/scripts/validate-xml.cjs
 ```
@@ -41,34 +54,56 @@ node .kanban/scripts/validate-xml.cjs
 - Run at end of each kanban skill
 - Blocks completion if errors found
 
-**Summary:** Validates all XML files and reports errors.
+**Summary:** Validates specific task XML files by ID, or all tasks when no argument provided.
 
 ## Examples
 
-### Typical Usage
+### Targeted Validation (Recommended for Development)
+
+```bash
+node .kanban/scripts/validate-xml.cjs 013
+
+# Success output:
+# {
+#   "valid": true,
+#   "filesChecked": 3,
+#   "errors": []
+# }
+
+# Task not found:
+# {
+#   "valid": false,
+#   "error": true,
+#   "message": "Task not found: 999"
+# }
+```
+
+### Full Validation
 
 ```bash
 node .kanban/scripts/validate-xml.cjs
 
 # Success output:
-# { "valid": true, "files": 3, "errors": [] }
+# {
+#   "valid": true,
+#   "filesChecked": 15,
+#   "errors": []
+# }
 
 # Error output:
 # {
 #   "valid": false,
-#   "files": 3,
+#   "filesChecked": 15,
 #   "errors": [
 #     {
 #       "file": ".kanban/tasks/001/task.xml",
-#       "line": 15,
-#       "column": 8,
 #       "message": "Unclosed tag 'description'"
 #     }
 #   ]
 # }
 ```
 
-**Summary:** JSON output with validation results.
+**Summary:** JSON output with validation results. Use task ID for targeted validation.
 
 ## Boundaries
 
@@ -92,4 +127,4 @@ What this feature does NOT do:
 ## Limitations
 
 - Only validates syntax, not schema
-- Validates all files each run (no incremental)
+- No path-based arguments (use task ID only)
