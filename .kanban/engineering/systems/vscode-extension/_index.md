@@ -24,6 +24,7 @@ code_refs:
   - apps/vscode/src/capabilities/claude-settings.capability.ts
   - apps/vscode/src/capabilities/config-view.capability.ts
   - apps/vscode/src/capabilities/global-actions-view.capability.ts
+  - apps/vscode/src/capabilities/docs-view.capability.ts
   - apps/vscode/src/computers/task-parser.computer.ts
   - apps/vscode/src/computers/claude-settings.computer.ts
   - apps/vscode/bin/install.cjs
@@ -71,6 +72,7 @@ Capabilities handle I/O and side effects. They wrap VSCode APIs and file system 
 | codelens | CodeLens provider for quick actions | `capabilities/codelens.capability.ts` |
 | config-view | TreeView for config.yaml access | `capabilities/config-view.capability.ts` |
 | global-actions-view | TreeView for global project commands | `capabilities/global-actions-view.capability.ts` |
+| docs-view | TreeViews for browsing product/engineering docs | `capabilities/docs-view.capability.ts` |
 
 #### TreeItem Types in tasks-view
 
@@ -121,6 +123,17 @@ The global-actions-view capability defines:
 | GlobalActionItem | GlobalActionsGroupItem | Clickable action (e.g., "Map Product Docs", "Map Engineering Docs") |
 
 GlobalActionItem uses `kanban.runGlobalAction` command to execute the action in a terminal.
+
+#### TreeItem Types in docs-view
+
+The docs-view capability defines:
+
+| TreeItem | Parent | Purpose |
+|----------|--------|---------|
+| DocsFolderItem | root or DocsFolderItem | Collapsible folder in docs hierarchy |
+| DocsFileItem | DocsFolderItem | Clickable markdown file (opens in editor) |
+
+DocsFolderItem and DocsFileItem use path-based parent tracking via Maps populated during getChildren(). Both use `kanban.openFile` command for file opening.
 
 #### Header Action Commands
 
