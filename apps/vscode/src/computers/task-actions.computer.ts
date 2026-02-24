@@ -7,7 +7,6 @@ import type { Task, TaskAction, TaskStatus } from '../types/task-types';
 export interface CreateTaskActionsComputerReturn {
   getActions(task: Task): readonly TaskAction[];
   buildCommand(action: string, id: string): string;
-  isSinglePathStatus(status: TaskStatus): boolean;
 }
 
 export function createTaskActionsComputer(): CreateTaskActionsComputerReturn {
@@ -114,22 +113,8 @@ export function createTaskActionsComputer(): CreateTaskActionsComputerReturn {
     }
   }
 
-  /**
-   * Check if a status has only a single action path (autoplay-eligible).
-   *
-   * Single-path statuses have exactly one deterministic next action,
-   * so autoplay can proceed without user input.
-   *
-   * @param status - The task status to check.
-   * @returns True if the status has a single action path.
-   */
-  function isSinglePathStatus(status: TaskStatus): boolean {
-    return status === 'planned' || status === 'in-progress' || status === 'update-docs';
-  }
-
   return {
     getActions,
     buildCommand,
-    isSinglePathStatus,
   };
 }
