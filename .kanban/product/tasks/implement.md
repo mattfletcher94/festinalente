@@ -3,12 +3,15 @@ id: "tasks/implement"
 title: "Implement Task"
 type: feature
 tldr: "Execute plan steps with verification, code stays uncommitted"
-summary: "Executes the implementation plan step-by-step, running verification after each task. Code remains uncommitted until codecheck passes. Supports resuming interrupted implementations."
+summary: "Executes the implementation plan step-by-step, running verification after each task. Code remains uncommitted until check passes. Supports resuming interrupted implementations."
 keywords: [implement, execute, code, verification, uncommitted]
 aliases: [kanban-implement, implementation, coding]
-boundary: "Does NOT commit code; code stays uncommitted until codecheck and QA pass"
-related: [tasks/plan, tasks/codecheck, tasks/workflow]
-updated: 2026-02-20
+boundary: "Does NOT commit code; code stays uncommitted until check and QA pass"
+related: [tasks/plan, tasks/check, tasks/workflow]
+updated: 2026-02-24
+verified: 2026-02-24
+code_refs:
+  - apps/kanban/src/content/skills/kanban-implement/SKILL.md
 ---
 
 # Implement Task
@@ -17,7 +20,7 @@ updated: 2026-02-20
 
 ## Overview
 
-Implement Task executes the implementation plan step-by-step. Claude reads each task from plan.xml, makes the code changes, runs verification commands, and marks tasks complete. Code remains uncommitted—this allows the codecheck and QA phases to review before committing.
+Implement Task executes the implementation plan step-by-step. Claude reads each task from plan.xml, makes the code changes, runs verification commands, and marks tasks complete. Code remains uncommitted—this allows the check phase to verify before committing.
 
 **Summary:** Controlled execution of plan with verification at each step.
 
@@ -32,7 +35,7 @@ Implement Task executes the implementation plan step-by-step. Claude reads each 
    - Execute the action (code changes)
    - Run verification command or manual check
    - Mark task complete with timestamp
-6. When all tasks complete: move status to codecheck
+6. When all tasks complete: move status to check
 7. Code remains uncommitted for review
 
 ### Key Workflows
@@ -85,7 +88,7 @@ Running verification: npm run build
 What this feature does NOT do:
 
 - **Does NOT:** Commit code → Code stays uncommitted
-- **Does NOT:** Run full test suites → See [tasks/codecheck](./codecheck.md)
+- **Does NOT:** Run full test suites → See [tasks/check](./check.md)
 - **Does NOT:** Skip plan steps → Each step must execute
 
 ## Configuration
@@ -100,7 +103,7 @@ What this feature does NOT do:
 - **tasks/plan**: Reads plan.xml for execution
 - **docs/context-selection**: Loads relevant documentation
 - **docs/freshness**: Warns about outdated docs
-- **tasks/codecheck**: Next step when complete
+- **tasks/check**: Next step when complete
 
 ## Limitations
 

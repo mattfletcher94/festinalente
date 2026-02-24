@@ -13,7 +13,7 @@
   </context>
 
   <process>
-    <rule id="P1" phase="codecheck">
+    <rule id="P1" phase="check">
       Run kanban build to verify scripts compile and content generates correctly
     </rule>
   </process>

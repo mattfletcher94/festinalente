@@ -30,7 +30,7 @@
 <command description="Get skill configuration (returns JSON with directives)">node .kanban/scripts/get-skill-config.cjs {skill}</command>
 <example_code lang="json">
 {
-  "skill": "kanban-codecheck",
+  "skill": "kanban-check",
   "directives": [
     { "name": "code-review", "path": ".kanban/directives/code-review.xml", "exists": true }
   ]

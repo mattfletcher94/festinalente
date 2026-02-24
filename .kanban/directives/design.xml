@@ -85,7 +85,7 @@
       - Use context menus sparingly - prefer command palette
     </rule>
 
-    <rule id="P6" phase="codecheck">
+    <rule id="P6" phase="check">
       VALIDATE DESIGN DECISIONS during review:
       - Does every element serve a clear purpose?
       - Are VSCode native patterns used where possible?

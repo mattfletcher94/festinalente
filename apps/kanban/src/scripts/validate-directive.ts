@@ -10,7 +10,7 @@ import { XMLParser } from 'fast-xml-parser';
 
 const DIRECTIVES_DIR = '.kanban/directives';
 
-const VALID_PHASES = ['scope', 'plan', 'implement', 'codecheck', 'rework', 'docs'];
+const VALID_PHASES = ['scope', 'plan', 'implement', 'check', 'rework', 'docs'];
 const VALID_SEVERITIES = ['error', 'warning', 'info'];
 const VALID_CHECK_TYPES = ['command', 'pattern', 'checklist'];
 

@@ -9,7 +9,7 @@ aliases: [validators, checks, quality-assurance]
 boundary: "Does NOT execute code checks (tests, lint); only validates file structure and content"
 contains: [validation/xml, validation/yaml, validation/directives, validation/docs-quality]
 related: [tasks/_index, docs/_index]
-updated: 2026-02-20
+updated: 2026-02-24
 ---
 
 # Validation
@@ -26,12 +26,12 @@ The Validation domain provides structure and quality validation for kanban files
 
 ## Boundaries
 
-This domain does NOT execute runtime code checks (tests, typecheck, lint). For that, see [tasks/codecheck](../tasks/codecheck.md).
+This domain does NOT execute runtime code checks (tests, typecheck, lint). For that, see [tasks/check](../tasks/check.md).
 
 - **Does NOT:** Run tests or linters
 - **Does NOT:** Validate business logic
 - **Does NOT:** Modify files (read-only validation)
-- **See instead:** [tasks/codecheck](../tasks/codecheck.md) for code quality checks
+- **See instead:** [tasks/check](../tasks/check.md) for code quality checks
 
 ## Features
 

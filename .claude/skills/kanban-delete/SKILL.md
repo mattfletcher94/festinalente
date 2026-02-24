@@ -156,7 +156,7 @@ Permanently delete a task from the kanban board. Only tasks in Backlog status ca
     
     Before completing, validate all task XML:
     
-    <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
+    <command description="Validate XML in task files">node .kanban/scripts/validate-xml.cjs {taskId}</command>
     
     If validation fails, fix the reported errors before completing.
     

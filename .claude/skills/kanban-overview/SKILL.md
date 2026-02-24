@@ -50,7 +50,7 @@ No tasks found.
       
       Before completing, validate all task XML:
       
-      <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
+      <command description="Validate XML in task files">node .kanban/scripts/validate-xml.cjs {taskId}</command>
       
       If validation fails, fix the reported errors before completing.
       
@@ -76,7 +76,7 @@ No tasks found.
   <!-- ============================================ -->
 
   <step name="show_current_status" when="user selected 'Current status'">
-    <action>Find tasks in active states: in-progress, codecheck, qa, update-docs, pr</action>
+    <action>Find tasks in active states: in-progress, check, update-docs, pr</action>
     <action>For in-progress tasks, read plan.xml and count progress</action>
 
     <branch condition="no active tasks">
@@ -95,7 +95,7 @@ No tasks in progress.
       
       Before completing, validate all task XML:
       
-      <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
+      <command description="Validate XML in task files">node .kanban/scripts/validate-xml.cjs {taskId}</command>
       
       If validation fails, fix the reported errors before completing.
       
@@ -116,7 +116,7 @@ No tasks in progress.
     
     Before completing, validate all task XML:
     
-    <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
+    <command description="Validate XML in task files">node .kanban/scripts/validate-xml.cjs {taskId}</command>
     
     If validation fails, fix the reported errors before completing.
     
@@ -130,7 +130,7 @@ No tasks in progress.
   <step name="show_board_overview" when="user selected 'Board overview'">
     <action>Group tasks by status</action>
     <action>For in-progress tasks, read plan and count progress</action>
-    <note>Order columns by workflow: in-progress, codecheck, qa, update-docs, pr, planned, scoped, backlog, done</note>
+    <note>Order columns by workflow: in-progress, check, update-docs, pr, planned, scoped, backlog, done</note>
     <note>Only show columns that have tasks</note>
 
     <output>
@@ -139,10 +139,7 @@ No tasks in progress.
 **In Progress ({count})**
 - {id}: {title} — {completed}/{total} steps
 
-**Code Check ({count})**
-- {id}: {title}
-
-**QA ({count})**
+**Check ({count})**
 - {id}: {title}
 
 **Update Docs ({count})**
@@ -167,7 +164,7 @@ No tasks in progress.
     
     Before completing, validate all task XML:
     
-    <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
+    <command description="Validate XML in task files">node .kanban/scripts/validate-xml.cjs {taskId}</command>
     
     If validation fails, fix the reported errors before completing.
     
@@ -186,11 +183,10 @@ No tasks in progress.
 2. `scoped` → "SCOPED"
 3. `planned` → "PLANNED"
 4. `in-progress` → "IN PROGRESS"
-5. `codecheck` → "CODE CHECK"
-6. `qa` → "QA"
-7. `update-docs` → "UPDATE DOCS"
-8. `pr` → "PR"
-9. `done` → "DONE"</note>
+5. `check` → "CHECK"
+6. `update-docs` → "UPDATE DOCS"
+7. `pr` → "PR"
+8. `done` → "DONE"</note>
 
     <note>Box format:
 ```
@@ -216,7 +212,7 @@ Done ({count} tasks)
     
     Before completing, validate all task XML:
     
-    <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
+    <command description="Validate XML in task files">node .kanban/scripts/validate-xml.cjs {taskId}</command>
     
     If validation fails, fix the reported errors before completing.
     
@@ -250,7 +246,7 @@ Done ({count} tasks)
       
       Before completing, validate all task XML:
       
-      <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
+      <command description="Validate XML in task files">node .kanban/scripts/validate-xml.cjs {taskId}</command>
       
       If validation fails, fix the reported errors before completing.
       
@@ -273,7 +269,7 @@ Done ({count} tasks)
       
       Before completing, validate all task XML:
       
-      <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
+      <command description="Validate XML in task files">node .kanban/scripts/validate-xml.cjs {taskId}</command>
       
       If validation fails, fix the reported errors before completing.
       
@@ -293,7 +289,7 @@ Done ({count} tasks)
       
       Before completing, validate all task XML:
       
-      <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
+      <command description="Validate XML in task files">node .kanban/scripts/validate-xml.cjs {taskId}</command>
       
       If validation fails, fix the reported errors before completing.
       
@@ -311,7 +307,7 @@ I didn't understand "{input}". You can:
       
       Before completing, validate all task XML:
       
-      <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
+      <command description="Validate XML in task files">node .kanban/scripts/validate-xml.cjs {taskId}</command>
       
       If validation fails, fix the reported errors before completing.
       
@@ -333,7 +329,7 @@ I didn't understand "{input}". You can:
       
       Before completing, validate all task XML:
       
-      <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
+      <command description="Validate XML in task files">node .kanban/scripts/validate-xml.cjs {taskId}</command>
       
       If validation fails, fix the reported errors before completing.
       
@@ -379,11 +375,8 @@ I didn't understand "{input}". You can:
     <branch condition="status is in-progress">
       <output>**Next:** `/kanban-implement {taskId}` (resume)</output>
     </branch>
-    <branch condition="status is codecheck">
-      <output>**Next:** `/kanban-codecheck {taskId}`</output>
-    </branch>
-    <branch condition="status is qa">
-      <output>**Next:** `/kanban-approve {taskId}` or `/kanban-rework {taskId}`</output>
+    <branch condition="status is check">
+      <output>**Next:** `/kanban-check {taskId}` or `/kanban-rework {taskId}`</output>
     </branch>
     <branch condition="status is update-docs">
       <output>**Next:** `/kanban-docs {taskId}`</output>
@@ -399,7 +392,7 @@ I didn't understand "{input}". You can:
     
     Before completing, validate all task XML:
     
-    <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
+    <command description="Validate XML in task files">node .kanban/scripts/validate-xml.cjs {taskId}</command>
     
     If validation fails, fix the reported errors before completing.
     
@@ -427,8 +420,8 @@ User: `/kanban-overview`
 - Next: `/kanban-implement 007`
 
 **005: Fix login redirect**
-- Status: qa
-- Next: `/kanban-approve 005` or `/kanban-rework 005`
+- Status: check
+- Next: `/kanban-check 005` or `/kanban-rework 005`
 ```
 </example>
 
@@ -442,7 +435,7 @@ User: `/kanban-overview`
 **In Progress (1)**
 - 007: Add user authentication — 4/8 steps
 
-**QA (1)**
+**Check (1)**
 - 005: Fix login redirect
 
 **Planned (2)**
@@ -468,7 +461,7 @@ User: `/kanban-overview`
 ┌─ IN PROGRESS (1) ─────────────────────┐
 │ 007: Add user authentication [feature]│
 └───────────────────────────────────────┘
-┌─ QA (1) ──────────────────────────────┐
+┌─ CHECK (1) ───────────────────────────┐
 │ 005: Fix login redirect [bug]         │
 └───────────────────────────────────────┘
 ┌─ PLANNED (2) ─────────────────────────┐
@@ -516,7 +509,7 @@ User: `/kanban-overview`
 ## Tasks labeled "bug"
 
 - **005**: Fix login redirect
-  - Status: qa
+  - Status: check
   - Priority: high
 
 - **003**: Memory leak in dashboard

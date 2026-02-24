@@ -37,7 +37,7 @@ Create a plan file in `.kanban/tasks/{id}/` and move task from Scoped to Planned
 <command description="Get skill configuration (returns JSON with directives)">node .kanban/scripts/get-skill-config.cjs {skill}</command>
 <example_code lang="json">
 {
-  "skill": "kanban-codecheck",
+  "skill": "kanban-check",
   "directives": [
     { "name": "code-review", "path": ".kanban/directives/code-review.xml", "exists": true }
   ]
@@ -644,7 +644,7 @@ Next:
     
     Before completing, validate all task XML:
     
-    <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
+    <command description="Validate XML in task files">node .kanban/scripts/validate-xml.cjs {taskId}</command>
     
     If validation fails, fix the reported errors before completing.
     

@@ -59,21 +59,12 @@ export function createTaskActionsComputer(): CreateTaskActionsComputerReturn {
           },
         ];
 
-      case 'codecheck':
+      case 'check':
         return [
           {
-            label: 'Run Checks',
-            command: buildCommand('codecheck', id),
-            description: 'Run configured checks',
-          },
-        ];
-
-      case 'qa':
-        return [
-          {
-            label: 'Approve',
-            command: buildCommand('approve', id),
-            description: 'QA passed, commit code',
+            label: 'Check',
+            command: buildCommand('check', id),
+            description: 'Run checks, QA, and commit',
           },
           {
             label: 'Rework',

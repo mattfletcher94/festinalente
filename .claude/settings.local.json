@@ -94,7 +94,8 @@
       "Bash(git -C \"C:\\\\Users\\\\MattF\\\\Documents\\\\Code\\\\claudeban\" diff HEAD)",
       "Bash(git revert:*)",
       "WebFetch(domain:www.alibabacloud.com)",
-      "WebFetch(domain:ghuntley.com)"
+      "WebFetch(domain:ghuntley.com)",
+      "Bash(pnpm kanban:build:*)"
     ]
   }
 }

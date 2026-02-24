@@ -60,16 +60,10 @@ terms:
     definition: "Workflow column for tasks currently being implemented"
     auto_generated: true
 
-  - term: "codecheck"
-    aliases: ["verification", "automated-check", "checks"]
+  - term: "check"
+    aliases: ["verification", "automated-check", "checks", "qa", "quality-assurance"]
     domain: tasks
-    definition: "Workflow column for running automated tests and lint"
-    auto_generated: true
-
-  - term: "qa"
-    aliases: ["quality-assurance", "testing", "manual-test"]
-    domain: tasks
-    definition: "Workflow column for human testing of the implementation"
+    definition: "Workflow column for automated checks, requirements verification, and human QA"
     auto_generated: true
 
   - term: "rework"

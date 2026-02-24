@@ -9,8 +9,7 @@ export type TaskStatus =
   | 'scoped'
   | 'planned'
   | 'in-progress'
-  | 'codecheck'
-  | 'qa'
+  | 'check'
   | 'update-docs'
   | 'pr'
   | 'done';

@@ -7,8 +7,11 @@ summary: "Provides access to skill-specific configuration including directive as
 keywords: [config, configuration, directives, skills, settings]
 aliases: [get-skill-config, skill-config, config-access]
 boundary: "Does NOT modify config; read-only access"
-related: [tasks/codecheck, validation/directives]
-updated: 2026-02-20
+related: [tasks/check, validation/directives]
+updated: 2026-02-24
+verified: 2026-02-24
+code_refs:
+  - apps/kanban/src/scripts/get-skill-config.ts
 ---
 
 # Configuration Access
@@ -32,13 +35,13 @@ Configuration Access provides read access to skill-specific settings from `.kanb
 
 **Usage:**
 ```bash
-node .kanban/scripts/get-skill-config.cjs kanban-codecheck
+node .kanban/scripts/get-skill-config.cjs kanban-check
 ```
 
 **Output:**
 ```json
 {
-  "skill": "kanban-codecheck",
+  "skill": "kanban-check",
   "directives": [
     { "name": "typescript", "path": ".kanban/directives/typescript.xml", "exists": true },
     { "name": "testing", "path": ".kanban/directives/testing.xml", "exists": true }
@@ -69,7 +72,7 @@ node .kanban/scripts/get-skill-config.cjs kanban-implement
 ```yaml
 # .kanban/config.yaml
 directives:
-  kanban-codecheck:
+  kanban-check:
     - typescript
     - testing
   kanban-implement:
@@ -95,7 +98,7 @@ What this feature does NOT do:
 ## Interactions
 
 - **All skills**: Load directives at start
-- **Codecheck**: Determines which checks to run
+- **Check**: Determines which checks to run
 
 ## Limitations
 

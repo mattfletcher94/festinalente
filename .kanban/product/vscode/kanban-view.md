@@ -8,8 +8,8 @@ keywords: [kanban, view, treeview, sidebar, columns, status, config, global-acti
 aliases: [task-view, kanban-board, tasks-view]
 boundary: "Does NOT provide drag-and-drop; tasks move via commands"
 related: [vscode/codelens, vscode/terminal, tasks/workflow]
-updated: 2026-02-23
-verified: 2026-02-23
+updated: 2026-02-24
+verified: 2026-02-24
 code_refs:
   - apps/vscode/src/extension.ts
   - apps/vscode/src/capabilities/tasks-view.capability.ts
@@ -24,7 +24,7 @@ code_refs:
 
 ## Overview
 
-Kanban View provides a sidebar TreeView showing all tasks organized by their workflow status. Each column (backlog, scoped, planned, in-progress, codecheck, qa, update-docs, pr, done) expands to show tasks with priority indicators and labels. Clicking a task opens its task.xml file.
+Kanban View provides a sidebar TreeView showing all tasks organized by their workflow status. Each column (backlog, scoped, planned, in-progress, check, update-docs, pr, done) expands to show tasks with priority indicators and labels. Clicking a task opens its task.xml file.
 
 The sidebar also includes a "Kanban Config" section for quick access to config.yaml, and a "Global Actions" section providing project-wide commands like documentation mapping.
 
@@ -72,7 +72,7 @@ The KANBAN TASKS view header includes action buttons (left to right):
 - Clicking any action executes its command in terminal
 
 **Multi-action statuses:**
-- qa: "Approve" (primary) + "Rework" (secondary)
+- check: "Check" (primary) + "Rework" (secondary)
 - pr: "Merge" (primary) + "Rework" (secondary)
 - in-progress: "Continue" (primary) + "Save WIP" (secondary)
 
@@ -128,8 +128,7 @@ KANBAN TASKS                    [💬] [+] [🔍] [↻]
 │   └── 002: Add user auth [feature] [medium]
 ├── In Progress (1)
 │   └── 001: Add localStorage [feature] [high]
-├── Code Check (0)
-├── QA (0)
+├── Check (0)
 ├── Update Docs (0)
 ├── PR (0)
 └── Done (0)
@@ -149,9 +148,9 @@ KANBAN TASKS                    [💬] [+] [🔍] [↻]
 ### Expanded Task (multiple actions)
 
 ```
-├── QA (1)
+├── Check (1)
 │   └── ▼ 001: Add localStorage [feature] [high]
-│       ├── ▶ Approve                ← Primary action (green play icon)
+│       ├── ▶ Check                  ← Primary action (green play icon)
 │       ├── ↩ Rework                 ← Secondary action (orange reply icon)
 │       ├── task.xml                  ← FileItem
 │       ├── spec.xml

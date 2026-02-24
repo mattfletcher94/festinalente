@@ -27,11 +27,10 @@ directives:
     - tsdoc
     - design
   kanban-save: []
-  kanban-codecheck:
+  kanban-check:
     - check-kanban
     - check-vscode
     - code-review
-  kanban-approve: []
   kanban-docs: []
   kanban-merge: []
   kanban-rework:

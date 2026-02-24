@@ -8,7 +8,10 @@ keywords: [codelens, actions, inline, task, commands]
 aliases: [task-actions, inline-actions]
 boundary: "Does NOT show on spec.xml or plan.xml; only task.xml files"
 related: [vscode/kanban-view, vscode/terminal, tasks/workflow]
-updated: 2026-02-20
+updated: 2026-02-24
+verified: 2026-02-24
+code_refs:
+  - apps/vscode/src/capabilities/codelens.capability.ts
 ---
 
 # CodeLens Actions
@@ -35,9 +38,8 @@ CodeLens Actions adds clickable action links above task.xml file content. Action
 - backlog → Scope
 - scoped → Plan
 - planned → Implement
-- in-progress → Codecheck, Save
-- codecheck → (automatic)
-- qa → Approve, Rework
+- in-progress → Check, Save
+- check → Check, Rework
 - pr → Merge, Rework
 
 **Action click flow:**
@@ -66,7 +68,7 @@ CodeLens Actions adds clickable action links above task.xml file content. Action
 ```
 // In task.xml for an in-progress task:
 
-[Codecheck] [Save]
+[Check] [Save]
 ────────────────────
 <task id="001" status="in-progress">
   <title>Add localStorage persistence</title>

@@ -19,10 +19,10 @@
   </context>
 
   <process>
-    <rule id="P1" phase="codecheck">
+    <rule id="P1" phase="check">
       Scan for forbidden patterns before any manual review
     </rule>
-    <rule id="P2" phase="codecheck">
+    <rule id="P2" phase="check">
       Check architectural classification of all new/modified modules
     </rule>
   </process>

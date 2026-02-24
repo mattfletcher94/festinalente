@@ -7,8 +7,11 @@ summary: "Validates directive files against schema: required attributes, valid p
 keywords: [directives, validation, schema, phases, checks]
 aliases: [validate-directive, directive-validator]
 boundary: "Does NOT execute directive checks; only validates directive definition"
-related: [validation/xml, tasks/codecheck]
-updated: 2026-02-20
+related: [validation/xml, tasks/check]
+updated: 2026-02-24
+verified: 2026-02-24
+code_refs:
+  - apps/kanban/src/scripts/validate-directive.ts
 ---
 
 # Directive Validation
@@ -17,7 +20,7 @@ updated: 2026-02-20
 
 ## Overview
 
-Directive Validation checks that directive files follow the expected schema. It validates phase values (scope, plan, implement, codecheck, rework, docs), check types (command, pattern, checklist), severity levels (error, warning, info), and reference resolution.
+Directive Validation checks that directive files follow the expected schema. It validates phase values (scope, plan, implement, check, rework, docs), check types (command, pattern, checklist), severity levels (error, warning, info), and reference resolution.
 
 **Summary:** Schema validation for governance directives.
 
@@ -111,12 +114,12 @@ What this feature does NOT do:
 | Setting | Description | Default |
 |---------|-------------|---------|
 | Path | Directive location | .kanban/directives/ |
-| Valid phases | Allowed phase values | scope, plan, implement, codecheck, rework, docs |
+| Valid phases | Allowed phase values | scope, plan, implement, check, rework, docs |
 | Valid check types | Allowed check types | command, pattern, checklist |
 
 ## Interactions
 
-- **Codecheck**: Directives used during code checks
+- **Check**: Directives used during verification phase
 - **Skills**: Directives loaded by kanban skills
 
 ## Limitations

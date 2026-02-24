@@ -110,7 +110,7 @@ Create a new directive through conversational Q&A. Captures context principles, 
         - label: "scope", description: "During requirements research"
         - label: "plan", description: "During implementation planning"
         - label: "implement", description: "During coding"
-        - label: "codecheck", description: "During code review"
+        - label: "check", description: "During code review"
       - multiSelect: true
     </action>
 
@@ -196,7 +196,7 @@ Create a new directive through conversational Q&A. Captures context principles, 
     <note>User can select "Other" to describe phase rules</note>
 
     <action>For each rule mentioned:</action>
-    <action>Ask which phase(s) it applies to (scope, plan, implement, codecheck, rework)</action>
+    <action>Ask which phase(s) it applies to (scope, plan, implement, check, rework)</action>
 
     <output>
 **Process rules captured:**
@@ -428,7 +428,7 @@ Create a new directive through conversational Q&A. Captures context principles, 
         - label: "kanban-scope", description: "During requirements research"
         - label: "kanban-plan", description: "During implementation planning"
         - label: "kanban-implement", description: "During code implementation"
-        - label: "kanban-codecheck", description: "During code review"
+        - label: "kanban-check", description: "During code review"
       - multiSelect: true
     </action>
 
@@ -461,7 +461,7 @@ Updated `.kanban/config.yaml`
     
     Before completing, validate all task XML:
     
-    <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
+    <command description="Validate XML in task files">node .kanban/scripts/validate-xml.cjs {taskId}</command>
     
     If validation fails, fix the reported errors before completing.
     
@@ -490,11 +490,11 @@ Is this about code constraints, process rules, running checks, or general guidan
 > Code constraints and validation checks
 
 Which workflow phases should this apply to?
-> implement and codecheck
+> implement and check
 
 I understand this directive will:
 - Purpose: Enforce consistent code formatting and naming conventions
-- Apply to phases: implement, codecheck
+- Apply to phases: implement, check
 - Type: Code constraints + validation
 
 Does this sound right? > Yes
@@ -559,18 +559,18 @@ Directive validated successfully.
 
 Which skills should load this directive?
 [x] kanban-implement - During code implementation
-[x] kanban-codecheck - During code review
+[x] kanban-check - During code review
 [ ] kanban-scope - During requirements research
 [ ] kanban-plan - During implementation planning
 
 Directive linked to skills:
 - kanban-implement
-- kanban-codecheck
+- kanban-check
 
 Updated .kanban/config.yaml
 
 Directive created: .kanban/directives/code-style.xml
-Linked to: kanban-implement, kanban-codecheck
+Linked to: kanban-implement, kanban-check
 Commit: c4d5e6f docs: create directive - code-style
 
 Next: Test by running a skill that uses this directive
@@ -578,5 +578,5 @@ Next: Test by running a skill that uses this directive
 </example>
 
 <next_steps>
-Test by running `/kanban-implement` or `/kanban-codecheck` on a task.
+Test by running `/kanban-implement` or `/kanban-check` on a task.
 </next_steps>

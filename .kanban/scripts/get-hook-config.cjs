@@ -13,7 +13,7 @@ function main() {
 	if (args.length === 0) {
 		console.log(JSON.stringify({
 			error: true,
-			message: "Usage: get-hook-config.cjs <hook> (e.g., kanban-codecheck)"
+			message: "Usage: get-hook-config.cjs <hook> (e.g., kanban-check)"
 		}));
 		process.exit(1);
 	}

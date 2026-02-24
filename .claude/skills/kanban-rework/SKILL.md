@@ -1,6 +1,6 @@
 ---
 name: kanban-rework
-description: Return task to In Progress with structured issue report. Works from QA or PR columns.
+description: Return task to In Progress with structured issue report. Works from Check or PR columns.
 allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *, gh pr *), AskUserQuestion
 argument-hint: "[task-id]"
 disable-model-invocation: true
@@ -37,7 +37,7 @@ Return a task to In Progress when human review finds issues. Gather structured i
 <command description="Get skill configuration (returns JSON with directives)">node .kanban/scripts/get-skill-config.cjs {skill}</command>
 <example_code lang="json">
 {
-  "skill": "kanban-codecheck",
+  "skill": "kanban-check",
   "directives": [
     { "name": "code-review", "path": ".kanban/directives/code-review.xml", "exists": true }
   ]
@@ -46,7 +46,7 @@ Return a task to In Progress when human review finds issues. Gather structured i
 
 <note>Column Transitions:
 ```
-qa → in-progress
+check → in-progress
 pr → in-progress
 ```
 See `.kanban/workflow.yaml` for column definitions and valid transitions.
@@ -70,11 +70,11 @@ See `.kanban/workflow.yaml` for column definitions and valid transitions.
       <action>Use $ARGUMENTS as taskId</action>
     </branch>
     <branch condition="$ARGUMENTS not provided">
-      <action>List tasks in `qa` or `pr` status from `.kanban/tasks/`</action>
+      <action>List tasks in `check` or `pr` status from `.kanban/tasks/`</action>
       <action>Use AskUserQuestion tool with:
         - header: "Task"
         - question: "Which task needs rework?"
-        - options: Build from task list (up to 4 tasks in qa or pr status), each with:
+        - options: Build from task list (up to 4 tasks in check or pr status), each with:
           - label: "{taskId}: {short title}" (truncate title if needed)
           - description: "Status: {status} | Ready for rework"
         - multiSelect: false
@@ -87,11 +87,11 @@ See `.kanban/workflow.yaml` for column definitions and valid transitions.
     <command>node .kanban/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse XML</action>
-    <validate>Verify current status is `qa` or `pr`</validate>
-    <branch condition="status is not qa or pr">
+    <validate>Verify current status is `check` or `pr`</validate>
+    <branch condition="status is not check or pr">
       <action>Use AskUserQuestion tool with:
         - header: "Continue?"
-        - question: "Task is in {status} status. Expected: qa or pr. Continue with rework anyway?"
+        - question: "Task is in {status} status. Expected: check or pr. Continue with rework anyway?"
         - options:
           - label: "Yes", description: "Proceed with rework despite unexpected status"
           - label: "No", description: "Cancel and check task status first"
@@ -286,12 +286,12 @@ Let me gather the details needed for a proper issue report.
     <note>Following template at `.kanban/templates/plan.xml`</note>
     <action>Increment `iteration` attribute in plan XML</action>
     <action>Determine phase name based on original status:
-- `qa` → "QA"
+- `check` → "Check"
 - `pr` → "PR"</action>
     <action>Add to `<iterations>` section</action>
 
     <example_code lang="xml">
-<iteration number="{n}" phase="{qa|pr}" result="failed" date="{YYYY-MM-DD}">
+<iteration number="{n}" phase="{check|pr}" result="failed" date="{YYYY-MM-DD}">
   <issue type="{issueType}" severity="{severity}">
     <summary>{one-line summary}</summary>
     <expected>{expected behavior or target}</expected>
@@ -310,7 +310,7 @@ Let me gather the details needed for a proper issue report.
   </step>
 
   <step name="move_to_in_progress">
-    <action>Change `status: {qa|pr}` to `status: in-progress`</action>
+    <action>Change `status: {check|pr}` to `status: in-progress`</action>
     <action>Add `updated: {YYYY-MM-DD}`</action>
     <action>Write updated task file</action>
   </step>
@@ -381,14 +381,14 @@ The issue report has been added to the plan file. When you resume implementation
 Then re-verify:
 ```
 /clear
-/kanban-codecheck {taskId}
+/kanban-check {taskId}
 ```
     </output>
     ## Final Validation
     
     Before completing, validate all task XML:
     
-    <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
+    <command description="Validate XML in task files">node .kanban/scripts/validate-xml.cjs {taskId}</command>
     
     If validation fails, fix the reported errors before completing.
     
@@ -413,7 +413,7 @@ User: `/kanban-rework 007`
 
 ```
 Task: 007 - Add user authentication
-Status: qa
+Status: check
 
 What type of issue was found?
 > Bug
@@ -480,7 +480,7 @@ User: `/kanban-rework 008`
 
 ```
 Task: 008 - Add password reset flow
-Status: qa
+Status: check
 
 What type of issue was found?
 > Incomplete
@@ -589,6 +589,6 @@ Fix the issues (see plan's iterations section):
 Then re-verify:
 ```
 /clear
-/kanban-codecheck {id}
+/kanban-check {id}
 ```
 </next_steps>

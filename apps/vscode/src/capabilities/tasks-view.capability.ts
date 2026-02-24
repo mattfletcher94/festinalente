@@ -34,9 +34,7 @@ export class StatusGroupItem extends vscode.TreeItem {
     switch (status) {
       case 'in-progress':
         return new vscode.ThemeIcon('play-circle');
-      case 'codecheck':
-        return new vscode.ThemeIcon('beaker');
-      case 'qa':
+      case 'check':
         return new vscode.ThemeIcon('checklist');
       case 'update-docs':
         return new vscode.ThemeIcon('book');

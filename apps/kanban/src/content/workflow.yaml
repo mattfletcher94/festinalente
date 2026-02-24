@@ -15,15 +15,12 @@ columns:
   - id: in-progress
     name: In Progress
     description: Tasks currently being implemented (code uncommitted)
-  - id: codecheck
-    name: Code Check
-    description: Implementation complete, ready for code checks
-  - id: qa
-    name: QA
-    description: Human tests the application works as expected
+  - id: check
+    name: Check
+    description: Verification phase - automated checks, requirements, and QA
   - id: update-docs
     name: Update Docs
-    description: QA passed, code committed, documentation needs updating
+    description: Checks passed, code committed, documentation needs updating
   - id: pr
     name: PR
     description: Awaiting GitHub PR review and merge
@@ -62,9 +59,8 @@ transitions:
   backlog: [scoped]
   scoped: [planned]
   planned: [in-progress]
-  in-progress: [codecheck]
-  codecheck: [qa]
-  qa: [update-docs, in-progress]  # approve or rework
+  in-progress: [check]
+  check: [update-docs, in-progress]  # check passes or rework
   update-docs: [pr]
   pr: [done, in-progress]  # merge or rework
 
@@ -74,8 +70,8 @@ commits:
   scope: "docs({id}): scope - {title}"
   plan: "docs({id}): plan - {title}"
   save: "wip({id}): {summary}"
-  codecheck-retry: "docs({id}): codecheck-retry - {title}"  # When AI retries codecheck
-  approve: "{commit-type}({id}): {title}"  # commit-type from label
+  check-retry: "docs({id}): check-retry - {title}"  # When AI retries check
+  check: "{commit-type}({id}): {title}"  # commit-type from label
   rework: "docs({id}): rework - {title}"  # Consolidated fail command
   docs: "docs({id}): product - {message}"
   done: "docs({id}): done - {title}"

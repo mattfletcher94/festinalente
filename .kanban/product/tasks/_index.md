@@ -3,13 +3,13 @@ id: "tasks/_index"
 title: "Task Management"
 type: domain
 tldr: "Core task lifecycle from backlog to done with specs and plans"
-summary: "The tasks domain handles all task CRUD operations, workflow transitions, and the structured progression from backlog through scoped, planned, in-progress, codecheck, qa, update-docs, pr, to done."
+summary: "The tasks domain handles all task CRUD operations, workflow transitions, and the structured progression from backlog through scoped, planned, in-progress, check, update-docs, pr, to done."
 keywords: [tasks, workflow, backlog, kanban, lifecycle]
 aliases: [task-management, task-workflow, kanban-board]
 boundary: "Does NOT cover documentation search, validation rules, or VSCode UI rendering"
-contains: [tasks/workflow, tasks/create, tasks/scope, tasks/plan, tasks/implement, tasks/codecheck, tasks/rework]
+contains: [tasks/workflow, tasks/create, tasks/scope, tasks/plan, tasks/implement, tasks/check, tasks/rework]
 related: [docs/_index, validation/_index]
-updated: 2026-02-20
+updated: 2026-02-24
 ---
 
 # Task Management
@@ -42,7 +42,7 @@ This domain does NOT cover documentation search or validation rules. For that, s
 | [scope](./scope.md) | Define task scope with functional specification | stable |
 | [plan](./plan.md) | Create implementation plan for scoped tasks | stable |
 | [implement](./implement.md) | Execute plan and write code | stable |
-| [codecheck](./codecheck.md) | Automated code quality verification | stable |
+| [check](./check.md) | Code verification, QA, and commit | stable |
 | [rework](./rework.md) | Handle failures and return tasks for fixes | stable |
 
 **Summary:** This domain contains 7 features covering the complete task lifecycle.
@@ -52,7 +52,7 @@ This domain does NOT cover documentation search or validation rules. For that, s
 - **Task**: A unit of work stored as XML in `.kanban/tasks/{id}/task.xml`
 - **Spec**: Functional specification in `spec.xml` defining what to build
 - **Plan**: Implementation plan in `plan.xml` defining how to build it
-- **Column**: Workflow state (backlog, scoped, planned, in-progress, codecheck, qa, update-docs, pr, done)
+- **Column**: Workflow state (backlog, scoped, planned, in-progress, check, update-docs, pr, done)
 
 ## Relationships
 

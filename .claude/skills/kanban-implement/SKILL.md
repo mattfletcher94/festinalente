@@ -37,7 +37,7 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
 <command description="Get skill configuration (returns JSON with directives)">node .kanban/scripts/get-skill-config.cjs {skill}</command>
 <example_code lang="json">
 {
-  "skill": "kanban-codecheck",
+  "skill": "kanban-check",
   "directives": [
     { "name": "code-review", "path": ".kanban/directives/code-review.xml", "exists": true }
   ]
@@ -336,7 +336,7 @@ WARNING: Found incomplete work markers:
           - header: "Incomplete code"
           - question: "Found {n} incomplete markers (TODO, FIXME, etc). How to proceed?"
           - options:
-            - label: "Fix now", description: "Address these before moving to codecheck"
+            - label: "Fix now", description: "Address these before moving to check"
             - label: "Proceed anyway", description: "These are intentional or will be addressed later"
           - multiSelect: false
         </action>
@@ -365,7 +365,7 @@ WARNING: These requirements may not be fully implemented:
           - question: "Some requirements may not be fully implemented. How to proceed?"
           - options:
             - label: "Review and fix", description: "Examine each and address gaps"
-            - label: "Proceed to codecheck", description: "Implementation is complete, will verify in QA"
+            - label: "Proceed to check", description: "Implementation is complete, will verify in QA"
           - multiSelect: false
         </action>
       </branch>
@@ -408,12 +408,12 @@ WARNING: New files created but not imported anywhere:
 
   <step name="check_completion">
     <branch condition="all tasks have completed='true' AND verification passed">
-      <action>Update task status to `codecheck`</action>
+      <action>Update task status to `check`</action>
       <output>All implementation tasks complete. Moving to code check.</output>
       <output>
 Next:
 /clear
-/kanban-codecheck {taskId}
+/kanban-check {taskId}
       </output>
     </branch>
     <branch condition="some tasks remain incomplete">
@@ -478,7 +478,7 @@ To save progress now:
       <output>
 ```
 /clear
-/kanban-codecheck {taskId}
+/kanban-check {taskId}
 ```
       </output>
     </branch>
@@ -495,7 +495,7 @@ To save progress now:
     
     Before completing, validate all task XML:
     
-    <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
+    <command description="Validate XML in task files">node .kanban/scripts/validate-xml.cjs {taskId}</command>
     
     If validation fails, fix the reported errors before completing.
     
@@ -505,7 +505,7 @@ To save progress now:
 
 <success_criteria>
 - Task file exists at `.kanban/tasks/{taskId}/task.xml`
-- If all tasks complete: `status: codecheck`
+- If all tasks complete: `status: check`
 - If partial progress: `status: in-progress`
 - Plan file exists at `.kanban/tasks/{taskId}/plan.xml`
 - Completed tasks have `completed="true"` attribute
@@ -562,12 +562,12 @@ Done criteria met: Login endpoint responds to POST
 Done criteria met: Implementation complete, manual testing in QA
 
 All implementation tasks complete. Moving to code check.
-- Status: codecheck
+- Status: check
 - Files modified: 2 (uncommitted)
 
 Next:
 /clear
-/kanban-codecheck 001
+/kanban-check 001
 ```
 
 **Resume Partial Implementation:**
@@ -620,12 +620,12 @@ Running verification: npx markdownlint README.md
 Done criteria met: README has complete DB setup instructions
 
 All implementation tasks complete. Moving to code check.
-- Status: codecheck
+- Status: check
 - Files modified: 5 (uncommitted)
 
 Next:
 /clear
-/kanban-codecheck 002
+/kanban-check 002
 ```
 </example>
 
@@ -640,7 +640,7 @@ This commits your work-in-progress so you don't lose it.
 When implementation complete:
 ```
 /clear
-/kanban-codecheck {id}
+/kanban-check {id}
 ```
 Code check runs your configured checks from directives. If they pass, the task moves to QA for you to manually test the application.
 

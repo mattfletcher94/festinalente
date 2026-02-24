@@ -9,7 +9,7 @@ const VALID_PHASES = [
 	"scope",
 	"plan",
 	"implement",
-	"codecheck",
+	"check",
 	"rework",
 	"docs"
 ];

@@ -113,8 +113,8 @@ Update product documentation, commit the changes, push to remote, and move task 
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse XML</action>
     <validate>Verify current status is `update-docs`</validate>
-    <branch condition="status is qa">
-      <output>Suggest `/kanban-approve {taskId}` first</output>
+    <branch condition="status is check">
+      <output>Suggest `/kanban-check {taskId}` first</output>
       <action>Exit</action>
     </branch>
     <branch condition="status is earlier">
@@ -599,7 +599,7 @@ Create PR on GitHub, then run:
     
     Before completing, validate all task XML:
     
-    <command description="Validate XML in all task files">node .kanban/scripts/validate-xml.cjs</command>
+    <command description="Validate XML in task files">node .kanban/scripts/validate-xml.cjs {taskId}</command>
     
     If validation fails, fix the reported errors before completing.
     

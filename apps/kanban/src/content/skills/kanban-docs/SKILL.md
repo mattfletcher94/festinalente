@@ -70,8 +70,8 @@ Update product documentation, commit the changes, push to remote, and move task 
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse XML</action>
     <validate>Verify current status is `update-docs`</validate>
-    <branch condition="status is qa">
-      <output>Suggest `/kanban-approve {taskId}` first</output>
+    <branch condition="status is check">
+      <output>Suggest `/kanban-check {taskId}` first</output>
       <action>Exit</action>
     </branch>
     <branch condition="status is earlier">
