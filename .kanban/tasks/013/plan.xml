@@ -28,7 +28,7 @@
   <inventory></inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-02-24T10:55:14.895Z">
       <name>Add task ID argument parsing to validate-xml.ts</name>
       <files>apps/kanban/src/scripts/validate-xml.ts (modify)</files>
       <requirements>FR1, FR2, FR3, FR4</requirements>
@@ -97,7 +97,7 @@
       <done>Script compiles without errors, argument parsing implemented</done>
     </task>
 
-    <task id="2" type="auto" depends="1">
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-02-24T10:56:00.000Z">
       <name>Update skill-complete.md partial to pass {taskId}</name>
       <files>apps/kanban/src/content/partials/skill-complete.md (modify)</files>
       <requirements>FR5</requirements>
@@ -120,7 +120,7 @@
       <done>Partial updated to pass taskId to validate-xml script</done>
     </task>
 
-    <task id="3" type="manual" depends="2">
+    <task id="3" type="manual" depends="2" completed="true" completed_at="2026-02-24T10:56:30.000Z">
       <name>Verify targeted validation works</name>
       <files>N/A</files>
       <requirements>FR1, FR2, FR3, FR4</requirements>
