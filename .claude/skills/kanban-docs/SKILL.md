@@ -641,7 +641,7 @@ Product Doc Analysis:
 Will COMPLETE (stub exists): gui/yolo-mode - stub created during /kanban-create
 
 Loading context from similar docs...
-Found: gui/terminal.md, gui/autoplay.md (using as reference)
+Found: gui/terminal.md, gui/settings.md (using as reference)
 
 Proceed with product documentation updates? [Yes (Recommended)]
 

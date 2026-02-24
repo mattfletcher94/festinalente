@@ -17,10 +17,6 @@ AI-powered task management for Claude Code.
 4. Click on a task file to open it
 5. Use CodeLens buttons to run actions (Scope, Plan, Implement, etc.)
 
-## Settings
-
-- `kanban.autoplay`: Automatically advance to next workflow stage when a command completes
-
 ## Development
 
 ```bash

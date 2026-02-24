@@ -212,12 +212,6 @@ What this feature does NOT do:
 - **Does NOT:** Show spec/plan details (click to open file)
 - **Does NOT:** Customize which actions appear (determined by task status)
 
-## Configuration
-
-| Setting | Description | Default |
-|---------|-------------|---------|
-| kanban.autoplay | Auto-run next action (experimental) | false |
-
 ## Interactions
 
 - **Task files**: Reads task.xml for display

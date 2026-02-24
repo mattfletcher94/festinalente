@@ -135,16 +135,6 @@
         }
       ]
     },
-    "configuration": {
-      "title": "Kanban",
-      "properties": {
-        "kanban.autoplay": {
-          "type": "boolean",
-          "default": false,
-          "description": "Automatically advance to next workflow stage when a command completes"
-        }
-      }
-    }
   },
   "scripts": {
     "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
