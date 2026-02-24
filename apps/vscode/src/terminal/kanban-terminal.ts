@@ -40,11 +40,12 @@ export class KanbanPseudoterminal implements vscode.Pseudoterminal {
    * Called when the terminal is opened by VSCode.
    */
   open(): void {
-    this.writeEmitter.fire(`\x1b[36m$ claude ${this.deps.command}\x1b[0m\r\n\r\n`);
+    this.writeEmitter.fire(`\x1b[36m$ claude "${this.deps.command}"\x1b[0m\r\n\r\n`);
 
     // Spawn claude CLI process
-    // Use full command string with shell: true so shell parses arguments correctly
-    this.process = spawn(`claude ${this.deps.command}`, [], {
+    // Quote the command argument - Claude CLI expects the slash command as a single quoted argument
+    // e.g., claude "/kanban-create task title" not claude /kanban-create task title
+    this.process = spawn(`claude "${this.deps.command}"`, [], {
       cwd: this.deps.cwd,
       shell: true,
       env: {
