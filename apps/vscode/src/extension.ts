@@ -16,6 +16,7 @@ import { createTaskGroupingComputer } from './computers/task-grouping.computer';
 // Capabilities (mechanism)
 import { createFileSystemCapability } from './capabilities/file-system.capability';
 import { createTerminalCapability } from './capabilities/terminal.capability';
+import { createKanbanTerminal } from './terminal/kanban-terminal';
 import { createTasksViewCapability, TaskItem } from './capabilities/tasks-view.capability';
 import { createCodeLensCapability } from './capabilities/codelens.capability';
 import { createConfigViewCapability } from './capabilities/config-view.capability';
@@ -72,6 +73,10 @@ export function activate(context: vscode.ExtensionContext): void {
   const kanbanDir = kanbanPath;
   const workspaceRoot = path.dirname(kanbanDir);
 
+  // --- Autoplay State (orchestrator owns policy state) ---
+  let autoplayTaskId: string | undefined;
+  let autoplayTerminal: vscode.Terminal | undefined;
+
   // Policy: Load all tasks from kanban folder
   function loadAllTasks(): Task[] {
     const tasksDir = fs.joinPath(kanbanDir, 'tasks');
@@ -104,6 +109,96 @@ export function activate(context: vscode.ExtensionContext): void {
     }
 
     return tasks;
+  }
+
+  // Policy: Load a single task by ID
+  function loadTask(taskId: string): Task | undefined {
+    const taskPath = fs.joinPath(kanbanDir, 'tasks', taskId);
+    const taskXml = fs.joinPath(taskPath, 'task.xml');
+
+    if (!fs.exists(taskXml)) {
+      return undefined;
+    }
+
+    try {
+      const content = fs.readFile(taskXml);
+      return taskParser.parseTaskWithPath(content, taskPath);
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * Handle autoplay logic after a command completes.
+   *
+   * Checks all conditions (exit code, setting, single-path status) and
+   * triggers the next action if all pass.
+   *
+   * @param taskId - The task ID that just completed.
+   * @param exitCode - The exit code from the completed process.
+   * @param showStatus - Function to show status bar.
+   * @param hideStatus - Function to hide status bar.
+   */
+  function handleAutoplay(
+    taskId: string,
+    exitCode: number,
+    showStatus: (id: string) => void,
+    hideStatus: () => void
+  ): void {
+    // FR11: Stop on error
+    if (exitCode !== 0) {
+      autoplayTaskId = undefined;
+      autoplayTerminal = undefined;
+      hideStatus();
+      return;
+    }
+
+    // FR8: Check setting (fresh read before each trigger)
+    const config = vscode.workspace.getConfiguration('kanban');
+    if (!config.get<boolean>('autoplay')) {
+      autoplayTaskId = undefined;
+      autoplayTerminal = undefined;
+      hideStatus();
+      return;
+    }
+
+    // FR5: Re-read task status
+    const task = loadTask(taskId);
+    if (!task) {
+      console.error(`Autoplay: Failed to load task ${taskId}`);
+      autoplayTaskId = undefined;
+      autoplayTerminal = undefined;
+      hideStatus();
+      return;
+    }
+
+    // FR6, FR7: Check if single-path status
+    if (!taskActions.isSinglePathStatus(task.status)) {
+      autoplayTaskId = undefined;
+      autoplayTerminal = undefined;
+      hideStatus();
+      return;
+    }
+
+    // Get primary action
+    const actions = taskActions.getActions(task);
+    if (actions.length === 0) {
+      autoplayTaskId = undefined;
+      autoplayTerminal = undefined;
+      hideStatus();
+      return;
+    }
+
+    // Trigger next action
+    autoplayTaskId = taskId;
+    showStatus(taskId);
+
+    autoplayTerminal = createKanbanTerminal(
+      workspaceRoot,
+      actions[0].command,
+      taskId,
+      (code) => handleAutoplay(taskId, code, showStatus, hideStatus)
+    );
   }
 
   // Policy: Get task files for a task path
@@ -226,6 +321,34 @@ export function activate(context: vscode.ExtensionContext): void {
     )
   );
 
+  // --- Autoplay Status Bar (FR10) ---
+  const autoplayStatusBar = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Left,
+    100
+  );
+  context.subscriptions.push(autoplayStatusBar);
+
+  function showAutoplayStatus(taskId: string): void {
+    autoplayStatusBar.text = '$(sync~spin) Autoplay: task ' + taskId;
+    autoplayStatusBar.tooltip = 'Autoplay is running. Close terminal to stop.';
+    autoplayStatusBar.show();
+  }
+
+  function hideAutoplayStatus(): void {
+    autoplayStatusBar.hide();
+  }
+
+  // --- Terminal Closure Detection (FR9) ---
+  context.subscriptions.push(
+    vscode.window.onDidCloseTerminal((closedTerminal) => {
+      if (closedTerminal === autoplayTerminal) {
+        autoplayTaskId = undefined;
+        autoplayTerminal = undefined;
+        hideAutoplayStatus();
+      }
+    })
+  );
+
   // --- Commands (policy decisions) ---
 
   // Refresh command
@@ -257,9 +380,12 @@ export function activate(context: vscode.ExtensionContext): void {
           return;
         }
 
-        const kanbanTerminal = terminal.createFreshTerminal('Kanban', workspaceRoot);
-        terminal.showTerminal(kanbanTerminal);
-        terminal.sendCommand(kanbanTerminal, `claude "${args.command}"`);
+        autoplayTerminal = createKanbanTerminal(
+          workspaceRoot,
+          args.command,
+          args.taskId,
+          (exitCode) => handleAutoplay(args.taskId, exitCode, showAutoplayStatus, hideAutoplayStatus)
+        );
       }
     )
   );
@@ -274,9 +400,10 @@ export function activate(context: vscode.ExtensionContext): void {
           return;
         }
 
-        const kanbanTerminal = terminal.createFreshTerminal('Kanban', workspaceRoot);
-        terminal.showTerminal(kanbanTerminal);
-        terminal.sendCommand(kanbanTerminal, `claude "${args.command}"`);
+        // Global actions don't have task IDs, use 'global' as identifier
+        createKanbanTerminal(workspaceRoot, args.command, 'global', (_exitCode) => {
+          // No autoplay for global actions
+        });
       }
     )
   );
@@ -284,9 +411,9 @@ export function activate(context: vscode.ExtensionContext): void {
   // Start discovery session command (policy: when to start discovery)
   context.subscriptions.push(
     vscode.commands.registerCommand('kanban.startDiscovery', () => {
-      const kanbanTerminal = terminal.createFreshTerminal('Kanban', workspaceRoot);
-      terminal.showTerminal(kanbanTerminal);
-      terminal.sendCommand(kanbanTerminal, 'claude "/kanban-discover"');
+      createKanbanTerminal(workspaceRoot, '/kanban-discover', 'discover', (_exitCode) => {
+        // No autoplay for discovery
+      });
     })
   );
 
@@ -302,9 +429,9 @@ export function activate(context: vscode.ExtensionContext): void {
         return;
       }
 
-      const kanbanTerminal = terminal.createFreshTerminal('Kanban', workspaceRoot);
-      terminal.showTerminal(kanbanTerminal);
-      terminal.sendCommand(kanbanTerminal, `claude "/kanban-create ${title}"`);
+      createKanbanTerminal(workspaceRoot, `/kanban-create ${title}`, 'new', (_exitCode) => {
+        // No autoplay for task creation
+      });
     })
   );
 
@@ -317,9 +444,13 @@ export function activate(context: vscode.ExtensionContext): void {
       }
 
       const primaryAction = item.actions[0];
-      const kanbanTerminal = terminal.createFreshTerminal('Kanban', workspaceRoot);
-      terminal.showTerminal(kanbanTerminal);
-      terminal.sendCommand(kanbanTerminal, `claude "${primaryAction.command}"`);
+      const taskId = item.task.id;
+      autoplayTerminal = createKanbanTerminal(
+        workspaceRoot,
+        primaryAction.command,
+        taskId,
+        (exitCode) => handleAutoplay(taskId, exitCode, showAutoplayStatus, hideAutoplayStatus)
+      );
     })
   );
 

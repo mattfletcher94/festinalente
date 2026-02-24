@@ -15,15 +15,17 @@ related:
 paths:
   - apps/vscode/src
   - apps/vscode/bin
-updated: 2026-02-23
-verified: 2026-02-23
+updated: 2026-02-24
+verified: 2026-02-24
 code_refs:
   - apps/vscode/src/extension.ts
+  - apps/vscode/src/terminal/kanban-terminal.ts
   - apps/vscode/src/capabilities/tasks-view.capability.ts
   - apps/vscode/src/capabilities/terminal.capability.ts
   - apps/vscode/src/capabilities/config-view.capability.ts
   - apps/vscode/src/capabilities/global-actions-view.capability.ts
   - apps/vscode/src/computers/task-parser.computer.ts
+  - apps/vscode/src/computers/task-actions.computer.ts
   - apps/vscode/bin/install.cjs
   - apps/vscode/package.json
 ---
@@ -65,6 +67,7 @@ Capabilities handle I/O and side effects. They wrap VSCode APIs and file system 
 | file-system | File I/O wrapper (read, write, exists) | `capabilities/file-system.capability.ts` |
 | tasks-view | TreeView rendering and management | `capabilities/tasks-view.capability.ts` |
 | terminal | Terminal lifecycle (fresh per action) | `capabilities/terminal.capability.ts` |
+| kanban-terminal | Pseudoterminal with output interception | `terminal/kanban-terminal.ts` |
 | codelens | CodeLens provider for quick actions | `capabilities/codelens.capability.ts` |
 | config-view | TreeView for config.yaml access | `capabilities/config-view.capability.ts` |
 | global-actions-view | TreeView for global project commands | `capabilities/global-actions-view.capability.ts` |
@@ -139,7 +142,7 @@ Computers contain pure functions with no side effects. They transform data.
 |-----------|---------|------|
 | task-parser | Parses XML task files using fast-xml-parser | `computers/task-parser.computer.ts` |
 | task-grouping | Groups tasks by status, defines columns | `computers/task-grouping.computer.ts` |
-| task-actions | Generates available actions per task status | `computers/task-actions.computer.ts` |
+| task-actions | Generates available actions per task status, detects single-path statuses | `computers/task-actions.computer.ts` |
 
 ### Types Layer
 
@@ -150,6 +153,28 @@ Type definitions shared across the extension.
 | task-types | Task, TaskStatus, TaskPriority, TaskAction interfaces | `types/task-types.ts` |
 
 **Summary:** Three layers separate concerns: Orchestrator (when), Capabilities (how), Computers (what).
+
+### Pseudoterminal (Autoplay)
+
+The kanban-terminal module (`terminal/kanban-terminal.ts`) provides a VSCode Pseudoterminal implementation for running kanban commands with output interception.
+
+| Component | Purpose |
+|-----------|---------|
+| `KanbanPseudoterminal` | Implements `vscode.Pseudoterminal`, spawns CLI process, detects `[KANBAN_COMPLETE]` marker |
+| `createKanbanTerminal()` | Factory function creating terminal with pseudoterminal |
+
+**Key behavior:**
+- Spawns Claude CLI as child process with ANSI color support
+- Intercepts stdout/stderr and pipes to terminal output
+- Maintains rolling 4000-char buffer for marker detection
+- On `[KANBAN_COMPLETE]` detection: 1.5s delay, then calls `onComplete` callback
+- Orchestrator handles autoplay logic in callback (re-read task, check status, trigger next)
+
+**Autoplay orchestration** lives in `extension.ts`:
+- Creates status bar item showing "Autoplay: task {id}" with spinning icon
+- Uses `isSinglePathStatus()` from task-actions computer to determine if autoplay should continue
+- Single-path statuses: planned, in-progress, update-docs
+- Multi-choice statuses (codecheck, qa, pr): autoplay stops, user must decide
 
 ## Key Patterns
 
@@ -235,6 +260,7 @@ What this system does NOT handle:
 |---------|-------------|---------|
 | `kanban.enable` | Enable/disable extension | true |
 | `kanban.showInactiveColumns` | Show columns with no tasks | false |
+| `kanban.autoplay` | Auto-trigger next action for single-path statuses | false |
 
 ## Known Issues
 
