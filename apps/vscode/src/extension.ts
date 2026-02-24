@@ -21,7 +21,7 @@ import { createClaudeSettingsCapability } from './capabilities/claude-settings.c
 import { createTasksViewCapability, TaskItem } from './capabilities/tasks-view.capability';
 import { createCodeLensCapability } from './capabilities/codelens.capability';
 import { createConfigViewCapability } from './capabilities/config-view.capability';
-import { createGlobalActionsViewCapability } from './capabilities/global-actions-view.capability';
+import { createDocsViewCapability } from './capabilities/docs-view.capability';
 
 // Types
 import type { Task, TaskAction } from './types/task-types';
@@ -196,8 +196,16 @@ export function activate(context: vscode.ExtensionContext): void {
     getConfigPath,
   });
 
-  // Initialize global actions view capability
-  const globalActionsView = createGlobalActionsViewCapability();
+  // Initialize docs view capability
+  const docsView = createDocsViewCapability(
+    {
+      readDir: fs.readDir,
+      isDirectory: fs.isDirectory,
+      exists: fs.exists,
+      joinPath: fs.joinPath,
+    },
+    kanbanDir
+  );
 
   // Initialize codelens capability with dependencies
   const codelens = createCodeLensCapability({
@@ -208,12 +216,17 @@ export function activate(context: vscode.ExtensionContext): void {
   // Create providers
   const treeDataProvider = tasksView.createTreeDataProvider();
   const configTreeDataProvider = configView.createTreeDataProvider();
-  const globalActionsTreeDataProvider = globalActionsView.createTreeDataProvider();
   const codeLensProvider = codelens.createCodeLensProvider();
 
   const refreshTree = tasksView.createRefreshCallback();
   const refreshConfigView = configView.createRefreshCallback();
   const refreshCodeLens = codelens.createRefreshCallback();
+
+  // Create docs providers
+  const productDocsProvider = docsView.createProductDocsProvider();
+  const engineeringDocsProvider = docsView.createEngineeringDocsProvider();
+  const refreshProductDocs = docsView.createProductRefresh();
+  const refreshEngineeringDocs = docsView.createEngineeringRefresh();
 
   // Register TreeView
   const treeView = vscode.window.createTreeView('kanbanTasks', {
@@ -228,11 +241,17 @@ export function activate(context: vscode.ExtensionContext): void {
   });
   context.subscriptions.push(configTreeView);
 
-  // Register Global Actions TreeView
-  const globalActionsTreeView = vscode.window.createTreeView('kanbanGlobalActions', {
-    treeDataProvider: globalActionsTreeDataProvider,
+  // Register Product Docs TreeView
+  const productDocsTreeView = vscode.window.createTreeView('kanbanProductDocs', {
+    treeDataProvider: productDocsProvider,
   });
-  context.subscriptions.push(globalActionsTreeView);
+  context.subscriptions.push(productDocsTreeView);
+
+  // Register Engineering Docs TreeView
+  const engineeringDocsTreeView = vscode.window.createTreeView('kanbanEngineeringDocs', {
+    treeDataProvider: engineeringDocsProvider,
+  });
+  context.subscriptions.push(engineeringDocsTreeView);
 
   // Register CodeLens
   context.subscriptions.push(
@@ -428,6 +447,44 @@ export function activate(context: vscode.ExtensionContext): void {
   });
 
   context.subscriptions.push(configWatcher);
+
+  // --- Product Docs Watcher (policy: when to refresh product docs view) ---
+  const productDocsWatcher = vscode.workspace.createFileSystemWatcher(
+    new vscode.RelativePattern(kanbanPath, 'product/**/*.md')
+  );
+
+  productDocsWatcher.onDidChange(() => {
+    refreshProductDocs();
+  });
+
+  productDocsWatcher.onDidCreate(() => {
+    refreshProductDocs();
+  });
+
+  productDocsWatcher.onDidDelete(() => {
+    refreshProductDocs();
+  });
+
+  context.subscriptions.push(productDocsWatcher);
+
+  // --- Engineering Docs Watcher (policy: when to refresh engineering docs view) ---
+  const engineeringDocsWatcher = vscode.workspace.createFileSystemWatcher(
+    new vscode.RelativePattern(kanbanPath, 'engineering/**/*.md')
+  );
+
+  engineeringDocsWatcher.onDidChange(() => {
+    refreshEngineeringDocs();
+  });
+
+  engineeringDocsWatcher.onDidCreate(() => {
+    refreshEngineeringDocs();
+  });
+
+  engineeringDocsWatcher.onDidDelete(() => {
+    refreshEngineeringDocs();
+  });
+
+  context.subscriptions.push(engineeringDocsWatcher);
 
   // --- Workspace changes (policy: when to prompt reload) ---
   context.subscriptions.push(

@@ -43,8 +43,12 @@
           "name": "Config"
         },
         {
-          "id": "kanbanGlobalActions",
-          "name": "Global Actions"
+          "id": "kanbanProductDocs",
+          "name": "Product Docs"
+        },
+        {
+          "id": "kanbanEngineeringDocs",
+          "name": "Engineering Docs"
         }
       ]
     },

@@ -2,9 +2,9 @@
 id: "vscode/kanban-view"
 title: "Kanban View"
 type: feature
-tldr: "Sidebar tree view displaying tasks grouped by workflow column, config access, and global actions"
-summary: "VSCode TreeDataProvider showing tasks organized by status (backlog, scoped, planned, in-progress, etc.) with priority indicators, labels, and file status. Includes Kanban Config and Global Actions sections."
-keywords: [kanban, view, treeview, sidebar, columns, status, config, global-actions]
+tldr: "Sidebar tree view displaying tasks grouped by workflow column, config access, global actions, and documentation browsers"
+summary: "VSCode TreeDataProvider showing tasks organized by status (backlog, scoped, planned, in-progress, etc.) with priority indicators, labels, and file status. Includes Kanban Config, Global Actions, Product Docs, and Engineering Docs sections."
+keywords: [kanban, view, treeview, sidebar, columns, status, config, global-actions, product-docs, engineering-docs]
 aliases: [task-view, kanban-board, tasks-view]
 boundary: "Does NOT provide drag-and-drop; tasks move via commands"
 related: [vscode/codelens, vscode/terminal, tasks/workflow]
@@ -15,20 +15,21 @@ code_refs:
   - apps/vscode/src/capabilities/tasks-view.capability.ts
   - apps/vscode/src/capabilities/config-view.capability.ts
   - apps/vscode/src/capabilities/global-actions-view.capability.ts
+  - apps/vscode/src/capabilities/docs-view.capability.ts
   - apps/vscode/package.json
 ---
 
 # Kanban View
 
-> **TL;DR:** Sidebar tree view displaying tasks grouped by workflow column, config access, and global actions
+> **TL;DR:** Sidebar tree view displaying tasks grouped by workflow column, config access, global actions, and documentation browsers
 
 ## Overview
 
 Kanban View provides a sidebar TreeView showing all tasks organized by their workflow status. Each column (backlog, scoped, planned, in-progress, check, update-docs, pr, done) expands to show tasks with priority indicators and labels. Clicking a task opens its task.xml file.
 
-The sidebar also includes a "Kanban Config" section for quick access to config.yaml, and a "Global Actions" section providing project-wide commands like documentation mapping.
+The sidebar also includes a "Kanban Config" section for quick access to config.yaml, a "Global Actions" section providing project-wide commands like documentation mapping, and "Product Docs" and "Engineering Docs" sections for browsing documentation directly from the sidebar.
 
-**Summary:** Visual task organization matching the workflow columns, plus config and global actions.
+**Summary:** Visual task organization matching the workflow columns, plus config, global actions, and documentation browsers.
 
 ## How It Works
 
@@ -102,7 +103,21 @@ The KANBAN TASKS view header includes action buttons (left to right):
 - Clicking an action opens a terminal and executes the command
 - Keyboard accessible: focus with arrow keys, activate with Enter
 
-**Summary:** Hierarchical display with automatic refresh, plus global actions.
+**Product Docs section:**
+- Displays `.kanban/product/` folder hierarchy as a TreeView
+- Folders appear as collapsible items with folder icons
+- Markdown files (.md) appear as clickable items with file icons
+- Clicking a file opens it in the editor
+- Automatically refreshes when files change in the product folder
+- Sorted alphabetically with folders before files
+
+**Engineering Docs section:**
+- Displays `.kanban/engineering/` folder hierarchy as a TreeView
+- Same behavior as Product Docs section
+- Provides quick access to systems, patterns, and conventions documentation
+- Automatically refreshes when files change in the engineering folder
+
+**Summary:** Hierarchical display with automatic refresh, plus global actions and documentation browsers.
 
 ## Examples
 
@@ -179,6 +194,43 @@ GLOBAL ACTIONS
 
 Clicking an action opens a terminal and runs the corresponding `/kanban-*` command.
 
+### Product Docs Section
+
+```
+PRODUCT DOCS
+├── auth/                        ← DocsFolderItem (collapsible)
+│   ├── login.md                 ← DocsFileItem (clickable)
+│   └── registration.md
+├── docs/
+│   ├── _index.md
+│   ├── engineering.md
+│   └── product.md
+└── vscode/
+    └── kanban-view.md
+```
+
+Clicking a markdown file opens it in the editor.
+
+### Engineering Docs Section
+
+```
+ENGINEERING DOCS
+├── conventions/
+│   └── file-naming.md
+├── patterns/
+│   ├── capability-computer.md
+│   └── factory-di.md
+└── systems/
+    ├── cli/
+    │   └── _index.md
+    ├── storage/
+    │   └── _index.md
+    └── vscode-extension/
+        └── _index.md
+```
+
+Same behavior as Product Docs - folders are collapsible, files are clickable.
+
 ### Find Task QuickPick
 
 ```
@@ -200,7 +252,7 @@ Search tasks by ID or title...
 
 Type to filter by ID, title, labels, or status. Select to reveal in tree.
 
-**Summary:** Columns with nested task items, ActionItems show next action, plus config and global actions sections.
+**Summary:** Columns with nested task items, ActionItems show next action, plus config, global actions, and documentation browser sections.
 
 ## Boundaries
 
