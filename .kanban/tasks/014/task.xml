@@ -1,0 +1,44 @@
+<task id="014" status="backlog" priority="high" created="2026-02-24" updated="2026-02-24">
+  <title>VSCode extension YOLO mode - read Claude settings and pass --dangerously-skip-permissions flag</title>
+
+  <labels>
+    <label>feature</label>
+  </labels>
+
+  <refs spec="tasks/014/spec.xml" plan="tasks/014/plan.xml"/>
+
+  <affects>
+    <doc id="vscode/terminal"/>
+  </affects>
+
+  <engineering>
+    <doc id="systems/vscode-extension"/>
+  </engineering>
+
+  <description>Add support for Claude's YOLO mode (bypass permissions) in the VSCode extension. When users have YOLO mode enabled in Claude's settings, the extension should automatically pass the --dangerously-skip-permissions flag when creating terminal instances to run kanban commands.</description>
+
+  <problem>Users who have YOLO mode enabled in Claude's settings (via .claude/settings.json or ~/.claude/settings.json) still get prompted for permissions when using the kanban extension. The extension creates terminals and runs `claude "/kanban-..."` commands, but doesn't pass the --dangerously-skip-permissions flag even when the user has configured Claude for bypass permissions mode.</problem>
+
+  <value>Seamless workflow for users who've opted into YOLO mode. By respecting Claude's existing permission settings, users don't have to approve every tool call - the extension matches their expected Claude behavior. This removes friction from the kanban workflow and respects user preferences already configured in Claude's settings.</value>
+
+  <acceptance-criteria>
+Given the extension is activated
+And the user has Claude settings configured
+When the extension reads .claude/settings.json or ~/.claude/settings.json
+Then it should detect if "dangerously-skip-permissions": true OR "defaultMode": "bypassPermissions" is set
+
+Given YOLO mode is detected in Claude settings
+When the extension creates a terminal to run a kanban command
+Then the command should be invoked as `claude --dangerously-skip-permissions "/kanban-..."`
+
+Given YOLO mode is NOT detected in Claude settings
+When the extension creates a terminal to run a kanban command
+Then the command should be invoked as `claude "/kanban-..."` (current behavior)
+
+Given both project-level (.claude/settings.json) and global (~/.claude/settings.json) settings exist
+When reading settings
+Then project-level settings should take precedence over global settings
+  </acceptance-criteria>
+
+  <notes></notes>
+</task>
