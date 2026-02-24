@@ -1,0 +1,55 @@
+<task id="015" status="backlog" priority="high" created="2026-02-24" updated="2026-02-24">
+  <title>Add documentation browser TreeView sections to sidebar</title>
+
+  <labels>
+    <label>feature</label>
+  </labels>
+
+  <refs spec="tasks/015/spec.xml" plan="tasks/015/plan.xml"/>
+
+  <affects>
+    <doc id="vscode/kanban-view"/>
+  </affects>
+
+  <engineering>
+    <doc id="systems/vscode-extension"/>
+  </engineering>
+
+  <description>Add two new collapsible TreeView sections to the VSCode extension sidebar for browsing product and engineering documentation. Each section mirrors the folder structure of .kanban/product/ and .kanban/engineering/ respectively, allowing users to discover and open documentation files directly from the sidebar.</description>
+
+  <problem>
+    Existing product and engineering documentation in the .kanban/ folder is difficult to discover.
+    Users must manually navigate the file system or remember file paths to find relevant docs.
+    There is no integrated way to browse available documentation while working on tasks.
+  </problem>
+
+  <value>
+    Quick sidebar access to browse all product and engineering documentation while working.
+    Improved discoverability of existing docs reduces duplicate documentation and knowledge gaps.
+    Consistent with VSCode patterns - users expect sidebar trees for project navigation.
+  </value>
+
+  <acceptance-criteria>
+Given the user opens a workspace with .kanban/ folder
+And .kanban/product/ contains documentation files
+When the user expands the "Product Docs" section in the Kanban sidebar
+Then they see a tree structure mirroring the folder hierarchy
+And each markdown file appears as a clickable item
+
+Given the user opens a workspace with .kanban/ folder
+And .kanban/engineering/ contains documentation files
+When the user expands the "Engineering Docs" section in the Kanban sidebar
+Then they see a tree structure mirroring the folder hierarchy
+And each markdown file appears as a clickable item
+
+Given a documentation item is displayed in either tree
+When the user clicks on it
+Then the corresponding markdown file opens in the editor
+
+Given the .kanban/product/ or .kanban/engineering/ folder is empty or missing
+When the user views the corresponding section
+Then the section shows an empty state or is hidden
+  </acceptance-criteria>
+
+  <notes></notes>
+</task>
