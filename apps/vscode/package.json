@@ -134,7 +134,7 @@
           "group": "inline@1"
         }
       ]
-    },
+    }
   },
   "scripts": {
     "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
