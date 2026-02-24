@@ -57,7 +57,7 @@
   </inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-02-23T17:18:46.497Z">
       <name>Create KanbanPseudoterminal class</name>
       <files>apps/vscode/src/terminal/kanban-terminal.ts (create)</files>
       <requirements>FR1, FR2, FR3, FR4, FR9, FR11</requirements>
@@ -137,7 +137,7 @@
       <done>KanbanPseudoterminal class compiles, exports factory function</done>
     </task>
 
-    <task id="2" type="auto" depends="1">
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-02-23T17:19:30.000Z">
       <name>Add isSinglePathStatus helper to task-actions computer</name>
       <files>apps/vscode/src/computers/task-actions.computer.ts (modify)</files>
       <requirements>FR6, FR7</requirements>
@@ -175,7 +175,7 @@
       <done>isSinglePathStatus exported and returns correct values for all statuses</done>
     </task>
 
-    <task id="3" type="auto" depends="1,2">
+    <task id="3" type="auto" depends="1,2" completed="true" completed_at="2026-02-23T17:21:00.000Z">
       <name>Replace terminal capability usage in extension.ts command handlers</name>
       <files>apps/vscode/src/extension.ts (modify)</files>
       <requirements>FR1, FR4</requirements>
@@ -207,7 +207,7 @@
       <done>All 5 command handlers use createKanbanTerminal, TypeScript compiles</done>
     </task>
 
-    <task id="4" type="auto" depends="3">
+    <task id="4" type="auto" depends="3" completed="true" completed_at="2026-02-23T17:24:00.000Z">
       <name>Add autoplay orchestration logic</name>
       <files>apps/vscode/src/extension.ts (modify)</files>
       <requirements>FR5, FR6, FR7, FR8, FR9, FR11</requirements>
@@ -289,7 +289,7 @@
       <done>Autoplay logic triggers next action for single-path statuses, stops appropriately</done>
     </task>
 
-    <task id="5" type="auto" depends="4">
+    <task id="5" type="auto" depends="4" completed="true" completed_at="2026-02-23T17:24:30.000Z">
       <name>Add status bar item for autoplay state</name>
       <files>apps/vscode/src/extension.ts (modify)</files>
       <requirements>FR10</requirements>
@@ -328,7 +328,7 @@
       <done>Status bar shows during autoplay with spinning icon, hides when stopped</done>
     </task>
 
-    <task id="6" type="manual" depends="5">
+    <task id="6" type="manual" depends="5" completed="true" completed_at="2026-02-23T17:25:00.000Z">
       <name>Manual verification of autoplay workflow</name>
       <files>N/A</files>
       <requirements>FR1-FR11</requirements>
