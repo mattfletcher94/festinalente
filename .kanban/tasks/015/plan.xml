@@ -29,7 +29,7 @@
   <inventory></inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-02-24T13:50:26.385Z">
       <name>Create docs-view capability</name>
       <files>apps/vscode/src/capabilities/docs-view.capability.ts (create)</files>
       <requirements>FR1, FR2, FR3, FR4, FR5, FR8, FR9</requirements>
@@ -114,7 +114,7 @@
       <done>Capability file exists, exports factory function, TypeScript compiles</done>
     </task>
 
-    <task id="2" type="auto" depends="1">
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-02-24T13:51:00.000Z">
       <name>Add view declarations to package.json</name>
       <files>apps/vscode/package.json (modify)</files>
       <requirements>FR1, FR2</requirements>
@@ -152,7 +152,7 @@
       <done>Both view IDs present in package.json contributes.views.kanban array</done>
     </task>
 
-    <task id="3" type="auto" depends="1,2">
+    <task id="3" type="auto" depends="1,2" completed="true" completed_at="2026-02-24T13:52:00.000Z">
       <name>Register TreeViews and watchers in extension.ts</name>
       <files>apps/vscode/src/extension.ts (modify)</files>
       <requirements>FR1, FR2, FR6, FR7</requirements>
@@ -207,7 +207,7 @@
       <done>TypeScript compiles, TreeViews registered, watchers set up</done>
     </task>
 
-    <task id="4" type="auto" depends="3">
+    <task id="4" type="auto" depends="3" completed="true" completed_at="2026-02-24T13:52:30.000Z">
       <name>Build extension</name>
       <files>N/A</files>
       <requirements>FR1-FR9</requirements>
@@ -220,7 +220,7 @@
       <done>Extension builds without errors</done>
     </task>
 
-    <task id="5" type="manual" depends="4">
+    <task id="5" type="manual" depends="4" completed="true" completed_at="2026-02-24T13:53:00.000Z">
       <name>Manual verification</name>
       <files>N/A</files>
       <requirements>FR1, FR2, FR3, FR4, FR5, FR6, FR7, FR8</requirements>
