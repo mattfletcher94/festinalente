@@ -1,0 +1,33 @@
+<task id="016" status="backlog" priority="medium" created="2026-02-25" updated="2026-02-25">
+  <title>Change Map Product Docs and Map Engineering Docs icons to green play button</title>
+
+  <labels>
+    <label>feature</label>
+  </labels>
+
+  <refs spec="tasks/016/spec.xml" plan="tasks/016/plan.xml"/>
+
+  <affects>
+    <doc id="vscode/kanban-view"/>
+  </affects>
+
+  <engineering>
+    <doc id="systems/vscode-extension"/>
+  </engineering>
+
+  <description>Update the icons for "Map Product Docs" and "Map Engineering Docs" TreeView items in the VSCode extension sidebar to use green play button icons instead of their current icons.</description>
+
+  <problem>Users should mentally associate play button icons with commands/actions. The current icons on "Map Product Docs" and "Map Engineering Docs" don't communicate that these are runnable commands. The visual language should be: play button = this is a command you can execute.</problem>
+
+  <value>Visual consistency that helps users understand that these items are executable commands. Users will immediately recognize green play buttons as "run this" actions, improving discoverability and reducing cognitive load.</value>
+
+  <acceptance-criteria>
+Given the VSCode extension is loaded
+And the Kanban View sidebar is visible
+When the user views the documentation browser sections
+Then the "Map Product Docs" item displays a green play button icon
+And the "Map Engineering Docs" item displays a green play button icon
+  </acceptance-criteria>
+
+  <notes></notes>
+</task>
