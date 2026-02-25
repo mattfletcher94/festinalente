@@ -25,6 +25,8 @@ Update product documentation, commit the changes, push to remote, and move task 
 
 <note>**`.kanban/engineering/`** — Engineering documentation files (systems, patterns, conventions)</note>
 
+{{> diagram-guidelines}}
+
 <note>**Smart Context:** `node .kanban/scripts/select-context.cjs {taskId} --tier=standard` — Load similar docs for reference</note>
 
 <note>**Quality Check:** `node .kanban/scripts/validate-docs.cjs {path}` — Validate doc meets quality standards</note>
@@ -216,6 +218,12 @@ Update product documentation, commit the changes, push to remote, and move task 
       <action>Re-verify with user</action>
       <action>Update `verified: {YYYY-MM-DD}` in frontmatter</action>
     </branch>
+
+    <note>**Diagram Updates:**</note>
+    <action>If implementation changed architecture → Update Architecture diagram</action>
+    <action>If data flow changed → Update Data Flow diagram</action>
+    <action>If UI changed → Update ASCII mockup</action>
+    <action>If new relationships added → Update relationship diagrams</action>
   </step>
 
   <step name="complete_stub_docs" when="stub docs exist">
@@ -240,6 +248,13 @@ Update product documentation, commit the changes, push to remote, and move task 
     <action>How It Works section with key workflows</action>
     <action>Examples section with code snippets from implementation</action>
     <action>Boundaries section listing what it does NOT do</action>
+
+    <note>**Diagram Completion:**</note>
+    <action>Analyze implemented code to generate appropriate diagrams:</action>
+    <action>- Review code flow for sequence/flowchart diagrams</action>
+    <action>- Check for UI components to create ASCII mockups</action>
+    <action>- Trace data flow for data flow diagrams</action>
+    <action>- If database models exist, create erDiagram</action>
 
     <action>Write content based on what was actually implemented</action>
     <action>Reference actual code paths where relevant</action>
@@ -285,6 +300,18 @@ Update product documentation, commit the changes, push to remote, and move task 
       <action>Rationale section - why this convention exists</action>
       <action>Examples section - correct usage</action>
       <action>Exceptions section - when to deviate</action>
+    </branch>
+
+    <note>**Diagram Completion:**</note>
+    <branch condition="type is system">
+      <action>Generate Architecture diagram from component analysis</action>
+      <action>Generate Data Flow diagram from code trace</action>
+    </branch>
+    <branch condition="type is pattern">
+      <action>Generate Structure diagram showing pattern relationships (classDiagram)</action>
+    </branch>
+    <branch condition="type is convention">
+      <action>Generate ASCII diagrams showing correct vs incorrect if structure-related</action>
     </branch>
 
     <action>Boundaries section - what this does NOT cover</action>

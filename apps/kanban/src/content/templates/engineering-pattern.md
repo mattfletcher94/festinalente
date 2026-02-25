@@ -28,6 +28,21 @@ code_refs: []
 
 **Summary:** {Brief recap of solution}
 
+## Structure
+
+```mermaid
+classDiagram
+    class {Interface} {
+        <<interface>>
+        +{method}()
+    }
+    class {Implementation} {
+        +{method}()
+    }
+    {Interface} <|-- {Implementation}
+    {Client} --> {Interface}
+```
+
 ## When to Use
 
 - {Scenario 1}

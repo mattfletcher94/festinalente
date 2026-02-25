@@ -38,6 +38,97 @@ Analyze existing codebase and create engineering documentation through parallel 
 - `conventions/file-naming` → `.kanban/engineering/conventions/file-naming.md`
 </note>
 
+<note>**Diagram Guidelines:**</note>
+
+<note>**When to include Mermaid diagrams:**</note>
+- Workflows with 3+ steps or branching logic → `flowchart`
+- User/system interactions → `sequenceDiagram`
+- State transitions → `stateDiagram-v2`
+- System architecture with 3+ components → `flowchart`
+- Pattern relationships → `classDiagram`
+- Database/data models → `erDiagram`
+
+<note>**When to include ASCII mockups:**</note>
+- UI elements (dialogs, forms, panels)
+- Tree structures (file trees, hierarchies)
+- Sidebar/panel layouts
+
+<note>**Mermaid Syntax Quick Reference:**</note>
+
+<example_code lang="markdown">
+## Flowchart
+```mermaid
+flowchart LR
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Action 1]
+    B -->|No| D[Action 2]
+```
+
+## Sequence Diagram
+```mermaid
+sequenceDiagram
+    User->>+System: Request
+    System-->>-User: Response
+```
+
+## State Diagram
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Processing: start
+    Processing --> Done: complete
+```
+
+## Class Diagram
+```mermaid
+classDiagram
+    class Interface {
+        <<interface>>
+        +method()
+    }
+    Interface <|-- Implementation
+```
+
+## Entity Relationship Diagram
+```mermaid
+erDiagram
+    USER ||--o{ ORDER : places
+    ORDER ||--|{ LINE_ITEM : contains
+```
+</example_code>
+
+<note>**ASCII Conventions:**</note>
+
+<example_code lang="text">
+## Window/Dialog
+┌─────────────────────────────────┐
+│  Title                    [X]  │
+├─────────────────────────────────┤
+│  Content                        │
+│      [ Cancel ]  [ OK ]         │
+└─────────────────────────────────┘
+
+## Form Elements
+Label:     [________________]     ← Text input
+Dropdown:  [Option v]             ← Select
+Radio:     (*) Selected  ( ) Not  ← Radio
+Checkbox:  [x] Checked  [ ] Not   ← Checkbox
+Button:    [ Submit ]             ← Button
+
+## Tree View
+├── Parent
+│   ├── Child 1
+│   └── Child 2
+└── Sibling
+
+## Sidebar
+HEADER                    [+] [↻]
+├── ▼ Expanded (2)
+│   ├── Item 1
+│   └── Item 2
+└── ▶ Collapsed (3)
+</example_code>
+
 <note>**Column Transition:** N/A - This is a documentation command, not a task workflow command.</note>
 
 <note>**Glossary:** This skill updates `.kanban/glossary.yaml` with technical terms and aliases.</note>
@@ -117,11 +208,14 @@ For each system, provide:
 - name: System name
 - purpose: What it does (1 sentence)
 - entry_points: Main files/classes
-- components: Key internal components
+- components: Key internal components (for Architecture diagram)
 - interacts_with: Other systems it communicates with
-- data_flow: How data moves through it
+- data_flow: How data moves through it (for Data Flow diagram)
 
-Also provide a high-level data flow diagram (ASCII art).
+Provide Mermaid-ready descriptions:
+- System relationships (which systems connect to which)
+- Data flow sequences (input → processing → output)
+- Component hierarchy within each system
         </prompt>
       </agent>
 
@@ -301,6 +395,15 @@ For each issue, provide:
     <action>Create `.kanban/engineering/systems/{system}/_index.md`</action>
     <action>Use template from `.kanban/templates/engineering-system.md`</action>
     <action>Fill frontmatter: `id`, `type: system`, `title`, `tldr`, `summary`, `keywords`, `aliases`, `boundary`, `paths`, `verified`, `code_refs`</action>
+
+    <note>**Diagram Generation:**</note>
+    <action>For each system doc, generate:</action>
+    <action>- Architecture diagram showing components (Mermaid flowchart TB with subgraph)</action>
+    <action>- Data flow diagram (Mermaid flowchart LR)</action>
+    <action>For pattern docs, generate:</action>
+    <action>- Structure diagram showing relationships (Mermaid classDiagram)</action>
+    <action>For convention docs where structure matters, generate:</action>
+    <action>- ASCII diagrams showing correct vs incorrect structure</action>
 
     <note>**For patterns discovered:**</note>
     <questions name="pattern_discovery">

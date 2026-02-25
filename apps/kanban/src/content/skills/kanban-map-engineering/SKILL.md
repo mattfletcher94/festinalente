@@ -16,6 +16,8 @@ Analyze existing codebase and create engineering documentation through parallel 
 
 {{> engineering-docs-scripts show_list_engineering=true}}
 
+{{> diagram-guidelines}}
+
 <note>**Column Transition:** N/A - This is a documentation command, not a task workflow command.</note>
 
 <note>**Glossary:** This skill updates `.kanban/glossary.yaml` with technical terms and aliases.</note>
@@ -94,11 +96,14 @@ For each system, provide:
 - name: System name
 - purpose: What it does (1 sentence)
 - entry_points: Main files/classes
-- components: Key internal components
+- components: Key internal components (for Architecture diagram)
 - interacts_with: Other systems it communicates with
-- data_flow: How data moves through it
+- data_flow: How data moves through it (for Data Flow diagram)
 
-Also provide a high-level data flow diagram (ASCII art).
+Provide Mermaid-ready descriptions:
+- System relationships (which systems connect to which)
+- Data flow sequences (input → processing → output)
+- Component hierarchy within each system
         </prompt>
       </agent>
 
@@ -278,6 +283,15 @@ For each issue, provide:
     <action>Create `.kanban/engineering/systems/{system}/_index.md`</action>
     <action>Use template from `.kanban/templates/engineering-system.md`</action>
     <action>Fill frontmatter: `id`, `type: system`, `title`, `tldr`, `summary`, `keywords`, `aliases`, `boundary`, `paths`, `verified`, `code_refs`</action>
+
+    <note>**Diagram Generation:**</note>
+    <action>For each system doc, generate:</action>
+    <action>- Architecture diagram showing components (Mermaid flowchart TB with subgraph)</action>
+    <action>- Data flow diagram (Mermaid flowchart LR)</action>
+    <action>For pattern docs, generate:</action>
+    <action>- Structure diagram showing relationships (Mermaid classDiagram)</action>
+    <action>For convention docs where structure matters, generate:</action>
+    <action>- ASCII diagrams showing correct vs incorrect structure</action>
 
     <note>**For patterns discovered:**</note>
     <questions name="pattern_discovery">

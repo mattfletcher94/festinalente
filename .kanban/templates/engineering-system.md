@@ -40,11 +40,33 @@ This system follows these patterns from `patterns/`:
 
 - [{pattern}](../patterns/{pattern}.md) - {how it's used here}
 
+## Architecture
+
+```mermaid
+flowchart TB
+    subgraph {System Name}
+        {Component1}[{Component 1}]
+        {Component2}[{Component 2}]
+        {Component3}[{Component 3}]
+    end
+    Input --> {Component1}
+    {Component1} --> {Component2}
+    {Component2} --> {Component3}
+    {Component3} --> Output
+```
+
+{Prose description of architecture}
+
 ## Data Flow
 
+```mermaid
+flowchart LR
+    A[Input] --> B[{Processing Step 1}]
+    B --> C[{Processing Step 2}]
+    C --> D[Output]
 ```
-Input → {Component} → {Component} → Output
-```
+
+{Prose description of data flow}
 
 ## Interactions
 

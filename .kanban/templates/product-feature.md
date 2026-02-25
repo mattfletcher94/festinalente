@@ -23,6 +23,13 @@ updated: YYYY-MM-DD
 
 ## How It Works
 
+```mermaid
+sequenceDiagram
+    User->>+{System}: {action}
+    {System}->>{System}: {processing}
+    {System}-->>-User: {response}
+```
+
 1. User {action}
 2. System {response}
 3. Result: {outcome}
@@ -30,11 +37,30 @@ updated: YYYY-MM-DD
 ### Key Workflows
 
 **{Workflow Name}:**
+
+```mermaid
+flowchart LR
+    A[{Step 1}] --> B[{Step 2}]
+    B --> C[{Step 3}]
+```
+
 - {Step 1}
 - {Step 2}
 - {Step 3}
 
 **Summary:** {Brief recap of the main workflow}
+
+### User Interface
+
+```
+┌─────────────────────────────────┐
+│  {Feature UI}             [X]  │
+├─────────────────────────────────┤
+│  {UI description}               │
+│                                 │
+│      [ {Action} ]               │
+└─────────────────────────────────┘
+```
 
 ## Examples
 

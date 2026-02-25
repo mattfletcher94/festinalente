@@ -28,6 +28,19 @@ updated: YYYY-MM-DD
 
 **Summary:** The product provides {count} core capabilities for {user type}.
 
+## Product Architecture
+
+```mermaid
+flowchart TB
+    subgraph {Product Name}
+        {Domain1}[{Domain 1}]
+        {Domain2}[{Domain 2}]
+        {Domain3}[{Domain 3}]
+    end
+    User --> {Domain1}
+    {Domain1} --> {Domain2}
+```
+
 ## Target Users
 
 - **{User Type 1}**: {What they use the product for}

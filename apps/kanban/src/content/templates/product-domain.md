@@ -24,6 +24,18 @@ The {Domain Name} domain handles {core responsibility}.
 
 **Summary:** This domain provides {key value proposition}.
 
+## Domain Structure
+
+```mermaid
+flowchart TB
+    subgraph {Domain}
+        {Feature1}[{Feature 1}]
+        {Feature2}[{Feature 2}]
+        {Feature3}[{Feature 3}]
+    end
+    {Feature1} --> {Feature2}
+```
+
 ## Boundaries
 
 This domain does NOT cover {boundary}. For that, see [{related domain}](../{related-domain}/_index.md).

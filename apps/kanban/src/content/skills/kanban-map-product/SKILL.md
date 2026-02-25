@@ -16,6 +16,8 @@ Analyze existing codebase and create product documentation through parallel expl
 
 {{> product-docs-scripts show_list_product=true}}
 
+{{> diagram-guidelines}}
+
 <note>**Column Transition:** N/A - This is a product discovery command, not a task workflow command.</note>
 
 <note>**Glossary:** This skill generates `.kanban/glossary.yaml` with project-specific terms and aliases for improved search.</note>
@@ -415,6 +417,14 @@ updated: {YYYY-MM-DD from get-date-time}
 ## Limitations
 {Constraints mentioned during Q&A}
     </example_code>
+
+    <note>**Diagram Generation:**</note>
+    <action>Analyze feature content to determine appropriate diagrams:</action>
+    <action>- If workflow has 3+ steps or branching → Add Mermaid flowchart</action>
+    <action>- If user/system interaction → Add Mermaid sequence diagram</action>
+    <action>- If UI element → Add ASCII mockup</action>
+    <action>- If data model → Add Mermaid erDiagram</action>
+    <action>Generate diagrams based on Q&A responses and code analysis</action>
 
     <note>**For concepts** (use `.kanban/templates/product-concept.md`):</note>
     <example_code lang="yaml">

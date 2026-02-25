@@ -26,6 +26,14 @@ code_refs: []
 
 **Summary:** {Brief recap of purpose}
 
+## Data Flow
+
+```mermaid
+flowchart LR
+    Input --> {Component}
+    {Component} --> Output
+```
+
 ## Interface
 
 ```{language}

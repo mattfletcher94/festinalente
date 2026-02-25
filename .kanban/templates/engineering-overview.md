@@ -38,6 +38,20 @@ code_refs: []
 
 **Summary:** {Brief recap of architecture}
 
+## System Architecture
+
+```mermaid
+flowchart TB
+    subgraph Systems
+        {System1}[{System 1}]
+        {System2}[{System 2}]
+        {System3}[{System 3}]
+    end
+    External --> {System1}
+    {System1} --> {System2}
+    {System2} --> {System3}
+```
+
 ## Directory Structure
 
 ```

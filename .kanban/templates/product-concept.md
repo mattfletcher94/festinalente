@@ -62,9 +62,13 @@ What this concept does NOT cover:
 
 ## Relationships
 
-```
-{Concept} ──has many──▶ {Related Concept}
-{Concept} ──belongs to──▶ {Parent Concept}
+```mermaid
+flowchart TB
+    {Concept}[{Concept Name}]
+    {Related1}[{Related Concept 1}]
+    {Related2}[{Related Concept 2}]
+    {Concept} --> {Related1}
+    {Concept} --> {Related2}
 ```
 
 - **{Related Concept}**: {Nature of relationship}

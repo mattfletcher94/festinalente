@@ -32,11 +32,19 @@ code_refs: []
 
 ### Correct
 
+```
+{ASCII representation of correct structure/naming}
+```
+
 ```{language}
-{good example}
+{good code example}
 ```
 
 ### Incorrect
+
+```
+{ASCII representation of incorrect structure/naming}
+```
 
 ```{language}
 {bad example}

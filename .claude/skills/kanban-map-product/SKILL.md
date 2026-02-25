@@ -32,6 +32,97 @@ Analyze existing codebase and create product documentation through parallel expl
 
 <note>Path rule: ID `auth/login` → Path `.kanban/product/auth/login.md`</note>
 
+<note>**Diagram Guidelines:**</note>
+
+<note>**When to include Mermaid diagrams:**</note>
+- Workflows with 3+ steps or branching logic → `flowchart`
+- User/system interactions → `sequenceDiagram`
+- State transitions → `stateDiagram-v2`
+- System architecture with 3+ components → `flowchart`
+- Pattern relationships → `classDiagram`
+- Database/data models → `erDiagram`
+
+<note>**When to include ASCII mockups:**</note>
+- UI elements (dialogs, forms, panels)
+- Tree structures (file trees, hierarchies)
+- Sidebar/panel layouts
+
+<note>**Mermaid Syntax Quick Reference:**</note>
+
+<example_code lang="markdown">
+## Flowchart
+```mermaid
+flowchart LR
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Action 1]
+    B -->|No| D[Action 2]
+```
+
+## Sequence Diagram
+```mermaid
+sequenceDiagram
+    User->>+System: Request
+    System-->>-User: Response
+```
+
+## State Diagram
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Processing: start
+    Processing --> Done: complete
+```
+
+## Class Diagram
+```mermaid
+classDiagram
+    class Interface {
+        <<interface>>
+        +method()
+    }
+    Interface <|-- Implementation
+```
+
+## Entity Relationship Diagram
+```mermaid
+erDiagram
+    USER ||--o{ ORDER : places
+    ORDER ||--|{ LINE_ITEM : contains
+```
+</example_code>
+
+<note>**ASCII Conventions:**</note>
+
+<example_code lang="text">
+## Window/Dialog
+┌─────────────────────────────────┐
+│  Title                    [X]  │
+├─────────────────────────────────┤
+│  Content                        │
+│      [ Cancel ]  [ OK ]         │
+└─────────────────────────────────┘
+
+## Form Elements
+Label:     [________________]     ← Text input
+Dropdown:  [Option v]             ← Select
+Radio:     (*) Selected  ( ) Not  ← Radio
+Checkbox:  [x] Checked  [ ] Not   ← Checkbox
+Button:    [ Submit ]             ← Button
+
+## Tree View
+├── Parent
+│   ├── Child 1
+│   └── Child 2
+└── Sibling
+
+## Sidebar
+HEADER                    [+] [↻]
+├── ▼ Expanded (2)
+│   ├── Item 1
+│   └── Item 2
+└── ▶ Collapsed (3)
+</example_code>
+
 <note>**Column Transition:** N/A - This is a product discovery command, not a task workflow command.</note>
 
 <note>**Glossary:** This skill generates `.kanban/glossary.yaml` with project-specific terms and aliases for improved search.</note>
@@ -432,6 +523,14 @@ updated: {YYYY-MM-DD from get-date-time}
 ## Limitations
 {Constraints mentioned during Q&A}
     </example_code>
+
+    <note>**Diagram Generation:**</note>
+    <action>Analyze feature content to determine appropriate diagrams:</action>
+    <action>- If workflow has 3+ steps or branching → Add Mermaid flowchart</action>
+    <action>- If user/system interaction → Add Mermaid sequence diagram</action>
+    <action>- If UI element → Add ASCII mockup</action>
+    <action>- If data model → Add Mermaid erDiagram</action>
+    <action>Generate diagrams based on Q&A responses and code analysis</action>
 
     <note>**For concepts** (use `.kanban/templates/product-concept.md`):</note>
     <example_code lang="yaml">
