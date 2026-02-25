@@ -24,7 +24,7 @@ export class QuickItem extends vscode.TreeItem {
 
   private getStatusIcon(): vscode.ThemeIcon {
     switch (this.quick.status) {
-      case 'complete':
+      case 'completed':
         return new vscode.ThemeIcon('pass-filled', new vscode.ThemeColor('charts.green'));
       case 'in-progress':
         return new vscode.ThemeIcon('play-circle', new vscode.ThemeColor('charts.blue'));

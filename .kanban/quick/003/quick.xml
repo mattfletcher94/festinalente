@@ -1,4 +1,4 @@
-<quick id="003" status="complete" created="2026-02-25" updated="2026-02-25">
+<quick id="003" status="completed" created="2026-02-25" updated="2026-02-25">
   <title>In VSCode extension, the icon next to each quick item should update based on status</title>
 
   <problem>Can't tell status at a glance from the icon - missing visual feedback</problem>

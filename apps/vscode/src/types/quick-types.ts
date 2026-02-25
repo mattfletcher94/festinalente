@@ -2,7 +2,7 @@
  * Quick task type definitions.
  */
 
-export type QuickStatus = 'in-progress' | 'complete';
+export type QuickStatus = 'in-progress' | 'completed';
 
 export interface Quick {
   id: string;
