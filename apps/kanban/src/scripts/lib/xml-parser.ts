@@ -68,3 +68,27 @@ export function parsePlanXml(content: string): ParsedPlan {
     title: plan.title || '',
   };
 }
+
+export interface ParsedQuick {
+  id: string;
+  title: string;
+  created: string;
+  updated: string;
+}
+
+/**
+ * Parse a quick.xml file.
+ *
+ * @param content - The XML content to parse.
+ * @returns Parsed quick task metadata.
+ */
+export function parseQuickXml(content: string): ParsedQuick {
+  const result = parser.parse(content);
+  const quick = result.quick;
+  return {
+    id: quick.id || '',
+    title: quick.title || '',
+    created: quick.created || '',
+    updated: quick.updated || '',
+  };
+}

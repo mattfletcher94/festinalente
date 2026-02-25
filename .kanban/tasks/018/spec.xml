@@ -1,0 +1,234 @@
+<spec task="018" created="2026-02-25" updated="2026-02-25">
+  <title>Add kanban-quick command for fast implementation workflow</title>
+
+  <context>
+    The current kanban workflow (create → scope → plan → implement → check → docs → PR)
+    is thorough but too heavyweight for small fixes, config changes, or simple features.
+    Developers need a faster path that preserves key benefits (atomic commits, branching,
+    traceability) without the full ceremony of multiple sequential skills.
+  </context>
+
+  <scope>
+    <in-scope>
+      - New skill file: `apps/kanban/src/content/skills/kanban-quick/SKILL.md`
+      - New template: `.kanban/templates/quick.xml`
+      - New script: `.kanban/scripts/find-quick.cjs`
+      - New script: `.kanban/scripts/next-quick-id.cjs`
+      - Quick task storage in `.kanban/quick/{id}/`
+      - Structured Q&A for problem and done criteria
+      - Optional codebase research
+      - Branch creation (`quick/{id}`)
+      - Implementation execution
+      - Optional review pause before commit
+      - Directive compliance checking
+      - Commit with `quick({id}): {title}` format
+      - Optional doc updates (product + engineering)
+    </in-scope>
+    <out-of-scope>
+      - Modifying existing kanban skills
+      - Changing workflow.yaml columns or transitions
+      - Integration with kanban-check or kanban-merge (quick tasks are self-contained)
+      - PR creation (quick tasks commit directly, no PR flow)
+      - VSCode extension changes
+    </out-of-scope>
+  </scope>
+
+  <requirements>
+    <requirement id="FR1">The skill shall ask "What problem are you solving?" via AskUserQuestion</requirement>
+    <requirement id="FR2">The skill shall ask "What does done look like?" via AskUserQuestion</requirement>
+    <requirement id="FR3">The skill shall NOT ask about "value" (kept minimal per acceptance criteria)</requirement>
+    <requirement id="FR4">The skill shall ask "Want me to research the codebase first?" with yes/no options</requirement>
+    <requirement id="FR5">If research is requested, the skill shall use Glob/Grep to find affected files</requirement>
+    <requirement id="FR6">The skill shall create a branch named `quick/{id}`</requirement>
+    <requirement id="FR7">The skill shall create `.kanban/quick/{id}/quick.xml` with combined task+spec+plan info</requirement>
+    <requirement id="FR8">After implementation, the skill shall output "Now's the time to review changes if you'd like."</requirement>
+    <requirement id="FR9">The skill shall ask "Ready to commit?" with "Yes, commit" and "Wait" options</requirement>
+    <requirement id="FR10">If user selects "Wait", the skill shall exit with instructions to resume</requirement>
+    <requirement id="FR11">The skill shall run directive compliance checks before commit</requirement>
+    <requirement id="FR12">The skill shall commit with message format `quick({id}): {title}`</requirement>
+    <requirement id="FR13">After commit, the skill shall ask "Do you want me to update docs?"</requirement>
+    <requirement id="FR14">If docs update requested, the skill shall detect affected product/engineering docs from code changes</requirement>
+    <requirement id="FR15">Quick IDs shall use a separate sequence starting at 000 (not shared with task IDs)</requirement>
+    <requirement id="FR16">The skill shall update quick.xml with commit hash and files modified after commit</requirement>
+  </requirements>
+
+  <files>
+    <file path="apps/kanban/src/content/skills/kanban-quick/SKILL.md" action="create">Main skill file using Handlebars partials</file>
+    <file path=".kanban/templates/quick.xml" action="create">Template for quick task artifact</file>
+    <file path=".kanban/scripts/find-quick.cjs" action="create">Script to find quick task by ID</file>
+    <file path=".kanban/scripts/next-quick-id.cjs" action="create">Script to get next quick ID (separate sequence)</file>
+  </files>
+
+  <patterns>
+    <pattern name="Skill file structure">
+      Source skills use Handlebars partials ({{> partial-name}}) for reusable components.
+      Reference: `apps/kanban/src/content/skills/kanban-create/SKILL.md:15-25`
+    </pattern>
+    <pattern name="Helper script pattern">
+      Scripts return JSON with tagged union errors. Exit code 1 on error, 0 on success.
+      Reference: `.kanban/scripts/find-task.cjs`, `.kanban/scripts/next-id.cjs`
+    </pattern>
+    <pattern name="AskUserQuestion usage">
+      Use structured questions with header, question, options (2-4), multiSelect.
+      Reference: `apps/kanban/src/content/skills/kanban-create/SKILL.md:66-77`
+    </pattern>
+    <pattern name="Directive compliance">
+      Load directives via get-skill-config.cjs, run validation checks, handle violations.
+      Reference: `apps/kanban/src/content/partials/directive-compliance.md`
+    </pattern>
+  </patterns>
+
+  <research>
+    <product>
+      - tasks/_index: Core task lifecycle domain. kanban-quick provides alternative fast-track.
+      - tasks/workflow: 8-column workflow. kanban-quick self-contained, no column changes needed.
+      - tasks/create: Q&A pattern for problem/value/acceptance. kanban-quick uses simplified version.
+      - tasks/implement: Execution pattern. kanban-quick uses inline implementation, no plan.xml.
+    </product>
+    <engineering>
+      - patterns/tagged-union-errors: Scripts use {error: true} or {success: true} JSON.
+      - conventions/file-naming: kebab-case for files, PascalCase for types.
+    </engineering>
+    <codebase>
+      - Source skills at apps/kanban/src/content/skills/
+      - Partials at apps/kanban/src/content/partials/
+      - Scripts at .kanban/scripts/
+      - Templates at .kanban/templates/
+    </codebase>
+    <pitfalls>
+      - Branch naming: quick/{id} and task/{id} are separate, no collision concern.
+      - ID namespace: Separate sequence starting at 000 via next-quick-id.cjs script.
+      - Directory structure: .kanban/quick/{id}/ is separate from .kanban/tasks/{id}/.
+      - Directive compliance: Full enforcement, same as other skills.
+    </pitfalls>
+  </research>
+
+  <constraints>
+    - Must use Handlebars partials for consistency with other skills
+    - Must follow tagged union error pattern in new scripts
+    - Must run on main branch (like kanban-create)
+    - Quick tasks are self-contained (no PR flow, no kanban-merge integration)
+  </constraints>
+
+  <dependencies>
+    <external>None - uses existing Node.js and git</external>
+    <internal>
+      - Existing partials: directory-reference, helper-scripts, workflow-load, branch-verify-main, load-directives, directive-compliance, skill-complete
+      - May need new partial or modification for quick-specific helper-scripts
+    </internal>
+  </dependencies>
+
+  <risks>
+    <risk impact="low">
+      <description>Users may overuse kanban-quick for complex tasks</description>
+      <mitigation>Skill description clearly states "for simple fixes, config changes, small features"</mitigation>
+    </risk>
+    <risk impact="low">
+      <description>Quick.xml structure diverges from full workflow artifacts</description>
+      <mitigation>Keep quick.xml minimal and focused. Traceability via commit hash and files list.</mitigation>
+    </risk>
+  </risks>
+
+  <open-questions>
+    <!-- All resolved during Q&A -->
+  </open-questions>
+
+  <artifacts>
+    <artifact name="quick.xml template">
+```xml
+&lt;quick id="{id}" created="{created}" updated="{updated}"&gt;
+  &lt;title&gt;{title}&lt;/title&gt;
+
+  &lt;problem&gt;{what problem are you solving}&lt;/problem&gt;
+  &lt;done&gt;{what does done look like}&lt;/done&gt;
+
+  &lt;!-- Files identified/modified --&gt;
+  &lt;files&gt;
+    &lt;file path="{path}" action="found|modified|created"/&gt;
+  &lt;/files&gt;
+
+  &lt;!-- Commit details --&gt;
+  &lt;commit hash="{hash}" message="{message}" date="{date}"/&gt;
+
+  &lt;!-- Optional: docs updated --&gt;
+  &lt;docs&gt;
+    &lt;doc id="{id}" type="product|engineering"/&gt;
+  &lt;/docs&gt;
+&lt;/quick&gt;
+```
+    </artifact>
+
+    <artifact name="SKILL.md structure">
+```markdown
+---
+name: kanban-quick
+description: Fast implementation workflow for simple fixes, config changes, and small features. Combines task creation, implementation, and commit in a single skill.
+allowed-tools: Read, Write, Bash(node *, git add *, git commit *, git status, git branch *, git checkout *, git diff *), Grep, Glob, AskUserQuestion, Edit
+argument-hint: "[task description]"
+disable-model-invocation: true
+---
+
+# Quick Implementation
+
+&lt;purpose&gt;
+Fast implementation for simple tasks. Minimal Q&A (problem + done), optional research,
+implementation, optional review before commit, optional doc updates.
+&lt;/purpose&gt;
+
+&lt;context&gt;
+{{> directory-reference}}
+<!-- Note: Will need update to include .kanban/quick/ -->
+
+&lt;note&gt;Use these scripts for quick tasks:&lt;/note&gt;
+&lt;command&gt;node .kanban/scripts/next-quick-id.cjs&lt;/command&gt;
+&lt;command&gt;node .kanban/scripts/find-quick.cjs {id}&lt;/command&gt;
+&lt;command&gt;node .kanban/scripts/get-date-time.cjs&lt;/command&gt;
+
+{{> product-docs-scripts show_search_product=true}}
+{{> engineering-docs-scripts show_search_engineering=true}}
+&lt;/context&gt;
+
+&lt;prohibited&gt;
+- Do not skip the commit step
+- Do not create full task.xml/spec.xml/plan.xml (use quick.xml only)
+- Do not use this for complex multi-file changes (use full workflow)
+&lt;/prohibited&gt;
+
+&lt;process&gt;
+  &lt;step name="load_workflow"&gt;...&lt;/step&gt;
+  &lt;step name="verify_branch"&gt;Must be on main/master&lt;/step&gt;
+  &lt;step name="load_directives"&gt;Load directives for kanban-quick&lt;/step&gt;
+  &lt;step name="get_next_quick_id"&gt;Get next ID from separate sequence&lt;/step&gt;
+  &lt;step name="get_title"&gt;From $ARGUMENTS or ask user&lt;/step&gt;
+  &lt;step name="ask_problem"&gt;AskUserQuestion: "What problem are you solving?"&lt;/step&gt;
+  &lt;step name="ask_done"&gt;AskUserQuestion: "What does done look like?"&lt;/step&gt;
+  &lt;step name="ask_research"&gt;AskUserQuestion: "Want me to research the codebase first?"&lt;/step&gt;
+  &lt;step name="optional_research"&gt;If yes, Glob/Grep for affected files&lt;/step&gt;
+  &lt;step name="create_branch"&gt;git checkout -b quick/{id}&lt;/step&gt;
+  &lt;step name="create_quick_xml"&gt;Create .kanban/quick/{id}/quick.xml&lt;/step&gt;
+  &lt;step name="implement"&gt;Make the code changes&lt;/step&gt;
+  &lt;step name="pause_for_review"&gt;
+    Output: "Now's the time to review changes if you'd like."
+    AskUserQuestion: "Ready to commit?" [Yes, commit | Wait]
+    If Wait: Exit with instructions to resume
+  &lt;/step&gt;
+  &lt;step name="directive_compliance"&gt;{{> directive-compliance}}&lt;/step&gt;
+  &lt;step name="commit"&gt;git commit -m "quick({id}): {title}"&lt;/step&gt;
+  &lt;step name="update_quick_xml"&gt;Add commit hash, files modified&lt;/step&gt;
+  &lt;step name="ask_docs"&gt;AskUserQuestion: "Do you want me to update docs?"&lt;/step&gt;
+  &lt;step name="detect_docs"&gt;If yes, scan changes for affected docs&lt;/step&gt;
+  &lt;step name="update_docs"&gt;Update detected product/engineering docs&lt;/step&gt;
+  &lt;step name="output_result"&gt;Summary + [KANBAN_COMPLETE]&lt;/step&gt;
+&lt;/process&gt;
+
+&lt;success_criteria&gt;
+- Quick folder exists at `.kanban/quick/{id}/`
+- Quick file exists at `.kanban/quick/{id}/quick.xml`
+- Branch `quick/{id}` exists
+- Git log shows `quick({id}): {title}`
+- Code changes committed
+&lt;/success_criteria&gt;
+```
+    </artifact>
+  </artifacts>
+</spec>

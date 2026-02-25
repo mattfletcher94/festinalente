@@ -7,9 +7,10 @@ summary: "The tasks domain handles all task CRUD operations, workflow transition
 keywords: [tasks, workflow, backlog, kanban, lifecycle]
 aliases: [task-management, task-workflow, kanban-board]
 boundary: "Does NOT cover documentation search, validation rules, or VSCode UI rendering"
-contains: [tasks/workflow, tasks/create, tasks/scope, tasks/plan, tasks/implement, tasks/check, tasks/rework]
+contains: [tasks/workflow, tasks/create, tasks/scope, tasks/plan, tasks/implement, tasks/check, tasks/rework, tasks/quick]
 related: [docs/_index, validation/_index]
 updated: 2026-02-25
+verified: 2026-02-25
 ---
 
 # Task Management
@@ -44,8 +45,9 @@ This domain does NOT cover documentation search or validation rules. For that, s
 | [implement](./implement.md) | Execute plan and write code | stable |
 | [check](./check.md) | Code verification, QA, and commit | stable |
 | [rework](./rework.md) | Handle failures and return tasks for fixes | stable |
+| [quick](./quick.md) | Fast implementation for simple fixes with minimal Q&A | stable |
 
-**Summary:** This domain contains 7 features covering the complete task lifecycle.
+**Summary:** This domain contains 8 features covering the complete task lifecycle.
 
 ## Key Concepts
 
