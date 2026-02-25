@@ -91,14 +91,18 @@ Users can choose during install:
 
 ### Configuration
 
-Runtime preference stored in `.kanban/config.yaml`:
+**Installer:** Asks which runtime(s) to install skills for. Installs to appropriate directories.
 
-```yaml
-settings:
-  version: "2.0"
-  runtime: "opencode"  # or "claude" or "both"
-  # ... other settings
+**VSCode Extension:** Runtime preference is a VSCode setting (per-user), not a project setting:
+
+```json
+// User or Workspace settings.json
+{
+  "kanban.runtime": "opencode"  // or "claude" (default)
+}
 ```
+
+This allows different team members to use different runtimes on the same project.
 
 ---
 
@@ -417,7 +421,7 @@ async function main() {
   console.log();
   console.log(`Installing for: ${selectedRuntimes.map(r => RUNTIMES[r].name).join(' + ')}`);
 
-  // Install skills for each runtime
+  // Install skills for each runtime (additive - doesn't remove existing)
   const skillsSource = path.join(sourceDir, 'skills');
 
   for (const runtime of selectedRuntimes) {
@@ -438,8 +442,7 @@ async function main() {
 
   // ... rest of install (scripts, templates, etc.) ...
 
-  // Update config.yaml with runtime
-  // (inject runtime setting if creating new config)
+  // config.yaml handled as before (no runtime field - that's a VSCode setting)
 }
 ```
 
@@ -447,37 +450,46 @@ async function main() {
 
 ### Task 4: Update VSCode Extension
 
-**File:** `apps/vscode/src/extension.ts`
+#### 4.1 Add Extension Setting
 
-The extension already has a `getClaudeCommand` function (line 80) and `workspaceRoot` variable (line 77). We need to modify this function to support both runtimes.
+**File:** `apps/vscode/package.json`
 
-#### 4.1 Add Runtime Detection Function
+Add the runtime setting to the extension's contribution points:
 
-Add this helper function near the top of the `activate` function (after `workspaceRoot` is defined):
-
-```typescript
-// Policy: Determine which runtime to use based on config
-// Note: When "both" is configured, defaults to Claude Code (user can edit config to switch)
-function getRuntime(): 'claude' | 'opencode' {
-  const configPath = path.join(workspaceRoot, '.kanban', 'config.yaml');
-
-  if (!fs.existsSync(configPath)) {
-    return 'claude';  // Default
+```json
+{
+  "contributes": {
+    "configuration": {
+      "title": "Kanban",
+      "properties": {
+        "kanban.runtime": {
+          "type": "string",
+          "enum": ["claude", "opencode"],
+          "default": "claude",
+          "description": "Which AI CLI runtime to use for running skills"
+        }
+      }
+    }
   }
-
-  const content = fs.readFileSync(configPath, 'utf-8');
-  const match = content.match(/runtime:\s*["']?(\w+)["']?/);
-
-  if (match && match[1] === 'opencode') {
-    return 'opencode';
-  }
-
-  // "claude" or "both" -> use Claude Code
-  return 'claude';
 }
 ```
 
-#### 4.2 Modify Existing `getClaudeCommand` Function
+#### 4.2 Update Extension Code
+
+**File:** `apps/vscode/src/extension.ts`
+
+The extension already has a `getClaudeCommand` function (line 80). We need to modify it to read from VSCode settings.
+
+Add helper function to get runtime from VSCode settings:
+
+```typescript
+// Policy: Determine which runtime to use based on VSCode settings
+function getRuntime(): 'claude' | 'opencode' {
+  const config = vscode.workspace.getConfiguration('kanban');
+  const runtime = config.get<string>('runtime', 'claude');
+  return runtime === 'opencode' ? 'opencode' : 'claude';
+}
+```
 
 Replace the existing `getClaudeCommand` function (lines 80-89) with:
 
@@ -512,26 +524,7 @@ The VSCode extension's YOLO toggle only applies to Claude Code. For OpenCode, pe
 
 ---
 
-### Task 5: Update Config Template
-
-**File:** `apps/kanban/src/content/templates/config.yaml`
-
-Add `runtime` field under `settings`:
-
-```yaml
-settings:
-  version: "2.0"
-  runtime: "claude"  # Runtime: "claude", "opencode", or "both"
-  idPrefix: ""
-  idPadding: 3
-  archiveOnComplete: false
-```
-
-**Note:** The installer will override this value based on user selection when creating a new config.
-
----
-
-### Task 6: Update Manifest
+### Task 5: Update Manifest
 
 **File:** `apps/kanban/bin/install.cjs`
 
@@ -571,14 +564,12 @@ Transformation to OpenCode format happens at **install time** in the user's proj
    - Run `npx @mattfletcher94/claudeban`, select option 1
    - Verify skills in `.claude/skills/`
    - Verify no `.opencode/` directory created
-   - Verify `config.yaml` has `runtime: "claude"`
 
 2. **Install for OpenCode only**
    - Run installer, select option 2
    - Verify skills in `.opencode/skills/`
    - Verify skill frontmatter converted (tools object, not allowed-tools)
    - Verify paths replaced in skill body
-   - Verify `config.yaml` has `runtime: "opencode"`
 
 3. **Install for Both**
    - Run installer, select option 3
@@ -586,9 +577,17 @@ Transformation to OpenCode format happens at **install time** in the user's proj
    - Verify `.claude/skills/` has original format
    - Verify `.opencode/skills/` has converted format
 
-4. **VSCode Extension**
-   - With `runtime: "claude"` - verify `claude "skill"` invoked
-   - With `runtime: "opencode"` - verify `opencode run "skill"` invoked
+4. **VSCode Extension Settings**
+   - Set `kanban.runtime: "claude"` - verify `claude "skill"` invoked
+   - Set `kanban.runtime: "opencode"` - verify `opencode run "skill"` invoked
+   - Change setting while extension is running - verify new runtime used
+
+5. **Install Both, Switch in VSCode**
+   - Install with "Both" option
+   - Verify `.claude/skills/` and `.opencode/skills/` both exist
+   - In VSCode, set `kanban.runtime: "claude"` - works
+   - In VSCode, set `kanban.runtime: "opencode"` - works
+   - Two team members can have different settings on same project
 
 ### Transformation Verification
 
@@ -607,8 +606,8 @@ For each skill file, verify:
 | File | Change |
 |------|--------|
 | `apps/kanban/bin/install.cjs` | Add runtime prompt, transformer, multi-runtime install |
+| `apps/vscode/package.json` | Add `kanban.runtime` setting contribution |
 | `apps/vscode/src/extension.ts` | Add `getRuntime()`, modify `getClaudeCommand()` |
-| `apps/kanban/src/content/templates/config.yaml` | Add `runtime` field under `settings` |
 
 ---
 
