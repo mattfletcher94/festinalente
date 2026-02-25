@@ -84,23 +84,29 @@ export function activate(context: vscode.ExtensionContext): void {
   }
 
   // Policy: Build CLI command based on runtime and settings
-  function getClaudeCommand(command: string): string {
+  function getRuntimeCommand(prompt: string): string {
     const projectSettings = settings.readProjectSettings(workspaceRoot);
     const globalSettings = settings.readGlobalSettings();
     const runtime = getRuntime();
 
     if (runtime === 'opencode') {
-      // OpenCode uses: opencode run "prompt"
-      // Note: OpenCode permissions are managed via opencode.json, not CLI flags
-      return `opencode run "${command}"`;
+      // OpenCode uses: opencode --prompt "prompt" to start TUI with prefilled prompt
+      return `opencode --prompt "${prompt}"`;
     }
 
-    // Claude Code uses: claude "prompt"
+    // Claude Code uses: claude "prompt" (interactive mode with initial prompt)
     const isYolo = claudeSettings.isYoloEnabled(projectSettings, globalSettings);
     if (isYolo) {
-      return `claude --dangerously-skip-permissions "${command}"`;
+      return `claude --dangerously-skip-permissions "${prompt}"`;
     }
-    return `claude "${command}"`;
+    return `claude "${prompt}"`;
+  }
+
+  // Policy: Execute a command in terminal
+  function executeInTerminal(prompt: string): void {
+    const kanbanTerminal = terminal.createFreshTerminal('Kanban', workspaceRoot);
+    terminal.showTerminal(kanbanTerminal);
+    terminal.sendCommand(kanbanTerminal, getRuntimeCommand(prompt));
   }
 
   // Policy: Load all tasks from kanban folder
@@ -306,10 +312,7 @@ export function activate(context: vscode.ExtensionContext): void {
           vscode.window.showErrorMessage('Invalid action arguments');
           return;
         }
-
-        const kanbanTerminal = terminal.createFreshTerminal('Kanban', workspaceRoot);
-        terminal.showTerminal(kanbanTerminal);
-        terminal.sendCommand(kanbanTerminal, getClaudeCommand(args.command));
+        executeInTerminal(args.command);
       }
     )
   );
@@ -323,10 +326,7 @@ export function activate(context: vscode.ExtensionContext): void {
           vscode.window.showErrorMessage('Invalid global action arguments');
           return;
         }
-
-        const kanbanTerminal = terminal.createFreshTerminal('Kanban', workspaceRoot);
-        terminal.showTerminal(kanbanTerminal);
-        terminal.sendCommand(kanbanTerminal, getClaudeCommand(args.command));
+        executeInTerminal(args.command);
       }
     )
   );
@@ -334,9 +334,7 @@ export function activate(context: vscode.ExtensionContext): void {
   // Start discovery session command (policy: when to start discovery)
   context.subscriptions.push(
     vscode.commands.registerCommand('kanban.startDiscovery', () => {
-      const kanbanTerminal = terminal.createFreshTerminal('Kanban', workspaceRoot);
-      terminal.showTerminal(kanbanTerminal);
-      terminal.sendCommand(kanbanTerminal, getClaudeCommand('/kanban-discover'));
+      executeInTerminal('/kanban-discover');
     })
   );
 
@@ -352,9 +350,7 @@ export function activate(context: vscode.ExtensionContext): void {
         return;
       }
 
-      const kanbanTerminal = terminal.createFreshTerminal('Kanban', workspaceRoot);
-      terminal.showTerminal(kanbanTerminal);
-      terminal.sendCommand(kanbanTerminal, getClaudeCommand(`/kanban-create ${title}`));
+      executeInTerminal(`/kanban-create ${title}`);
     })
   );
 
@@ -367,9 +363,7 @@ export function activate(context: vscode.ExtensionContext): void {
       }
 
       const primaryAction = item.actions[0];
-      const kanbanTerminal = terminal.createFreshTerminal('Kanban', workspaceRoot);
-      terminal.showTerminal(kanbanTerminal);
-      terminal.sendCommand(kanbanTerminal, getClaudeCommand(primaryAction.command));
+      executeInTerminal(primaryAction.command);
     })
   );
 
