@@ -1,677 +1,633 @@
-# Feature Plan: Mermaid + ASCII Diagram Support in Documentation
+# Plan: Add OpenCode Runtime Support
 
 ## Overview
 
-Enhance Claude Kanban's documentation system to generate richer, more visual documentation using **Mermaid diagrams** and **ASCII art**.
+This plan documents the changes required to support OpenCode as an alternative runtime to Claude Code. The goal is to eliminate vendor lock-in by allowing users to choose their preferred AI CLI tool.
 
-**Scope:**
-- Update documentation templates in `apps/kanban/src/content/templates/`
-- Update skills in `apps/kanban/src/content/skills/`
-- Create new partial in `apps/kanban/src/content/partials/`
+**Motivation:** Vendor lock-in concerns - users at a company should be able to choose their model/runtime.
 
-**Key Principle:** Diagrams are included when they add clarity. Claude decides based on content analysis - no user prompts needed.
+**Key Finding:** OpenCode supports "Anthropic-compatible" skills following the Agent Skills Specification, but with different syntax for tool restrictions and paths.
 
 ---
 
-## System Context
+## Current System
 
-### How Templates Work
+### Architecture
 
-Templates in `apps/kanban/src/content/templates/` are **placeholder examples** showing documentation structure. They use `{placeholder}` syntax (NOT Handlebars). When generating docs, Claude uses these templates as reference for structure and fills in actual content.
+Claude Kanban is a monorepo with two apps:
 
-Example from `product-feature.md`:
-```markdown
-## How It Works
+| App | Purpose | Location |
+|-----|---------|----------|
+| `kanban` | CLI tool / npm package | `apps/kanban/` |
+| `vscode` | VSCode extension | `apps/vscode/` |
 
-1. User {action}
-2. System {response}
+### Key Directories
+
 ```
+.claude/
+  skills/
+    kanban-*/SKILL.md     # 17 skill definitions
 
-Claude replaces `{action}` with actual content when generating a doc.
-
-### How Partials Work
-
-Partials in `apps/kanban/src/content/partials/` are reusable content snippets included in skills via Handlebars syntax: `{{> partial-name}}`. The partial filename (without `.md`) becomes the include name.
-
-Example: `{{> helper-scripts show_find_task=true}}` includes `helper-scripts.md` with conditional content.
-
-### How Skills Work
-
-Skills in `apps/kanban/src/content/skills/{skill-name}/SKILL.md` are XML-structured instructions that guide Claude through workflows. They include partials in their `<context>` section.
+.kanban/
+  config.yaml             # Project configuration
+  workflow.yaml           # Column/status definitions
+  tasks/                  # Task data
+  scripts/                # Helper scripts
+  templates/              # Document templates
+```
 
 ### Build Process
 
-```bash
-cd apps/kanban
-pnpm build
+Skills are authored as Handlebars templates and compiled during build:
+
+```
+Source:  apps/kanban/src/content/skills/kanban-*/SKILL.md  (Handlebars templates)
+         ↓ pnpm build (compiles Handlebars)
+Built:   apps/kanban/dist/skills/kanban-*/SKILL.md        (plain markdown)
+         ↓ npx install (copies to user project)
+Installed: .claude/skills/kanban-*/SKILL.md               (user's project)
 ```
 
-This compiles:
-1. TypeScript scripts → `dist/scripts/`
-2. Handlebars templates (skills + partials) → `dist/content/`
+**Important:** Transformation for OpenCode happens at **install time**, not build time. Source files stay in Claude format.
 
-To verify changes: Check for compilation errors and inspect `dist/content/skills/` output.
+### Current Installer
+
+Location: `apps/kanban/bin/install.cjs`
+
+Currently:
+- Reads skills from `dist/skills/` (built output)
+- Hardcoded to install skills to `.claude/skills/`
+- No runtime selection
+- No skill transformation
+
+### VSCode Extension
+
+Location: `apps/vscode/src/extension.ts`
+
+Currently invokes Claude via:
+```typescript
+function getClaudeCommand(command: string): string {
+  return `claude "${command}"`;
+}
+```
 
 ---
 
-## Background
+## Target State
 
-### Why Mermaid?
+### Runtime Selection
 
-Mermaid is a JavaScript library that renders diagrams from text:
-- **Claude generates it fluently** - No special training needed
-- **Renders natively** in GitHub, GitLab, VS Code, Docusaurus, Notion, Obsidian
-- **Version controlled** - It's just text in markdown
-- **No build step required** - Platforms render automatically
+Users can choose during install:
+1. Claude Code
+2. OpenCode
+3. Both
 
-### Why ASCII?
+### Directory Structure by Runtime
 
-ASCII art works everywhere:
-- UI mockups (windows, dialogs, forms, tree views)
-- Quick inline visualizations
-- Environments without Mermaid rendering
+| Runtime | Skills Directory |
+|---------|------------------|
+| Claude Code | `.claude/skills/kanban-*/` |
+| OpenCode | `.opencode/skills/kanban-*/` |
 
-### When to Include Diagrams
+### Configuration
 
-| Content Type | Include Diagram When... | Diagram Type |
-|--------------|------------------------|--------------|
-| Workflow | 3+ steps or branching logic | Mermaid `flowchart` |
-| User interaction | Back-and-forth between user/system | Mermaid `sequenceDiagram` |
-| State transitions | Multiple states with transitions | Mermaid `stateDiagram-v2` |
-| System architecture | 3+ components with relationships | Mermaid `flowchart` |
-| Pattern structure | Abstract relationships to show | Mermaid `classDiagram` |
-| Data models | Database entities and relationships | Mermaid `erDiagram` |
-| UI element | Visual interface to describe | ASCII mockup |
-| Tree/hierarchy | Nested structure to represent | ASCII tree |
+Runtime preference stored in `.kanban/config.yaml`:
+
+```yaml
+settings:
+  version: "2.0"
+  runtime: "opencode"  # or "claude" or "both"
+  # ... other settings
+```
 
 ---
 
-## Files to Modify
+## Implementation Tasks
 
-### New Files
+### Task 1: Update Installer with Runtime Selection
 
-| File | Purpose |
-|------|---------|
-| `apps/kanban/src/content/partials/diagram-guidelines.md` | Shared partial with diagram syntax and decision criteria |
+**File:** `apps/kanban/bin/install.cjs`
 
-### Templates (`apps/kanban/src/content/templates/`)
+Add interactive runtime prompt:
 
-| File | Change Type | Description |
-|------|-------------|-------------|
-| `product-feature.md` | Add sections | Add sequence diagram to "How It Works", flowchart to "Key Workflows", ASCII to new "User Interface" section |
-| `product-concept.md` | Update existing | Update existing "Relationships" section (line 63) to use Mermaid |
-| `product-domain.md` | Add section | Add "Domain Structure" diagram after "Overview" section |
-| `product-overview.md` | Add section | Add "Product Architecture" diagram after "Key Capabilities" section |
-| `engineering-system.md` | Update + Add | Add "Architecture" section with Mermaid, update "Data Flow" (line 43) to use Mermaid |
-| `engineering-pattern.md` | Add section | Add "Structure" section with classDiagram after "Solution" section |
-| `engineering-convention.md` | Update existing | Enhance "Examples" section (line 31) with ASCII structure diagrams |
-| `engineering-overview.md` | Add section | Add "System Architecture" diagram after "Architecture Summary" section |
-| `engineering-component.md` | Add section | Add "Data Flow" diagram after "Overview" section |
+```
+Claude Kanban Installer
 
-### Skills (`apps/kanban/src/content/skills/`)
+Which runtime(s) do you use?
+  1) Claude Code
+  2) OpenCode
+  3) Both
 
-| Skill | Changes |
-|-------|---------|
-| `kanban-map-product/SKILL.md` | Add partial include, add diagram guidance in `socratic_qa_dialogue` step |
-| `kanban-map-engineering/SKILL.md` | Add partial include, enhance Architecture Mapper agent, add diagram guidance |
-| `kanban-docs/SKILL.md` | Add partial include, add diagram guidance in stub completion steps |
+Enter choice [1-3]: _
+```
+
+**Implementation:**
+
+```javascript
+const readline = require('readline');
+
+const RUNTIMES = {
+  claude: {
+    name: 'Claude Code',
+    skillsDir: '.claude/skills',
+  },
+  opencode: {
+    name: 'OpenCode',
+    skillsDir: '.opencode/skills',
+  },
+};
+
+async function promptRuntime() {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  console.log();
+  console.log('Which runtime(s) do you use?');
+  console.log();
+  console.log('  1) Claude Code');
+  console.log('  2) OpenCode');
+  console.log('  3) Both');
+  console.log();
+
+  return new Promise((resolve) => {
+    rl.question('Enter choice [1-3]: ', (answer) => {
+      rl.close();
+      const choice = answer.trim();
+      if (choice === '1') resolve(['claude']);
+      else if (choice === '2') resolve(['opencode']);
+      else if (choice === '3') resolve(['claude', 'opencode']);
+      else {
+        console.log('Invalid choice, defaulting to Claude Code');
+        resolve(['claude']);
+      }
+    });
+  });
+}
+```
 
 ---
 
-## Detailed Changes
+### Task 2: Add Skill Transformer
 
-### 1. Create Diagram Guidelines Partial
+**File:** `apps/kanban/bin/install.cjs`
 
-**File:** `apps/kanban/src/content/partials/diagram-guidelines.md`
+Skills need transformation when installing for OpenCode.
 
-**Full content:**
-```markdown
-<note>**Diagram Guidelines:**</note>
+#### 2.1 Tool Name Mapping
 
-<note>**When to include Mermaid diagrams:**</note>
-- Workflows with 3+ steps or branching logic → `flowchart`
-- User/system interactions → `sequenceDiagram`
-- State transitions → `stateDiagram-v2`
-- System architecture with 3+ components → `flowchart`
-- Pattern relationships → `classDiagram`
-- Database/data models → `erDiagram`
+| Claude Code | OpenCode |
+|-------------|----------|
+| `Read` | `read` |
+| `Write` | `write` |
+| `Edit` | `edit` |
+| `Glob` | `glob` |
+| `Grep` | `grep` |
+| `Bash` | `bash` |
+| `WebSearch` | `websearch` |
+| `WebFetch` | `webfetch` |
+| `AskUserQuestion` | `question` |
+| `Skill` | `skill` |
+| `Task` | `task` |
+| `TaskCreate` | `task_create` |
+| `TaskUpdate` | `task_update` |
+| `TaskList` | `task_list` |
+| `TaskGet` | `task_get` |
 
-<note>**When to include ASCII mockups:**</note>
-- UI elements (dialogs, forms, panels)
-- Tree structures (file trees, hierarchies)
-- Sidebar/panel layouts
+**Implementation:**
 
-<note>**Mermaid Syntax Quick Reference:**</note>
-
-<example_code lang="markdown">
-## Flowchart
-```mermaid
-flowchart LR
-    A[Start] --> B{Decision}
-    B -->|Yes| C[Action 1]
-    B -->|No| D[Action 2]
+```javascript
+const TOOL_NAME_MAP = {
+  'Read': 'read',
+  'Write': 'write',
+  'Edit': 'edit',
+  'Glob': 'glob',
+  'Grep': 'grep',
+  'Bash': 'bash',
+  'WebSearch': 'websearch',
+  'WebFetch': 'webfetch',
+  'AskUserQuestion': 'question',
+  'Skill': 'skill',
+  'Task': 'task',
+  'TaskCreate': 'task_create',
+  'TaskUpdate': 'task_update',
+  'TaskList': 'task_list',
+  'TaskGet': 'task_get',
+};
 ```
 
-## Sequence Diagram
-```mermaid
-sequenceDiagram
-    User->>+System: Request
-    System-->>-User: Response
+#### 2.2 Frontmatter Conversion
+
+**Claude Code format:**
+```yaml
+---
+name: kanban-discover
+description: Investigate problems...
+allowed-tools: Read, Glob, Grep, WebSearch, WebFetch, AskUserQuestion, Skill, Task
+argument-hint: "[problem to investigate]"
+---
 ```
 
-## State Diagram
-```mermaid
-stateDiagram-v2
-    [*] --> Idle
-    Idle --> Processing: start
-    Processing --> Done: complete
+**OpenCode format:**
+```yaml
+---
+name: kanban-discover
+description: Investigate problems...
+tools:
+  read: true
+  glob: true
+  grep: true
+  websearch: true
+  webfetch: true
+  question: true
+  skill: true
+  task: true
+argument-hint: "[problem to investigate]"
+---
 ```
 
-## Class Diagram
-```mermaid
-classDiagram
-    class Interface {
-        <<interface>>
-        +method()
+**Implementation:**
+
+```javascript
+/**
+ * Convert allowed-tools string to OpenCode tools object
+ */
+function convertAllowedTools(allowedToolsStr) {
+  if (!allowedToolsStr) return null;
+
+  const tools = {};
+  const toolList = allowedToolsStr.split(',').map(t => t.trim());
+
+  for (const tool of toolList) {
+    const mappedName = TOOL_NAME_MAP[tool] || tool.toLowerCase();
+    tools[mappedName] = true;
+  }
+
+  return tools;
+}
+
+/**
+ * Serialize tools object to YAML format
+ */
+function serializeToolsYaml(tools, indent = 2) {
+  const spaces = ' '.repeat(indent);
+  return Object.entries(tools)
+    .map(([key, value]) => `${spaces}${key}: ${value}`)
+    .join('\n');
+}
+```
+
+#### 2.3 Path Replacements
+
+In skill body content, replace:
+
+| From | To |
+|------|-----|
+| `.claude/skills/` | `.opencode/skills/` |
+| `~/.claude/` | `~/.config/opencode/` |
+
+**Implementation:**
+
+```javascript
+const PATH_REPLACEMENTS = {
+  '.claude/skills/': '.opencode/skills/',
+  '~/.claude/': '~/.config/opencode/',
+};
+
+function replacePathsForOpencode(content) {
+  let result = content;
+  for (const [from, to] of Object.entries(PATH_REPLACEMENTS)) {
+    result = result.split(from).join(to);
+  }
+  return result;
+}
+```
+
+#### 2.4 Full Transformer
+
+```javascript
+/**
+ * Parse YAML frontmatter from a SKILL.md file
+ */
+function parseFrontmatter(content) {
+  const match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+  if (!match) return { frontmatter: null, body: content };
+
+  const yamlStr = match[1];
+  const body = match[2];
+  const frontmatter = {};
+
+  for (const line of yamlStr.split('\n')) {
+    const colonIdx = line.indexOf(':');
+    if (colonIdx === -1) continue;
+    const key = line.slice(0, colonIdx).trim();
+    const value = line.slice(colonIdx + 1).trim();
+    frontmatter[key] = value;
+  }
+
+  return { frontmatter, body };
+}
+
+/**
+ * Transform a SKILL.md file for OpenCode
+ */
+function transformSkillForOpencode(content) {
+  const { frontmatter, body } = parseFrontmatter(content);
+
+  if (!frontmatter) return content;
+
+  // Build new frontmatter
+  const newFrontmatter = [];
+
+  for (const [key, value] of Object.entries(frontmatter)) {
+    if (key === 'allowed-tools') {
+      const tools = convertAllowedTools(value);
+      if (tools) {
+        newFrontmatter.push('tools:');
+        newFrontmatter.push(serializeToolsYaml(tools));
+      }
+    } else {
+      newFrontmatter.push(`${key}: ${value}`);
     }
-    Interface <|-- Implementation
+  }
+
+  // Replace paths in body
+  const transformedBody = replacePathsForOpencode(body);
+
+  return `---\n${newFrontmatter.join('\n')}\n---\n${transformedBody}`;
+}
 ```
 
-## Entity Relationship Diagram
-```mermaid
-erDiagram
-    USER ||--o{ ORDER : places
-    ORDER ||--|{ LINE_ITEM : contains
-```
-</example_code>
+#### 2.5 Copy Skill File Function
 
-<note>**ASCII Conventions:**</note>
+```javascript
+/**
+ * Copy a skill file, transforming for OpenCode if needed
+ */
+function copySkillFile(srcFile, destFile, runtime) {
+  const destDir = path.dirname(destFile);
+  if (!fs.existsSync(destDir)) {
+    fs.mkdirSync(destDir, { recursive: true });
+  }
 
-<example_code lang="text">
-## Window/Dialog
-┌─────────────────────────────────┐
-│  Title                    [X]  │
-├─────────────────────────────────┤
-│  Content                        │
-│      [ Cancel ]  [ OK ]         │
-└─────────────────────────────────┘
+  let content = fs.readFileSync(srcFile, 'utf-8');
 
-## Form Elements
-Label:     [________________]     ← Text input
-Dropdown:  [Option v]             ← Select
-Radio:     (*) Selected  ( ) Not  ← Radio
-Checkbox:  [x] Checked  [ ] Not   ← Checkbox
-Button:    [ Submit ]             ← Button
+  // Transform for OpenCode
+  if (runtime === 'opencode') {
+    content = transformSkillForOpencode(content);
+  }
 
-## Tree View
-├── Parent
-│   ├── Child 1
-│   └── Child 2
-└── Sibling
+  const srcHash = crypto.createHash('sha256').update(content).digest('hex');
+  const destHash = getFileHash(destFile);
 
-## Sidebar
-HEADER                    [+] [↻]
-├── ▼ Expanded (2)
-│   ├── Item 1
-│   └── Item 2
-└── ▶ Collapsed (3)
-</example_code>
-```
+  fs.writeFileSync(destFile, content, 'utf-8');
 
----
+  const normalized = destFile.replace(/\\/g, '/');
+  if (destHash && destHash !== srcHash) {
+    logSuccess(`Updated: ${normalized}`);
+  } else if (!destHash) {
+    logSuccess(`Added: ${normalized}`);
+  }
 
-### 2. Update `product-feature.md`
-
-**File:** `apps/kanban/src/content/templates/product-feature.md`
-
-**Change:** Replace lines 24-35 (the "How It Works" section) with:
-
-```markdown
-## How It Works
-
-```mermaid
-sequenceDiagram
-    User->>+{System}: {action}
-    {System}->>{System}: {processing}
-    {System}-->>-User: {response}
-```
-
-1. User {action}
-2. System {response}
-3. Result: {outcome}
-
-### Key Workflows
-
-**{Workflow Name}:**
-
-```mermaid
-flowchart LR
-    A[{Step 1}] --> B[{Step 2}]
-    B --> C[{Step 3}]
-```
-
-- {Step 1}
-- {Step 2}
-- {Step 3}
-
-**Summary:** {Brief recap of the main workflow}
-
-### User Interface
-
-```
-┌─────────────────────────────────┐
-│  {Feature UI}             [X]  │
-├─────────────────────────────────┤
-│  {UI description}               │
-│                                 │
-│      [ {Action} ]               │
-└─────────────────────────────────┘
-```
+  return srcHash;
+}
 ```
 
 ---
 
-### 3. Update `product-concept.md`
+### Task 3: Update Install Flow
 
-**File:** `apps/kanban/src/content/templates/product-concept.md`
+**File:** `apps/kanban/bin/install.cjs`
 
-**Change:** Replace lines 63-76 (the existing "Relationships" section) with:
+Modify `main()` to:
 
-```markdown
-## Relationships
+1. Prompt for runtime selection
+2. Loop through selected runtimes
+3. Copy skills with transformation for OpenCode
+4. Store runtime in config.yaml
 
-```mermaid
-flowchart TB
-    {Concept}[{Concept Name}]
-    {Related1}[{Related Concept 1}]
-    {Related2}[{Related Concept 2}]
-    {Concept} --> {Related1}
-    {Concept} --> {Related2}
-```
+```javascript
+async function main() {
+  // ... existing setup ...
 
-- **{Related Concept}**: {Nature of relationship}
-- **{Related Concept}**: {Nature of relationship}
+  // Prompt for runtime
+  const selectedRuntimes = await promptRuntime();
 
-## Edge Cases
+  console.log();
+  console.log(`Installing for: ${selectedRuntimes.map(r => RUNTIMES[r].name).join(' + ')}`);
 
-- **{Scenario}**: {How this concept behaves in this edge case}
-- **{Scenario}**: {How this concept behaves in this edge case}
-```
+  // Install skills for each runtime
+  const skillsSource = path.join(sourceDir, 'skills');
 
----
+  for (const runtime of selectedRuntimes) {
+    const config = RUNTIMES[runtime];
+    const skillsDest = path.join(cwd, config.skillsDir);
 
-### 4. Update `product-domain.md`
+    logStep('Skills', `Installing to ${config.skillsDir}/...`);
 
-**File:** `apps/kanban/src/content/templates/product-domain.md`
-
-**Change:** Insert after line 26 (after "Overview" section, before "Boundaries"):
-
-```markdown
-## Domain Structure
-
-```mermaid
-flowchart TB
-    subgraph {Domain}
-        {Feature1}[{Feature 1}]
-        {Feature2}[{Feature 2}]
-        {Feature3}[{Feature 3}]
-    end
-    {Feature1} --> {Feature2}
-```
-
-```
-
----
-
-### 5. Update `product-overview.md`
-
-**File:** `apps/kanban/src/content/templates/product-overview.md`
-
-**Change:** Insert after line 29 (after "Key Capabilities" section, before "Target Users"):
-
-```markdown
-## Product Architecture
-
-```mermaid
-flowchart TB
-    subgraph {Product Name}
-        {Domain1}[{Domain 1}]
-        {Domain2}[{Domain 2}]
-        {Domain3}[{Domain 3}]
-    end
-    User --> {Domain1}
-    {Domain1} --> {Domain2}
-```
-
-```
-
----
-
-### 6. Update `engineering-system.md`
-
-**File:** `apps/kanban/src/content/templates/engineering-system.md`
-
-**Change:** Replace lines 43-47 (the "Data Flow" section) with:
-
-```markdown
-## Architecture
-
-```mermaid
-flowchart TB
-    subgraph {System Name}
-        {Component1}[{Component 1}]
-        {Component2}[{Component 2}]
-        {Component3}[{Component 3}]
-    end
-    Input --> {Component1}
-    {Component1} --> {Component2}
-    {Component2} --> {Component3}
-    {Component3} --> Output
-```
-
-{Prose description of architecture}
-
-## Data Flow
-
-```mermaid
-flowchart LR
-    A[Input] --> B[{Processing Step 1}]
-    B --> C[{Processing Step 2}]
-    C --> D[Output]
-```
-
-{Prose description of data flow}
-```
-
----
-
-### 7. Update `engineering-pattern.md`
-
-**File:** `apps/kanban/src/content/templates/engineering-pattern.md`
-
-**Change:** Insert after line 29 (after "Solution" section, before "When to Use"):
-
-```markdown
-## Structure
-
-```mermaid
-classDiagram
-    class {Interface} {
-        <<interface>>
-        +{method}()
+    if (fs.existsSync(skillsSource)) {
+      const skillFiles = getAllFiles(skillsSource);
+      for (const relativePath of skillFiles) {
+        const srcFile = path.join(skillsSource, relativePath);
+        const destFile = path.join(skillsDest, relativePath);
+        copySkillFile(srcFile, destFile, runtime);
+      }
     }
-    class {Implementation} {
-        +{method}()
-    }
-    {Interface} <|-- {Implementation}
-    {Client} --> {Interface}
-```
+  }
 
-```
+  // ... rest of install (scripts, templates, etc.) ...
 
----
-
-### 8. Update `engineering-convention.md`
-
-**File:** `apps/kanban/src/content/templates/engineering-convention.md`
-
-**Change:** Replace lines 31-46 (the "Examples" section) with:
-
-```markdown
-## Examples
-
-### Correct
-
-```
-{ASCII representation of correct structure/naming}
-```
-
-```{language}
-{good code example}
-```
-
-### Incorrect
-
-```
-{ASCII representation of incorrect structure/naming}
-```
-
-```{language}
-{bad example}
-// Violates: {which aspect of rule}
-```
-
-**Summary:** {Brief recap of examples}
+  // Update config.yaml with runtime
+  // (inject runtime setting if creating new config)
+}
 ```
 
 ---
 
-### 9. Update `engineering-overview.md`
+### Task 4: Update VSCode Extension
 
-**File:** `apps/kanban/src/content/templates/engineering-overview.md`
+**File:** `apps/vscode/src/extension.ts`
 
-**Change:** Insert after line 39 (after "Architecture Summary" section, before "Directory Structure"):
+The extension already has a `getClaudeCommand` function (line 80) and `workspaceRoot` variable (line 77). We need to modify this function to support both runtimes.
 
-```markdown
-## System Architecture
+#### 4.1 Add Runtime Detection Function
 
-```mermaid
-flowchart TB
-    subgraph Systems
-        {System1}[{System 1}]
-        {System2}[{System 2}]
-        {System3}[{System 3}]
-    end
-    External --> {System1}
-    {System1} --> {System2}
-    {System2} --> {System3}
+Add this helper function near the top of the `activate` function (after `workspaceRoot` is defined):
+
+```typescript
+// Policy: Determine which runtime to use based on config
+// Note: When "both" is configured, defaults to Claude Code (user can edit config to switch)
+function getRuntime(): 'claude' | 'opencode' {
+  const configPath = path.join(workspaceRoot, '.kanban', 'config.yaml');
+
+  if (!fs.existsSync(configPath)) {
+    return 'claude';  // Default
+  }
+
+  const content = fs.readFileSync(configPath, 'utf-8');
+  const match = content.match(/runtime:\s*["']?(\w+)["']?/);
+
+  if (match && match[1] === 'opencode') {
+    return 'opencode';
+  }
+
+  // "claude" or "both" -> use Claude Code
+  return 'claude';
+}
 ```
 
+#### 4.2 Modify Existing `getClaudeCommand` Function
+
+Replace the existing `getClaudeCommand` function (lines 80-89) with:
+
+```typescript
+// Policy: Build CLI command based on runtime and settings
+function getClaudeCommand(command: string): string {
+  const projectSettings = settings.readProjectSettings(workspaceRoot);
+  const globalSettings = settings.readGlobalSettings();
+  const runtime = getRuntime();
+
+  if (runtime === 'opencode') {
+    // OpenCode uses: opencode run "prompt"
+    // Note: OpenCode permissions are managed via opencode.json, not CLI flags
+    return `opencode run "${command}"`;
+  }
+
+  // Claude Code uses: claude "prompt"
+  const isYolo = claudeSettings.isYoloEnabled(projectSettings, globalSettings);
+  if (isYolo) {
+    return `claude --dangerously-skip-permissions "${command}"`;
+  }
+  return `claude "${command}"`;
+}
+```
+
+**Note:** OpenCode handles permissions differently:
+- Claude Code uses CLI flag: `--dangerously-skip-permissions`
+- OpenCode uses config file `opencode.json`: `{ "permission": { "*": "allow" } }`
+- OpenCode defaults to "allow" for most permissions, so YOLO mode is less necessary
+
+The VSCode extension's YOLO toggle only applies to Claude Code. For OpenCode, permissions are managed via config file.
+
+---
+
+### Task 5: Update Config Template
+
+**File:** `apps/kanban/src/content/templates/config.yaml`
+
+Add `runtime` field under `settings`:
+
+```yaml
+settings:
+  version: "2.0"
+  runtime: "claude"  # Runtime: "claude", "opencode", or "both"
+  idPrefix: ""
+  idPadding: 3
+  archiveOnComplete: false
+```
+
+**Note:** The installer will override this value based on user selection when creating a new config.
+
+---
+
+### Task 6: Update Manifest
+
+**File:** `apps/kanban/bin/install.cjs`
+
+Store selected runtimes in manifest for future reference:
+
+```javascript
+const manifest = {
+  _version: require('../package.json').version,
+  _installedAt: new Date().toISOString(),
+  runtimes: selectedRuntimes,           // ['claude'] or ['opencode'] or ['claude', 'opencode']
+  skillsDirs: selectedRuntimes.map(r => RUNTIMES[r].skillsDir),
+  kanbanDir: '.kanban/',
+};
 ```
 
 ---
 
-### 10. Update `engineering-component.md`
+## Files NOT Modified
 
-**File:** `apps/kanban/src/content/templates/engineering-component.md`
+The following files remain unchanged:
 
-**Change:** Insert after line 27 (after "Overview" section, before "Interface"):
+| Location | Reason |
+|----------|--------|
+| `apps/kanban/src/content/skills/*.md` | Skills stay in Claude format (source of truth) |
+| `apps/kanban/tools/build.ts` | Build process unchanged |
+| `apps/kanban/dist/*` | Built output, not source |
 
-```markdown
-## Data Flow
-
-```mermaid
-flowchart LR
-    Input --> {Component}
-    {Component} --> Output
-```
-
-```
+Transformation to OpenCode format happens at **install time** in the user's project, not in the source or build.
 
 ---
 
-### 11. Update `kanban-map-product` Skill
+## Testing Strategy
 
-**File:** `apps/kanban/src/content/skills/kanban-map-product/SKILL.md`
+### Manual Testing
 
-**Change 11.1:** Add partial include in `<context>` section (after line 17, after `{{> product-docs-scripts ...}}`):
+1. **Install for Claude Code only**
+   - Run `npx @mattfletcher94/claudeban`, select option 1
+   - Verify skills in `.claude/skills/`
+   - Verify no `.opencode/` directory created
+   - Verify `config.yaml` has `runtime: "claude"`
 
-```xml
-{{> diagram-guidelines}}
-```
+2. **Install for OpenCode only**
+   - Run installer, select option 2
+   - Verify skills in `.opencode/skills/`
+   - Verify skill frontmatter converted (tools object, not allowed-tools)
+   - Verify paths replaced in skill body
+   - Verify `config.yaml` has `runtime: "opencode"`
 
-**Change 11.2:** In the `socratic_qa_dialogue` step (around line 370, after the `</example_code>` for the feature template), add:
+3. **Install for Both**
+   - Run installer, select option 3
+   - Verify skills in both directories
+   - Verify `.claude/skills/` has original format
+   - Verify `.opencode/skills/` has converted format
 
-```xml
-<note>**Diagram Generation:**</note>
-<action>Analyze feature content to determine appropriate diagrams:</action>
-<action>- If workflow has 3+ steps or branching → Add Mermaid flowchart</action>
-<action>- If user/system interaction → Add Mermaid sequence diagram</action>
-<action>- If UI element → Add ASCII mockup</action>
-<action>- If data model → Add Mermaid erDiagram</action>
-<action>Generate diagrams based on Q&A responses and code analysis</action>
-```
+4. **VSCode Extension**
+   - With `runtime: "claude"` - verify `claude "skill"` invoked
+   - With `runtime: "opencode"` - verify `opencode run "skill"` invoked
 
----
+### Transformation Verification
 
-### 12. Update `kanban-map-engineering` Skill
+For each skill file, verify:
 
-**File:** `apps/kanban/src/content/skills/kanban-map-engineering/SKILL.md`
-
-**Change 12.1:** Add partial include in `<context>` section (after line 17, after `{{> engineering-docs-scripts ...}}`):
-
-```xml
-{{> diagram-guidelines}}
-```
-
-**Change 12.2:** In the `parallel_discovery` step, update the Architecture Mapper agent prompt (around line 82-99). Replace the existing `<prompt>` content with:
-
-```xml
-<prompt>
-Map the system architecture of this codebase:
-1. Identify major subsystems (auth, api, database, cache, etc.)
-2. Find entry points for each system
-3. Trace data flow between systems
-4. Identify integration points (APIs, events, queues)
-5. Find configuration and environment handling
-6. Note any microservices or separate deployables
-
-For each system, provide:
-- name: System name
-- purpose: What it does (1 sentence)
-- entry_points: Main files/classes
-- components: Key internal components (for Architecture diagram)
-- interacts_with: Other systems it communicates with
-- data_flow: How data moves through it (for Data Flow diagram)
-
-Provide Mermaid-ready descriptions:
-- System relationships (which systems connect to which)
-- Data flow sequences (input → processing → output)
-- Component hierarchy within each system
-</prompt>
-```
-
-**Change 12.3:** After the system doc creation (around line 280, after the `</example_code>` for the system template), add:
-
-```xml
-<note>**Diagram Generation:**</note>
-<action>For each system doc, generate:</action>
-<action>- Architecture diagram showing components (Mermaid flowchart TB with subgraph)</action>
-<action>- Data flow diagram (Mermaid flowchart LR)</action>
-<action>For pattern docs, generate:</action>
-<action>- Structure diagram showing relationships (Mermaid classDiagram)</action>
-<action>For convention docs where structure matters, generate:</action>
-<action>- ASCII diagrams showing correct vs incorrect structure</action>
-```
+| Check | Claude Format | OpenCode Format |
+|-------|---------------|-----------------|
+| Tool restrictions | `allowed-tools: Read, Write` | `tools:\n  read: true\n  write: true` |
+| Paths in body | `.claude/skills/` | `.opencode/skills/` |
+| Global paths | `~/.claude/` | `~/.config/opencode/` |
 
 ---
 
-### 13. Update `kanban-docs` Skill
+## File Changes Summary
 
-**File:** `apps/kanban/src/content/skills/kanban-docs/SKILL.md`
-
-**Change 13.1:** Add partial include in `<context>` section (after line 28, after the engineering docs note):
-
-```xml
-{{> diagram-guidelines}}
-```
-
-**Change 13.2:** In the `complete_stub_docs` step (around line 246, after the content sections list), add:
-
-```xml
-<note>**Diagram Completion:**</note>
-<action>Analyze implemented code to generate appropriate diagrams:</action>
-<action>- Review code flow for sequence/flowchart diagrams</action>
-<action>- Check for UI components to create ASCII mockups</action>
-<action>- Trace data flow for data flow diagrams</action>
-<action>- If database models exist, create erDiagram</action>
-```
-
-**Change 13.3:** In the `complete_stub_engineering_docs` step (around line 293, after the branch conditions for type), add:
-
-```xml
-<note>**Diagram Completion:**</note>
-<branch condition="type is system">
-  <action>Generate Architecture diagram from component analysis</action>
-  <action>Generate Data Flow diagram from code trace</action>
-</branch>
-<branch condition="type is pattern">
-  <action>Generate Structure diagram showing pattern relationships (classDiagram)</action>
-</branch>
-<branch condition="type is convention">
-  <action>Generate ASCII diagrams showing correct vs incorrect if structure-related</action>
-</branch>
-```
-
-**Change 13.4:** In the `update_existing_docs` step (around line 219, after the verification prompt handling), add:
-
-```xml
-<note>**Diagram Updates:**</note>
-<action>If implementation changed architecture → Update Architecture diagram</action>
-<action>If data flow changed → Update Data Flow diagram</action>
-<action>If UI changed → Update ASCII mockup</action>
-<action>If new relationships added → Update relationship diagrams</action>
-```
+| File | Change |
+|------|--------|
+| `apps/kanban/bin/install.cjs` | Add runtime prompt, transformer, multi-runtime install |
+| `apps/vscode/src/extension.ts` | Add `getRuntime()`, modify `getClaudeCommand()` |
+| `apps/kanban/src/content/templates/config.yaml` | Add `runtime` field under `settings` |
 
 ---
 
-## Implementation Order
+## Open Questions / Future Work
 
-### Phase 1: Foundation
-1. Create `apps/kanban/src/content/partials/diagram-guidelines.md`
-2. Build and verify: `cd apps/kanban && pnpm build`
-3. Check `dist/content/` for successful compilation
+1. **Migration support** - Currently not implementing a migration path. Users who switch runtimes should reinstall.
 
-### Phase 2: Templates (in order of complexity)
-4. Update `engineering-system.md` - Most impactful, has existing Data Flow section
-5. Update `engineering-pattern.md`
-6. Update `engineering-convention.md`
-7. Update `engineering-overview.md`
-8. Update `engineering-component.md`
-9. Update `product-feature.md`
-10. Update `product-concept.md`
-11. Update `product-domain.md`
-12. Update `product-overview.md`
+2. **Runtime switching in VSCode** - Should the extension provide a command to switch runtimes? Or require config edit?
 
-### Phase 3: Skills
-13. Update `kanban-map-engineering/SKILL.md`
-14. Update `kanban-map-product/SKILL.md`
-15. Update `kanban-docs/SKILL.md`
+3. **CI/CD flags** - Consider adding `--claude`, `--opencode`, `--both` flags for non-interactive install.
 
-### Phase 4: Validation
-16. Build: `cd apps/kanban && pnpm build`
-17. Verify no compilation errors
-18. Inspect `dist/content/skills/` to confirm partials expanded
-19. Test a skill on sample content to verify diagram generation
-
----
-
-## Success Criteria
-
-1. `pnpm build` completes without errors
-2. Templates include diagram sections as standard structure
-3. Skills include `{{> diagram-guidelines}}` partial
-4. Skills have diagram generation guidance in appropriate steps
-5. Mermaid diagrams render correctly in GitHub markdown preview
-6. ASCII mockups display correctly in monospace environments
-
----
-
-## Decisions
-
-| Question | Decision | Rationale |
-|----------|----------|-----------|
-| Mermaid syntax validation? | Skip for now | Claude generates valid syntax reliably; errors visible in PR preview |
-| Diagram complexity limits? | Trust Claude's judgment | No hard limits; Claude will keep diagrams readable |
-| Additional Mermaid types? | Add `erDiagram` | Useful for projects with data models; skip others (Gantt, pie, gitGraph) |
-| User prompts for diagrams? | No - Claude decides | Based on content analysis; reduces friction |
-| Template approach? | Standard structure with placeholders | Follow existing pattern; no conditionals |
+4. **Tool name mapping completeness** - Verify all tools used in skills are mapped. May need updates as skills evolve.
 
 ---
 
 ## References
 
-- [Mermaid Official Documentation](https://mermaid.js.org/)
-- [Mermaid Live Editor](https://mermaid.live/)
-- [ASCIIFlow Editor](https://asciiflow.com/)
-- [CHI 2024: Taking ASCII Drawings Seriously](https://pg.ucsd.edu/publications/how-programmers-ASCII-diagram-code_CHI-2024.pdf)
+- [OpenCode Documentation](https://opencode.ai/docs)
+- [OpenCode Permissions](https://opencode.ai/docs/permissions/)
+- [Agent Skills Specification](https://agentskills.io/specification)
+- [Anthropic Skills GitHub](https://github.com/anthropics/skills)
+- [GSD Repository](https://github.com/gsd-build/get-shit-done) - Reference implementation for multi-runtime support
