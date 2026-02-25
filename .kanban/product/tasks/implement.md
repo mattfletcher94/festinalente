@@ -7,9 +7,9 @@ summary: "Executes the implementation plan step-by-step, running verification af
 keywords: [implement, execute, code, verification, uncommitted]
 aliases: [kanban-implement, implementation, coding]
 boundary: "Does NOT commit code; code stays uncommitted until check and QA pass"
-related: [tasks/plan, tasks/check, tasks/workflow]
+related: [tasks/plan, tasks/check, tasks/workflow, tasks/quick]
 updated: 2026-02-25
-verified: 2026-02-24
+verified: 2026-02-25
 code_refs:
   - apps/kanban/src/content/skills/kanban-implement/SKILL.md
 ---
@@ -110,6 +110,7 @@ What this feature does NOT do:
 - **Does NOT:** Commit code → Code stays uncommitted
 - **Does NOT:** Run full test suites → See [tasks/check](./check.md)
 - **Does NOT:** Skip plan steps → Each step must execute
+- **Does NOT:** Handle simple fixes → See [tasks/quick](./quick.md) for fast implementation
 
 ## Configuration
 
@@ -124,6 +125,7 @@ What this feature does NOT do:
 - **docs/context-selection**: Loads relevant documentation
 - **docs/freshness**: Warns about outdated docs
 - **tasks/check**: Next step when complete
+- **tasks/quick**: Fast alternative for simple fixes
 
 ## Limitations
 
