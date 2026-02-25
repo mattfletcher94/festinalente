@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 const require_chunk = require('./chunk-DWy1uDak.cjs');
-const require_xml_parser = require('./xml-parser-C8mdMRV3.cjs');
+const require_xml_parser = require('./xml-parser-CLD-d9qv.cjs');
 const fs = require_chunk.__toESM(require("fs"));
 const path = require_chunk.__toESM(require("path"));
 
