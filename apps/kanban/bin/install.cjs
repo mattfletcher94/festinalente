@@ -392,7 +392,7 @@ async function main() {
   logStep('2/4', 'Installing scripts, templates, and workflow to .kanban/...');
 
   // Ensure .kanban directory structure exists
-  const kanbanSubDirs = ['tasks', 'product', 'engineering', 'directives', 'scripts', 'templates'];
+  const kanbanSubDirs = ['tasks', 'quick', 'product', 'engineering', 'directives', 'scripts', 'templates'];
   for (const dir of kanbanSubDirs) {
     const dirPath = path.join(kanbanDir, dir);
     if (!fs.existsSync(dirPath)) {

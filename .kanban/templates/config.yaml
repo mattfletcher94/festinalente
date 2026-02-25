@@ -19,6 +19,7 @@ directives:
   kanban-docs: []
   kanban-merge: []
   kanban-rework: []
+  kanban-quick: []
   kanban-map-product: []
   kanban-define-product: []
   kanban-map-engineering: []

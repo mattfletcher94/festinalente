@@ -36,6 +36,7 @@ directives:
     - architecture
     - typescript
     - tsdoc
+  kanban-quick: []
   kanban-map-product: []
   kanban-define-product: []
   kanban-map-engineering: []
