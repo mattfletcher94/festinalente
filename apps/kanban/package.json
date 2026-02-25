@@ -1,6 +1,6 @@
 {
   "name": "@mattfletcher94/claudeban",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A kanban-style task management system for Claude Code with spec-driven development workflow",
   "type": "module",
   "bin": {
