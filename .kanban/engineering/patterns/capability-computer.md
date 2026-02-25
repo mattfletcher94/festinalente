@@ -8,6 +8,7 @@ keywords: [capability, computer, pure-functions, side-effects, separation]
 aliases: [mechanism-policy, io-separation]
 boundary: "Not for simple scripts where separation adds overhead without benefit"
 related:
+  - patterns/orchestrator
   - patterns/factory-di
 paths:
   - apps/vscode/src/capabilities
@@ -84,6 +85,18 @@ graph LR
 ```
 
 **Summary:** Capabilities do I/O, Computers compute. Keep them separate.
+
+## The Three Layers
+
+This pattern is part of a three-layer architecture:
+
+| Layer | Responsibility | Suffix | Example |
+|-------|---------------|--------|---------|
+| **Orchestrator** | Policy (when/whether to act) | `.orchestrator.ts` | `extension.ts` |
+| **Capability** | Mechanism (how to act) | `.capability.ts` | `file-system.capability.ts` |
+| **Computer** | Logic (what to compute) | `.computer.ts` | `task-parser.computer.ts` |
+
+See [orchestrator](./orchestrator.md) for the full orchestrator pattern, including when to decompose into multiple orchestrators.
 
 ## When to Use
 

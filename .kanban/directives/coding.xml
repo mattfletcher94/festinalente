@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<directive name="coding" version="1"
+<directive name="coding" version="2"
            created="2026-02-25" updated="2026-02-25">
   <description>
     Code quality standards: architecture, type safety, and documentation
@@ -13,6 +13,12 @@
     </principle>
     <principle id="A3" keywords="naming,suffix,categorization">
       Every module must be categorized with suffix: .computer.ts, .capability.ts, .orchestrator.ts
+    </principle>
+    <principle id="A4" keywords="orchestrator,decomposition,domain,split">
+      Orchestrators should be decomposed when: >300 lines, >2-3 unrelated concerns, or distinct domains emerge
+    </principle>
+    <principle id="A5" keywords="composition,root,entry,wiring">
+      Entry points (e.g., extension.ts) should be thin composition roots that wire domain orchestrators together
     </principle>
     <principle id="T1" keywords="any,unknown,type,safety">
       Never use any - use unknown and narrow with type guards
@@ -54,6 +60,15 @@
     </rule>
     <rule id="P-A3" phase="implement">
       When creating pure functions, wrap them in a computer factory
+    </rule>
+    <rule id="P-A4" phase="plan">
+      Identify distinct domains and plan orchestrator structure before implementation
+    </rule>
+    <rule id="P-A5" phase="implement">
+      Create domain orchestrators in orchestrators/ directory when adding new domains
+    </rule>
+    <rule id="P-A6" phase="check">
+      Verify orchestrator size - if >300 lines, plan decomposition into domain orchestrators
     </rule>
     <rule id="P-T1" phase="implement">
       Define domain types for new identifiers using branded types
@@ -108,6 +123,16 @@
       <forbidden>(Manager|Service|Helper|Utils)(&lt;|$)</forbidden>
       <reason>Ambiguous naming - use computer/capability/orchestrator suffix</reason>
     </check>
+    <check id="V-A5" type="pattern" severity="error" files="*.orchestrator.ts">
+      <forbidden>import.*\.orchestrator\.</forbidden>
+      <reason>Orchestrators cannot import other orchestrators (use composition root)</reason>
+    </check>
+    <check id="V-A6" type="checklist" severity="warning">
+      <item>Orchestrator files are under 300 lines (decompose if larger)</item>
+      <item>Entry point (extension.ts) is a thin composition root</item>
+      <item>Distinct domains have their own orchestrators in orchestrators/</item>
+      <item>Domain orchestrators don't import each other directly</item>
+    </check>
     <check id="V-T1" type="pattern" severity="error" files="**/*.ts">
       <forbidden>:\s*any\b</forbidden>
       <reason>any type disables type checking - use unknown and narrow</reason>
@@ -145,6 +170,10 @@
       <item>All new modules have correct suffix (.computer.ts, .capability.ts, .orchestrator.ts)</item>
       <item>No policy logic in capabilities</item>
       <item>Computers only import other computers</item>
+      <item>Orchestrators under 300 lines (decompose if larger)</item>
+      <item>Entry point is thin composition root (wiring only)</item>
+      <item>Distinct domains have separate orchestrators</item>
+      <item>Domain orchestrators don't import each other</item>
       <item>No any type in new code</item>
       <item>All exported functions have explicit return types</item>
       <item>Domain types used for IDs (not raw strings)</item>
@@ -312,6 +341,66 @@ export function loadConfig(path: string) {
 }
       ]]></code>
       <explanation>No compatibility layers - migrate all data to new format</explanation>
+    </example>
+    <example ref="A4" type="violation">
+      <code><![CDATA[
+// WRONG: Monolithic orchestrator handling multiple domains
+// extension.ts - 500+ lines
+export function activate(context) {
+  // Task domain logic...
+  // Quick domain logic...
+  // Docs domain logic...
+  // Config domain logic...
+  // Terminal domain logic...
+}
+      ]]></code>
+      <explanation>Split into domain orchestrators when >300 lines or >2-3 unrelated concerns</explanation>
+    </example>
+    <example ref="A4" type="correct">
+      <code><![CDATA[
+// CORRECT: Decomposed into domain orchestrators
+// extension.ts - thin composition root (~100 lines)
+import { createTasksOrchestrator } from './orchestrators/tasks.orchestrator';
+import { createQuicksOrchestrator } from './orchestrators/quicks.orchestrator';
+
+export function activate(context) {
+  const tasksOrch = createTasksOrchestrator(deps);
+  const quicksOrch = createQuicksOrchestrator(deps);
+  // Wire orchestrators to VSCode commands/views
+}
+      ]]></code>
+      <explanation>Thin composition root with domain orchestrators in orchestrators/</explanation>
+    </example>
+    <example ref="A5" type="correct">
+      <code><![CDATA[
+// CORRECT: Domain orchestrator structure
+// orchestrators/tasks.orchestrator.ts
+export function createTasksOrchestrator(deps: TasksOrchestratorDeps) {
+  const taskParser = createTaskParserComputer();
+  const tasksView = createTasksViewCapability({ ... });
+
+  function handleRunAction(action: TaskAction): void {
+    // Policy: when/whether to run
+    const command = buildCommand(action, shouldUseYoloMode());
+    deps.terminal.sendCommand(command);
+  }
+
+  return { treeProvider: tasksView.createTreeDataProvider(), handleRunAction };
+}
+      ]]></code>
+      <explanation>Domain orchestrator owns policy for one domain, uses factory DI</explanation>
+    </example>
+    <example ref="V-A5" type="violation">
+      <code><![CDATA[
+// WRONG: Orchestrator importing another orchestrator
+// orchestrators/tasks.orchestrator.ts
+import { createQuicksOrchestrator } from './quicks.orchestrator';
+
+export function createTasksOrchestrator(deps) {
+  const quicksOrch = createQuicksOrchestrator(deps);  // Forbidden!
+}
+      ]]></code>
+      <explanation>Orchestrators should not import each other - wire them via composition root</explanation>
     </example>
   </examples>
   <verification>

@@ -9,6 +9,8 @@ aliases: [naming-convention]
 boundary: "Does not apply to third-party or generated files"
 related:
   - conventions/folder-structure
+  - patterns/orchestrator
+  - patterns/capability-computer
 paths:
   - apps/kanban/src/scripts
   - apps/vscode/src
@@ -26,9 +28,10 @@ code_refs: []
 1. **File names:** Use `kebab-case.ts` (lowercase with hyphens)
 2. **Type/Interface names:** Use `PascalCase`
 3. **Suffixes:** Add role suffix before extension
-   - `.capability.ts` for capabilities
-   - `.computer.ts` for computers
-   - `.ts` (no suffix) for scripts
+   - `.orchestrator.ts` for orchestrators (domain policy)
+   - `.capability.ts` for capabilities (I/O mechanism)
+   - `.computer.ts` for computers (pure logic)
+   - `.ts` (no suffix) for scripts and entry points
 
 ## Rationale
 
@@ -49,6 +52,7 @@ code_refs: []
 │  FILE TYPE           │  PATTERN              │  EXAMPLE     │
 ├──────────────────────┼───────────────────────┼──────────────┤
 │  Script              │  kebab-case.ts        │  find-task   │
+│  Orchestrator        │  name.orchestrator.ts │  tasks       │
 │  Capability          │  name.capability.ts   │  file-system │
 │  Computer            │  name.computer.ts     │  task-parser │
 │  Type definitions    │  name-types.ts        │  task-types  │
@@ -69,6 +73,9 @@ apps/kanban/src/scripts/
 └── search-hybrid.ts       # descriptive name
 
 apps/vscode/src/
+├── orchestrators/
+│   ├── tasks.orchestrator.ts        # domain orchestrator
+│   └── quicks.orchestrator.ts
 ├── capabilities/
 │   ├── file-system.capability.ts    # kebab-case + suffix
 │   ├── tasks-view.capability.ts
@@ -76,8 +83,9 @@ apps/vscode/src/
 ├── computers/
 │   ├── task-parser.computer.ts
 │   └── task-grouping.computer.ts
-└── types/
-    └── task-types.ts                # types in dedicated file
+├── types/
+│   └── task-types.ts                # types in dedicated file
+└── extension.ts                     # composition root (entry point)
 ```
 
 ### Type/Interface Naming

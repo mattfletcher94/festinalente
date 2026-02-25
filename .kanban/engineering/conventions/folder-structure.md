@@ -26,7 +26,7 @@ code_refs: []
 1. **Apps:** Each deployable in `apps/{name}/`
 2. **Source:** TypeScript source in `apps/{name}/src/`
 3. **Build Output:** Compiled output in `apps/{name}/dist/`
-4. **VSCode Extension:** Uses `capabilities/`, `computers/`, `types/` subdirectories
+4. **VSCode Extension:** Uses `orchestrators/`, `capabilities/`, `computers/`, `types/` subdirectories
 5. **Runtime Data:** User data in `.kanban/` at workspace root
 6. **Root Config:** Shared tooling (turbo.json, tsconfig.base.json) at root
 
@@ -57,6 +57,7 @@ graph TB
     end
 
     subgraph VSCodeStructure["VSCode Structure"]
+        VS_ORCH["src/orchestrators/"]
         VS_CAP["src/capabilities/"]
         VS_COMP["src/computers/"]
         VS_TYPE["src/types/"]
@@ -101,10 +102,11 @@ claudeban/                          # Workspace root
 │   │   └── tsconfig.json
 │   └── vscode/                    # VSCode extension
 │       ├── src/
+│       │   ├── orchestrators/     # Domain orchestrators (optional)
 │       │   ├── capabilities/      # I/O layer
 │       │   ├── computers/         # Pure functions
 │       │   ├── types/             # Type definitions
-│       │   └── extension.ts       # Entry point
+│       │   └── extension.ts       # Composition root / entry point
 │       ├── out/                   # Build output
 │       └── package.json
 ├── .kanban/                       # Runtime data (gitignored tasks)

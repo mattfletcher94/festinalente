@@ -49,7 +49,7 @@ The VSCode extension provides a visual interface for Claude Kanban. It renders t
 
 ### Orchestrator Layer
 
-The `extension.ts` file acts as the orchestrator, making policy decisions (when/whether to act) and coordinating between capabilities and computers.
+The `extension.ts` file acts as the orchestrator, making policy decisions (when/whether to act) and coordinating between capabilities and computers. See [orchestrator pattern](../patterns/orchestrator.md) for full documentation.
 
 | Responsibility | Description |
 |----------------|-------------|
@@ -60,6 +60,30 @@ The `extension.ts` file acts as the orchestrator, making policy decisions (when/
 | Composition | Wires capabilities and computers together |
 
 **File:** `apps/vscode/src/extension.ts`
+
+#### Orchestrator Decomposition
+
+Currently, `extension.ts` handles multiple domains (Tasks, Quicks, Docs, Config, Terminal). As the extension grows, consider decomposing into domain orchestrators:
+
+```
+apps/vscode/src/
+├── extension.ts                    # Thin composition root
+├── orchestrators/
+│   ├── tasks.orchestrator.ts       # Task domain policy
+│   ├── quicks.orchestrator.ts      # Quick task domain policy
+│   ├── docs.orchestrator.ts        # Documentation domain policy
+│   └── terminal.orchestrator.ts    # Execution/runtime policy
+├── capabilities/
+└── computers/
+```
+
+**When to decompose:**
+- `extension.ts` exceeds ~300 lines
+- Domains have independent lifecycles or state
+- Policy logic becomes hard to test
+- Adding a new domain requires touching unrelated code
+
+See [orchestrator pattern - decomposition](../patterns/orchestrator.md#orchestrator-decomposition) for detailed guidance.
 
 ### Capabilities Layer (Mechanism/How)
 

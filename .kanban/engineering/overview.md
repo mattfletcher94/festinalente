@@ -83,10 +83,11 @@ claudeban/
 │   │   └── dist/                  # Compiled output
 │   └── vscode/                    # VSCode extension
 │       └── src/
+│           ├── orchestrators/     # Domain orchestrators (optional)
 │           ├── capabilities/      # I/O and side effects
 │           ├── computers/         # Pure functions
 │           ├── types/             # Type definitions
-│           └── extension.ts       # Orchestrator
+│           └── extension.ts       # Composition root / entry point
 ├── .kanban/                       # Runtime data directory
 │   ├── tasks/                     # Task instances (XML)
 │   ├── product/                   # Product docs (MD)
@@ -111,8 +112,9 @@ What this overview does NOT cover:
 
 ## Key Patterns
 
-- [factory-di](patterns/factory-di.md) - Factory function dependency injection for testability
+- [orchestrator](patterns/orchestrator.md) - Policy decisions (when/whether to act) and composition
 - [capability-computer](patterns/capability-computer.md) - Separation of I/O from pure functions
+- [factory-di](patterns/factory-di.md) - Factory function dependency injection for testability
 - [tagged-union-errors](patterns/tagged-union-errors.md) - Discriminated union error handling
 
 ## Systems
