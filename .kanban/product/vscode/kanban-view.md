@@ -8,8 +8,8 @@ keywords: [kanban, view, treeview, sidebar, columns, status, config, global-acti
 aliases: [task-view, kanban-board, tasks-view]
 boundary: "Does NOT provide drag-and-drop; tasks move via commands"
 related: [vscode/codelens, vscode/terminal, tasks/workflow]
-updated: 2026-02-24
-verified: 2026-02-24
+updated: 2026-02-25
+verified: 2026-02-25
 code_refs:
   - apps/vscode/src/extension.ts
   - apps/vscode/src/capabilities/tasks-view.capability.ts
@@ -99,7 +99,7 @@ The KANBAN TASKS view header includes action buttons (left to right):
 - Provides project-wide commands not tied to specific tasks
 - "Map Product Docs" - runs `/kanban-map-product` command
 - "Map Engineering Docs" - runs `/kanban-map-engineering` command
-- Each action uses a distinct ThemeIcon (book, symbol-structure)
+- Both actions use green play button icons (consistent with action items)
 - Clicking an action opens a terminal and executes the command
 - Keyboard accessible: focus with arrow keys, activate with Enter
 
@@ -188,11 +188,11 @@ Clicking config.yaml opens it in the editor.
 ```
 GLOBAL ACTIONS
 ├── Global Actions               ← GlobalActionsGroupItem (tools icon, expanded)
-│   ├── Map Product Docs         ← GlobalActionItem (book icon)
-│   └── Map Engineering Docs     ← GlobalActionItem (symbol-structure icon)
+│   ├── ▶ Map Product Docs       ← DocsActionItem (green play icon)
+│   └── ▶ Map Engineering Docs   ← DocsActionItem (green play icon)
 ```
 
-Clicking an action opens a terminal and runs the corresponding `/kanban-*` command.
+Clicking an action opens a terminal and runs the corresponding `/kanban-*` command. The green play icons provide visual consistency with other executable actions.
 
 ### Product Docs Section
 

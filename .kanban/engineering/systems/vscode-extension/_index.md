@@ -15,8 +15,8 @@ related:
 paths:
   - apps/vscode/src
   - apps/vscode/bin
-updated: 2026-02-24
-verified: 2026-02-24
+updated: 2026-02-25
+verified: 2026-02-25
 code_refs:
   - apps/vscode/src/extension.ts
   - apps/vscode/src/capabilities/tasks-view.capability.ts
@@ -113,16 +113,15 @@ The config-view capability defines:
 
 ConfigItem uses `kanban.openFile` command to open config.yaml in editor.
 
-#### TreeItem Types in global-actions-view
+#### TreeItem Types in docs-view (Actions)
 
-The global-actions-view capability defines:
+The docs-view capability defines action items at the top of each docs section:
 
 | TreeItem | Parent | Purpose |
 |----------|--------|---------|
-| GlobalActionsGroupItem | root | Container for global actions (tools icon, expanded by default) |
-| GlobalActionItem | GlobalActionsGroupItem | Clickable action (e.g., "Map Product Docs", "Map Engineering Docs") |
+| DocsActionItem | root (first child) | Clickable action with green play icon (e.g., "Map Product Docs", "Map Engineering Docs") |
 
-GlobalActionItem uses `kanban.runGlobalAction` command to execute the action in a terminal.
+DocsActionItem uses `kanban.runGlobalAction` command to execute the action in a terminal. Both "Map Product Docs" and "Map Engineering Docs" use green play button icons (`play` with `charts.green` color) for visual consistency with other executable actions.
 
 #### TreeItem Types in docs-view
 
