@@ -1,0 +1,69 @@
+<task id="018" status="backlog" priority="medium" created="2026-02-25" updated="2026-02-25">
+  <title>Add kanban-quick command for fast implementation workflow</title>
+
+  <labels>
+    <label>feature</label>
+  </labels>
+
+  <refs spec="tasks/018/spec.xml" plan="tasks/018/plan.xml"/>
+
+  <affects>
+    <doc id="tasks/implement"/>
+    <doc id="tasks/_index"/>
+  </affects>
+
+  <engineering>
+  </engineering>
+
+  <description>
+    A new /kanban-quick command that provides a streamlined path for small fixes,
+    config changes, and simple features. Combines task creation, scoping, planning,
+    and implementation into a single skill with minimal Q&amp;A.
+  </description>
+
+  <problem>
+    The current kanban workflow (create, scope, plan, implement, check, docs, PR)
+    is thorough but too heavyweight for small fixes, config changes, or simple features.
+    Developers need a faster path that preserves key benefits (atomic commits, branching,
+    traceability) without the full ceremony of multiple sequential skills.
+  </problem>
+
+  <value>
+    Faster implementation for straightforward tasks while maintaining git workflow
+    hygiene (branching, atomic commits) and traceability via quick.xml artifact.
+    Optional doc updates and commit review based on user preference. One skill
+    instead of multiple sequential skills.
+  </value>
+
+  <acceptance-criteria>
+Given the user runs /kanban-quick with a task description
+When the Q&amp;A phase begins
+Then the LLM asks "What problem are you solving?"
+And the LLM asks "What does done look like?"
+And no "value" question is asked (kept minimal)
+
+Given Q&amp;A is complete
+When implementation begins
+Then a branch named quick/{id} is created
+And a file .kanban/quick/{id}/quick.xml is created
+And the quick.xml contains combined task+spec+plan info (simpler than 3 separate files)
+
+Given implementation is complete
+When the LLM is ready to commit
+Then the LLM asks "Do you want to review changes before I commit?"
+And if user says yes, the diff is shown and approval requested
+And if user says no, the commit proceeds immediately
+
+Given the commit is complete
+When the LLM prompts for docs
+Then the LLM asks "Do you want me to update docs?"
+And if user says yes, product/engineering docs are updated
+And if user says no, docs are skipped
+
+Given the workflow completes
+Then a new quick.xml template exists at .kanban/templates/quick.xml
+And the skill file exists at .claude/skills/kanban-quick/kanban-quick.skill.md
+  </acceptance-criteria>
+
+  <notes></notes>
+</task>
