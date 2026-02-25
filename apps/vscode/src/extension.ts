@@ -385,12 +385,6 @@ export function activate(context: vscode.ExtensionContext): void {
     )
   );
 
-  // Start discovery session command (policy: when to start discovery)
-  context.subscriptions.push(
-    vscode.commands.registerCommand('kanban.startDiscovery', () => {
-      executeInTerminal('/kanban-discover');
-    })
-  );
 
   // Create task command (policy: how to create tasks)
   context.subscriptions.push(

@@ -47,13 +47,11 @@ The KANBAN TASKS view header includes action buttons (left to right):
 
 | Button | Icon | Action |
 |--------|------|--------|
-| Discovery | `comment-discussion` | Opens terminal and runs `/kanban-discover` |
 | Create Task | `add` | Prompts for title, then runs `/kanban-create {title}` |
-| Find Task | `search` | Opens QuickPick to search and reveal tasks |
 | Refresh | `refresh` | Refreshes task list |
+| Find Task | `search` | Opens QuickPick to search and reveal tasks |
 
 **Rich tooltips:**
-- Discovery button: "**Discovery Session**\nExplore questions and analyze the codebase through Socratic Q&A before creating tasks."
 - Create Task button: "**Create Task**\nCreate a new task through conversational Q&A. Captures problem, value, and acceptance criteria."
 - Find Task button: "**Find Task**\nSearch tasks by ID or title. Select to reveal in tree."
 
@@ -150,17 +148,16 @@ The QUICKS view automatically refreshes when files change in `.kanban/quick/`.
 ### Header Buttons
 
 ```
-KANBAN TASKS                    [💬] [+] [🔍] [↻]
-                                 │    │    │   └── Refresh
-                                 │    │    └── Find Task
-                                 │    └── Create Task
-                                 └── Discovery Session
+KANBAN TASKS                          [+] [↻] [🔍]
+                                       │    │   └── Find Task
+                                       │    └── Refresh
+                                       └── Create Task
 ```
 
 ### Typical Display (Collapsed)
 
 ```
-KANBAN TASKS                    [💬] [+] [🔍] [↻]
+KANBAN TASKS                          [+] [↻] [🔍]
 ├── Backlog (2)
 │   ├── 003: Add dark mode [feature] [medium]
 │   └── 004: Fix login bug [bug] [high]
