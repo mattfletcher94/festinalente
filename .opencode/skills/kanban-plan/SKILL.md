@@ -266,6 +266,7 @@ Run: /kanban-scope {taskId}
       <action>Parse and apply:</action>
       <action>- `<context>` principles: Maintain as ongoing mindset</action>
       <action>- `<process>` rules where phase="plan": Follow as requirements</action>
+      <action>- `<verification>` commands: Note for use in task `<verify>` elements</action>
       <note>`<validation>` checks will run in directive_compliance step</note>
       <note>`<examples>` will be shown if violations are found</note>
     </branch>
@@ -392,7 +393,7 @@ Run: /kanban-scope {taskId}
         // snippet showing the target state
         ```
       </action>
-      <verify>npx tsc --noEmit</verify>
+      <verify>{verification command from directive OR project build/test command}</verify>
       <done>Acceptance criteria for this task</done>
     </task>
 
@@ -404,7 +405,7 @@ Run: /kanban-scope {taskId}
       <action>
         - Implementation details
       </action>
-      <verify>npm run build</verify>
+      <verify>{verification command from directive OR project build/test command}</verify>
       <done>Verification criteria</done>
     </task>
 
@@ -467,8 +468,8 @@ Run: /kanban-scope {taskId}
     </table>
 
     <note>Verification types:</note>
-    <note>- **Command verification:** `<verify>npm run build</verify>` - Executed automatically</note>
-    <note>- **Manual verification:** `<verify>Manual: Check the UI renders correctly</verify>` - Shown to user</note>
+    <note>- **Command verification:** `<verify>{command}</verify>` - Executed automatically. Derive from directive `<validation type="command">` when available.</note>
+    <note>- **Manual verification:** `<verify>Manual: {description}</verify>` - Shown to user</note>
     <note>- Tasks with `type="manual"` always use manual verification</note>
 
     <note>Task creation guidelines:
@@ -773,8 +774,8 @@ Next:
         - Add TypeScript types for persisted state shape
         - Use app_state as localStorage key
       </action>
-      <verify>npx tsc --noEmit</verify>
-      <done>Hook exports correctly, TypeScript compiles without errors</done>
+      <verify>pnpm --filter @example/app build</verify>
+      <done>Hook exports correctly, build succeeds</done>
     </task>
 
     <task id="2" type="auto" depends="1">
@@ -787,7 +788,7 @@ Next:
         - Add hydration effect on mount
         - Subscribe to store changes for persistence
       </action>
-      <verify>npm run build</verify>
+      <verify>pnpm --filter @example/app build</verify>
       <done>State persists after page refresh</done>
     </task>
 
@@ -800,7 +801,7 @@ Next:
         - Subscribe to localStorage changes from other tabs
         - Update Zustand state when external changes detected
       </action>
-      <verify>npm run build</verify>
+      <verify>pnpm --filter @example/app build</verify>
       <done>Change in one tab reflects in another tab</done>
     </task>
 

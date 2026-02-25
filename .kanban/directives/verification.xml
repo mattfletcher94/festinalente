@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<directive name="verification" version="1"
+           created="2026-02-25" updated="2026-02-25">
+
+  <description>
+    Project-specific verification commands for task step verification
+  </description>
+
+  <verification>
+    <command id="vscode-build" description="Build the VSCode extension">pnpm --filter @mattfletcher94/claudeban-vscode build</command>
+    <command id="kanban-build" description="Build the kanban package">pnpm kanban:build</command>
+    <command id="typecheck" description="Check TypeScript types across all packages">pnpm typecheck</command>
+    <command id="dpdm" description="Check for circular dependencies">pnpm check:dpdm</command>
+    <manual id="manual-test" description="Manually test the affected functionality"/>
+  </verification>
+
+</directive>

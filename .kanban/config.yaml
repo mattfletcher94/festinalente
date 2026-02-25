@@ -20,10 +20,12 @@ directives:
   kanban-plan:
     - planning
     - architecture
+    - verification
   kanban-implement:
     - architecture
     - typescript
     - tsdoc
+    - verification
   kanban-save: []
   kanban-check:
     - check-kanban
@@ -36,7 +38,9 @@ directives:
     - architecture
     - typescript
     - tsdoc
-  kanban-quick: []
+    - verification
+  kanban-quick:
+    - verification
   kanban-map-product: []
   kanban-define-product: []
   kanban-map-engineering: []

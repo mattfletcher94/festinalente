@@ -141,6 +141,7 @@ Create a functional specification through iterative conversational Q&A focused o
       <action>Parse and apply:</action>
       <action>- `<context>` principles: Maintain as ongoing mindset</action>
       <action>- `<process>` rules where phase="scope": Follow as requirements</action>
+      <action>- `<verification>` commands: Note for use in task `<verify>` elements</action>
       <note>`<validation>` checks will run in directive_compliance step</note>
       <note>`<examples>` will be shown if violations are found</note>
     </branch>
