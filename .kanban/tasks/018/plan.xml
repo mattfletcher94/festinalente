@@ -1,6 +1,6 @@
 <plan task="018" spec="tasks/018/spec.xml" status="approved"
       complexity="complex" created="2026-02-25" updated="2026-02-25"
-      generated-by="claude" model="claude-opus-4-5-20251101" version="1" iteration="1">
+      generated-by="claude" model="claude-opus-4-5-20251101" version="1" iteration="2">
   <title>Add kanban-quick command for fast implementation workflow</title>
 
   <overview>
@@ -39,7 +39,7 @@
   </inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-02-25T13:49:47.019Z">
       <name>Create next-quick-id.cjs helper script</name>
       <files>.kanban/scripts/next-quick-id.cjs (create)</files>
       <requirements>FR15</requirements>
@@ -67,7 +67,7 @@
       <done>Script returns valid JSON with nextId field</done>
     </task>
 
-    <task id="2" type="auto">
+    <task id="2" type="auto" completed="true" completed_at="2026-02-25T13:49:47.019Z">
       <name>Create find-quick.cjs helper script</name>
       <files>.kanban/scripts/find-quick.cjs (create)</files>
       <requirements>FR7</requirements>
@@ -101,7 +101,7 @@
       <done>Script returns error JSON (expected - no quick tasks yet) or valid JSON if quick exists</done>
     </task>
 
-    <task id="3" type="auto">
+    <task id="3" type="auto" completed="true" completed_at="2026-02-25T13:49:47.019Z">
       <name>Create quick.xml template</name>
       <files>.kanban/templates/quick.xml (create)</files>
       <requirements>FR7, FR16</requirements>
@@ -138,7 +138,7 @@
       <done>Template file exists with valid XML structure</done>
     </task>
 
-    <task id="4" type="auto" depends="1,2,3">
+    <task id="4" type="auto" depends="1,2,3" completed="true" completed_at="2026-02-25T13:55:00.000Z">
       <name>Create kanban-quick skill file</name>
       <files>apps/kanban/src/content/skills/kanban-quick/SKILL.md (create)</files>
       <requirements>FR1-FR14, FR16</requirements>
@@ -186,7 +186,7 @@
       <done>Skill file exists and builds without errors</done>
     </task>
 
-    <task id="5" type="auto" depends="4">
+    <task id="5" type="auto" depends="4" completed="true" completed_at="2026-02-25T13:55:00.000Z">
       <name>Add source files for new scripts</name>
       <files>apps/kanban/src/scripts/next-quick-id.ts (create), apps/kanban/src/scripts/find-quick.ts (create)</files>
       <requirements>FR7, FR15</requirements>
@@ -214,7 +214,7 @@
       <done>TypeScript files compile and produce working .cjs outputs</done>
     </task>
 
-    <task id="6" type="auto" depends="5">
+    <task id="6" type="auto" depends="5" completed="true" completed_at="2026-02-25T13:57:00.000Z">
       <name>Update directory-reference partial to include quick folder</name>
       <files>apps/kanban/src/content/partials/directory-reference.md (modify)</files>
       <requirements>FR7</requirements>
@@ -237,7 +237,7 @@
       <done>Partial includes quick folder reference</done>
     </task>
 
-    <task id="7" type="manual" depends="4,5,6">
+    <task id="7" type="manual" depends="4,5,6" completed="true" completed_at="2026-02-25T13:58:00.000Z">
       <name>Manual verification of skill workflow</name>
       <files>N/A</files>
       <requirements>FR1-FR16</requirements>
@@ -289,7 +289,26 @@
     <pitfall issue="Branch naming collision">quick/{id} vs task/{id} - different prefix, no collision.</pitfall>
   </pitfalls>
 
-  <iterations></iterations>
+  <iterations>
+    <iteration number="2" phase="check" result="failed" date="2026-02-25">
+      <issue type="Incomplete" severity="Blocker">
+        <summary>quick.xml template and SKILL.md lack sufficient context for LLM resume after /clear</summary>
+        <expected>quick.xml serves as combined task+spec+plan artifact with enough context for LLM to resume implementation</expected>
+        <actual>Template is too sparse - missing status, research context, approach, constraints, verification steps</actual>
+      </issue>
+      <actions>
+        <action status="pending">Add status attribute to template (in-progress/completed/aborted)</action>
+        <action status="pending">Add context section with finding and file reason elements</action>
+        <action status="pending">Add approach element for implementation strategy</action>
+        <action status="pending">Add constraints section for things to avoid</action>
+        <action status="pending">Add verify element for confirmation steps</action>
+        <action status="pending">Update create_quick_xml step to include new sections</action>
+        <action status="pending">Update optional_research step to store findings in quick.xml</action>
+        <action status="pending">Add determine_approach step before implementation</action>
+        <action status="pending">Update update_quick_xml step to set status and add summaries</action>
+      </actions>
+    </iteration>
+  </iterations>
   <wip></wip>
   <completeness></completeness>
 </plan>
