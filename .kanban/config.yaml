@@ -20,31 +20,26 @@ directives:
   kanban-plan:
     - planning
     - architecture
-    - design
   kanban-implement:
     - architecture
     - typescript
     - tsdoc
-    - design
   kanban-save: []
   kanban-check:
     - check-kanban
     - check-vscode
     - code-review
+    - tsdoc
   kanban-docs: []
   kanban-merge: []
   kanban-rework:
     - architecture
     - typescript
     - tsdoc
-    - design
   kanban-map-product: []
   kanban-define-product: []
   kanban-map-engineering: []
-  kanban-view: []
-  kanban-report-label: []
-  kanban-report-task: []
-  kanban-report-user: []
+  kanban-overview: []
 
 settings:
   version: "2.0"
