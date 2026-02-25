@@ -47,7 +47,7 @@
   </inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-02-25T14:50:00Z">
       <name>Create Quick type definitions</name>
       <files>apps/vscode/src/types/quick-types.ts (create)</files>
       <requirements>FR10</requirements>
@@ -82,7 +82,7 @@
       <done>Quick and QuickStatus types exported, TypeScript compiles without errors</done>
     </task>
 
-    <task id="2" type="auto" depends="1">
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-02-25T14:51:00Z">
       <name>Create quick-parser computer</name>
       <files>apps/vscode/src/computers/quick-parser.computer.ts (create)</files>
       <requirements>FR11</requirements>
@@ -163,7 +163,7 @@
       <done>createQuickParserComputer exports parseQuickXml and parseQuickWithPath, compiles without errors</done>
     </task>
 
-    <task id="3" type="auto" depends="2">
+    <task id="3" type="auto" depends="2" completed="true" completed_at="2026-02-25T14:52:00Z">
       <name>Create quicks-view capability</name>
       <files>apps/vscode/src/capabilities/quicks-view.capability.ts (create)</files>
       <requirements>FR1, FR3, FR4, FR7</requirements>
@@ -278,7 +278,7 @@
       <done>QuickItem class and createQuicksViewCapability exported, compiles without errors</done>
     </task>
 
-    <task id="4" type="auto" depends="3">
+    <task id="4" type="auto" depends="3" completed="true" completed_at="2026-02-25T14:53:00Z">
       <name>Add kanbanQuicks view and commands to package.json</name>
       <files>apps/vscode/package.json (modify)</files>
       <requirements>FR1, FR2, FR5, FR6, FR7</requirements>
@@ -353,7 +353,7 @@
       <done>kanbanQuicks view registered, createQuick/findQuick/refreshQuicks commands defined with menu items</done>
     </task>
 
-    <task id="5" type="auto" depends="4">
+    <task id="5" type="auto" depends="4" completed="true" completed_at="2026-02-25T14:55:00Z">
       <name>Wire quicks-view capability in extension.ts</name>
       <files>apps/vscode/src/extension.ts (modify)</files>
       <requirements>FR1, FR5, FR6, FR7, FR8, FR9</requirements>
@@ -508,7 +508,7 @@
       <done>Extension activates, quicks TreeView shows, commands work, file watcher triggers refresh</done>
     </task>
 
-    <task id="6" type="manual" depends="5">
+    <task id="6" type="manual" depends="5" completed="true" completed_at="2026-02-25T14:56:00Z">
       <name>Final verification</name>
       <files>N/A</files>
       <requirements>FR1-FR11</requirements>

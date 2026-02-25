@@ -53,6 +53,10 @@
           "name": "Tasks"
         },
         {
+          "id": "kanbanQuicks",
+          "name": "Quicks"
+        },
+        {
           "id": "kanbanConfig",
           "name": "Config"
         },
@@ -120,6 +124,21 @@
       {
         "command": "kanban.runGlobalAction",
         "title": "Kanban: Run Global Action"
+      },
+      {
+        "command": "kanban.createQuick",
+        "title": "Kanban: Create Quick - Fast implementation for simple fixes",
+        "icon": "$(add)"
+      },
+      {
+        "command": "kanban.findQuick",
+        "title": "Kanban: Find Quick - Search by ID or title",
+        "icon": "$(search)"
+      },
+      {
+        "command": "kanban.refreshQuicks",
+        "title": "Kanban: Refresh Quicks",
+        "icon": "$(refresh)"
       }
     ],
     "menus": {
@@ -142,6 +161,21 @@
         {
           "command": "kanban.findTask",
           "when": "view == kanbanTasks && kanban.hasKanbanFolder",
+          "group": "navigation@3"
+        },
+        {
+          "command": "kanban.createQuick",
+          "when": "view == kanbanQuicks && kanban.hasKanbanFolder",
+          "group": "navigation@1"
+        },
+        {
+          "command": "kanban.refreshQuicks",
+          "when": "view == kanbanQuicks",
+          "group": "navigation@2"
+        },
+        {
+          "command": "kanban.findQuick",
+          "when": "view == kanbanQuicks && kanban.hasKanbanFolder",
           "group": "navigation@3"
         }
       ],

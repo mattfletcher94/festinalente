@@ -1,4 +1,4 @@
-<task id="019" status="planned" priority="high" created="2026-02-25" updated="2026-02-25">
+<task id="019" status="update-docs" priority="high" created="2026-02-25" updated="2026-02-25">
   <title>Add QUICKS collapsible section to VSCode extension sidebar</title>
 
   <labels>
