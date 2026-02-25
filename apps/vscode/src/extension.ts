@@ -13,6 +13,7 @@ import { createTaskParserComputer } from './computers/task-parser.computer';
 import { createTaskActionsComputer } from './computers/task-actions.computer';
 import { createTaskGroupingComputer } from './computers/task-grouping.computer';
 import { createClaudeSettingsComputer } from './computers/claude-settings.computer';
+import { createQuickParserComputer } from './computers/quick-parser.computer';
 
 // Capabilities (mechanism)
 import { createFileSystemCapability } from './capabilities/file-system.capability';
@@ -22,9 +23,11 @@ import { createTasksViewCapability, TaskItem } from './capabilities/tasks-view.c
 import { createCodeLensCapability } from './capabilities/codelens.capability';
 import { createConfigViewCapability } from './capabilities/config-view.capability';
 import { createDocsViewCapability } from './capabilities/docs-view.capability';
+import { createQuicksViewCapability } from './capabilities/quicks-view.capability';
 
 // Types
 import type { Task, TaskAction } from './types/task-types';
+import type { Quick } from './types/quick-types';
 
 /**
  * Find the .kanban folder in the workspace (policy decision).
@@ -56,6 +59,7 @@ export function activate(context: vscode.ExtensionContext): void {
   const taskActions = createTaskActionsComputer();
   const taskGrouping = createTaskGroupingComputer();
   const claudeSettings = createClaudeSettingsComputer();
+  const quickParser = createQuickParserComputer();
 
   // Initialize capabilities
   const fs = createFileSystemCapability();
@@ -143,6 +147,40 @@ export function activate(context: vscode.ExtensionContext): void {
     return tasks;
   }
 
+  // Policy: Load all quicks from kanban folder
+  function loadAllQuicks(): Quick[] {
+    const quicksDir = fs.joinPath(kanbanDir, 'quick');
+    if (!fs.exists(quicksDir)) {
+      return [];
+    }
+
+    const quicks: Quick[] = [];
+
+    try {
+      const entries = fs.readDir(quicksDir);
+
+      for (const entry of entries) {
+        const quickPath = fs.joinPath(quicksDir, entry);
+        if (!fs.isDirectory(quickPath)) continue;
+
+        const quickXml = fs.joinPath(quickPath, 'quick.xml');
+        if (fs.exists(quickXml)) {
+          try {
+            const content = fs.readFile(quickXml);
+            const quick = quickParser.parseQuickWithPath(content, quickXml);
+            quicks.push(quick);
+          } catch (err) {
+            console.error(`Failed to parse ${quickXml}:`, err);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Failed to read quicks directory:', err);
+    }
+
+    return quicks;
+  }
+
   // Policy: Get task files for a task path
   function getTaskFiles(taskPath: string): string[] {
     const fileNames = ['task.xml', 'spec.xml', 'plan.xml'];
@@ -228,6 +266,11 @@ export function activate(context: vscode.ExtensionContext): void {
     kanbanDir
   );
 
+  // Initialize quicks view capability
+  const quicksView = createQuicksViewCapability({
+    loadQuicks: loadAllQuicks,
+  });
+
   // Initialize codelens capability with dependencies
   const codelens = createCodeLensCapability({
     parseTaskFromUri,
@@ -248,6 +291,10 @@ export function activate(context: vscode.ExtensionContext): void {
   const engineeringDocsProvider = docsView.createEngineeringDocsProvider();
   const refreshProductDocs = docsView.createProductRefresh();
   const refreshEngineeringDocs = docsView.createEngineeringRefresh();
+
+  // Create quicks providers
+  const quicksTreeDataProvider = quicksView.createTreeDataProvider();
+  const refreshQuicks = quicksView.createRefreshCallback();
 
   // Register TreeView
   const treeView = vscode.window.createTreeView('kanbanTasks', {
@@ -273,6 +320,13 @@ export function activate(context: vscode.ExtensionContext): void {
     treeDataProvider: engineeringDocsProvider,
   });
   context.subscriptions.push(engineeringDocsTreeView);
+
+  // Register Quicks TreeView
+  const quicksTreeView = vscode.window.createTreeView('kanbanQuicks', {
+    treeDataProvider: quicksTreeDataProvider,
+    showCollapseAll: true,
+  });
+  context.subscriptions.push(quicksTreeView);
 
   // Register CodeLens
   context.subscriptions.push(
@@ -414,6 +468,62 @@ export function activate(context: vscode.ExtensionContext): void {
     })
   );
 
+  // Create quick command (policy: how to create quicks)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('kanban.createQuick', async () => {
+      const title = await vscode.window.showInputBox({
+        prompt: 'Enter quick task title',
+        placeHolder: 'e.g., Fix typo in README',
+      });
+
+      if (!title) {
+        return;
+      }
+
+      executeInTerminal(`/kanban-quick ${title}`);
+    })
+  );
+
+  // Refresh quicks command
+  context.subscriptions.push(
+    vscode.commands.registerCommand('kanban.refreshQuicks', () => {
+      refreshQuicks();
+      vscode.window.showInformationMessage('Kanban quicks refreshed');
+    })
+  );
+
+  // Find quick command (QuickPick search)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('kanban.findQuick', async () => {
+      const quicks = loadAllQuicks();
+
+      if (quicks.length === 0) {
+        vscode.window.showInformationMessage('No quick tasks found');
+        return;
+      }
+
+      const items = quicks.map((quick) => ({
+        label: `${quick.id}: ${quick.title}`,
+        description: quick.status,
+        detail: quick.problem || 'No problem description',
+        quick,
+      }));
+
+      const selected = await vscode.window.showQuickPick(items, {
+        placeHolder: 'Search quicks by ID or title...',
+        matchOnDescription: true,
+        matchOnDetail: true,
+      });
+
+      if (selected) {
+        const quickItem = quicksView.findQuickItem(selected.quick.id);
+        if (quickItem) {
+          await quicksTreeView.reveal(quickItem, { select: true, focus: true });
+        }
+      }
+    })
+  );
+
   // --- File Watcher (policy: when to refresh) ---
   const watcher = vscode.workspace.createFileSystemWatcher(
     new vscode.RelativePattern(kanbanPath, 'tasks/**/*.xml')
@@ -494,6 +604,25 @@ export function activate(context: vscode.ExtensionContext): void {
   });
 
   context.subscriptions.push(engineeringDocsWatcher);
+
+  // --- Quicks Watcher (policy: when to refresh quicks view) ---
+  const quicksWatcher = vscode.workspace.createFileSystemWatcher(
+    new vscode.RelativePattern(kanbanPath, 'quick/**/*.xml')
+  );
+
+  quicksWatcher.onDidChange(() => {
+    refreshQuicks();
+  });
+
+  quicksWatcher.onDidCreate(() => {
+    refreshQuicks();
+  });
+
+  quicksWatcher.onDidDelete(() => {
+    refreshQuicks();
+  });
+
+  context.subscriptions.push(quicksWatcher);
 
   // --- Workspace changes (policy: when to prompt reload) ---
   context.subscriptions.push(
