@@ -297,15 +297,15 @@
         <actual>Template is too sparse - missing status, research context, approach, constraints, verification steps</actual>
       </issue>
       <actions>
-        <action status="pending">Add status attribute to template (in-progress/completed/aborted)</action>
-        <action status="pending">Add context section with finding and file reason elements</action>
-        <action status="pending">Add approach element for implementation strategy</action>
-        <action status="pending">Add constraints section for things to avoid</action>
-        <action status="pending">Add verify element for confirmation steps</action>
-        <action status="pending">Update create_quick_xml step to include new sections</action>
-        <action status="pending">Update optional_research step to store findings in quick.xml</action>
-        <action status="pending">Add determine_approach step before implementation</action>
-        <action status="pending">Update update_quick_xml step to set status and add summaries</action>
+        <action status="done">Add status attribute to template (in-progress/completed/aborted)</action>
+        <action status="done">Add context section with finding and file reason elements</action>
+        <action status="done">Add approach element for implementation strategy</action>
+        <action status="done">Add constraints section for things to avoid</action>
+        <action status="done">Add verify element for confirmation steps</action>
+        <action status="done">Update create_quick_xml step to include new sections</action>
+        <action status="done">Update optional_research step to store findings in quick.xml</action>
+        <action status="done">Add determine_approach step before implementation</action>
+        <action status="done">Update update_quick_xml step to set status and add summaries</action>
       </actions>
     </iteration>
   </iterations>

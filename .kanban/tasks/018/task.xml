@@ -1,4 +1,4 @@
-<task id="018" status="in-progress" priority="medium" created="2026-02-25" updated="2026-02-25">
+<task id="018" status="update-docs" priority="medium" created="2026-02-25" updated="2026-02-25">
   <title>Add kanban-quick command for fast implementation workflow</title>
 
   <labels>

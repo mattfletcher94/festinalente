@@ -1,0 +1,40 @@
+<quick id="{id}" status="in-progress|completed|aborted" created="{created}" updated="{updated}">
+  <title>{title}</title>
+
+  <problem>{what problem are you solving}</problem>
+  <done>{what does done look like}</done>
+
+  <!-- Research findings (populated if research was requested) -->
+  <context>
+    <finding file="{path}" reason="{why this file is relevant}"/>
+  </context>
+
+  <!-- Implementation strategy -->
+  <approach>{high-level description of how to solve the problem}</approach>
+
+  <!-- Things to avoid -->
+  <constraints>
+    <constraint>{what NOT to do}</constraint>
+  </constraints>
+
+  <!-- Files identified/modified -->
+  <files>
+    <file path="{path}" action="found|modified|created"/>
+  </files>
+
+  <!-- Verification steps -->
+  <verify>
+    <step>{confirmation step after implementation}</step>
+  </verify>
+
+  <!-- Commit details (populated after commit) -->
+  <commit hash="{hash}" message="{message}" date="{date}"/>
+
+  <!-- Summary (populated after completion) -->
+  <summary>{brief description of what was done}</summary>
+
+  <!-- Optional: docs updated -->
+  <docs>
+    <doc id="{id}" type="product|engineering"/>
+  </docs>
+</quick>
