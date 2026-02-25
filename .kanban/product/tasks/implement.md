@@ -8,7 +8,7 @@ keywords: [implement, execute, code, verification, uncommitted]
 aliases: [kanban-implement, implementation, coding]
 boundary: "Does NOT commit code; code stays uncommitted until check and QA pass"
 related: [tasks/plan, tasks/check, tasks/workflow]
-updated: 2026-02-24
+updated: 2026-02-25
 verified: 2026-02-24
 code_refs:
   - apps/kanban/src/content/skills/kanban-implement/SKILL.md
@@ -25,6 +25,26 @@ Implement Task executes the implementation plan step-by-step. Claude reads each 
 **Summary:** Controlled execution of plan with verification at each step.
 
 ## How It Works
+
+```mermaid
+flowchart TD
+    A["/kanban-implement {id}"] --> B[Read plan.xml]
+    B --> C[Topological Sort Tasks]
+    C --> D[Load Doc Context]
+    D --> E[Check Freshness]
+    E --> F{More Tasks?}
+
+    F -->|Yes| G[Show Task Context]
+    G --> H[Execute Code Changes]
+    H --> I{Verify}
+    I -->|Pass| J[Mark Complete]
+    I -->|Fail| K[Attempt Fix]
+    K --> I
+    J --> F
+
+    F -->|No| L[Move to Check Status]
+    L --> M[Code Uncommitted]
+```
 
 1. User runs `/kanban-implement {id}` on a planned task
 2. Claude reads plan.xml and calculates execution order (topological sort)

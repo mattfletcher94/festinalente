@@ -8,7 +8,7 @@ keywords: [search, fuzzy, fuse, glossary, hybrid]
 aliases: [search-docs, doc-search, hybrid-search]
 boundary: "Does NOT search task files; only product and engineering docs"
 related: [docs/product, docs/engineering, docs/context-selection]
-updated: 2026-02-20
+updated: 2026-02-25
 ---
 
 # Documentation Search
@@ -22,6 +22,23 @@ Documentation Search enables Claude to find relevant docs during task workflow. 
 **Summary:** Smart search designed for AI context retrieval.
 
 ## How It Works
+
+```mermaid
+flowchart LR
+    A[Query] --> B[Glossary Expansion]
+    B --> C{Search Passes}
+    C --> D[Exact Keywords<br/>+0.3]
+    C --> E[Exact Aliases<br/>+0.25]
+    C --> F[Fuzzy Match<br/>variable]
+    D --> G[Combine Scores]
+    E --> G
+    F --> G
+    G --> H{In Boundary?}
+    H -->|Yes| I[Apply -0.15<br/>Penalty]
+    H -->|No| J[Keep Score]
+    I --> K[Sort & Return]
+    J --> K
+```
 
 1. Query terms extracted from task title/description
 2. Glossary expands terms with aliases (e.g., "sign in" → ["login", "auth"])

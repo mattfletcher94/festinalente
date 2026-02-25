@@ -8,7 +8,7 @@ keywords: [codelens, actions, inline, task, commands]
 aliases: [task-actions, inline-actions]
 boundary: "Does NOT show on spec.xml or plan.xml; only task.xml files"
 related: [vscode/kanban-view, vscode/terminal, tasks/workflow]
-updated: 2026-02-24
+updated: 2026-02-25
 verified: 2026-02-24
 code_refs:
   - apps/vscode/src/capabilities/codelens.capability.ts
@@ -25,6 +25,24 @@ CodeLens Actions adds clickable action links above task.xml file content. Action
 **Summary:** Status-aware quick actions for task workflow.
 
 ## How It Works
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant VSCode
+    participant CodeLens
+    participant Terminal
+    participant Claude
+
+    User->>VSCode: Open task.xml
+    VSCode->>CodeLens: Request lenses
+    CodeLens->>CodeLens: Parse status
+    CodeLens->>CodeLens: Compute actions
+    CodeLens-->>VSCode: Return action links
+    User->>CodeLens: Click action
+    CodeLens->>Terminal: Send command
+    Terminal->>Claude: Execute /kanban-{action}
+```
 
 1. User opens a task.xml file
 2. CodeLens provider parses task status

@@ -8,7 +8,7 @@ keywords: [check, verification, qa, tests, lint, directives, commit]
 aliases: [kanban-check, verification, code-check, quality-assurance]
 boundary: "Does NOT skip QA prompt; always requires human confirmation before commit"
 related: [tasks/implement, tasks/workflow, validation/_index, tasks/rework]
-updated: 2026-02-24
+updated: 2026-02-25
 verified: 2026-02-24
 code_refs:
   - apps/kanban/src/content/skills/kanban-check/SKILL.md
@@ -25,6 +25,24 @@ Check Task combines automated verification with human QA into a single workflow 
 **Summary:** Complete verification pipeline from automated checks to human approval.
 
 ## How It Works
+
+```mermaid
+flowchart TD
+    A["/kanban-check {id}"] --> B[Load Check Directives]
+    B --> C{Run Check}
+    C -->|Pass| D{More Checks?}
+    C -->|Fail| E{Auto-fix?}
+    E -->|Yes| F[Claude Fixes Issue]
+    E -->|No| G[Exit for Manual Fix]
+    F --> H[Commit Fix]
+    H --> B
+    D -->|Yes| C
+    D -->|No| I[Verify Requirements]
+    I --> J[Human QA Prompt]
+    J -->|Pass| K[Commit Code]
+    J -->|Fail| L[Suggest /kanban-rework]
+    K --> M[Move to update-docs]
+```
 
 1. User runs `/kanban-check {id}` on a check-status task
 2. Claude loads check directives from config.yaml

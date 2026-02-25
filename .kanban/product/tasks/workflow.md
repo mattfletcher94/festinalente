@@ -8,7 +8,7 @@ keywords: [workflow, columns, transitions, kanban, status]
 aliases: [task-status, task-columns, kanban-workflow]
 boundary: "Does NOT define task content structure; only workflow states and transitions"
 related: [tasks/create, tasks/scope, tasks/plan, tasks/implement, tasks/check, tasks/rework]
-updated: 2026-02-24
+updated: 2026-02-25
 verified: 2026-02-24
 code_refs:
   - apps/kanban/src/content/workflow.yaml
@@ -26,6 +26,21 @@ Task Workflow defines how tasks progress through the Claude Kanban system. Tasks
 **Summary:** A structured 8-column workflow ensuring quality gates and documentation updates.
 
 ## How It Works
+
+```mermaid
+stateDiagram-v2
+    [*] --> Backlog: create
+    Backlog --> Scoped: scope
+    Scoped --> Planned: plan
+    Planned --> InProgress: implement
+    InProgress --> Check: ready
+    Check --> UpdateDocs: pass
+    Check --> InProgress: fail (rework)
+    UpdateDocs --> PR: docs done
+    PR --> Done: merge
+    PR --> InProgress: reject (rework)
+    Done --> [*]
+```
 
 1. Developer creates task (enters **backlog**)
 2. Claude scopes the task (moves to **scoped**)

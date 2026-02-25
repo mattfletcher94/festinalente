@@ -8,7 +8,7 @@ keywords: [create, task, backlog, acceptance-criteria, gherkin]
 aliases: [new-task, kanban-create, add-task]
 boundary: "Does NOT scope or plan the task; only creates it in backlog with basic requirements"
 related: [tasks/workflow, tasks/scope]
-updated: 2026-02-20
+updated: 2026-02-25
 ---
 
 # Create Task
@@ -22,6 +22,20 @@ Create Task allows developers to add new tasks to the backlog via the `/kanban-c
 **Summary:** Entry point for new work items, capturing business context before technical scoping.
 
 ## How It Works
+
+```mermaid
+flowchart TD
+    A["/kanban-create 'title'"] --> B[Auto-detect Label]
+    B --> C[Search Related Docs]
+    C --> D{Found Docs?}
+    D -->|Yes| E[Link via affects field]
+    D -->|No| F[Ask Domain]
+    F --> G[Create Stub Doc]
+    G --> E
+    E --> H[Q&A: Problem, Value, Criteria]
+    H --> I[Create task.xml]
+    I --> J[Commit to Backlog]
+```
 
 1. User runs `/kanban-create "task title"`
 2. Claude auto-detects label (bug, feature, docs, refactor) from title keywords

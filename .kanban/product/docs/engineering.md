@@ -8,7 +8,7 @@ keywords: [engineering, patterns, systems, conventions, technical]
 aliases: [engineering-docs, technical-docs, architecture-docs]
 boundary: "Does NOT describe user-facing behavior; only implementation details"
 related: [docs/product, docs/search]
-updated: 2026-02-20
+updated: 2026-02-25
 ---
 
 # Engineering Documentation
@@ -32,6 +32,24 @@ Engineering Documentation describes how to build things correctly. It covers pat
 ### Key Workflows
 
 **Doc types:**
+
+```
+.kanban/engineering/
+├── overview.md
+├── systems/
+│   ├── auth/
+│   │   ├── _index.md        ← System overview
+│   │   └── validator.md     ← Component
+│   └── storage/
+│       └── _index.md
+├── patterns/
+│   ├── factory-functions.md
+│   └── error-handling.md
+└── conventions/
+    ├── file-naming.md
+    └── imports.md
+```
+
 - `systems/{name}/`: System architecture (e.g., auth, state, routing)
 - `patterns/{name}.md`: Reusable patterns (e.g., factory-functions, error-handling)
 - `conventions/{name}.md`: Coding conventions (e.g., file-naming, imports)

@@ -8,7 +8,7 @@ keywords: [context, selection, tiers, minimal, standard, full]
 aliases: [select-context, smart-context, context-loading]
 boundary: "Does NOT load full doc content by default; uses tiered approach for token efficiency"
 related: [docs/search, tasks/implement]
-updated: 2026-02-20
+updated: 2026-02-25
 ---
 
 # Context Selection
@@ -22,6 +22,20 @@ Context Selection provides Claude with relevant documentation during task implem
 **Summary:** Token-efficient context loading for AI implementation.
 
 ## How It Works
+
+```mermaid
+flowchart TD
+    A[Task XML] --> B[Read affects &<br/>engineering fields]
+    B --> C[Resolve Doc IDs]
+    C --> D{Select Tier}
+    D -->|minimal| E["tldr only<br/>~50 tokens"]
+    D -->|standard| F["tldr + summary + boundary<br/>~200 tokens"]
+    D -->|full| G["Entire content<br/>~500-1000 tokens"]
+    E --> H[Estimate Tokens]
+    F --> H
+    G --> H
+    H --> I[Return Context JSON]
+```
 
 1. Read task's `affects` and `engineering` fields
 2. Resolve doc IDs to file paths

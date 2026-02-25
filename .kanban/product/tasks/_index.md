@@ -9,7 +9,7 @@ aliases: [task-management, task-workflow, kanban-board]
 boundary: "Does NOT cover documentation search, validation rules, or VSCode UI rendering"
 contains: [tasks/workflow, tasks/create, tasks/scope, tasks/plan, tasks/implement, tasks/check, tasks/rework]
 related: [docs/_index, validation/_index]
-updated: 2026-02-24
+updated: 2026-02-25
 ---
 
 # Task Management
@@ -48,6 +48,24 @@ This domain does NOT cover documentation search or validation rules. For that, s
 **Summary:** This domain contains 7 features covering the complete task lifecycle.
 
 ## Key Concepts
+
+```mermaid
+flowchart LR
+    subgraph TaskFiles["Task Files"]
+        A[task.xml] --> B[spec.xml]
+        B --> C[plan.xml]
+    end
+
+    subgraph Workflow["Workflow Columns"]
+        D[Backlog] --> E[Scoped] --> F[Planned]
+        F --> G[In Progress] --> H[Check]
+        H --> I[Update Docs] --> J[PR] --> K[Done]
+    end
+
+    A -.->|create| D
+    B -.->|scope| E
+    C -.->|plan| F
+```
 
 - **Task**: A unit of work stored as XML in `.kanban/tasks/{id}/task.xml`
 - **Spec**: Functional specification in `spec.xml` defining what to build

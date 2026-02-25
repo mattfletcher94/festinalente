@@ -9,7 +9,7 @@ aliases: [vscode-extension, visual-kanban, gui]
 boundary: "Does NOT provide standalone GUI; requires VSCode and Claude CLI"
 contains: [vscode/kanban-view, vscode/codelens, vscode/terminal, vscode/file-watcher]
 related: [tasks/_index]
-updated: 2026-02-20
+updated: 2026-02-25
 ---
 
 # VSCode Extension
@@ -45,6 +45,33 @@ This domain does NOT work standalone; it requires VSCode and the Claude CLI.
 **Summary:** This domain contains 4 features for VSCode integration.
 
 ## Key Concepts
+
+```mermaid
+flowchart TB
+    subgraph UI["VSCode UI"]
+        A[TreeView<br/>Kanban Board]
+        B[CodeLens<br/>Inline Actions]
+    end
+
+    subgraph Execution["Command Execution"]
+        C[Terminal<br/>Claude CLI]
+    end
+
+    subgraph Sync["Synchronization"]
+        D[File Watcher]
+    end
+
+    subgraph Data[".kanban/"]
+        E[task.xml]
+    end
+
+    A --> C
+    B --> C
+    C --> E
+    E --> D
+    D --> A
+    D --> B
+```
 
 - **TreeView**: VSCode sidebar showing tasks grouped by column
 - **CodeLens**: Inline action links above code (here, above task.xml)

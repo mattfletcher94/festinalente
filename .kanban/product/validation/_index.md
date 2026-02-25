@@ -9,7 +9,7 @@ aliases: [validators, checks, quality-assurance]
 boundary: "Does NOT execute code checks (tests, lint); only validates file structure and content"
 contains: [validation/xml, validation/yaml, validation/directives, validation/docs-quality]
 related: [tasks/_index, docs/_index]
-updated: 2026-02-24
+updated: 2026-02-25
 ---
 
 # Validation
@@ -45,6 +45,40 @@ This domain does NOT execute runtime code checks (tests, typecheck, lint). For t
 **Summary:** This domain contains 4 validation features.
 
 ## Key Concepts
+
+```mermaid
+flowchart LR
+    subgraph Input["Input Files"]
+        A[task.xml]
+        B[spec.xml]
+        C[plan.xml]
+        D[*.md]
+        E[directive.xml]
+    end
+
+    subgraph Validation["Validation Types"]
+        F[XML Syntax]
+        G[YAML Frontmatter]
+        H[Directive Schema]
+        I[Doc Quality]
+    end
+
+    A --> F
+    B --> F
+    C --> F
+    D --> G
+    D --> I
+    E --> H
+
+    F --> J{Result}
+    G --> J
+    H --> J
+    I --> J
+
+    J -->|error| K[Block]
+    J -->|warning| L[Warn]
+    J -->|info| M[Suggest]
+```
 
 - **Syntax validation**: Check XML/YAML parses correctly
 - **Schema validation**: Check required elements/fields exist

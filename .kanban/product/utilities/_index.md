@@ -9,7 +9,7 @@ aliases: [utils, helpers, infrastructure]
 boundary: "Does NOT contain business logic; only low-level utilities"
 contains: [utilities/id-generation, utilities/datetime, utilities/config, utilities/glossary]
 related: [tasks/_index, docs/_index]
-updated: 2026-02-20
+updated: 2026-02-25
 ---
 
 # Utilities

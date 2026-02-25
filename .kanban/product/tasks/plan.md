@@ -8,7 +8,7 @@ keywords: [plan, implementation, steps, verification, dependencies]
 aliases: [kanban-plan, implementation-plan, planning]
 boundary: "Does NOT execute implementation; only defines HOW to build it step-by-step"
 related: [tasks/scope, tasks/implement, tasks/workflow]
-updated: 2026-02-20
+updated: 2026-02-25
 ---
 
 # Plan Task
@@ -22,6 +22,35 @@ Plan Task transforms a functional specification into an executable implementatio
 **Summary:** Creates actionable implementation steps from technical specification.
 
 ## How It Works
+
+```mermaid
+flowchart TD
+    A["/kanban-plan {id}"] --> B[Read spec.xml]
+    B --> C{Assess Complexity}
+    C -->|"1-2 files"| D[Simple]
+    C -->|"3-5 files"| E[Medium]
+    C -->|"6+ files"| F[Complex]
+
+    D --> G[Research Context]
+    E --> G
+    F --> G
+
+    G --> H[Create plan.xml]
+
+    subgraph Plan["Plan Contents"]
+        H --> I[Overview]
+        H --> J[Ordered Tasks]
+        H --> K[Verification Commands]
+        H --> L[Testing Strategy]
+        H --> M[Edge Cases]
+    end
+
+    I --> N[Commit & Move to Planned]
+    J --> N
+    K --> N
+    L --> N
+    M --> N
+```
 
 1. User runs `/kanban-plan {id}` on a scoped task
 2. Claude reads spec.xml for requirements and affected files

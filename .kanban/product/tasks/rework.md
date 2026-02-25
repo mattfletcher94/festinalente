@@ -8,7 +8,7 @@ keywords: [rework, fail, issues, iteration, check-fail, pr-reject]
 aliases: [kanban-rework, check-fail, pr-reject, fix-issues]
 boundary: "Does NOT fix issues; only documents them and returns task for fixing"
 related: [tasks/check, tasks/implement, tasks/workflow]
-updated: 2026-02-24
+updated: 2026-02-25
 verified: 2026-02-24
 code_refs:
   - apps/kanban/src/content/skills/kanban-rework/SKILL.md
@@ -35,6 +35,22 @@ Rework Task handles failures during verification phases. When Check verification
 7. Git commit: `docs({id}): rework - {title}`
 
 ### Key Workflows
+
+```mermaid
+flowchart LR
+    subgraph CheckFail["Check Failure Loop"]
+        A[Check] -->|fail| B[Rework]
+        B --> C[Implement]
+        C --> A
+    end
+
+    subgraph PRReject["PR Rejection Loop"]
+        D[PR] -->|reject| E[Rework]
+        E --> F[Implement]
+        F --> G[Check]
+        G --> H[New PR]
+    end
+```
 
 **Check Failure:**
 - Human tests app during QA, finds bugs

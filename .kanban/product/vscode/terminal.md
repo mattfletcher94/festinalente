@@ -8,7 +8,7 @@ keywords: [terminal, cli, claude, commands, integration, fresh, context, yolo, p
 aliases: [terminal-capability, command-execution]
 boundary: "Does NOT process command output; just sends and displays"
 related: [vscode/codelens, vscode/kanban-view]
-updated: 2026-02-24
+updated: 2026-02-25
 verified: 2026-02-24
 code_refs:
   - apps/vscode/src/capabilities/terminal.capability.ts
@@ -28,6 +28,21 @@ Terminal Integration manages the VSCode integrated terminal for running kanban c
 **Summary:** Bridge between VSCode UI and Claude CLI with context isolation.
 
 ## How It Works
+
+```mermaid
+flowchart TD
+    A[Action Triggered] --> B{Terminal Exists?}
+    B -->|Yes| C[Dispose Old Terminal]
+    B -->|No| D[Create Fresh Terminal]
+    C --> D
+    D --> E{YOLO Mode?}
+    E -->|Yes| F["claude --dangerously-skip-permissions '/kanban-...'"]
+    E -->|No| G["claude '/kanban-...'"]
+    F --> H[Claude CLI Executes]
+    G --> H
+    H --> I[File Watcher Detects Changes]
+    I --> J[Refresh UI]
+```
 
 1. Action triggered (CodeLens click, command palette)
 2. Terminal capability finds or creates terminal

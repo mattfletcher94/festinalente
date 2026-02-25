@@ -8,7 +8,7 @@ keywords: [product, features, user-facing, documentation, domain]
 aliases: [product-docs, feature-docs]
 boundary: "Does NOT describe implementation details; only user-facing behavior"
 related: [docs/engineering, docs/search]
-updated: 2026-02-20
+updated: 2026-02-25
 ---
 
 # Product Documentation
@@ -32,6 +32,22 @@ Product Documentation describes features from the user's perspective. Each doc e
 ### Key Workflows
 
 **Doc structure:**
+
+```
+.kanban/product/
+├── overview.md              ← Product overview
+├── auth/
+│   ├── _index.md            ← Domain overview
+│   ├── login.md             ← Feature doc
+│   └── registration.md
+├── tasks/
+│   ├── _index.md
+│   ├── create.md
+│   └── workflow.md
+└── docs/
+    └── ...
+```
+
 - `overview.md`: Product-level overview
 - `{domain}/_index.md`: Domain overview
 - `{domain}/{feature}.md`: Individual feature

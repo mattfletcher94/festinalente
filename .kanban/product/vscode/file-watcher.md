@@ -8,7 +8,7 @@ keywords: [watcher, refresh, auto-update, files, events]
 aliases: [file-system-watcher, auto-refresh]
 boundary: "Does NOT watch product or engineering docs; only task XML files"
 related: [vscode/kanban-view, vscode/codelens]
-updated: 2026-02-20
+updated: 2026-02-25
 ---
 
 # File Watcher
@@ -22,6 +22,22 @@ File Watcher monitors the .kanban/tasks/ directory for file changes. When task.x
 **Summary:** Automatic UI synchronization with file changes.
 
 ## How It Works
+
+```mermaid
+sequenceDiagram
+    participant Claude as Claude CLI
+    participant FS as File System
+    participant Watcher as File Watcher
+    participant Tree as TreeView
+    participant Lens as CodeLens
+
+    Claude->>FS: Modify task.xml
+    FS->>Watcher: Change event
+    Watcher->>Tree: Refresh
+    Watcher->>Lens: Refresh
+    Tree->>Tree: Re-read tasks
+    Lens->>Lens: Update actions
+```
 
 1. Extension creates FileSystemWatcher for `.kanban/tasks/**/*.xml`
 2. Watcher monitors create, change, delete events

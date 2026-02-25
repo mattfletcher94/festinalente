@@ -9,7 +9,7 @@ aliases: [documentation, knowledge, docs-system]
 boundary: "Does NOT manage task files; only .kanban/product/ and .kanban/engineering/ docs"
 contains: [docs/product, docs/engineering, docs/search, docs/context-selection, docs/freshness]
 related: [tasks/_index, validation/_index]
-updated: 2026-02-20
+updated: 2026-02-25
 ---
 
 # Documentation
@@ -51,6 +51,30 @@ This domain does NOT manage task files or workflow states. For that, see [tasks]
 **Summary:** This domain contains 5 features covering documentation and discovery.
 
 ## Key Concepts
+
+```mermaid
+flowchart TB
+    subgraph Docs["Documentation Types"]
+        A[Product Docs<br/>User Perspective]
+        B[Engineering Docs<br/>Technical Details]
+    end
+
+    subgraph Discovery["Discovery"]
+        C[Hybrid Search]
+        D[Glossary Expansion]
+        E[Context Selection]
+    end
+
+    subgraph Usage["Usage"]
+        F[Task Implementation]
+    end
+
+    A --> C
+    B --> C
+    D --> C
+    C --> E
+    E --> F
+```
 
 - **Product doc**: Markdown with frontmatter describing a feature from user perspective
 - **Engineering doc**: Markdown with frontmatter describing a pattern/system from technical perspective

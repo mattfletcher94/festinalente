@@ -8,7 +8,7 @@ keywords: [freshness, stale, outdated, verified, code-refs]
 aliases: [check-freshness, stale-docs, doc-freshness]
 boundary: "Does NOT update docs; only detects staleness for warnings"
 related: [docs/context-selection, tasks/implement]
-updated: 2026-02-20
+updated: 2026-02-25
 ---
 
 # Freshness Check
@@ -22,6 +22,24 @@ Freshness Check detects when documentation may be outdated. Docs include a `veri
 **Summary:** Automated staleness detection for documentation maintenance.
 
 ## How It Works
+
+```mermaid
+flowchart TD
+    A[Scan All Docs] --> B{Has verified date?}
+    B -->|No| C[Skip]
+    B -->|Yes| D[Calculate Days Since]
+    D --> E{Has code_refs?}
+    E -->|Yes| F[Check Git Modifications]
+    E -->|No| G{Days > Threshold?}
+    F --> H{Code Modified?}
+    H -->|Yes| I{Days > Threshold?}
+    H -->|No| C
+    G -->|Yes| J[Mark Stale]
+    G -->|No| C
+    I -->|Yes| J
+    I -->|No| C
+    J --> K[Add to Stale List]
+```
 
 1. Scan all docs in product and engineering folders
 2. For each doc with `verified` date:

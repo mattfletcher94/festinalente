@@ -7,7 +7,7 @@ summary: "Claude Kanban provides structured task management through a kanban-sty
 keywords: [kanban, task-management, claude-code, spec-driven, workflow]
 aliases: [claudeban, kanban-system, task-workflow]
 boundary: "Does NOT provide standalone project management; designed specifically for Claude Code integration"
-updated: 2026-02-24
+updated: 2026-02-25
 ---
 
 # Claude Kanban
@@ -21,6 +21,37 @@ Claude Kanban is a spec-driven task management system that helps developers usin
 **Summary:** A task management layer for Claude Code that enforces a structured workflow with documentation integration.
 
 ## Key Capabilities
+
+```mermaid
+flowchart TB
+    subgraph Interface["User Interface"]
+        CLI["Claude Code CLI"]
+        VSCode["VSCode Extension"]
+    end
+
+    subgraph Workflow["Task Workflow"]
+        Create --> Scope --> Plan --> Implement --> Check --> Docs --> PR --> Done
+    end
+
+    subgraph Docs["Documentation"]
+        Product["Product Docs"]
+        Engineering["Engineering Docs"]
+        Search["Hybrid Search"]
+    end
+
+    subgraph Validation["Quality Gates"]
+        XML["XML Validation"]
+        YAML["YAML Validation"]
+        Directives["Directive Checks"]
+    end
+
+    CLI --> Workflow
+    VSCode --> Workflow
+    Workflow --> Docs
+    Workflow --> Validation
+    Search --> Product
+    Search --> Engineering
+```
 
 - **Task Lifecycle Management**: Create, scope, plan, implement, and complete tasks through a defined workflow (backlog → scoped → planned → in-progress → check → update-docs → pr → done)
 - **Documentation Integration**: Link tasks to product and engineering docs for context-aware development

@@ -8,7 +8,7 @@ keywords: [scope, spec, specification, research, technical]
 aliases: [kanban-scope, functional-spec, scoping]
 boundary: "Does NOT create implementation plan; only defines WHAT to build, not HOW"
 related: [tasks/create, tasks/plan, tasks/workflow]
-updated: 2026-02-20
+updated: 2026-02-25
 ---
 
 # Scope Task
@@ -22,6 +22,30 @@ Scope Task transforms a backlog task into a scoped task with a complete function
 **Summary:** Bridges product requirements (from create) to technical specification (for plan).
 
 ## How It Works
+
+```mermaid
+flowchart TD
+    A["/kanban-scope {id}"] --> B[Read Task Context]
+    B --> C[Research Phase]
+
+    subgraph Research["Structured Research"]
+        C --> D[Product Docs]
+        C --> E[Engineering Docs]
+        C --> F[Codebase Analysis]
+        C --> G[Pitfall Detection]
+    end
+
+    D --> H[Synthesis]
+    E --> H
+    F --> H
+    G --> H
+
+    H --> I[Present to User]
+    I --> J[Technical Q&A]
+    J --> K[Create spec.xml]
+    K --> L[Create Branch]
+    L --> M[Commit & Move to Scoped]
+```
 
 1. User runs `/kanban-scope {id}` on a backlog task
 2. Claude reads task's problem, value, and acceptance criteria

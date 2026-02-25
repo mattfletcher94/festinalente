@@ -8,7 +8,7 @@ keywords: [glossary, expansion, synonyms, aliases, search]
 aliases: [expand-query, query-expansion, term-expansion]
 boundary: "Does NOT perform search; only expands query terms"
 related: [docs/search]
-updated: 2026-02-20
+updated: 2026-02-25
 ---
 
 # Glossary Expansion
@@ -22,6 +22,15 @@ Glossary Expansion improves search recall by expanding query terms with project-
 **Summary:** Synonym expansion for better search coverage.
 
 ## How It Works
+
+```mermaid
+flowchart LR
+    A["Query: 'sign in'"] --> B[Read Glossary]
+    B --> C{Match Found?}
+    C -->|Yes| D[Get All Aliases]
+    C -->|No| E[Return Original]
+    D --> F["Expanded: 'sign in', 'login', 'auth'"]
+```
 
 1. Read `.kanban/glossary.yaml`
 2. For each query term:
