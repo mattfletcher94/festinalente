@@ -12,8 +12,8 @@ related:
 paths:
   - apps/kanban/src/scripts
   - apps/vscode/src
-updated: 2026-02-20
-verified: 2026-02-20
+updated: 2026-02-25
+verified: 2026-02-25
 code_refs: []
 ---
 
@@ -39,6 +39,25 @@ code_refs: []
 **Summary:** Predictable names enable faster navigation and searching.
 
 ## Examples
+
+### Naming Pattern Overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    FILE NAMING RULES                        │
+├─────────────────────────────────────────────────────────────┤
+│  FILE TYPE           │  PATTERN              │  EXAMPLE     │
+├──────────────────────┼───────────────────────┼──────────────┤
+│  Script              │  kebab-case.ts        │  find-task   │
+│  Capability          │  name.capability.ts   │  file-system │
+│  Computer            │  name.computer.ts     │  task-parser │
+│  Type definitions    │  name-types.ts        │  task-types  │
+├──────────────────────┼───────────────────────┼──────────────┤
+│  Interface/Type      │  PascalCase           │  TaskStatus  │
+│  Function            │  camelCase            │  parseTask   │
+│  Constant            │  UPPER_SNAKE          │  MAX_RETRIES │
+└──────────────────────┴───────────────────────┴──────────────┘
+```
 
 ### Correct
 

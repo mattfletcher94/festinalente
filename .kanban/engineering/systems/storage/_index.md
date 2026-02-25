@@ -15,8 +15,8 @@ paths:
   - .kanban/product
   - .kanban/engineering
   - .kanban/directives
-updated: 2026-02-20
-verified: 2026-02-20
+updated: 2026-02-25
+verified: 2026-02-25
 code_refs: []
 ---
 
@@ -33,6 +33,53 @@ Claude Kanban uses a file-based storage model with no database. Tasks are stored
 **Summary:** Structured file storage using XML for tasks, YAML/Markdown for docs.
 
 ## Directory Structure
+
+```mermaid
+graph TD
+    KB[".kanban/"]
+
+    subgraph Tasks["Task Instances"]
+        T["tasks/"]
+        TID["{id}/"]
+        TX["task.xml"]
+        SX["spec.xml"]
+        PX["plan.xml"]
+    end
+
+    subgraph Docs["Documentation"]
+        PROD["product/"]
+        ENG["engineering/"]
+    end
+
+    subgraph Config["Configuration"]
+        CFG["config.yaml"]
+        GLOSS["glossary.yaml"]
+    end
+
+    subgraph Runtime["Runtime"]
+        SCR["scripts/"]
+        TMPL["templates/"]
+        DIR["directives/"]
+    end
+
+    KB --> T
+    T --> TID
+    TID --> TX
+    TID --> SX
+    TID --> PX
+    KB --> PROD
+    KB --> ENG
+    KB --> CFG
+    KB --> GLOSS
+    KB --> SCR
+    KB --> TMPL
+    KB --> DIR
+
+    style Tasks fill:#bbdefb
+    style Docs fill:#c8e6c9
+    style Config fill:#fff9c4
+    style Runtime fill:#f8bbd0
+```
 
 ```
 .kanban/
@@ -133,6 +180,21 @@ This system follows these patterns:
 - Git-friendly file formats
 
 ## Data Flow
+
+```mermaid
+stateDiagram-v2
+    [*] --> CreateTask: User creates task
+    CreateTask --> GenerateID: next-id script
+    GenerateID --> CreateDir: mkdir tasks/{id}/
+    CreateDir --> WriteXML: write task.xml
+    WriteXML --> FileWatcher: file system event
+    FileWatcher --> RefreshUI: VSCode detects change
+    RefreshUI --> [*]
+
+    note right of CreateTask: CLI or VSCode trigger
+    note right of WriteXML: XML with metadata
+    note right of FileWatcher: .kanban/tasks/**/*.xml
+```
 
 ```
 Task Creation

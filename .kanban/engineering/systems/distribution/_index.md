@@ -15,8 +15,8 @@ paths:
   - apps/kanban/bin
   - apps/vscode
   - apps/vscode/bin
-updated: 2026-02-21
-verified: 2026-02-21
+updated: 2026-02-25
+verified: 2026-02-25
 code_refs:
   - apps/kanban/package.json
   - apps/kanban/bin/install.cjs
@@ -75,6 +75,48 @@ This system follows these patterns:
 - **Restricted access** - `publishConfig.access: "restricted"` keeps package private
 
 ## Data Flow
+
+```mermaid
+flowchart TB
+    subgraph Publish["Publishing"]
+        direction TB
+        PUB1["pnpm kanban:publish"]
+        PUB2["pnpm vscode:publish"]
+        BUILD1["Build to dist/"]
+        BUILD2["Package to .vsix"]
+        NPM["npm.pkg.github.com"]
+    end
+
+    subgraph Install["Installation"]
+        direction TB
+        NPX1["npx @mattfletcher94/claudeban"]
+        NPX2["npx @mattfletcher94/claudeban-vscode"]
+        INST1["install.cjs"]
+        INST2["install.cjs"]
+    end
+
+    subgraph Target["Target Directories"]
+        SKILLS[".claude/skills/"]
+        KANBAN[".kanban/"]
+        VSCODE["VSCode Extensions"]
+    end
+
+    PUB1 --> BUILD1
+    PUB2 --> BUILD2
+    BUILD1 --> NPM
+    BUILD2 --> NPM
+    NPM --> NPX1
+    NPM --> NPX2
+    NPX1 --> INST1
+    NPX2 --> INST2
+    INST1 --> SKILLS
+    INST1 --> KANBAN
+    INST2 --> VSCODE
+
+    style Publish fill:#f3e5f5
+    style Install fill:#e3f2fd
+    style Target fill:#e8f5e9
+```
 
 ### Kanban CLI Flow
 

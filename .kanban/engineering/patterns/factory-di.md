@@ -12,8 +12,8 @@ related:
 paths:
   - apps/vscode/src/capabilities
   - apps/vscode/src/computers
-updated: 2026-02-20
-verified: 2026-02-20
+updated: 2026-02-25
+verified: 2026-02-25
 code_refs:
   - apps/vscode/src/capabilities/file-system.capability.ts:15-35
   - apps/vscode/src/capabilities/codelens.capability.ts:10-25
@@ -36,6 +36,37 @@ Use factory functions that:
 1. Accept dependencies as parameters (typed interface)
 2. Define inner functions that use those dependencies
 3. Return an object literal with the public API
+
+```mermaid
+classDiagram
+    class FactoryFunction {
+        +createXxxCapability(deps: Deps): Return
+    }
+
+    class DepsInterface {
+        <<interface>>
+        +dependency1: Type
+        +dependency2: Type
+    }
+
+    class ReturnInterface {
+        <<interface>>
+        +method1(): ReturnType
+        +method2(param): ReturnType
+    }
+
+    class InternalState {
+        -privateVar: Type
+        -closureState: Type
+    }
+
+    FactoryFunction ..> DepsInterface : accepts
+    FactoryFunction ..> ReturnInterface : returns
+    FactoryFunction *-- InternalState : creates
+
+    note for FactoryFunction "Factory creates instance\nwith injected deps"
+    note for InternalState "State captured in closure\nnot exposed externally"
+```
 
 **Summary:** Factory functions encapsulate dependencies and expose clean interfaces.
 

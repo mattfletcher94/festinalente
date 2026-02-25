@@ -14,8 +14,8 @@ related:
 paths:
   - apps/kanban/src/scripts
   - apps/kanban/src/lib
-updated: 2026-02-24
-verified: 2026-02-24
+updated: 2026-02-25
+verified: 2026-02-25
 code_refs:
   - apps/kanban/src/scripts/find-task.ts
   - apps/kanban/src/scripts/list-tasks.ts
@@ -34,6 +34,51 @@ The CLI Script Engine is a collection of Node.js scripts that power the kanban s
 **Why it exists:** Provides a clean separation between data operations and UI rendering. Scripts can be used standalone or integrated with Claude Code AI assistant.
 
 **Summary:** JSON-in/JSON-out CLI utilities for file-based task management.
+
+## Architecture
+
+```mermaid
+graph TB
+    subgraph Scripts["CLI Scripts (23+)"]
+        subgraph Lifecycle["Task Lifecycle"]
+            FT["find-task"]
+            LT["list-tasks"]
+            NI["next-id"]
+            DT["delete-task"]
+        end
+
+        subgraph Search["Search & Query"]
+            SH["search-hybrid"]
+            SP["search-product"]
+            SE["search-engineering"]
+            EQ["expand-query"]
+        end
+
+        subgraph Validation["Validation"]
+            VX["validate-xml"]
+            VY["validate-yaml"]
+            VD["validate-docs"]
+            CF["check-freshness"]
+        end
+
+        subgraph Config["Configuration"]
+            GS["get-skill-config"]
+            GD["get-date-time"]
+            SC["select-context"]
+        end
+    end
+
+    subgraph Lib["Shared Library"]
+        XP["xml-parser.ts"]
+    end
+
+    Lifecycle --> Lib
+    Search --> Lib
+    Validation --> Lib
+
+    style Scripts fill:#f3e5f5
+    style Lib fill:#e8f5e9
+```
 
 ## Components
 
@@ -82,6 +127,40 @@ This system follows these patterns:
 - [factory-di](../patterns/factory-di.md) - Shared lib uses factory functions for dependency injection
 
 ## Data Flow
+
+```mermaid
+flowchart LR
+    subgraph Input
+        CMD["Terminal Command"]
+    end
+
+    subgraph Processing
+        PARSE["Parse Args"]
+        READ["Read Files"]
+        PROCESS["Process Data"]
+    end
+
+    subgraph Output
+        JSON["JSON Output"]
+    end
+
+    subgraph External
+        VSCODE["VSCode Extension"]
+        KANBAN[".kanban/ directory"]
+    end
+
+    CMD --> PARSE
+    PARSE --> READ
+    READ --> PROCESS
+    PROCESS --> JSON
+    JSON --> VSCODE
+    READ <--> KANBAN
+    PROCESS --> KANBAN
+
+    style Input fill:#fff3e0
+    style Processing fill:#e3f2fd
+    style Output fill:#e8f5e9
+```
 
 ```
 Terminal Command → Parse Args → Read Files → Process → JSON Output

@@ -11,8 +11,8 @@ related:
   - patterns/tagged-union-errors
 paths:
   - apps/kanban/src/scripts
-updated: 2026-02-20
-verified: 2026-02-20
+updated: 2026-02-25
+verified: 2026-02-25
 code_refs:
   - apps/kanban/src/scripts/validate-xml.ts:25-35
 ---
@@ -34,6 +34,33 @@ code_refs:
 - Exit codes enable shell script composition
 - Type guards ensure safe error message extraction
 - Actionable messages help users fix problems
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   ERROR HANDLING FLOW                       │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│   CLI Script                    Consumer (VSCode)           │
+│   ──────────                    ─────────────────           │
+│                                                             │
+│   ┌──────────────┐              ┌──────────────┐            │
+│   │ try {        │              │ const result │            │
+│   │   // work    │  ──JSON──>   │   = JSON     │            │
+│   │ }            │              │   .parse()   │            │
+│   └──────────────┘              └──────────────┘            │
+│         │                              │                    │
+│         ▼                              ▼                    │
+│   ┌──────────────┐              ┌──────────────┐            │
+│   │ catch (err)  │              │ if (result   │            │
+│   │   ──────>    │              │   .error)    │            │
+│   │ type guard   │              │   ──────>    │            │
+│   └──────────────┘              │ show message │            │
+│         │                       └──────────────┘            │
+│         ▼                                                   │
+│   exit(err ? 1 : 0)                                         │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
 
 **Summary:** Structured errors enable reliable automation and debugging.
 

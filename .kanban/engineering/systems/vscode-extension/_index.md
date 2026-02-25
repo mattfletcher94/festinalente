@@ -167,6 +167,73 @@ Type definitions shared across the extension.
 
 **Summary:** Three layers separate concerns: Orchestrator (when), Capabilities (how), Computers (what).
 
+### Architecture Diagram
+
+```mermaid
+graph TB
+    subgraph Extension["VSCode Extension"]
+        Orch["extension.ts<br/>Orchestrator"]
+
+        subgraph Capabilities["Capabilities Layer"]
+            FS["FileSystem"]
+            TV["TasksView"]
+            Term["Terminal"]
+            CL["CodeLens"]
+            CS["ClaudeSettings"]
+            CV["ConfigView"]
+            DV["DocsView"]
+        end
+
+        subgraph Computers["Computers Layer"]
+            TP["TaskParser"]
+            TG["TaskGrouping"]
+            TA["TaskActions"]
+            CSC["ClaudeSettings"]
+        end
+    end
+
+    subgraph External["External Systems"]
+        CLI["Kanban CLI"]
+        Files[".kanban/ Files"]
+        VSCodeAPI["VSCode API"]
+    end
+
+    Orch --> Capabilities
+    Orch --> Computers
+    FS --> Files
+    TV --> VSCodeAPI
+    Term --> CLI
+    CL --> VSCodeAPI
+
+    style Extension fill:#e1f5ff
+    style Capabilities fill:#bbdefb
+    style Computers fill:#c8e6c9
+    style External fill:#fff3e0
+```
+
+### TreeView Hierarchy
+
+```
+┌─────────────────────────────────────────────┐
+│  KANBAN TASKS                    [+] [↻]   │
+├─────────────────────────────────────────────┤
+│  ▼ In Progress (2)                          │
+│  │  ├── ▼ 001 Implement login               │
+│  │  │   ├── ▶ Continue                      │
+│  │  │   ├── task.xml                        │
+│  │  │   ├── spec.xml                        │
+│  │  │   └── plan.xml                        │
+│  │  └── ▼ 002 Fix auth bug                  │
+│  │      ├── ▶ Continue                      │
+│  │      └── task.xml                        │
+│  ▼ Backlog (3)                              │
+│  │  ├── 003 Add logout button               │
+│  │  ├── 004 Update dashboard                │
+│  │  └── 005 Write tests                     │
+│  ▶ Done (5)                                 │
+└─────────────────────────────────────────────┘
+```
+
 ## Key Patterns
 
 This system follows these patterns:
@@ -176,6 +243,36 @@ This system follows these patterns:
 - Event Emitter pattern for state updates (VSCode EventEmitters trigger UI refresh)
 
 ## Data Flow
+
+```mermaid
+sequenceDiagram
+    participant VS as VSCode
+    participant Orch as Orchestrator
+    participant FS as FileSystem Cap
+    participant TP as TaskParser Comp
+    participant TG as TaskGrouping Comp
+    participant TV as TasksView Cap
+    participant Term as Terminal Cap
+    participant CLI as Kanban CLI
+
+    VS->>Orch: activate()
+    Orch->>FS: read .kanban/tasks/**/*.xml
+    FS-->>Orch: file contents
+    Orch->>TP: parseTaskXml(content)
+    TP-->>Orch: Task[]
+    Orch->>TG: groupByStatus(tasks)
+    TG-->>Orch: Map<Status, Task[]>
+    Orch->>TV: render TreeView
+    TV-->>VS: TreeDataProvider
+
+    Note over VS,CLI: User clicks action
+    VS->>Orch: command triggered
+    Orch->>Term: sendCommand()
+    Term->>CLI: claude "/kanban-action id"
+    CLI-->>Term: JSON result
+    Term-->>Orch: file changed
+    Orch->>TV: refresh()
+```
 
 ```
 VSCode Extension (activate)

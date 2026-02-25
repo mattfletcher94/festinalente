@@ -12,8 +12,8 @@ related:
 paths:
   - apps/vscode/src/capabilities
   - apps/vscode/src/computers
-updated: 2026-02-20
-verified: 2026-02-20
+updated: 2026-02-25
+verified: 2026-02-25
 code_refs:
   - apps/vscode/src/capabilities/tasks-view.capability.ts
   - apps/vscode/src/computers/task-parser.computer.ts
@@ -45,6 +45,43 @@ Split code into two categories:
    - Business rules
    - Parsing and formatting
    - State calculations
+
+```mermaid
+graph LR
+    subgraph Orchestrator["Orchestrator (Policy)"]
+        EXT["extension.ts<br/>When/Whether"]
+    end
+
+    subgraph Capabilities["Capabilities (Mechanism)"]
+        FS["FileSystem"]
+        TV["TasksView"]
+        TERM["Terminal"]
+    end
+
+    subgraph Computers["Computers (Logic)"]
+        TP["TaskParser"]
+        TG["TaskGrouping"]
+        TA["TaskActions"]
+    end
+
+    subgraph External["External I/O"]
+        FILES["File System"]
+        VSCODE["VSCode API"]
+        CLI["Terminal"]
+    end
+
+    EXT --> Capabilities
+    EXT --> Computers
+    FS --> FILES
+    TV --> VSCODE
+    TERM --> CLI
+    Computers -.->|pure data| EXT
+
+    style Orchestrator fill:#fff9c4
+    style Capabilities fill:#bbdefb
+    style Computers fill:#c8e6c9
+    style External fill:#f8bbd0
+```
 
 **Summary:** Capabilities do I/O, Computers compute. Keep them separate.
 

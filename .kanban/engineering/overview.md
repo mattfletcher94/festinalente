@@ -11,8 +11,8 @@ related: []
 paths:
   - apps/kanban
   - apps/vscode
-updated: 2026-02-20
-verified: 2026-02-20
+updated: 2026-02-25
+verified: 2026-02-25
 code_refs: []
 ---
 
@@ -39,6 +39,35 @@ Claude Kanban is a pnpm monorepo containing two tightly-coupled applications: a 
 **Why it exists:** Designed for integration with Claude Code AI assistant, separating concerns between pure computation (Computers), I/O operations (Capabilities), and orchestration (extension.ts).
 
 **Summary:** Two-app monorepo with factory function DI pattern, file-based persistence, and hybrid fuzzy search.
+
+```mermaid
+graph TB
+    subgraph VSCode["VSCode Extension"]
+        Orch["Orchestrator<br/>extension.ts"]
+        Cap["Capabilities<br/>I/O & Effects"]
+        Comp["Computers<br/>Pure Functions"]
+    end
+
+    subgraph CLI["Kanban CLI"]
+        Scripts["23+ Scripts"]
+    end
+
+    subgraph Storage["Storage System"]
+        Tasks[".kanban/tasks/"]
+        Docs[".kanban/product/<br/>.kanban/engineering/"]
+        Config[".kanban/config.yaml"]
+    end
+
+    VSCode -->|executes| CLI
+    VSCode -->|reads/monitors| Storage
+    CLI -->|reads/writes| Storage
+    Orch --> Cap
+    Orch --> Comp
+
+    style VSCode fill:#e1f5ff
+    style CLI fill:#f3e5f5
+    style Storage fill:#e8f5e9
+```
 
 ## Directory Structure
 

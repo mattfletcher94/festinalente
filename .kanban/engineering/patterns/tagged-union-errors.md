@@ -11,8 +11,8 @@ related:
   - patterns/factory-di
 paths:
   - apps/kanban/src/scripts
-updated: 2026-02-20
-verified: 2026-02-20
+updated: 2026-02-25
+verified: 2026-02-25
 code_refs:
   - apps/kanban/src/scripts/find-task.ts:8-20
   - apps/kanban/src/scripts/delete-task.ts:5-17
@@ -46,6 +46,48 @@ interface ErrorResult {
 }
 
 type Result = SuccessResult | ErrorResult;
+```
+
+```mermaid
+flowchart TB
+    subgraph Script["CLI Script"]
+        PROC["Process Request"]
+    end
+
+    subgraph Decision{" "}
+        CHECK{"Success?"}
+    end
+
+    subgraph Success["Success Path"]
+        SRES["{ success: true, data: {...} }"]
+        EXIT0["process.exit(0)"]
+    end
+
+    subgraph Error["Error Path"]
+        ERES["{ error: true, message: '...' }"]
+        EXIT1["process.exit(1)"]
+    end
+
+    subgraph Consumer["Consumer (VSCode)"]
+        PARSE["JSON.parse()"]
+        GUARD{"result.error?"}
+        HANDLE["Handle Error"]
+        USE["Use Data"]
+    end
+
+    PROC --> CHECK
+    CHECK -->|Yes| SRES
+    CHECK -->|No| ERES
+    SRES --> EXIT0
+    ERES --> EXIT1
+    EXIT0 --> PARSE
+    EXIT1 --> PARSE
+    PARSE --> GUARD
+    GUARD -->|true| HANDLE
+    GUARD -->|false| USE
+
+    style Success fill:#c8e6c9
+    style Error fill:#ffcdd2
 ```
 
 **Summary:** Tagged unions enable type-safe error handling with clear JSON output.

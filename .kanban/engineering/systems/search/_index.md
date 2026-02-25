@@ -15,8 +15,8 @@ paths:
   - apps/kanban/src/scripts/search-product.ts
   - apps/kanban/src/scripts/search-engineering.ts
   - apps/kanban/src/scripts/expand-query.ts
-updated: 2026-02-20
-verified: 2026-02-20
+updated: 2026-02-25
+verified: 2026-02-25
 code_refs:
   - apps/kanban/src/scripts/search-hybrid.ts:40-80
 ---
@@ -69,6 +69,59 @@ This system follows these patterns:
 - Match attribution in results
 
 ## Data Flow
+
+```mermaid
+flowchart TB
+    subgraph Input["Query Input"]
+        Q["User Query<br/>'auth'"]
+    end
+
+    subgraph Expansion["Query Expansion"]
+        EQ["expand-query"]
+        GL["glossary.yaml"]
+        EX["Expanded Terms<br/>auth, authentication, login..."]
+    end
+
+    subgraph Loading["Document Loading"]
+        LOAD["Load .md files"]
+        PARSE["Parse YAML frontmatter"]
+    end
+
+    subgraph Scoring["Scoring Engine"]
+        FUSE["Fuse.js Fuzzy Search"]
+        EXACT["Exact Keyword Match<br/>+0.30 boost"]
+        ALIAS["Alias Match<br/>+0.25 boost"]
+        BOUND["Boundary Penalty<br/>-0.15"]
+        COMBINE["Combined Score"]
+    end
+
+    subgraph Output["Results"]
+        FILTER["Filter by threshold"]
+        RANK["Ranked Results"]
+    end
+
+    Q --> EQ
+    GL --> EQ
+    EQ --> EX
+    EX --> LOAD
+    LOAD --> PARSE
+    PARSE --> FUSE
+    PARSE --> EXACT
+    PARSE --> ALIAS
+    PARSE --> BOUND
+    FUSE --> COMBINE
+    EXACT --> COMBINE
+    ALIAS --> COMBINE
+    BOUND --> COMBINE
+    COMBINE --> FILTER
+    FILTER --> RANK
+
+    style Input fill:#fff3e0
+    style Expansion fill:#e8f5e9
+    style Loading fill:#e3f2fd
+    style Scoring fill:#f3e5f5
+    style Output fill:#c8e6c9
+```
 
 ```
 User Query ("auth")

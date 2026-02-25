@@ -12,8 +12,8 @@ related:
 paths:
   - apps
   - .kanban
-updated: 2026-02-20
-verified: 2026-02-20
+updated: 2026-02-25
+verified: 2026-02-25
 code_refs: []
 ---
 
@@ -36,6 +36,51 @@ code_refs: []
 - `src/` vs `dist/` distinguishes source from build output
 - Capability/computer separation enforces clean architecture
 - `.kanban/` isolates runtime data from source
+
+```mermaid
+graph TB
+    subgraph Root["Workspace Root"]
+        APPS["apps/"]
+        KANBAN[".kanban/"]
+        CONFIG["Config Files"]
+    end
+
+    subgraph Apps["Deployable Units"]
+        CLI["kanban/<br/>CLI Package"]
+        VSCODE["vscode/<br/>Extension"]
+    end
+
+    subgraph CLIStructure["CLI Structure"]
+        CLI_SRC["src/scripts/"]
+        CLI_LIB["src/lib/"]
+        CLI_DIST["dist/"]
+    end
+
+    subgraph VSCodeStructure["VSCode Structure"]
+        VS_CAP["src/capabilities/"]
+        VS_COMP["src/computers/"]
+        VS_TYPE["src/types/"]
+        VS_EXT["extension.ts"]
+    end
+
+    subgraph RuntimeData["Runtime Data"]
+        TASKS["tasks/"]
+        PRODUCT["product/"]
+        ENG["engineering/"]
+    end
+
+    APPS --> CLI
+    APPS --> VSCODE
+    CLI --> CLIStructure
+    VSCODE --> VSCodeStructure
+    KANBAN --> RuntimeData
+
+    style Root fill:#fff9c4
+    style Apps fill:#e3f2fd
+    style CLIStructure fill:#f3e5f5
+    style VSCodeStructure fill:#c8e6c9
+    style RuntimeData fill:#ffecb3
+```
 
 **Summary:** Predictable structure enables fast navigation across the monorepo.
 

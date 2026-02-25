@@ -281,3 +281,34 @@ terms:
     aliases: ["npm exec", "package runner"]
     domain: distribution
     definition: "npm command to execute packages without installing globally"
+
+  # Documentation diagram terms
+  - term: "mermaid"
+    aliases: ["mermaid-diagram", "mermaid.js", "diagram"]
+    domain: docs
+    definition: "Markdown-embedded diagramming syntax for flowcharts, sequences, etc."
+    auto_generated: true
+
+  - term: "flowchart"
+    aliases: ["flow-diagram", "process-diagram"]
+    domain: docs
+    definition: "Mermaid diagram type showing process flow with nodes and edges"
+    auto_generated: true
+
+  - term: "sequence-diagram"
+    aliases: ["sequenceDiagram", "interaction-diagram"]
+    domain: docs
+    definition: "Mermaid diagram type showing message flow between components"
+    auto_generated: true
+
+  - term: "state-diagram"
+    aliases: ["stateDiagram", "state-machine"]
+    domain: docs
+    definition: "Mermaid diagram type showing state transitions"
+    auto_generated: true
+
+  - term: "class-diagram"
+    aliases: ["classDiagram", "uml-class"]
+    domain: docs
+    definition: "Mermaid diagram type showing class relationships and interfaces"
+    auto_generated: true
