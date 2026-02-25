@@ -76,12 +76,27 @@ export function activate(context: vscode.ExtensionContext): void {
   const kanbanDir = kanbanPath;
   const workspaceRoot = path.dirname(kanbanDir);
 
-  // Policy: Build claude command with optional YOLO flag
+  // Policy: Determine which runtime to use based on VSCode settings
+  function getRuntime(): 'claude' | 'opencode' {
+    const config = vscode.workspace.getConfiguration('kanban');
+    const runtime = config.get<string>('runtime', 'claude');
+    return runtime === 'opencode' ? 'opencode' : 'claude';
+  }
+
+  // Policy: Build CLI command based on runtime and settings
   function getClaudeCommand(command: string): string {
     const projectSettings = settings.readProjectSettings(workspaceRoot);
     const globalSettings = settings.readGlobalSettings();
-    const isYolo = claudeSettings.isYoloEnabled(projectSettings, globalSettings);
+    const runtime = getRuntime();
 
+    if (runtime === 'opencode') {
+      // OpenCode uses: opencode run "prompt"
+      // Note: OpenCode permissions are managed via opencode.json, not CLI flags
+      return `opencode run "${command}"`;
+    }
+
+    // Claude Code uses: claude "prompt"
+    const isYolo = claudeSettings.isYoloEnabled(projectSettings, globalSettings);
     if (isYolo) {
       return `claude --dangerously-skip-permissions "${command}"`;
     }
