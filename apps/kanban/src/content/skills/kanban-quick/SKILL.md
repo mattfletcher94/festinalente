@@ -1,7 +1,7 @@
 ---
 name: kanban-quick
 description: Fast implementation for simple fixes, config changes, and small features. Minimal Q&A, optional research, single commit.
-allowed-tools: Read, Write, Edit, Bash(node *, git add *, git commit *, git status, git branch *, git checkout *, git diff *), Grep, Glob, AskUserQuestion
+allowed-tools: Read, Write, Edit, Bash(node *, git add *, git commit *, git status, git branch *, git checkout *, git diff *, git merge *), Grep, Glob, AskUserQuestion
 argument-hint: "[task description]"
 disable-model-invocation: true
 ---
@@ -276,15 +276,44 @@ Or continue with Claude to make more changes.
     </branch>
   </step>
 
+  <step name="ask_merge">
+    <action>Use AskUserQuestion tool with:
+      - header: "Merge"
+      - question: "Do you want to merge to main?"
+      - options:
+        - label: "Yes", description: "Merge quick/{quickId} into main now"
+        - label: "No", description: "Keep changes on the quick/{quickId} branch"
+      - multiSelect: false
+    </action>
+    <branch condition="user selects Yes">
+      <command>git checkout main</command>
+      <command>git merge quick/{quickId}</command>
+      <output>Merged quick/{quickId} into main.</output>
+    </branch>
+    <branch condition="user selects No">
+      <note>Changes remain on quick/{quickId} branch</note>
+    </branch>
+  </step>
+
   <step name="output_result">
-    <output>
+    <branch condition="merge was performed">
+      <output>
+**Quick task {quickId} complete!**
+
+- Branch: quick/{quickId} (merged to main)
+- Commit: {hash}
+- Files: {list of modified files}
+      </output>
+    </branch>
+    <branch condition="merge was not performed">
+      <output>
 **Quick task {quickId} complete!**
 
 - Branch: quick/{quickId}
 - Commit: {hash}
 - Files: {list of modified files}
 
-To merge to main:
+To merge later:
 ```
 git checkout main
 git merge quick/{quickId}
@@ -294,7 +323,8 @@ Or to create a PR:
 ```
 gh pr create --title "quick({quickId}): {title}"
 ```
-    </output>
+      </output>
+    </branch>
     <output>[KANBAN_COMPLETE]</output>
   </step>
 </process>
@@ -349,15 +379,16 @@ Committed: quick(000): Fix typo in login button
 Do you want me to update docs?
 > No
 
+Do you want to merge to main? [Yes / No]
+> Yes
+
+Merged quick/000 into main.
+
 **Quick task 000 complete!**
 
-- Branch: quick/000
+- Branch: quick/000 (merged to main)
 - Commit: a1b2c3d
 - Files: src/components/LoginButton.tsx
-
-To merge to main:
-git checkout main
-git merge quick/000
 
 [KANBAN_COMPLETE]
 ```
@@ -399,13 +430,13 @@ Created quick task: .kanban/quick/001/quick.xml
 </example>
 
 <next_steps>
-To merge your changes:
+If you chose not to merge, you can merge later:
 ```
 git checkout main
 git merge quick/{id}
 ```
 
-Or to create a PR:
+Or create a PR instead:
 ```
 gh pr create --title "quick({id}): {title}"
 ```
