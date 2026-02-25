@@ -6,6 +6,7 @@ const fast_xml_parser = require_chunk.__toESM(require("fast-xml-parser"));
 
 //#region src/scripts/validate-xml.ts
 const TASKS_DIR = ".kanban/tasks";
+const QUICK_DIR = ".kanban/quick";
 const parser = new fast_xml_parser.XMLParser({
 	ignoreAttributes: false,
 	attributeNamePrefix: "@_",
@@ -24,7 +25,41 @@ function validateFile(filePath) {
 		};
 	}
 }
+/**
+
+* Get XML files for a quick task.
+
+*
+
+* @param quickId - The quick task ID (e.g., "001").
+
+* @returns Array of XML file paths, or null if quick task not found.
+
+*/
+function getXmlFilesForQuick(quickId) {
+	const quickDir = path.default.join(QUICK_DIR, quickId);
+	if (!fs.default.existsSync(quickDir) || !fs.default.statSync(quickDir).isDirectory()) return null;
+	const files = [];
+	const quickXml = path.default.join(quickDir, "quick.xml");
+	if (fs.default.existsSync(quickXml)) files.push(quickXml);
+	return files;
+}
+/**
+
+* Get XML files for a full task.
+
+*
+
+* @param taskId - The task ID.
+
+* @returns Array of XML file paths, or null if task not found.
+
+*/
 function getXmlFilesForTask(taskId) {
+	if (taskId.startsWith("quick/")) {
+		const quickId = taskId.slice(6);
+		return getXmlFilesForQuick(quickId);
+	}
 	const taskDir = path.default.join(TASKS_DIR, taskId);
 	if (!fs.default.existsSync(taskDir) || !fs.default.statSync(taskDir).isDirectory()) return null;
 	const files = [];
