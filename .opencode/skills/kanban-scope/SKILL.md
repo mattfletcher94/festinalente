@@ -143,21 +143,19 @@ Create a functional specification through iterative conversational Q&A focused o
   </step>
 
   <step name="load_directives">
-    <step name="load_directives">
-      <command>node .kanban/scripts/get-skill-config.cjs kanban-scope</command>
-      <action>Parse the JSON output</action>
+    <command>node .kanban/scripts/get-skill-config.cjs kanban-scope</command>
+    <action>Parse the JSON output</action>
     
-      <branch condition="directives.length > 0">
-        <warning>Directives are MANDATORY. You MUST follow them.</warning>
-        <action>For EACH directive where `exists` is `true`:</action>
-        <action>Read the directive XML file at `path`</action>
-        <action>Parse and apply:</action>
-        <action>- `<context>` principles: Maintain as ongoing mindset</action>
-        <action>- `<process>` rules where phase="scope": Follow as requirements</action>
-        <note>`<validation>` checks will run in directive_compliance step</note>
-        <note>`<examples>` will be shown if violations are found</note>
-      </branch>
-    </step>
+    <branch condition="directives.length > 0">
+      <warning>Directives are MANDATORY. You MUST follow them.</warning>
+      <action>For EACH directive where `exists` is `true`:</action>
+      <action>Read the directive XML file at `path`</action>
+      <action>Parse and apply:</action>
+      <action>- `<context>` principles: Maintain as ongoing mindset</action>
+      <action>- `<process>` rules where phase="scope": Follow as requirements</action>
+      <note>`<validation>` checks will run in directive_compliance step</note>
+      <note>`<examples>` will be shown if violations are found</note>
+    </branch>
     
     <example_code lang="json">
     {

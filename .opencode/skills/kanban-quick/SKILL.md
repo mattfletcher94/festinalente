@@ -103,21 +103,19 @@ implementation, optional review before commit, optional doc updates.
   </step>
 
   <step name="load_directives">
-    <step name="load_directives">
-      <command>node .kanban/scripts/get-skill-config.cjs kanban-quick</command>
-      <action>Parse the JSON output</action>
+    <command>node .kanban/scripts/get-skill-config.cjs kanban-quick</command>
+    <action>Parse the JSON output</action>
     
-      <branch condition="directives.length > 0">
-        <warning>Directives are MANDATORY. You MUST follow them.</warning>
-        <action>For EACH directive where `exists` is `true`:</action>
-        <action>Read the directive XML file at `path`</action>
-        <action>Parse and apply:</action>
-        <action>- `<context>` principles: Maintain as ongoing mindset</action>
-        <action>- `<process>` rules where phase="quick": Follow as requirements</action>
-        <note>`<validation>` checks will run in directive_compliance step</note>
-        <note>`<examples>` will be shown if violations are found</note>
-      </branch>
-    </step>
+    <branch condition="directives.length > 0">
+      <warning>Directives are MANDATORY. You MUST follow them.</warning>
+      <action>For EACH directive where `exists` is `true`:</action>
+      <action>Read the directive XML file at `path`</action>
+      <action>Parse and apply:</action>
+      <action>- `<context>` principles: Maintain as ongoing mindset</action>
+      <action>- `<process>` rules where phase="quick": Follow as requirements</action>
+      <note>`<validation>` checks will run in directive_compliance step</note>
+      <note>`<examples>` will be shown if violations are found</note>
+    </branch>
     
     <example_code lang="json">
     {
@@ -194,6 +192,11 @@ implementation, optional review before commit, optional doc updates.
   </step>
 
   <step name="create_branch">
+    <command>git branch --list "quick/{quickId}"</command>
+    <branch condition="branch already exists">
+      <output>Error: Branch quick/{quickId} already exists. Use a different ID or delete the existing branch.</output>
+      <action>Exit</action>
+    </branch>
     <command>git checkout -b quick/{quickId}</command>
     <output>Created branch quick/{quickId}</output>
   </step>
@@ -377,6 +380,13 @@ Or continue with Claude to make more changes.
     </branch>
   </step>
 
+  <step name="validate_xml">
+    <command description="Validate quick.xml">node .kanban/scripts/validate-xml.cjs quick/{quickId}</command>
+    <branch condition="validation fails">
+      <output>Warning: XML validation failed. Fix errors before completing.</output>
+    </branch>
+  </step>
+
   <step name="output_result">
     <output>
 **Quick task {quickId} complete!**
@@ -403,6 +413,7 @@ gh pr create --title "quick({quickId}): {title}"
 <success_criteria>
 - Quick folder exists at `.kanban/quick/{quickId}/`
 - Quick file exists at `.kanban/quick/{quickId}/quick.xml`
+- Quick XML is valid (passes validate-xml.cjs)
 - Branch `quick/{quickId}` exists
 - Git log shows `quick({quickId}): {title}`
 - Code changes committed

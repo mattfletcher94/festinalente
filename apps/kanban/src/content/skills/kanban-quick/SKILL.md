@@ -120,6 +120,11 @@ implementation, optional review before commit, optional doc updates.
   </step>
 
   <step name="create_branch">
+    <command>git branch --list "quick/{quickId}"</command>
+    <branch condition="branch already exists">
+      <output>Error: Branch quick/{quickId} already exists. Use a different ID or delete the existing branch.</output>
+      <action>Exit</action>
+    </branch>
     <command>git checkout -b quick/{quickId}</command>
     <output>Created branch quick/{quickId}</output>
   </step>
@@ -267,6 +272,13 @@ Or continue with Claude to make more changes.
     </branch>
   </step>
 
+  <step name="validate_xml">
+    <command description="Validate quick.xml">node .kanban/scripts/validate-xml.cjs quick/{quickId}</command>
+    <branch condition="validation fails">
+      <output>Warning: XML validation failed. Fix errors before completing.</output>
+    </branch>
+  </step>
+
   <step name="output_result">
     <output>
 **Quick task {quickId} complete!**
@@ -293,6 +305,7 @@ gh pr create --title "quick({quickId}): {title}"
 <success_criteria>
 - Quick folder exists at `.kanban/quick/{quickId}/`
 - Quick file exists at `.kanban/quick/{quickId}/quick.xml`
+- Quick XML is valid (passes validate-xml.cjs)
 - Branch `quick/{quickId}` exists
 - Git log shows `quick({quickId}): {title}`
 - Code changes committed
