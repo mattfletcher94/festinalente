@@ -27,7 +27,7 @@
   <inventory></inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-02-25T09:30:00Z">
       <name>Update DocsActionItem constructor to support ThemeColor</name>
       <files>apps/vscode/src/capabilities/docs-view.capability.ts (modify)</files>
       <requirements>FR1</requirements>
@@ -71,7 +71,7 @@
       <done>DocsActionItem constructor accepts optional ThemeColor parameter and passes it to ThemeIcon</done>
     </task>
 
-    <task id="2" type="auto" depends="1">
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-02-25T09:31:00Z">
       <name>Update productActionItem to use green play icon</name>
       <files>apps/vscode/src/capabilities/docs-view.capability.ts (modify)</files>
       <requirements>FR2</requirements>
@@ -102,7 +102,7 @@
       <done>"Map Product Docs" displays a green play button icon</done>
     </task>
 
-    <task id="3" type="auto" depends="1">
+    <task id="3" type="auto" depends="1" completed="true" completed_at="2026-02-25T09:31:00Z">
       <name>Update engineeringActionItem to use green play icon</name>
       <files>apps/vscode/src/capabilities/docs-view.capability.ts (modify)</files>
       <requirements>FR3</requirements>
@@ -133,7 +133,7 @@
       <done>"Map Engineering Docs" displays a green play button icon</done>
     </task>
 
-    <task id="4" type="auto" depends="2,3">
+    <task id="4" type="auto" depends="2,3" completed="true" completed_at="2026-02-25T09:32:00Z">
       <name>Build and verify extension compiles</name>
       <files>N/A</files>
       <requirements>FR1, FR2, FR3</requirements>
@@ -146,7 +146,7 @@
       <done>Extension builds without errors</done>
     </task>
 
-    <task id="5" type="manual" depends="4">
+    <task id="5" type="manual" depends="4" completed="true" completed_at="2026-02-25T09:32:00Z">
       <name>Visual verification in VSCode</name>
       <files>N/A</files>
       <requirements>FR2, FR3</requirements>

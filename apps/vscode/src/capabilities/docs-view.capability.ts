@@ -13,10 +13,11 @@ export class DocsActionItem extends vscode.TreeItem {
   constructor(
     label: string,
     iconName: string,
-    public readonly actionCommand: string
+    public readonly actionCommand: string,
+    iconColor?: vscode.ThemeColor
   ) {
     super(label, vscode.TreeItemCollapsibleState.None);
-    this.iconPath = new vscode.ThemeIcon(iconName);
+    this.iconPath = new vscode.ThemeIcon(iconName, iconColor);
     this.command = {
       command: 'kanban.runGlobalAction',
       title: label,
@@ -203,13 +204,15 @@ export function createDocsViewCapability(
   // Action items for each docs section
   const productActionItem = new DocsActionItem(
     'Map Product Docs',
-    'book',
-    '/kanban-map-product'
+    'play',
+    '/kanban-map-product',
+    new vscode.ThemeColor('charts.green')
   );
   const engineeringActionItem = new DocsActionItem(
     'Map Engineering Docs',
-    'symbol-structure',
-    '/kanban-map-engineering'
+    'play',
+    '/kanban-map-engineering',
+    new vscode.ThemeColor('charts.green')
   );
 
   function createProductDocsProvider(): vscode.TreeDataProvider<DocsTreeItem> {
