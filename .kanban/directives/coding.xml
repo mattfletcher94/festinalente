@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<directive name="coding" version="1"
+           created="2026-02-25" updated="2026-02-25">
+  <description>
+    Code quality standards: architecture, type safety, and documentation
+  </description>
+  <context>
+    <principle id="A1" keywords="policy,decision,when,should">
+      Policy belongs in orchestrators, mechanism in capabilities
+    </principle>
+    <principle id="A2" keywords="imports,dependencies,direction,dag,circular">
+      Dependencies must form a DAG (no circular dependencies). Flow is inward: Computer &lt;- Capability &lt;- Orchestrator
+    </principle>
+    <principle id="A3" keywords="naming,suffix,categorization">
+      Every module must be categorized with suffix: .computer.ts, .capability.ts, .orchestrator.ts
+    </principle>
+    <principle id="T1" keywords="any,unknown,type,safety">
+      Never use any - use unknown and narrow with type guards
+    </principle>
+    <principle id="T2" keywords="export,return,type">
+      All exported functions must have explicit return types
+    </principle>
+    <principle id="T3" keywords="id,identifier,brand">
+      Use branded types for domain identifiers (TaskId, ProjectId, etc.)
+    </principle>
+    <principle id="T4" keywords="state,boolean,union">
+      Use discriminated unions for states, not boolean flags
+    </principle>
+    <principle id="D1" keywords="export,public,documentation">
+      All exported symbols must have TSDoc documentation
+    </principle>
+    <principle id="D2" keywords="multiline,format">
+      TSDoc must use multi-line format, not single-line
+    </principle>
+    <principle id="D3" keywords="param,hyphen,separator">
+      @param tags must use hyphen separator: @param name - description
+    </principle>
+    <principle id="R1" keywords="backwards,compatibility,legacy">
+      No backwards compatibility - break things and fix them properly
+    </principle>
+    <principle id="R2" keywords="deprecated,deprecation">
+      No deprecation notices - delete or keep, no middle ground
+    </principle>
+    <principle id="B1" keywords="build,compile,bundle">
+      All code changes must pass build verification before completion
+    </principle>
+  </context>
+  <process>
+    <rule id="P-A1" phase="plan">
+      Identify which architectural layer each affected file belongs to and verify dependency DAG is maintained
+    </rule>
+    <rule id="P-A2" phase="implement">
+      Categorize every new module with correct suffix
+    </rule>
+    <rule id="P-A3" phase="implement">
+      When creating pure functions, wrap them in a computer factory
+    </rule>
+    <rule id="P-T1" phase="implement">
+      Define domain types for new identifiers using branded types
+    </rule>
+    <rule id="P-T2" phase="implement">
+      Use readonly on value objects and interface properties
+    </rule>
+    <rule id="P-T3" phase="implement">
+      Use options objects for functions with more than 2 parameters
+    </rule>
+    <rule id="P-D1" phase="implement">
+      Add TSDoc to all exported functions, classes, interfaces, and types
+    </rule>
+    <rule id="P-D2" phase="implement">
+      Include @param, @returns, and @throws tags where applicable
+    </rule>
+    <rule id="P-R1" phase="check">
+      Scan for forbidden patterns before any manual review
+    </rule>
+    <rule id="P-R2" phase="check">
+      Check architectural classification of all new/modified modules
+    </rule>
+    <rule id="P-B1" phase="check">
+      Run all relevant build commands for modified packages
+    </rule>
+    <rule id="P-B2" phase="implement">
+      Verify each task step with appropriate build command
+    </rule>
+  </process>
+  <validation>
+    <check id="V-B1" type="command" severity="error">
+      <run>pnpm --filter @mattfletcher94/claudeban-vscode build</run>
+      <expect>VSCode extension builds successfully (exit code 0)</expect>
+    </check>
+    <check id="V-B2" type="command" severity="error">
+      <run>pnpm kanban:build</run>
+      <expect>Kanban package builds successfully (exit code 0)</expect>
+    </check>
+    <check id="V-A1" type="command" severity="error">
+      <run>pnpm check:dpdm</run>
+      <expect>No circular dependencies (exit code 0)</expect>
+    </check>
+    <check id="V-A2" type="pattern" severity="error" files="*.capability.ts">
+      <forbidden>import.*\.capability\.</forbidden>
+      <reason>Capabilities cannot import other capabilities (lateral dependency)</reason>
+    </check>
+    <check id="V-A3" type="pattern" severity="error" files="*.capability.ts">
+      <forbidden>(ensure|getOrCreate|maybe)[A-Z]</forbidden>
+      <reason>Policy logic (ensure/getOrCreate/maybe) belongs in orchestrators</reason>
+    </check>
+    <check id="V-A4" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>(Manager|Service|Helper|Utils)(&lt;|$)</forbidden>
+      <reason>Ambiguous naming - use computer/capability/orchestrator suffix</reason>
+    </check>
+    <check id="V-T1" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>:\s*any\b</forbidden>
+      <reason>any type disables type checking - use unknown and narrow</reason>
+    </check>
+    <check id="V-T2" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>as\s+any\b</forbidden>
+      <reason>as any is an escape hatch - fix the underlying type issue</reason>
+    </check>
+    <check id="V-T3" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>@ts-ignore</forbidden>
+      <reason>ts-ignore suppresses errors - fix the type issue or link to issue</reason>
+    </check>
+    <check id="V-D1" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>^\/\*\*\n \* [^@]+\n \*\/\nexport</forbidden>
+      <reason>Single-line TSDoc on exports - use multi-line format</reason>
+    </check>
+    <check id="V-D2" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>^\/\/ [-=]{4,}</forbidden>
+      <reason>Banner/divider comments are noise, not documentation</reason>
+    </check>
+    <check id="V-D3" type="pattern" severity="warning" files="**/*.ts">
+      <forbidden>@param\s+\w+\s+[^-]</forbidden>
+      <reason>@param missing hyphen separator - use @param name - description</reason>
+    </check>
+    <check id="V-R1" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>@deprecated</forbidden>
+      <reason>No deprecation notices - delete or keep, no middle ground</reason>
+    </check>
+    <check id="V-R2" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>backwards?\s*compat</forbidden>
+      <reason>No backwards compatibility shims</reason>
+    </check>
+    <check id="V-CL" type="checklist" severity="warning">
+      <item>Dependency graph forms a DAG (no circular dependencies)</item>
+      <item>All new modules have correct suffix (.computer.ts, .capability.ts, .orchestrator.ts)</item>
+      <item>No policy logic in capabilities</item>
+      <item>Computers only import other computers</item>
+      <item>No any type in new code</item>
+      <item>All exported functions have explicit return types</item>
+      <item>Domain types used for IDs (not raw strings)</item>
+      <item>Discriminated unions for states (not boolean flags)</item>
+      <item>All exported symbols have TSDoc</item>
+      <item>Multi-line TSDoc format used</item>
+      <item>@param tags include hyphen separator</item>
+      <item>No @deprecated tags - delete unused code</item>
+      <item>No backwards compatibility shims or wrappers</item>
+      <item>No feature flags for old vs new behavior</item>
+    </check>
+  </validation>
+  <examples>
+    <example ref="V-A3" type="violation">
+      <code><![CDATA[
+// WRONG: Policy in capability
+function ensureSession(): Session {
+  if (session && session.isValid) return session;  // Policy!
+  return createSession();
+}
+      ]]></code>
+      <explanation>Capability decides WHEN to create - this is policy, belongs in orchestrator</explanation>
+    </example>
+    <example ref="V-A3" type="correct">
+      <code><![CDATA[
+// CORRECT: Mechanism in capability
+function createSession(): Session {
+  return api.createSession();
+}
+// Policy in orchestrator
+function getSession(): Session {
+  if (session && session.isValid) return session;
+  return createSession();
+}
+      ]]></code>
+      <explanation>Capability provides mechanism (createSession), orchestrator decides when (getSession)</explanation>
+    </example>
+    <example ref="V-A2" type="violation">
+      <code><![CDATA[
+// WRONG: Capability importing capability
+import { createSettingsCapability } from './settings.capability';
+export function createTasksCapability() {
+  const settings = createSettingsCapability();  // Forbidden!
+}
+      ]]></code>
+      <explanation>Lateral dependency - both capabilities should be injected into orchestrator</explanation>
+    </example>
+    <example ref="V-T1" type="violation">
+      <code><![CDATA[
+// WRONG
+function handleEvent(data: any) {
+  return data.value;  // Unsafe access
+}
+      ]]></code>
+      <explanation>any disables type checking, making access unsafe</explanation>
+    </example>
+    <example ref="V-T1" type="correct">
+      <code><![CDATA[
+// CORRECT
+function handleEvent(data: unknown): number {
+  if (typeof data === 'object' && data !== null && 'value' in data) {
+    const value = (data as { value: unknown }).value;
+    if (typeof value === 'number') return value;
+  }
+  throw new Error('Invalid event data');
+}
+      ]]></code>
+      <explanation>unknown requires proper type narrowing before use</explanation>
+    </example>
+    <example ref="T3" type="correct">
+      <code><![CDATA[
+// Domain types for identifiers
+type TaskId = string & { readonly __brand: 'TaskId' };
+type ProjectId = string & { readonly __brand: 'ProjectId' };
+interface Task {
+  readonly id: TaskId;
+  readonly projectId: ProjectId;
+}
+      ]]></code>
+      <explanation>Branded types prevent mixing up different ID types</explanation>
+    </example>
+    <example ref="T4" type="violation">
+      <code><![CDATA[
+// WRONG: Boolean flags for state
+interface Task {
+  isLoading: boolean;
+  hasError: boolean;
+  isComplete: boolean;
+  data?: TaskData;
+  error?: Error;
+}
+      ]]></code>
+      <explanation>Boolean flags allow impossible states (isLoading AND isComplete both true)</explanation>
+    </example>
+    <example ref="T4" type="correct">
+      <code><![CDATA[
+// CORRECT: Discriminated union
+type TaskState =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'error'; error: Error }
+  | { status: 'complete'; data: TaskData };
+      ]]></code>
+      <explanation>Only one state is possible at a time, enabling exhaustive handling</explanation>
+    </example>
+    <example ref="V-D1" type="violation">
+      <code><![CDATA[
+// WRONG: Single-line TSDoc on export
+/** Creates a task computer. */
+export function createTaskComputer() { ... }
+      ]]></code>
+      <explanation>Single-line format is not proper TSDoc</explanation>
+    </example>
+    <example ref="V-D1" type="correct">
+      <code><![CDATA[
+// CORRECT: Multi-line format
+/**
+ * Create a task computer for task operations.
+ */
+export function createTaskComputer() { ... }
+      ]]></code>
+      <explanation>Multi-line format with proper structure</explanation>
+    </example>
+    <example ref="D1" type="correct">
+      <code><![CDATA[
+/**
+ * Create a task with the given options.
+ *
+ * @param options - Configuration for the new task.
+ * @returns The created task instance.
+ * @throws ValidationError if options are invalid.
+ */
+export function createTask(options: CreateTaskOptions): Task {
+  // Implementation
+}
+      ]]></code>
+      <explanation>Complete TSDoc with @param, @returns, and @throws</explanation>
+    </example>
+    <example ref="V-R1" type="violation">
+      <code><![CDATA[
+// WRONG: Deprecation without removal
+/** @deprecated Use newFunction instead */
+export function oldFunction() { ... }
+export function newFunction() { ... }
+      ]]></code>
+      <explanation>Delete oldFunction, update all callers to use newFunction</explanation>
+    </example>
+    <example ref="V-R1" type="correct">
+      <code><![CDATA[
+// CORRECT: Just the new function, old one deleted
+export function newFunction() { ... }
+// All callers updated directly
+      ]]></code>
+      <explanation>No deprecation period, just direct updates</explanation>
+    </example>
+    <example ref="V-R2" type="violation">
+      <code><![CDATA[
+// WRONG: Backwards compatibility wrapper
+export function loadConfig(path: string) {
+  // Support old format for backwards compatibility
+  if (isOldFormat(path)) {
+    return loadOldConfig(path);
+  }
+  return loadNewConfig(path);
+}
+      ]]></code>
+      <explanation>No compatibility layers - migrate all data to new format</explanation>
+    </example>
+  </examples>
+  <verification>
+    <command id="vscode-build" description="Build the VSCode extension">pnpm --filter @mattfletcher94/claudeban-vscode build</command>
+    <command id="kanban-build" description="Build the kanban package">pnpm kanban:build</command>
+    <command id="typecheck" description="Check TypeScript types across all packages">pnpm typecheck</command>
+    <command id="dpdm" description="Check for circular dependencies">pnpm check:dpdm</command>
+    <manual id="manual-test" description="Manually test the affected functionality"/>
+  </verification>
+</directive>

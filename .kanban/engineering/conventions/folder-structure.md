@@ -4,7 +4,7 @@ title: "Folder Structure Convention"
 type: convention
 tldr: "Monorepo with apps/, shared tooling at root, .kanban/ for runtime data"
 summary: "Consistent organization enables fast navigation and clear ownership"
-keywords: [folders, structure, monorepo, organization]
+keywords: [folders, structure, monorepo, organization, dogfooding, build-output]
 aliases: [directory-structure]
 boundary: "Does not prescribe internal file organization within components"
 related:
@@ -139,6 +139,36 @@ When this convention does NOT apply:
 - Third-party dependencies (node_modules)
 - Build tool cache directories (.turbo, .pnpm-store)
 - IDE configuration (.vscode, .idea)
+
+## Build Outputs (Source → Generated)
+
+When working on the kanban system itself (dogfooding), always edit **source files**, not generated outputs:
+
+| Generated Output | Source Location |
+|------------------|-----------------|
+| `.kanban/scripts/*.cjs` | `apps/kanban/src/scripts/*.ts` |
+| `.claude/skills/*/SKILL.md` | `apps/kanban/src/content/skills/*/SKILL.md` |
+| `.kanban/templates/*.xml` | `apps/kanban/src/content/templates/*.xml` |
+| `.kanban/partials/*.md` | `apps/kanban/src/content/partials/*.md` |
+
+**Why this matters:** This project uses the kanban system to build itself. The LLM may encounter files in `.kanban/` or `.claude/` that look editable but are actually build outputs. Always trace back to the source in `apps/kanban/src/`.
+
+### Incorrect
+
+```bash
+# Editing built output directly (will be overwritten on next build)
+Edit .claude/skills/kanban-plan/SKILL.md
+Edit .kanban/scripts/next-id.cjs
+```
+
+### Correct
+
+```bash
+# Edit source, then rebuild
+Edit apps/kanban/src/content/skills/kanban-plan/SKILL.md
+Edit apps/kanban/src/scripts/next-id.ts
+pnpm kanban:build
+```
 
 ## Enforcement
 

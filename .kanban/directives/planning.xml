@@ -1,83 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<directive name="planning" version="2"
-           created="2025-01-15" updated="2026-02-20">
+<directive name="planning" version="3"
+           created="2025-01-15" updated="2026-02-25">
 
   <description>
-    Create implementation plans that build in compliance from the start
+    Shift-left mindset: design for compliance before implementation
   </description>
 
   <context>
-    <principle id="C1" keywords="compliance,design,constraint">
+    <principle id="P1" keywords="compliance,design,constraint">
       Plans should be designed so code review passes on first attempt
     </principle>
-    <principle id="C2" keywords="breaking,backwards,compatibility">
-      Zero backwards compatibility - break things properly, update all callers
-    </principle>
-    <principle id="C3" keywords="test,documentation">
+    <principle id="P2" keywords="test,documentation">
       Tests and documentation are part of the plan, not afterthoughts
+    </principle>
+    <principle id="P3" keywords="order,sequence,dependencies">
+      Define implementation order: computers first, then capabilities, then orchestrator
     </principle>
   </context>
 
   <process>
-    <rule id="P1" phase="plan">
-      Apply all design constraints before designing the solution
+    <rule id="R1" phase="plan">
+      Verify planned architecture complies with code-standards before designing solution
     </rule>
-    <rule id="P2" phase="plan">
-      List all modules with correct suffixes and verify dependency DAG
-    </rule>
-    <rule id="P3" phase="plan">
-      Include TSDoc signatures for all new public APIs
-    </rule>
-    <rule id="P4" phase="plan">
+    <rule id="R2" phase="plan">
       Include test strategy with what to test and how to mock
     </rule>
-    <rule id="P5" phase="plan">
-      Define implementation order: computers, capabilities, orchestrator (extension.ts)
+    <rule id="R3" phase="plan">
+      List all modules with their architectural layer and verify dependency direction
     </rule>
   </process>
 
   <validation>
     <check id="V1" type="checklist" severity="warning">
-      <item>All modules have proper suffix (.computer.ts, .capability.ts)</item>
-      <item>Dependency graph is acyclic</item>
-      <item>No capability imports another capability</item>
-      <item>No policy logic planned for capabilities</item>
-      <item>VSCode API calls only in capabilities</item>
-      <item>Computers are pure functions with no VSCode imports</item>
-      <item>All public APIs have planned TSDoc</item>
-      <item>Tests planned for all new functionality</item>
-      <item>No backwards compatibility shims planned</item>
-      <item>Explicit types on all exports</item>
+      <item>Plan verified against code-standards before implementation</item>
+      <item>Implementation order defined (computers, capabilities, orchestrator)</item>
+      <item>Test strategy included</item>
+      <item>All new modules assigned to correct architectural layer</item>
     </check>
   </validation>
 
   <examples>
-    <example ref="C1" type="correct">
+    <example ref="P3" type="correct">
       <code><![CDATA[
-## Module Structure
-
-### Computers (pure functions)
-- `task-parser.computer.ts` - XML parsing logic
-  - Dependencies: fast-xml-parser (external)
-
-- `task-actions.computer.ts` - Compute available actions per status
-  - Dependencies: none
-
-### Capabilities (VSCode API)
-- `file-system.capability.ts` - File read/write operations
-  - Dependencies: none (uses fs module)
-
-- `terminal.capability.ts` - Terminal creation and commands
-  - Dependencies: none (uses vscode API)
-
-- `tasks-view.capability.ts` - TreeView provider
-  - Dependencies: task-parser.computer, task-actions.computer (via injection)
-
-### Orchestrator
-- `extension.ts` - Wires everything in activate()
-  - Creates computers and capabilities
-  - Registers commands and providers
-
 ## Implementation Order
 1. task-parser.computer.ts (no dependencies)
 2. task-actions.computer.ts (no dependencies)
@@ -85,27 +49,9 @@
 4. terminal.capability.ts (uses vscode)
 5. tasks-view.capability.ts (injects computers)
 6. extension.ts (orchestrates all)
-7. Tests for computers (pure functions are easy to test)
+7. Tests for computers
       ]]></code>
-      <explanation>Plan with proper categorization, order, and constraints built in</explanation>
-    </example>
-
-    <example ref="C2" type="violation">
-      <code><![CDATA[
-## Breaking Changes
-- Rename oldFunction to newFunction
-- Add backwards compatibility re-export for oldFunction
-      ]]></code>
-      <explanation>Never plan for backwards compatibility</explanation>
-    </example>
-
-    <example ref="C2" type="correct">
-      <code><![CDATA[
-## Breaking Changes
-- Rename oldFunction to newFunction
-- Update all 5 callers in: fileA.ts, fileB.ts, fileC.ts, fileD.ts, fileE.ts
-      ]]></code>
-      <explanation>Plan direct updates, no compatibility layer</explanation>
+      <explanation>Clear order following dependency direction</explanation>
     </example>
   </examples>
 

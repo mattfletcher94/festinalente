@@ -10,37 +10,26 @@ name: ""
 
 directives:
   kanban-status: []
-  kanban-create: 
+  kanban-create:
     - design
-  kanban-refine: []
   kanban-scope:
-    - architecture
-    - typescript
+    - coding
     - design
   kanban-plan:
     - planning
-    - architecture
-    - verification
+    - coding
   kanban-implement:
-    - architecture
-    - typescript
-    - tsdoc
-    - verification
+    - coding
   kanban-save: []
   kanban-check:
-    - check-kanban
-    - check-vscode
-    - code-review
-    - tsdoc
+    - coding
   kanban-docs: []
   kanban-merge: []
   kanban-rework:
-    - architecture
-    - typescript
-    - tsdoc
-    - verification
+    - coding
   kanban-quick:
-    - verification
+    - design
+    - coding
   kanban-map-product: []
   kanban-define-product: []
   kanban-map-engineering: []
