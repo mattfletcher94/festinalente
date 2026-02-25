@@ -17,6 +17,11 @@ updated: 2026-02-25
 verified: 2026-02-25
 code_refs:
   - apps/vscode/src/extension.ts
+  - apps/vscode/src/orchestrators/terminal.orchestrator.ts
+  - apps/vscode/src/orchestrators/tasks.orchestrator.ts
+  - apps/vscode/src/orchestrators/quicks.orchestrator.ts
+  - apps/vscode/src/orchestrators/docs.orchestrator.ts
+  - apps/vscode/src/orchestrators/config.orchestrator.ts
 ---
 
 # Orchestrator Pattern
@@ -94,15 +99,18 @@ Create multiple orchestrators when:
 
 ```
 apps/vscode/src/
-├── extension.ts                    # Composition root (thin)
+├── extension.ts                    # Composition root (thin, ~178 lines)
 ├── orchestrators/
-│   ├── tasks.orchestrator.ts       # Task domain policy
-│   ├── quicks.orchestrator.ts      # Quick task domain policy
-│   ├── docs.orchestrator.ts        # Documentation domain policy
-│   └── terminal.orchestrator.ts    # Execution/runtime policy
+│   ├── terminal.orchestrator.ts    # Execution/runtime policy (86 lines)
+│   ├── tasks.orchestrator.ts       # Task domain policy (279 lines)
+│   ├── quicks.orchestrator.ts      # Quick task domain policy (178 lines)
+│   ├── docs.orchestrator.ts        # Documentation domain policy (136 lines)
+│   └── config.orchestrator.ts      # Config domain policy (109 lines)
 ├── capabilities/
 └── computers/
 ```
+
+This is the actual structure implemented in the VSCode extension.
 
 ### Composition Root vs Domain Orchestrators
 

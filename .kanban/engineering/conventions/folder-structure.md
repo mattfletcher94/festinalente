@@ -9,6 +9,8 @@ aliases: [directory-structure]
 boundary: "Does not prescribe internal file organization within components"
 related:
   - conventions/file-naming
+  - patterns/orchestrator
+  - patterns/capability-computer
 paths:
   - apps
   - .kanban
@@ -102,12 +104,17 @@ claudeban/                          # Workspace root
 │   │   └── tsconfig.json
 │   └── vscode/                    # VSCode extension
 │       ├── src/
-│       │   ├── orchestrators/     # Domain orchestrators (optional)
+│       │   ├── orchestrators/     # Domain orchestrators
+│       │   │   ├── terminal.orchestrator.ts
+│       │   │   ├── tasks.orchestrator.ts
+│       │   │   ├── quicks.orchestrator.ts
+│       │   │   ├── docs.orchestrator.ts
+│       │   │   └── config.orchestrator.ts
 │       │   ├── capabilities/      # I/O layer
 │       │   ├── computers/         # Pure functions
 │       │   ├── types/             # Type definitions
-│       │   └── extension.ts       # Composition root / entry point
-│       ├── out/                   # Build output
+│       │   └── extension.ts       # Thin composition root
+│       ├── dist/                  # Build output
 │       └── package.json
 ├── .kanban/                       # Runtime data (gitignored tasks)
 │   ├── tasks/                     # Task instances

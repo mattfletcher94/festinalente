@@ -36,14 +36,21 @@ code_refs: []
 
 Claude Kanban is a pnpm monorepo containing two tightly-coupled applications: a CLI tool (`apps/kanban`) providing 23+ utility scripts, and a VSCode extension (`apps/vscode`) providing visual task management. Both communicate through the file system and terminal commands.
 
-**Why it exists:** Designed for integration with Claude Code AI assistant, separating concerns between pure computation (Computers), I/O operations (Capabilities), and orchestration (extension.ts).
+**Why it exists:** Designed for integration with Claude Code AI assistant, separating concerns between pure computation (Computers), I/O operations (Capabilities), and orchestration (Domain Orchestrators with thin composition root).
 
 **Summary:** Two-app monorepo with factory function DI pattern, file-based persistence, and hybrid fuzzy search.
 
 ```mermaid
 graph TB
     subgraph VSCode["VSCode Extension"]
-        Orch["Orchestrator<br/>extension.ts"]
+        CR["Composition Root<br/>extension.ts"]
+        subgraph Orchestrators["Domain Orchestrators"]
+            TO["Terminal"]
+            TKO["Tasks"]
+            QO["Quicks"]
+            DO["Docs"]
+            CO["Config"]
+        end
         Cap["Capabilities<br/>I/O & Effects"]
         Comp["Computers<br/>Pure Functions"]
     end
@@ -61,10 +68,12 @@ graph TB
     VSCode -->|executes| CLI
     VSCode -->|reads/monitors| Storage
     CLI -->|reads/writes| Storage
-    Orch --> Cap
-    Orch --> Comp
+    CR --> Orchestrators
+    Orchestrators --> Cap
+    Orchestrators --> Comp
 
     style VSCode fill:#e1f5ff
+    style Orchestrators fill:#fff9c4
     style CLI fill:#f3e5f5
     style Storage fill:#e8f5e9
 ```
@@ -83,11 +92,11 @@ claudeban/
 │   │   └── dist/                  # Compiled output
 │   └── vscode/                    # VSCode extension
 │       └── src/
-│           ├── orchestrators/     # Domain orchestrators (optional)
-│           ├── capabilities/      # I/O and side effects
-│           ├── computers/         # Pure functions
-│           ├── types/             # Type definitions
-│           └── extension.ts       # Composition root / entry point
+│           ├── orchestrators/     # Domain orchestrators (5 files)
+│           ├── capabilities/      # I/O and side effects (8 files)
+│           ├── computers/         # Pure functions (5 files)
+│           ├── types/             # Type definitions (2 files)
+│           └── extension.ts       # Thin composition root (~178 lines)
 ├── .kanban/                       # Runtime data directory
 │   ├── tasks/                     # Task instances (XML)
 │   ├── product/                   # Product docs (MD)
