@@ -37,3 +37,11 @@
 }
 </example_code>
 {{/if}}
+
+{{#if show_next_quick_id}}
+<command description="Get next quick ID (returns JSON with nextId, currentHighest, padding)">node .kanban/scripts/next-quick-id.cjs</command>
+{{/if}}
+
+{{#if show_find_quick}}
+<command description="Find quick task by ID (returns JSON with path and metadata)">node .kanban/scripts/find-quick.cjs {id}</command>
+{{/if}}

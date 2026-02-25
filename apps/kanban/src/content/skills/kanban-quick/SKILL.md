@@ -16,10 +16,7 @@ implementation, optional review before commit, optional doc updates.
 <context>
 {{> directory-reference}}
 
-<note>Use these scripts for quick tasks:</note>
-<command description="Get next quick ID (returns JSON with nextId, currentHighest, padding)">node .kanban/scripts/next-quick-id.cjs</command>
-<command description="Find quick task by ID (returns JSON with path and metadata)">node .kanban/scripts/find-quick.cjs {id}</command>
-<command description="Get current date/time (returns JSON with iso and date formats)">node .kanban/scripts/get-date-time.cjs</command>
+{{> helper-scripts show_next_quick_id=true show_find_quick=true show_get_date_time=true}}
 
 <note>Quick tasks are stored in `.kanban/quick/{id}/` — separate from the full workflow.</note>
 

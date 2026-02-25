@@ -45,6 +45,8 @@ Permanently delete a task from the kanban board. Only tasks in Backlog status ca
 
 
 
+
+
 <note>Column transition: backlog → [Deleted]</note>
 <note>See `.kanban/workflow.yaml` for column definitions and valid transitions</note>
 </context>

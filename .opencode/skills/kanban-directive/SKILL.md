@@ -41,6 +41,8 @@ Create a new directive through conversational Q&A. Captures context principles, 
 <command description="Get current date/time (returns JSON with iso and date formats)">node .kanban/scripts/get-date-time.cjs</command>
 
 
+
+
 <note>Directives are stored at `.kanban/directives/{name}.xml`</note>
 <note>Directives are linked to skills via `.kanban/config.yaml`</note>
 </context>

@@ -35,6 +35,8 @@ Create and refine a new task through conversational Q&A, then commit to Backlog.
 <command description="Get current date/time (returns JSON with iso and date formats)">node .kanban/scripts/get-date-time.cjs</command>
 
 
+
+
 <note>Use these scripts to work with product documentation:</note>
 
 

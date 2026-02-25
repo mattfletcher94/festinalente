@@ -45,6 +45,8 @@ Create a plan file in `.kanban/tasks/{id}/` and move task from Scoped to Planned
 }
 </example_code>
 
+
+
 <note>Use these scripts to work with product documentation:</note>
 
 <command description="List all product docs (returns JSON with count and docs array)">node .kanban/scripts/list-product.cjs</command>

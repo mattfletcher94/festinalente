@@ -45,6 +45,8 @@ Run automated code checks using directives, verify requirements are met, prompt 
 }
 </example_code>
 
+
+
 <note>Column transition: check → update-docs</note>
 <note>See `.kanban/workflow.yaml` for column definitions and valid transitions</note>
 

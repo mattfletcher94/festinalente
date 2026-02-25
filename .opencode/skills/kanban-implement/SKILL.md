@@ -50,6 +50,8 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
 }
 </example_code>
 
+
+
 <note>Column transition: planned → in-progress</note>
 <note>See `.kanban/workflow.yaml` for column definitions and valid transitions</note>
 </context>

@@ -25,10 +25,19 @@ implementation, optional review before commit, optional doc updates.
 - **`.kanban/directives/`** — User-defined directives (custom instructions for skills)
 </note>
 
-<note>Use these scripts for quick tasks:</note>
-<command description="Get next quick ID (returns JSON with nextId, currentHighest, padding)">node .kanban/scripts/next-quick-id.cjs</command>
-<command description="Find quick task by ID (returns JSON with path and metadata)">node .kanban/scripts/find-quick.cjs {id}</command>
+<note>Use these scripts to reliably find files:</note>
+
+
+
+
+
+
 <command description="Get current date/time (returns JSON with iso and date formats)">node .kanban/scripts/get-date-time.cjs</command>
+
+
+<command description="Get next quick ID (returns JSON with nextId, currentHighest, padding)">node .kanban/scripts/next-quick-id.cjs</command>
+
+<command description="Find quick task by ID (returns JSON with path and metadata)">node .kanban/scripts/find-quick.cjs {id}</command>
 
 <note>Quick tasks are stored in `.kanban/quick/{id}/` — separate from the full workflow.</note>
 

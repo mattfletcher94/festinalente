@@ -36,6 +36,8 @@ Analyze the codebase, product docs, and patterns to discover potential new featu
 
 
 
+
+
 <note>Use these scripts to work with product documentation:</note>
 
 <command description="List all product docs (returns JSON with count and docs array)">node .kanban/scripts/list-product.cjs</command>

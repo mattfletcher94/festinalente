@@ -24,6 +24,8 @@ Save partial implementation progress when interrupted. Task stays in In Progress
 
 
 
+
+
 <note>Column transition: in-progress → in-progress (no change)</note>
 <note>See `.kanban/workflow.yaml` for column definitions and valid transitions</note>
 </context>

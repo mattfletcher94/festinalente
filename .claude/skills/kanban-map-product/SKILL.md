@@ -22,6 +22,8 @@ Analyze existing codebase and create product documentation through parallel expl
 <command description="Get current date/time (returns JSON with iso and date formats)">node .kanban/scripts/get-date-time.cjs</command>
 
 
+
+
 <note>Use these scripts to work with product documentation:</note>
 
 <command description="List all product docs (returns JSON with count and docs array)">node .kanban/scripts/list-product.cjs</command>
