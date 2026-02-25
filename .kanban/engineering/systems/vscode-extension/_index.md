@@ -20,12 +20,14 @@ verified: 2026-02-25
 code_refs:
   - apps/vscode/src/extension.ts
   - apps/vscode/src/capabilities/tasks-view.capability.ts
+  - apps/vscode/src/capabilities/quicks-view.capability.ts
   - apps/vscode/src/capabilities/terminal.capability.ts
   - apps/vscode/src/capabilities/claude-settings.capability.ts
   - apps/vscode/src/capabilities/config-view.capability.ts
   - apps/vscode/src/capabilities/global-actions-view.capability.ts
   - apps/vscode/src/capabilities/docs-view.capability.ts
   - apps/vscode/src/computers/task-parser.computer.ts
+  - apps/vscode/src/computers/quick-parser.computer.ts
   - apps/vscode/src/computers/claude-settings.computer.ts
   - apps/vscode/bin/install.cjs
   - apps/vscode/package.json
@@ -67,6 +69,7 @@ Capabilities handle I/O and side effects. They wrap VSCode APIs and file system 
 |-----------|---------|------|
 | file-system | File I/O wrapper (read, write, exists) | `capabilities/file-system.capability.ts` |
 | tasks-view | TreeView rendering and management | `capabilities/tasks-view.capability.ts` |
+| quicks-view | TreeView for quick tasks list | `capabilities/quicks-view.capability.ts` |
 | terminal | Terminal lifecycle (fresh per action) | `capabilities/terminal.capability.ts` |
 | claude-settings | Read Claude settings from project/global paths | `capabilities/claude-settings.capability.ts` |
 | codelens | CodeLens provider for quick actions | `capabilities/codelens.capability.ts` |
@@ -103,6 +106,16 @@ The TreeDataProvider implements `getParent()` to enable VSCode's `TreeView.revea
 
 Maps are cleared on refresh alongside existing caches to avoid stale references.
 
+#### TreeItem Types in quicks-view
+
+The quicks-view capability defines:
+
+| TreeItem | Parent | Purpose |
+|----------|--------|---------|
+| QuickItem | root | Quick task entry with ID, title, status icon |
+
+QuickItem displays quick tasks as a flat list. Status icons: blue play circle for `in-progress`, green checkmark for `complete`. Uses `kanban.openFile` command to open quick.xml in editor.
+
 #### TreeItem Types in config-view
 
 The config-view capability defines:
@@ -138,11 +151,22 @@ DocsFolderItem and DocsFileItem use path-based parent tracking via Maps populate
 
 Header buttons are registered via `contributes.menus.view/title` in package.json:
 
+**TASKS View:**
+
 | Command | Icon | Group | Behavior |
 |---------|------|-------|----------|
 | `kanban.startDiscovery` | `comment-discussion` | navigation@0 | Runs `/kanban-discover` in terminal |
 | `kanban.createTask` | `add` | navigation@1 | Prompts for title, runs `/kanban-create` |
 | `kanban.refresh` | `refresh` | navigation@2 | Triggers TreeView refresh |
+| `kanban.findTask` | `search` | navigation@3 | Opens QuickPick to search tasks |
+
+**QUICKS View:**
+
+| Command | Icon | Group | Behavior |
+|---------|------|-------|----------|
+| `kanban.createQuick` | `add` | navigation@1 | Prompts for title, runs `/kanban-quick` |
+| `kanban.refreshQuicks` | `refresh` | navigation@2 | Triggers Quicks TreeView refresh |
+| `kanban.findQuick` | `search` | navigation@3 | Opens QuickPick to search quick tasks |
 
 Commands use VSCode's extended title syntax for rich markdown tooltips (e.g., "Kanban: Start Discovery - Explore questions through Socratic Q&A").
 
@@ -153,6 +177,7 @@ Computers contain pure functions with no side effects. They transform data.
 | Component | Purpose | File |
 |-----------|---------|------|
 | task-parser | Parses XML task files using fast-xml-parser | `computers/task-parser.computer.ts` |
+| quick-parser | Parses quick.xml files using fast-xml-parser | `computers/quick-parser.computer.ts` |
 | task-grouping | Groups tasks by status, defines columns | `computers/task-grouping.computer.ts` |
 | task-actions | Generates available actions per task status | `computers/task-actions.computer.ts` |
 | claude-settings | YOLO mode detection from Claude settings | `computers/claude-settings.computer.ts` |
@@ -164,6 +189,7 @@ Type definitions shared across the extension.
 | Component | Purpose | File |
 |-----------|---------|------|
 | task-types | Task, TaskStatus, TaskPriority, TaskAction interfaces | `types/task-types.ts` |
+| quick-types | Quick, QuickStatus interfaces | `types/quick-types.ts` |
 
 **Summary:** Three layers separate concerns: Orchestrator (when), Capabilities (how), Computers (what).
 
@@ -177,6 +203,7 @@ graph TB
         subgraph Capabilities["Capabilities Layer"]
             FS["FileSystem"]
             TV["TasksView"]
+            QV["QuicksView"]
             Term["Terminal"]
             CL["CodeLens"]
             CS["ClaudeSettings"]
@@ -186,6 +213,7 @@ graph TB
 
         subgraph Computers["Computers Layer"]
             TP["TaskParser"]
+            QP["QuickParser"]
             TG["TaskGrouping"]
             TA["TaskActions"]
             CSC["ClaudeSettings"]
@@ -202,6 +230,7 @@ graph TB
     Orch --> Computers
     FS --> Files
     TV --> VSCodeAPI
+    QV --> VSCodeAPI
     Term --> CLI
     CL --> VSCodeAPI
 

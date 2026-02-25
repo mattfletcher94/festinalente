@@ -2,9 +2,9 @@
 id: "vscode/kanban-view"
 title: "Kanban View"
 type: feature
-tldr: "Sidebar tree view displaying tasks grouped by workflow column, config access, global actions, and documentation browsers"
-summary: "VSCode TreeDataProvider showing tasks organized by status (backlog, scoped, planned, in-progress, etc.) with priority indicators, labels, and file status. Includes Kanban Config, Global Actions, Product Docs, and Engineering Docs sections."
-keywords: [kanban, view, treeview, sidebar, columns, status, config, global-actions, product-docs, engineering-docs]
+tldr: "Sidebar tree view displaying tasks grouped by workflow column, quick tasks, config access, global actions, and documentation browsers"
+summary: "VSCode TreeDataProvider showing tasks organized by status (backlog, scoped, planned, in-progress, etc.) with priority indicators, labels, and file status. Includes QUICKS section for quick tasks, Kanban Config, Global Actions, Product Docs, and Engineering Docs sections."
+keywords: [kanban, view, treeview, sidebar, columns, status, config, global-actions, product-docs, engineering-docs, quicks, quick-tasks]
 aliases: [task-view, kanban-board, tasks-view]
 boundary: "Does NOT provide drag-and-drop; tasks move via commands"
 related: [vscode/codelens, vscode/terminal, tasks/workflow]
@@ -13,6 +13,7 @@ verified: 2026-02-25
 code_refs:
   - apps/vscode/src/extension.ts
   - apps/vscode/src/capabilities/tasks-view.capability.ts
+  - apps/vscode/src/capabilities/quicks-view.capability.ts
   - apps/vscode/src/capabilities/config-view.capability.ts
   - apps/vscode/src/capabilities/global-actions-view.capability.ts
   - apps/vscode/src/capabilities/docs-view.capability.ts
@@ -21,15 +22,15 @@ code_refs:
 
 # Kanban View
 
-> **TL;DR:** Sidebar tree view displaying tasks grouped by workflow column, config access, global actions, and documentation browsers
+> **TL;DR:** Sidebar tree view displaying tasks grouped by workflow column, quick tasks, config access, global actions, and documentation browsers
 
 ## Overview
 
 Kanban View provides a sidebar TreeView showing all tasks organized by their workflow status. Each column (backlog, scoped, planned, in-progress, check, update-docs, pr, done) expands to show tasks with priority indicators and labels. Clicking a task opens its task.xml file.
 
-The sidebar also includes a "Kanban Config" section for quick access to config.yaml, a "Global Actions" section providing project-wide commands like documentation mapping, and "Product Docs" and "Engineering Docs" sections for browsing documentation directly from the sidebar.
+The sidebar also includes a "QUICKS" section for quick tasks (fast implementation for simple fixes), a "Kanban Config" section for quick access to config.yaml, a "Global Actions" section providing project-wide commands like documentation mapping, and "Product Docs" and "Engineering Docs" sections for browsing documentation directly from the sidebar.
 
-**Summary:** Visual task organization matching the workflow columns, plus config, global actions, and documentation browsers.
+**Summary:** Visual task organization matching the workflow columns, plus quicks, config, global actions, and documentation browsers.
 
 ## How It Works
 
@@ -55,6 +56,31 @@ The KANBAN TASKS view header includes action buttons (left to right):
 - Discovery button: "**Discovery Session**\nExplore questions and analyze the codebase through Socratic Q&A before creating tasks."
 - Create Task button: "**Create Task**\nCreate a new task through conversational Q&A. Captures problem, value, and acceptance criteria."
 - Find Task button: "**Find Task**\nSearch tasks by ID or title. Select to reveal in tree."
+
+### QUICKS Section
+
+The QUICKS section displays quick tasks from `.kanban/quick/{id}/` folders. Quick tasks are lightweight tasks for fast implementation of simple fixes, created via `/kanban-quick`.
+
+#### Header Actions
+
+| Button | Icon | Action |
+|--------|------|--------|
+| Create Quick | `add` | Prompts for title, then runs `/kanban-quick {title}` |
+| Refresh | `refresh` | Refreshes quick task list |
+| Find Quick | `search` | Opens QuickPick to search and reveal quick tasks |
+
+#### Quick Item Display
+
+Each quick task displays as a flat list item showing:
+- ID and title (e.g., "001: Fix typo in README")
+- Status badge (`in-progress` or `complete`)
+- Status icon: Blue play circle for in-progress, green checkmark for complete
+
+Clicking a quick item opens its `quick.xml` file in the editor.
+
+#### File Watcher
+
+The QUICKS view automatically refreshes when files change in `.kanban/quick/`.
 
 ### Key Workflows
 
@@ -173,6 +199,34 @@ KANBAN TASKS                    [💬] [+] [🔍] [↻]
 ```
 
 Clicking any ActionItem runs the corresponding workflow command in the terminal.
+
+### QUICKS Section
+
+```
+QUICKS                                    [+] [↻] [🔍]
+├── 001: Fix typo in README        complete  ✓
+├── 002: Update dependency         in-progress ▶
+└── 003: Add missing export        in-progress ▶
+```
+
+- Green checkmark (✓) indicates complete status
+- Blue play circle (▶) indicates in-progress status
+- Clicking any item opens its quick.xml file
+
+### Find Quick QuickPick
+
+```
+Search quicks by ID or title...
+┌─────────────────────────────────────────────────────────┐
+│ 001: Fix typo in README                   complete      │
+│ No problem description                                  │
+├─────────────────────────────────────────────────────────┤
+│ 002: Update dependency                    in-progress   │
+│ Package version is outdated                             │
+└─────────────────────────────────────────────────────────┘
+```
+
+Type to filter by ID, title, or status. Select to reveal in tree.
 
 ### Kanban Config Section
 
