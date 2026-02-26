@@ -53,16 +53,15 @@ export function activate(context: vscode.ExtensionContext): void {
   const fs = createFileSystemCapability();
 
   // Find kanban folder
-  const kanbanPath = findKanbanFolder(vscode.workspace.workspaceFolders, fs);
+  const kanbanDir = findKanbanFolder(vscode.workspace.workspaceFolders, fs);
 
-  if (!kanbanPath) {
+  if (!kanbanDir) {
     vscode.commands.executeCommand('setContext', 'kanban.hasKanbanFolder', false);
     return;
   }
 
   vscode.commands.executeCommand('setContext', 'kanban.hasKanbanFolder', true);
 
-  const kanbanDir = kanbanPath;
   const workspaceRoot = path.dirname(kanbanDir);
 
   // --- Create domain orchestrators ---
@@ -162,11 +161,11 @@ export function activate(context: vscode.ExtensionContext): void {
 
   // --- Register File Watchers ---
 
-  context.subscriptions.push(tasksOrch.createFileWatcher(kanbanPath));
-  context.subscriptions.push(quicksOrch.createFileWatcher(kanbanPath));
-  context.subscriptions.push(docsOrch.createProductDocsWatcher(kanbanPath));
-  context.subscriptions.push(docsOrch.createEngineeringDocsWatcher(kanbanPath));
-  context.subscriptions.push(configOrch.createFileWatcher(kanbanPath));
+  context.subscriptions.push(tasksOrch.createFileWatcher(kanbanDir));
+  context.subscriptions.push(quicksOrch.createFileWatcher(kanbanDir));
+  context.subscriptions.push(docsOrch.createProductDocsWatcher(kanbanDir));
+  context.subscriptions.push(docsOrch.createEngineeringDocsWatcher(kanbanDir));
+  context.subscriptions.push(configOrch.createFileWatcher(kanbanDir));
 
   // --- Set initial context ---
 
@@ -176,8 +175,8 @@ export function activate(context: vscode.ExtensionContext): void {
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeWorkspaceFolders(() => {
-      const newKanbanPath = findKanbanFolder(vscode.workspace.workspaceFolders, fs);
-      if (newKanbanPath !== kanbanPath) {
+      const newKanbanDir = findKanbanFolder(vscode.workspace.workspaceFolders, fs);
+      if (newKanbanDir !== kanbanDir) {
         vscode.window
           .showInformationMessage(
             'Workspace changed. Reload to update Kanban extension?',
