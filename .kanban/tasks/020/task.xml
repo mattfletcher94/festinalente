@@ -1,4 +1,4 @@
-<task id="020" status="update-docs" priority="medium" created="2026-02-26" updated="2026-02-26">
+<task id="020" status="pr" priority="medium" created="2026-02-26" updated="2026-02-26">
   <title>Add Document Symbol Provider for plan.xml files to enable Outline view navigation</title>
 
   <labels>

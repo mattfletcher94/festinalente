@@ -7,9 +7,9 @@ summary: "The vscode domain provides a VSCode extension with a sidebar kanban bo
 keywords: [vscode, extension, kanban, codelens, terminal]
 aliases: [vscode-extension, visual-kanban, gui]
 boundary: "Does NOT provide standalone GUI; requires VSCode and Claude CLI"
-contains: [vscode/kanban-view, vscode/codelens, vscode/terminal, vscode/file-watcher]
+contains: [vscode/kanban-view, vscode/codelens, vscode/terminal, vscode/file-watcher, vscode/plan-outline]
 related: [tasks/_index]
-updated: 2026-02-25
+updated: 2026-02-26
 ---
 
 # VSCode Extension
@@ -41,8 +41,9 @@ This domain does NOT work standalone; it requires VSCode and the Claude CLI.
 | [codelens](./codelens.md) | Inline actions on task.xml files | stable |
 | [terminal](./terminal.md) | Integrated terminal for Claude commands | stable |
 | [file-watcher](./file-watcher.md) | Auto-refresh on file changes | stable |
+| [plan-outline](./plan-outline.md) | Outline navigation for plan.xml files | stable |
 
-**Summary:** This domain contains 4 features for VSCode integration.
+**Summary:** This domain contains 5 features for VSCode integration.
 
 ## Key Concepts
 
@@ -51,6 +52,7 @@ flowchart TB
     subgraph UI["VSCode UI"]
         A[TreeView<br/>Kanban Board]
         B[CodeLens<br/>Inline Actions]
+        F[Outline<br/>Plan Navigation]
     end
 
     subgraph Execution["Command Execution"]
@@ -63,18 +65,22 @@ flowchart TB
 
     subgraph Data[".kanban/"]
         E[task.xml]
+        G[plan.xml]
     end
 
     A --> C
     B --> C
     C --> E
     E --> D
+    G --> D
     D --> A
     D --> B
+    D --> F
 ```
 
 - **TreeView**: VSCode sidebar showing tasks grouped by column
 - **CodeLens**: Inline action links above code (here, above task.xml)
+- **Outline**: Plan.xml navigation via VSCode Outline panel
 - **Terminal**: Integrated terminal running Claude CLI commands
 - **File watcher**: Monitors .kanban/tasks/ for changes
 
