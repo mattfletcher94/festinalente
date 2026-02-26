@@ -1,0 +1,35 @@
+# Festina Lente Config Schema
+# ---------------------
+# This file has exactly THREE top-level keys: name, directives, settings
+#
+# Directives Configuration:
+# Each skill can load directives from .festinalente/directives/{name}.xml
+# Directives are mandatory instructions that the LLM must follow.
+
+name: ""
+
+directives:
+  festina-status: []
+  festina-create: []
+  festina-scope: []
+  festina-plan: []
+  festina-implement: []
+  festina-save: []
+  festina-check: []
+  festina-docs: []
+  festina-merge: []
+  festina-rework: []
+  festina-quick: []
+  festina-map-product: []
+  festina-define-product: []
+  festina-map-engineering: []
+  festina-view: []
+  festina-report-label: []
+  festina-report-task: []
+  festina-report-user: []
+
+settings:
+  version: "2.0"
+  idPrefix: ""
+  idPadding: 3
+  archiveOnComplete: false

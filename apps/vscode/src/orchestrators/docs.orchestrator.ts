@@ -16,7 +16,7 @@ import type { CreateTerminalOrchestratorReturn } from './terminal.orchestrator';
  */
 export interface DocsOrchestratorDeps {
   readonly fs: ReturnType<typeof createFileSystemCapability>;
-  readonly kanbanDir: string;
+  readonly festinalenteDir: string;
   readonly terminal: CreateTerminalOrchestratorReturn;
 }
 
@@ -85,7 +85,7 @@ export function createDocsOrchestrator(
       exists: deps.fs.exists,
       joinPath: deps.fs.joinPath,
     },
-    deps.kanbanDir
+    deps.festinalenteDir
   );
 
   // Create providers
@@ -131,7 +131,7 @@ export function createDocsOrchestrator(
     // Run global action command (for docs mapping actions)
     context.subscriptions.push(
       vscode.commands.registerCommand(
-        'kanban.runGlobalAction',
+        'festinalente.runGlobalAction',
         (args: { command: string }) => {
           if (!args?.command) {
             vscode.window.showErrorMessage('Invalid global action arguments');

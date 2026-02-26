@@ -19,7 +19,7 @@ export class DocsActionItem extends vscode.TreeItem {
     super(label, vscode.TreeItemCollapsibleState.None);
     this.iconPath = new vscode.ThemeIcon(iconName, iconColor);
     this.command = {
-      command: 'kanban.runGlobalAction',
+      command: 'festinalente.runGlobalAction',
       title: label,
       arguments: [{ command: actionCommand }],
     };
@@ -58,7 +58,7 @@ export class DocsFileItem extends vscode.TreeItem {
     super(name, vscode.TreeItemCollapsibleState.None);
     this.iconPath = new vscode.ThemeIcon('file-text');
     this.command = {
-      command: 'kanban.openFile',
+      command: 'festinalente.openFile',
       title: 'Open',
       arguments: [{ filePath }],
     };
@@ -205,13 +205,13 @@ export function createDocsViewCapability(
   const productActionItem = new DocsActionItem(
     'Map Product Docs',
     'play',
-    '/kanban-map-product',
+    '/festina-map-product',
     new vscode.ThemeColor('charts.green')
   );
   const engineeringActionItem = new DocsActionItem(
     'Map Engineering Docs',
     'play',
-    '/kanban-map-engineering',
+    '/festina-map-engineering',
     new vscode.ThemeColor('charts.green')
   );
 

@@ -24,7 +24,7 @@ import type { CreateTerminalOrchestratorReturn } from './terminal.orchestrator';
  */
 export interface TasksOrchestratorDeps {
   readonly fs: ReturnType<typeof createFileSystemCapability>;
-  readonly kanbanDir: string;
+  readonly festinalenteDir: string;
   readonly terminal: CreateTerminalOrchestratorReturn;
 }
 
@@ -106,7 +106,7 @@ export function createTasksOrchestrator(
    * Policy: Load all tasks from kanban folder.
    */
   function loadAllTasks(): Task[] {
-    const tasksDir = deps.fs.joinPath(deps.kanbanDir, 'tasks');
+    const tasksDir = deps.fs.joinPath(deps.festinalenteDir, 'tasks');
     if (!deps.fs.exists(tasksDir)) {
       return [];
     }
@@ -240,16 +240,16 @@ export function createTasksOrchestrator(
   ): void {
     // Refresh command
     context.subscriptions.push(
-      vscode.commands.registerCommand('kanban.refresh', () => {
+      vscode.commands.registerCommand('festinalente.refresh', () => {
         refresh();
-        vscode.window.showInformationMessage('Kanban tasks refreshed');
+        vscode.window.showInformationMessage('Festina Lente tasks refreshed');
       })
     );
 
     // Run action command
     context.subscriptions.push(
       vscode.commands.registerCommand(
-        'kanban.runAction',
+        'festinalente.runAction',
         (args: { command: string; taskId: string }) => {
           if (!args?.command || !args?.taskId) {
             vscode.window.showErrorMessage('Invalid action arguments');
@@ -262,7 +262,7 @@ export function createTasksOrchestrator(
 
     // Create task command
     context.subscriptions.push(
-      vscode.commands.registerCommand('kanban.createTask', async () => {
+      vscode.commands.registerCommand('festinalente.createTask', async () => {
         const title = await vscode.window.showInputBox({
           prompt: 'Enter task title',
           placeHolder: 'e.g., Add user authentication',
@@ -272,13 +272,13 @@ export function createTasksOrchestrator(
           return;
         }
 
-        deps.terminal.executeInTerminal(`/kanban-create ${title}`);
+        deps.terminal.executeInTerminal(`/festina-create ${title}`);
       })
     );
 
     // Run next action command (from inline button)
     context.subscriptions.push(
-      vscode.commands.registerCommand('kanban.runNextAction', (item: TaskItem) => {
+      vscode.commands.registerCommand('festinalente.runNextAction', (item: TaskItem) => {
         if (!item?.task || item.actions.length === 0) {
           vscode.window.showWarningMessage('No action available for this task');
           return;
@@ -291,7 +291,7 @@ export function createTasksOrchestrator(
 
     // Open task folder command
     context.subscriptions.push(
-      vscode.commands.registerCommand('kanban.openTaskFolder', (item: TaskItem) => {
+      vscode.commands.registerCommand('festinalente.openTaskFolder', (item: TaskItem) => {
         if (!item?.task?.taskPath) {
           return;
         }
@@ -302,7 +302,7 @@ export function createTasksOrchestrator(
 
     // Find task command (QuickPick search)
     context.subscriptions.push(
-      vscode.commands.registerCommand('kanban.findTask', async () => {
+      vscode.commands.registerCommand('festinalente.findTask', async () => {
         const tasks = loadAllTasks();
 
         if (tasks.length === 0) {

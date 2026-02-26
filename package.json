@@ -1,5 +1,5 @@
 {
-  "name": "claude-kanban-monorepo",
+  "name": "festinalente-monorepo",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@9.15.2",
@@ -9,12 +9,12 @@
     "clean": "turbo clean",
     "typecheck": "turbo typecheck",
     "check:dpdm": "npx dpdm -T --no-warning --exit-code circular:1 apps/vscode/src/extension.ts",
-    "kanban:build": "pnpm --filter @mattfletcher94/claudeban build",
-    "kanban:publish": "pnpm --filter @mattfletcher94/claudeban publish --no-git-checks",
-    "vscode:watch": "pnpm --filter @mattfletcher94/claudeban-vscode watch",
-    "vscode:package": "pnpm --filter @mattfletcher94/claudeban-vscode package",
-    "vscode:local": "pnpm --filter @mattfletcher94/claudeban-vscode local",
-    "vscode:publish": "pnpm --filter @mattfletcher94/claudeban-vscode publish --no-git-checks"
+    "festinalente:build": "pnpm --filter @mattfletcher94/festinalente build",
+    "festinalente:publish": "pnpm --filter @mattfletcher94/festinalente publish --no-git-checks",
+    "vscode:watch": "pnpm --filter @mattfletcher94/festinalente-vscode watch",
+    "vscode:package": "pnpm --filter @mattfletcher94/festinalente-vscode package",
+    "vscode:local": "pnpm --filter @mattfletcher94/festinalente-vscode local",
+    "vscode:publish": "pnpm --filter @mattfletcher94/festinalente-vscode publish --no-git-checks"
   },
   "devDependencies": {
     "turbo": "^2.4.0",

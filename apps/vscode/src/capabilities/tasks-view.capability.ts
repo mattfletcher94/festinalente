@@ -190,7 +190,7 @@ class ActionItem extends vscode.TreeItem {
       : new vscode.ThemeIcon('reply', new vscode.ThemeColor('charts.orange'));
     this.contextValue = 'action';
     this.command = {
-      command: 'kanban.runAction',
+      command: 'festinalente.runAction',
       title: 'Run Action',
       arguments: [{ command: action.command, taskId }],
     };
@@ -208,7 +208,7 @@ class FileItem extends vscode.TreeItem {
     super(fileName, vscode.TreeItemCollapsibleState.None);
 
     this.command = {
-      command: 'kanban.openFile',
+      command: 'festinalente.openFile',
       title: 'Open File',
       arguments: [{ filePath }],
     };

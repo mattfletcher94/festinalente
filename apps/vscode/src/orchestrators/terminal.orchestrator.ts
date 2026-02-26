@@ -52,7 +52,7 @@ export function createTerminalOrchestrator(
    * Policy: Determine which runtime to use based on VSCode settings.
    */
   function getRuntime(): 'claude' | 'opencode' {
-    const config = vscode.workspace.getConfiguration('kanban');
+    const config = vscode.workspace.getConfiguration('festinalente');
     const runtime = config.get<string>('runtime', 'claude');
     return runtime === 'opencode' ? 'opencode' : 'claude';
   }
@@ -82,7 +82,7 @@ export function createTerminalOrchestrator(
    * Policy: Execute a command in terminal.
    */
   function executeInTerminal(prompt: string): void {
-    const kanbanTerminal = terminal.createFreshTerminal('Kanban', deps.workspaceRoot);
+    const kanbanTerminal = terminal.createFreshTerminal('Festina Lente', deps.workspaceRoot);
     terminal.showTerminal(kanbanTerminal);
     terminal.sendCommand(kanbanTerminal, buildRuntimeCommand(prompt));
   }

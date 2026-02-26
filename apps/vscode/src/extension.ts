@@ -1,5 +1,5 @@
 /**
- * Claude Kanban VSCode Extension - Composition Root
+ * Festina Lente VSCode Extension - Composition Root
  *
  * Thin entry point that wires domain orchestrators together.
  * All policy decisions are delegated to domain orchestrators.
@@ -19,13 +19,13 @@ import { createDocsOrchestrator } from './orchestrators/docs.orchestrator';
 import { createConfigOrchestrator } from './orchestrators/config.orchestrator';
 
 /**
- * Find the .kanban folder in the workspace.
+ * Find the .festinalente folder in the workspace.
  *
  * @param workspaceFolders - VSCode workspace folders.
  * @param fs - File system capability.
- * @returns Path to .kanban folder or undefined if not found.
+ * @returns Path to .festinalente folder or undefined if not found.
  */
-function findKanbanFolder(
+function findFestinalenteFolder(
   workspaceFolders: readonly vscode.WorkspaceFolder[] | undefined,
   fs: ReturnType<typeof createFileSystemCapability>
 ): string | undefined {
@@ -34,9 +34,9 @@ function findKanbanFolder(
   }
 
   for (const folder of workspaceFolders) {
-    const kanbanPath = fs.joinPath(folder.uri.fsPath, '.kanban');
-    if (fs.exists(kanbanPath)) {
-      return kanbanPath;
+    const festinalentePath = fs.joinPath(folder.uri.fsPath, '.festinalente');
+    if (fs.exists(festinalentePath)) {
+      return festinalentePath;
     }
   }
 
@@ -52,17 +52,17 @@ export function activate(context: vscode.ExtensionContext): void {
   // Initialize shared file system capability
   const fs = createFileSystemCapability();
 
-  // Find kanban folder
-  const kanbanDir = findKanbanFolder(vscode.workspace.workspaceFolders, fs);
+  // Find festinalente folder
+  const festinalenteDir = findFestinalenteFolder(vscode.workspace.workspaceFolders, fs);
 
-  if (!kanbanDir) {
-    vscode.commands.executeCommand('setContext', 'kanban.hasKanbanFolder', false);
+  if (!festinalenteDir) {
+    vscode.commands.executeCommand('setContext', 'festinalente.hasFestinalenteFolder', false);
     return;
   }
 
-  vscode.commands.executeCommand('setContext', 'kanban.hasKanbanFolder', true);
+  vscode.commands.executeCommand('setContext', 'festinalente.hasFestinalenteFolder', true);
 
-  const workspaceRoot = path.dirname(kanbanDir);
+  const workspaceRoot = path.dirname(festinalenteDir);
 
   // --- Create domain orchestrators ---
 
@@ -75,60 +75,60 @@ export function activate(context: vscode.ExtensionContext): void {
   // Tasks orchestrator
   const tasksOrch = createTasksOrchestrator({
     fs,
-    kanbanDir,
+    festinalenteDir,
     terminal: terminalOrch,
   });
 
   // Quicks orchestrator
   const quicksOrch = createQuicksOrchestrator({
     fs,
-    kanbanDir,
+    festinalenteDir,
     terminal: terminalOrch,
   });
 
   // Docs orchestrator
   const docsOrch = createDocsOrchestrator({
     fs,
-    kanbanDir,
+    festinalenteDir,
     terminal: terminalOrch,
   });
 
   // Config orchestrator
   const configOrch = createConfigOrchestrator({
     fs,
-    kanbanDir,
+    festinalenteDir,
   });
 
   // --- Register TreeViews ---
 
   // Tasks TreeView
-  const tasksTreeView = vscode.window.createTreeView('kanbanTasks', {
+  const tasksTreeView = vscode.window.createTreeView('festinalenteTasks', {
     treeDataProvider: tasksOrch.treeDataProvider,
     showCollapseAll: true,
   });
   context.subscriptions.push(tasksTreeView);
 
   // Quicks TreeView
-  const quicksTreeView = vscode.window.createTreeView('kanbanQuicks', {
+  const quicksTreeView = vscode.window.createTreeView('festinalenteQuicks', {
     treeDataProvider: quicksOrch.treeDataProvider,
     showCollapseAll: true,
   });
   context.subscriptions.push(quicksTreeView);
 
   // Product Docs TreeView
-  const productDocsTreeView = vscode.window.createTreeView('kanbanProductDocs', {
+  const productDocsTreeView = vscode.window.createTreeView('festinalenteProductDocs', {
     treeDataProvider: docsOrch.productDocsProvider,
   });
   context.subscriptions.push(productDocsTreeView);
 
   // Engineering Docs TreeView
-  const engineeringDocsTreeView = vscode.window.createTreeView('kanbanEngineeringDocs', {
+  const engineeringDocsTreeView = vscode.window.createTreeView('festinalenteEngineeringDocs', {
     treeDataProvider: docsOrch.engineeringDocsProvider,
   });
   context.subscriptions.push(engineeringDocsTreeView);
 
   // Config TreeView
-  const configTreeView = vscode.window.createTreeView('kanbanConfig', {
+  const configTreeView = vscode.window.createTreeView('festinalenteConfig', {
     treeDataProvider: configOrch.treeDataProvider,
   });
   context.subscriptions.push(configTreeView);
@@ -137,7 +137,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   context.subscriptions.push(
     vscode.languages.registerCodeLensProvider(
-      { pattern: '**/.kanban/tasks/*/task.xml' },
+      { pattern: '**/.festinalente/tasks/*/task.xml' },
       tasksOrch.codeLensProvider
     )
   );
@@ -146,7 +146,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   context.subscriptions.push(
     vscode.languages.registerDocumentSymbolProvider(
-      { pattern: '**/.kanban/tasks/*/plan.xml' },
+      { pattern: '**/.festinalente/tasks/*/plan.xml' },
       tasksOrch.planSymbolProvider
     )
   );
@@ -155,7 +155,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   // Shared open file command
   context.subscriptions.push(
-    vscode.commands.registerCommand('kanban.openFile', (args: { filePath: string }) => {
+    vscode.commands.registerCommand('festinalente.openFile', (args: { filePath: string }) => {
       if (args?.filePath) {
         const uri = vscode.Uri.file(args.filePath);
         vscode.window.showTextDocument(uri);
@@ -170,25 +170,25 @@ export function activate(context: vscode.ExtensionContext): void {
 
   // --- Register File Watchers ---
 
-  context.subscriptions.push(tasksOrch.createFileWatcher(kanbanDir));
-  context.subscriptions.push(quicksOrch.createFileWatcher(kanbanDir));
-  context.subscriptions.push(docsOrch.createProductDocsWatcher(kanbanDir));
-  context.subscriptions.push(docsOrch.createEngineeringDocsWatcher(kanbanDir));
-  context.subscriptions.push(configOrch.createFileWatcher(kanbanDir));
+  context.subscriptions.push(tasksOrch.createFileWatcher(festinalenteDir));
+  context.subscriptions.push(quicksOrch.createFileWatcher(festinalenteDir));
+  context.subscriptions.push(docsOrch.createProductDocsWatcher(festinalenteDir));
+  context.subscriptions.push(docsOrch.createEngineeringDocsWatcher(festinalenteDir));
+  context.subscriptions.push(configOrch.createFileWatcher(festinalenteDir));
 
   // --- Set initial context ---
 
-  vscode.commands.executeCommand('setContext', 'kanban.hasConfigFile', configOrch.checkConfigExists());
+  vscode.commands.executeCommand('setContext', 'festinalente.hasConfigFile', configOrch.checkConfigExists());
 
   // --- Workspace change handler ---
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeWorkspaceFolders(() => {
-      const newKanbanDir = findKanbanFolder(vscode.workspace.workspaceFolders, fs);
-      if (newKanbanDir !== kanbanDir) {
+      const newFestinalenteDir = findFestinalenteFolder(vscode.workspace.workspaceFolders, fs);
+      if (newFestinalenteDir !== festinalenteDir) {
         vscode.window
           .showInformationMessage(
-            'Workspace changed. Reload to update Kanban extension?',
+            'Workspace changed. Reload to update Festina Lente extension?',
             'Reload'
           )
           .then((selection) => {
@@ -200,12 +200,12 @@ export function activate(context: vscode.ExtensionContext): void {
     })
   );
 
-  console.log('Claude Kanban extension activated');
+  console.log('Festina Lente extension activated');
 }
 
 /**
  * Extension deactivation.
  */
 export function deactivate(): void {
-  console.log('Claude Kanban extension deactivated');
+  console.log('Festina Lente extension deactivated');
 }

@@ -15,7 +15,7 @@ export class QuickItem extends vscode.TreeItem {
     this.description = quick.status;
     this.iconPath = this.getStatusIcon();
     this.command = {
-      command: 'kanban.openFile',
+      command: 'festinalente.openFile',
       title: 'Open Quick',
       arguments: [{ filePath: quick.quickPath }],
     };

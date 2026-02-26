@@ -12,7 +12,7 @@ class ConfigItem extends vscode.TreeItem {
     super('config.yaml', vscode.TreeItemCollapsibleState.None);
     this.iconPath = new vscode.ThemeIcon('gear');
     this.command = {
-      command: 'kanban.openFile',
+      command: 'festinalente.openFile',
       title: 'Open Config',
       arguments: [{ filePath }],
     };

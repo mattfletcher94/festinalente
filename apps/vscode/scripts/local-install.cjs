@@ -26,7 +26,7 @@ try {
 
   // Install the extension
   console.log('\n\x1b[36m[2/2]\x1b[0m Installing extension...');
-  const vsixPath = path.join(rootDir, 'claudeban-vscode.vsix');
+  const vsixPath = path.join(rootDir, 'festinalente-vscode.vsix');
   execSync(`code --install-extension "${vsixPath}"`, {
     cwd: rootDir,
     stdio: 'inherit'

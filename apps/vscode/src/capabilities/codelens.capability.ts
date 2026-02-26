@@ -44,7 +44,7 @@ export function createCodeLensCapability(
             new vscode.CodeLens(range, {
               title: action.label,
               tooltip: action.description,
-              command: 'kanban.runAction',
+              command: 'festinalente.runAction',
               arguments: [{ command: action.command, taskId: task.id }],
             })
           );

@@ -23,7 +23,7 @@ const originalFiles = pkg.files;
 const originalBin = pkg.bin;
 
 // Temporarily modify for vsce
-pkg.name = 'claudeban-vscode';
+pkg.name = 'festinalente-vscode';
 delete pkg.files;
 delete pkg.bin;
 
@@ -31,7 +31,7 @@ fs.writeFileSync(packagePath, JSON.stringify(pkg, null, 2));
 
 try {
   // Run vsce package with fixed output name (no version suffix)
-  execSync('vsce package --no-dependencies --allow-missing-repository --skip-license --out claudeban-vscode.vsix', {
+  execSync('vsce package --no-dependencies --allow-missing-repository --skip-license --out festinalente-vscode.vsix', {
     cwd: path.join(__dirname, '..'),
     stdio: 'inherit'
   });

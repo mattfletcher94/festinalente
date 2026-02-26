@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Claude Kanban VSCode Extension Installer
+ * Festina Lente VSCode Extension Installer
  *
  * Installs the VSCode extension by running code --install-extension
  * with the bundled .vsix file.
@@ -11,7 +11,7 @@ const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-const PACKAGE_NAME = '@mattfletcher94/claudeban-vscode';
+const PACKAGE_NAME = '@mattfletcher94/festinalente-vscode';
 
 // ANSI colors
 const colors = {
@@ -77,7 +77,7 @@ function logError(message) {
  * @throws Error if the .vsix file doesn't exist.
  */
 function findVsixFile() {
-  const vsixPath = path.resolve(__dirname, '..', 'claudeban-vscode.vsix');
+  const vsixPath = path.resolve(__dirname, '..', 'festinalente-vscode.vsix');
 
   if (!fs.existsSync(vsixPath)) {
     throw new Error(`VSCode extension not found at ${vsixPath}`);
@@ -108,7 +108,7 @@ function parseArgs() {
  */
 function showHelp() {
   console.log(`
-${colors.bright}${PACKAGE_NAME}${colors.reset} - VSCode extension installer for Claude Kanban
+${colors.bright}${PACKAGE_NAME}${colors.reset} - VSCode extension installer for Festina Lente
 
 ${colors.bright}Usage:${colors.reset}
   npx ${PACKAGE_NAME}           Install the VSCode extension
@@ -122,7 +122,7 @@ ${colors.bright}Requirements:${colors.reset}
   - GitHub Packages registry configured in ~/.npmrc
 
 ${colors.bright}After installation:${colors.reset}
-  The Claude Kanban extension will appear in your VSCode activity bar.
+  The Festina Lente extension will appear in your VSCode activity bar.
 `);
 }
 
@@ -151,7 +151,7 @@ async function main() {
   }
 
   console.log();
-  log(`${colors.bright}${colors.cyan}Claude Kanban VSCode Extension Installer${colors.reset}`);
+  log(`${colors.bright}${colors.cyan}Festina Lente VSCode Extension Installer${colors.reset}`);
   console.log();
 
   logStep('1/2', 'Finding .vsix file...');
@@ -167,7 +167,7 @@ async function main() {
   console.log(`${colors.bright}Next steps:${colors.reset}`);
   console.log(`  1. Open VSCode (or reload the window)`);
   console.log(`  2. Look for the Kanban icon in the activity bar`);
-  console.log(`  3. Open a folder containing a .kanban directory`);
+  console.log(`  3. Open a folder containing a .festinalente directory`);
   console.log();
 }
 

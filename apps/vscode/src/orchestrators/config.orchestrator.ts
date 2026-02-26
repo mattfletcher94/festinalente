@@ -15,7 +15,7 @@ import type { createFileSystemCapability } from '../capabilities/file-system.cap
  */
 export interface ConfigOrchestratorDeps {
   readonly fs: ReturnType<typeof createFileSystemCapability>;
-  readonly kanbanDir: string;
+  readonly festinalenteDir: string;
 }
 
 /**
@@ -59,14 +59,14 @@ export function createConfigOrchestrator(
    * Policy: Check if config exists.
    */
   function checkConfigExists(): boolean {
-    return deps.fs.exists(deps.fs.joinPath(deps.kanbanDir, 'config.yaml'));
+    return deps.fs.exists(deps.fs.joinPath(deps.festinalenteDir, 'config.yaml'));
   }
 
   /**
    * Get the config file path.
    */
   function getConfigPath(): string {
-    return deps.fs.joinPath(deps.kanbanDir, 'config.yaml');
+    return deps.fs.joinPath(deps.festinalenteDir, 'config.yaml');
   }
 
   // Initialize config view capability
@@ -97,12 +97,12 @@ export function createConfigOrchestrator(
     watcher.onDidChange(() => refresh());
 
     watcher.onDidCreate(() => {
-      vscode.commands.executeCommand('setContext', 'kanban.hasConfigFile', true);
+      vscode.commands.executeCommand('setContext', 'festinalente.hasConfigFile', true);
       refresh();
     });
 
     watcher.onDidDelete(() => {
-      vscode.commands.executeCommand('setContext', 'kanban.hasConfigFile', false);
+      vscode.commands.executeCommand('setContext', 'festinalente.hasConfigFile', false);
       refresh();
     });
 

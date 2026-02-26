@@ -11,7 +11,7 @@ export interface CreateTaskActionsComputerReturn {
 
 export function createTaskActionsComputer(): CreateTaskActionsComputerReturn {
   function buildCommand(action: string, id: string): string {
-    return `/kanban-${action} ${id}`;
+    return `/festina-${action} ${id}`;
   }
 
   function getActions(task: Task): readonly TaskAction[] {

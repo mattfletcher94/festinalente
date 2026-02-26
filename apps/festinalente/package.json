@@ -1,0 +1,56 @@
+{
+  "name": "@mattfletcher94/festinalente",
+  "version": "1.0.1",
+  "description": "Festina Lente - Make haste slowly. Spec-driven development for AI coding agents.",
+  "type": "module",
+  "bin": {
+    "festinalente": "bin/install.cjs"
+  },
+  "files": [
+    "bin",
+    "dist"
+  ],
+  "scripts": {
+    "build": "pnpm build:tools && pnpm build:scripts && pnpm build:content",
+    "build:tools": "tsdown -c tsdown.config.ts tools/build.ts --format esm --out-dir dist/tools",
+    "build:scripts": "tsdown -c tsdown.config.ts src/scripts/find-task.ts src/scripts/find-spec.ts src/scripts/find-plan.ts src/scripts/list-tasks.ts src/scripts/next-id.ts src/scripts/get-date-time.ts src/scripts/list-product.ts src/scripts/search-product.ts src/scripts/check-product.ts src/scripts/get-hook-config.ts src/scripts/search-engineering.ts src/scripts/list-engineering.ts src/scripts/check-engineering.ts src/scripts/validate-yaml.ts src/scripts/delete-task.ts src/scripts/search-hybrid.ts src/scripts/select-context.ts src/scripts/check-freshness.ts src/scripts/validate-docs.ts src/scripts/expand-query.ts src/scripts/validate-xml.ts src/scripts/validate-directive.ts src/scripts/get-skill-config.ts src/scripts/next-quick-id.ts src/scripts/find-quick.ts --format cjs --out-dir dist/scripts",
+    "build:content": "node dist/tools/build.js",
+    "clean": "node -e \"fs=require('fs');fs.rmSync('dist',{recursive:true,force:true})\"",
+    "prepublishOnly": "pnpm build"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "festinalente",
+    "spec-driven-development",
+    "ai-workflow",
+    "llm-agents"
+  ],
+  "author": "Matt Fletcher",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mattfletcher94/festinalente"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20.11.0",
+    "glob": "^10.3.10",
+    "handlebars": "^4.7.8",
+    "tsdown": "^0.11.4",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.3.6",
+    "fuse.js": "^7.1.0",
+    "gray-matter": "^4.0.3",
+    "js-yaml": "^4.1.1"
+  }
+}

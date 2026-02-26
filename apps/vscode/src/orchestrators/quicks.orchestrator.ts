@@ -18,7 +18,7 @@ import type { CreateTerminalOrchestratorReturn } from './terminal.orchestrator';
  */
 export interface QuicksOrchestratorDeps {
   readonly fs: ReturnType<typeof createFileSystemCapability>;
-  readonly kanbanDir: string;
+  readonly festinalenteDir: string;
   readonly terminal: CreateTerminalOrchestratorReturn;
 }
 
@@ -82,7 +82,7 @@ export function createQuicksOrchestrator(
    * Policy: Load all quicks from kanban folder.
    */
   function loadAllQuicks(): Quick[] {
-    const quicksDir = deps.fs.joinPath(deps.kanbanDir, 'quick');
+    const quicksDir = deps.fs.joinPath(deps.festinalenteDir, 'quick');
     if (!deps.fs.exists(quicksDir)) {
       return [];
     }
@@ -139,7 +139,7 @@ export function createQuicksOrchestrator(
   ): void {
     // Create quick command
     context.subscriptions.push(
-      vscode.commands.registerCommand('kanban.createQuick', async () => {
+      vscode.commands.registerCommand('festinalente.createQuick', async () => {
         const title = await vscode.window.showInputBox({
           prompt: 'Enter quick task title',
           placeHolder: 'e.g., Fix typo in README',
@@ -149,21 +149,21 @@ export function createQuicksOrchestrator(
           return;
         }
 
-        deps.terminal.executeInTerminal(`/kanban-quick ${title}`);
+        deps.terminal.executeInTerminal(`/festina-quick ${title}`);
       })
     );
 
     // Refresh quicks command
     context.subscriptions.push(
-      vscode.commands.registerCommand('kanban.refreshQuicks', () => {
+      vscode.commands.registerCommand('festinalente.refreshQuicks', () => {
         refresh();
-        vscode.window.showInformationMessage('Kanban quicks refreshed');
+        vscode.window.showInformationMessage('Festina Lente quicks refreshed');
       })
     );
 
     // Find quick command (QuickPick search)
     context.subscriptions.push(
-      vscode.commands.registerCommand('kanban.findQuick', async () => {
+      vscode.commands.registerCommand('festinalente.findQuick', async () => {
         const quicks = loadAllQuicks();
 
         if (quicks.length === 0) {
