@@ -11,8 +11,10 @@ import * as path from 'path';
 import { createTaskParserComputer } from '../computers/task-parser.computer';
 import { createTaskActionsComputer } from '../computers/task-actions.computer';
 import { createTaskGroupingComputer } from '../computers/task-grouping.computer';
+import { createPlanParserComputer } from '../computers/plan-parser.computer';
 import { createTasksViewCapability, TaskItem } from '../capabilities/tasks-view.capability';
 import { createCodeLensCapability } from '../capabilities/codelens.capability';
+import { createPlanSymbolCapability } from '../capabilities/plan-symbol.capability';
 import type { createFileSystemCapability } from '../capabilities/file-system.capability';
 import type { Task, TaskAction, TaskStatus } from '../types/task-types';
 import type { CreateTerminalOrchestratorReturn } from './terminal.orchestrator';
@@ -41,7 +43,12 @@ export interface CreateTasksOrchestratorReturn {
   readonly codeLensProvider: vscode.CodeLensProvider;
 
   /**
-   * Refresh the tasks view and codelens.
+   * DocumentSymbolProvider for plan.xml files.
+   */
+  readonly planSymbolProvider: vscode.DocumentSymbolProvider;
+
+  /**
+   * Refresh the tasks view, codelens, and plan symbols.
    */
   readonly refresh: () => void;
 
@@ -93,6 +100,7 @@ export function createTasksOrchestrator(
   const taskParser = createTaskParserComputer();
   const taskActions = createTaskActionsComputer();
   const taskGrouping = createTaskGroupingComputer();
+  const planParser = createPlanParserComputer();
 
   /**
    * Policy: Load all tasks from kanban folder.
@@ -200,19 +208,27 @@ export function createTasksOrchestrator(
     getActions: taskActions.getActions,
   });
 
+  // Initialize plan symbol capability
+  const planSymbol = createPlanSymbolCapability({
+    parsePlanSymbols: planParser.parsePlanSymbols,
+  });
+
   // Create providers
   const treeDataProvider = tasksView.createTreeDataProvider();
   const codeLensProvider = codelens.createCodeLensProvider();
+  const planSymbolProvider = planSymbol.createDocumentSymbolProvider();
 
   const refreshTree = tasksView.createRefreshCallback();
   const refreshCodeLens = codelens.createRefreshCallback();
+  const refreshPlanSymbols = planSymbol.createRefreshCallback();
 
   /**
-   * Refresh both tree and codelens.
+   * Refresh tree, codelens, and plan symbols.
    */
   function refresh(): void {
     refreshTree();
     refreshCodeLens();
+    refreshPlanSymbols();
   }
 
   /**
@@ -338,6 +354,7 @@ export function createTasksOrchestrator(
   return {
     treeDataProvider,
     codeLensProvider,
+    planSymbolProvider,
     refresh,
     loadAllTasks,
     findStatusGroup: tasksView.findStatusGroup,

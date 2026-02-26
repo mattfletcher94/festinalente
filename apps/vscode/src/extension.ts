@@ -142,6 +142,15 @@ export function activate(context: vscode.ExtensionContext): void {
     )
   );
 
+  // --- Register DocumentSymbolProvider ---
+
+  context.subscriptions.push(
+    vscode.languages.registerDocumentSymbolProvider(
+      { pattern: '**/.kanban/tasks/*/plan.xml' },
+      tasksOrch.planSymbolProvider
+    )
+  );
+
   // --- Register Commands ---
 
   // Shared open file command
