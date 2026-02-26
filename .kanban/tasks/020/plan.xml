@@ -53,7 +53,7 @@
   </inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-02-26T10:41:00Z">
       <name>Create plan-parser computer for XML parsing with line positions</name>
       <files>apps/vscode/src/computers/plan-parser.computer.ts (create)</files>
       <requirements>FR2, FR3, FR4, FR5, FR6, FR7, FR8, FR9</requirements>
@@ -161,7 +161,7 @@
       <done>plan-parser.computer.ts exports createPlanParserComputer, TypeScript compiles, no circular deps</done>
     </task>
 
-    <task id="2" type="auto" depends="1">
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-02-26T10:42:00Z">
       <name>Create plan-symbol capability wrapping DocumentSymbolProvider</name>
       <files>apps/vscode/src/capabilities/plan-symbol.capability.ts (create)</files>
       <requirements>FR1, FR6, FR10</requirements>
@@ -288,7 +288,7 @@
       <done>plan-symbol.capability.ts exports createPlanSymbolCapability, TypeScript compiles</done>
     </task>
 
-    <task id="3" type="auto" depends="2">
+    <task id="3" type="auto" depends="2" completed="true" completed_at="2026-02-26T10:43:00Z">
       <name>Add plan symbol provider to tasks orchestrator</name>
       <files>apps/vscode/src/orchestrators/tasks.orchestrator.ts (modify)</files>
       <requirements>FR1, FR10</requirements>
@@ -367,7 +367,7 @@
       <done>tasks.orchestrator.ts exposes planSymbolProvider, refresh includes symbol refresh</done>
     </task>
 
-    <task id="4" type="auto" depends="3">
+    <task id="4" type="auto" depends="3" completed="true" completed_at="2026-02-26T10:44:00Z">
       <name>Register DocumentSymbolProvider in extension.ts</name>
       <files>apps/vscode/src/extension.ts (modify)</files>
       <requirements>FR1</requirements>
@@ -405,7 +405,7 @@
       <done>DocumentSymbolProvider registered for plan.xml pattern, extension builds</done>
     </task>
 
-    <task id="5" type="manual" depends="4">
+    <task id="5" type="manual" depends="4" completed="true" completed_at="2026-02-26T10:45:00Z">
       <name>Final verification of all acceptance criteria</name>
       <files>N/A</files>
       <requirements>FR1, FR2, FR3, FR4, FR5, FR6, FR7, FR8, FR9, FR10</requirements>
