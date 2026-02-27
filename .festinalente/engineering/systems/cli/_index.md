@@ -14,13 +14,14 @@ related:
 paths:
   - apps/kanban/src/scripts
   - apps/kanban/src/lib
-updated: 2026-02-25
-verified: 2026-02-25
+updated: 2026-02-27
+verified: 2026-02-27
 code_refs:
-  - apps/kanban/src/scripts/find-task.ts
-  - apps/kanban/src/scripts/list-tasks.ts
-  - apps/kanban/src/scripts/search-hybrid.ts
-  - apps/kanban/src/scripts/validate-xml.ts
+  - apps/festinalente/src/scripts/find-task.ts
+  - apps/festinalente/src/scripts/list-tasks.ts
+  - apps/festinalente/src/scripts/next-id.ts
+  - apps/festinalente/src/scripts/search-hybrid.ts
+  - apps/festinalente/src/scripts/validate-xml.ts
 ---
 
 # CLI Script Engine
@@ -86,9 +87,9 @@ graph TB
 
 | Component | Purpose | File |
 |-----------|---------|------|
-| find-task | Locate task by ID, return metadata | `apps/kanban/src/scripts/find-task.ts` |
-| list-tasks | List tasks with filtering (--status, --label, --priority) | `apps/kanban/src/scripts/list-tasks.ts` |
-| next-id | Generate next unique task ID | `apps/kanban/src/scripts/next-id.ts` |
+| find-task | Locate task by ID (supports numeric or slug format), return metadata | `apps/festinalente/src/scripts/find-task.ts` |
+| list-tasks | List tasks with filtering (--status, --label, --priority) | `apps/festinalente/src/scripts/list-tasks.ts` |
+| next-id | Generate next slug-based task ID (e.g., 022-add-feature) | `apps/festinalente/src/scripts/next-id.ts` |
 | delete-task | Remove task from system | `apps/kanban/src/scripts/delete-task.ts` |
 
 ### Search & Query Scripts
