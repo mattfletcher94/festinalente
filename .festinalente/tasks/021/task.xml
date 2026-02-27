@@ -1,6 +1,7 @@
 <task id="021" status="pr" priority="high" created="2026-02-27" updated="2026-02-27"
       github-issue="#2"
-      github-url="https://github.com/mattfletcher94/festinalente/issues/2">
+      github-url="https://github.com/mattfletcher94/festinalente/issues/2"
+      github-pr="#3">
   <title>Support task ID slugs</title>
 
   <labels>
