@@ -17,6 +17,7 @@ import { createTasksOrchestrator } from './orchestrators/tasks.orchestrator';
 import { createQuicksOrchestrator } from './orchestrators/quicks.orchestrator';
 import { createDocsOrchestrator } from './orchestrators/docs.orchestrator';
 import { createConfigOrchestrator } from './orchestrators/config.orchestrator';
+import { createDirectivesOrchestrator } from './orchestrators/directives.orchestrator';
 
 /**
  * Find the .festinalente folder in the workspace.
@@ -99,6 +100,12 @@ export function activate(context: vscode.ExtensionContext): void {
     festinalenteDir,
   });
 
+  // Directives orchestrator
+  const directivesOrch = createDirectivesOrchestrator({
+    fs,
+    festinalenteDir,
+  });
+
   // --- Register TreeViews ---
 
   // Tasks TreeView
@@ -132,6 +139,12 @@ export function activate(context: vscode.ExtensionContext): void {
     treeDataProvider: configOrch.treeDataProvider,
   });
   context.subscriptions.push(configTreeView);
+
+  // Directives TreeView
+  const directivesTreeView = vscode.window.createTreeView('festinalenteDirectives', {
+    treeDataProvider: directivesOrch.treeDataProvider,
+  });
+  context.subscriptions.push(directivesTreeView);
 
   // --- Register CodeLens ---
 
@@ -175,6 +188,7 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(docsOrch.createProductDocsWatcher(festinalenteDir));
   context.subscriptions.push(docsOrch.createEngineeringDocsWatcher(festinalenteDir));
   context.subscriptions.push(configOrch.createFileWatcher(festinalenteDir));
+  context.subscriptions.push(directivesOrch.createFileWatcher(festinalenteDir));
 
   // --- Set initial context ---
 
