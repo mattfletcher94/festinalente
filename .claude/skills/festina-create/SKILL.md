@@ -30,7 +30,7 @@ Create and refine a new task through conversational Q&A, then commit to Backlog.
 
 
 
-<command description="Get next task ID (returns JSON with nextId, currentHighest, padding)">node .festinalente/scripts/next-id.cjs</command>
+<command description="Get next task ID (returns JSON with nextId, currentHighest, padding, slug)">node .festinalente/scripts/next-id.cjs --title="{title}"</command>
 
 <command description="Get current date/time (returns JSON with iso and date formats)">node .festinalente/scripts/get-date-time.cjs</command>
 
@@ -144,11 +144,6 @@ Create and refine a new task through conversational Q&A, then commit to Backlog.
     </example_code>
   </step>
 
-  <step name="get_next_id" outputs="nextId">
-    <command>node .festinalente/scripts/next-id.cjs</command>
-    <action>Use `nextId` from JSON output</action>
-  </step>
-
   <step name="get_task_title" outputs="title, slug">
     <branch condition="$ARGUMENTS provided">
       <action>Use $ARGUMENTS as title</action>
@@ -164,7 +159,11 @@ Create and refine a new task through conversational Q&A, then commit to Backlog.
       <note>User can select "Other" to type the task title</note>
     </branch>
     <action>Ensure title follows best practices (suggest improvements if needed)</action>
-    <action>Generate slug from title for file naming</action>
+  </step>
+
+  <step name="get_next_id" outputs="nextId">
+    <command>node .festinalente/scripts/next-id.cjs --title="{title}"</command>
+    <action>Use `nextId` from JSON output (format: {number}-{slug}, e.g., "022-add-dark-mode-toggle")</action>
   </step>
 
   <step name="search_product_docs" when="`.festinalente/product/` directory exists and is not empty" outputs="newDocId, newDocPath">
@@ -444,7 +443,7 @@ And their session is established
     <action>Read template from `.festinalente/templates/task.xml`</action>
     <action>Create folder `.festinalente/tasks/{nextId}/`</action>
     <action>Create file at `.festinalente/tasks/{nextId}/task.xml`</action>
-    <note>`{nextId}` = the nextId from step get_next_id (e.g., "001")</note>
+    <note>`{nextId}` = the nextId from step get_next_id (e.g., "022-add-dark-mode-toggle")</note>
     <action>Fill XML attributes: `id`, `title`, `status: backlog`, `priority`, `labels`, `created`, `affects`, `engineering`</action>
     <action>Fill `<description>` with initial description</action>
     <action>Fill `<problem>` with problem statement from Q&A</action>

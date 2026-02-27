@@ -7,10 +7,15 @@ const path = require_chunk.__toESM(require("path"));
 //#region src/scripts/find-task.ts
 const TASKS_DIR = ".festinalente/tasks";
 /**
+
 * Find a task file by numeric prefix.
+
 *
+
 * @param id - The task ID (e.g., "021" or "021-some-slug").
+
 * @returns The path and folder ID, or null if not found.
+
 */
 function findTaskFile(id) {
 	const numericMatch = id.match(/^(\d+)/);

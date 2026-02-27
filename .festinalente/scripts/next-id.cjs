@@ -8,10 +8,15 @@ const TASKS_DIR = ".festinalente/tasks";
 const CONFIG_FILE = ".festinalente/config.yaml";
 const MAX_SLUG_LENGTH = 50;
 /**
+
 * Parse simple YAML config (key: value pairs).
+
 *
+
 * @param content - The YAML content to parse.
+
 * @returns Parsed key-value pairs.
+
 */
 function parseSimpleYaml(content) {
 	const result = {};
@@ -29,9 +34,13 @@ function parseSimpleYaml(content) {
 	return result;
 }
 /**
+
 * Parse the --title argument from process.argv.
+
 *
+
 * @returns The title string or null if not provided.
+
 */
 function parseTitleArg() {
 	const titleArg = process.argv.find((arg) => arg.startsWith("--title="));
@@ -39,11 +48,17 @@ function parseTitleArg() {
 	return titleArg.slice(8);
 }
 /**
+
 * Extract the numeric prefix from a folder name.
+
 * Handles both "021" and "021-slug-here" formats.
+
 *
+
 * @param folderName - The folder name to parse.
+
 * @returns The numeric ID or null if not a valid folder.
+
 */
 function extractNumericId(folderName) {
 	const match = folderName.match(/^(\d+)/);
