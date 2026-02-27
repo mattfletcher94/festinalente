@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<directive name="github" version="1"
+<directive name="github" version="2"
            created="2026-02-27" updated="2026-02-27">
 
   <description>
@@ -88,24 +88,26 @@
 
     <rule id="M-G4" phase="finalize">
       PR ALREADY MERGED (cleanup):
-      1. Update task: status="done", add completed date
-      2. Commit: "docs({taskId}): done"
-      3. git checkout main && git pull
-      4. git branch -D task/{taskId}
-      5. Output: "PR was already merged! Task complete."
-      6. EXIT
+      1. git checkout main &amp;&amp; git pull (get merged changes FIRST)
+      2. git branch -D task/{taskId} (delete orphaned task branch)
+      3. Update task: status="done", add completed date
+      4. Commit on main: "docs({taskId}): done - {title}"
+      5. git push
+      6. Output: "PR was already merged! Task complete."
+      7. EXIT
     </rule>
 
     <rule id="M-G5" phase="finalize">
       MERGE APPROVED PR:
       1. Prompt: "PR approved. Ready to merge? [Merge now] [Wait]"
       2. If merge: mcp__GitHub__merge_pull_request (merge_method: "rebase")
-      3. Update task: status="done", add completed date
-      4. Commit: "docs({taskId}): done"
-      5. git checkout main && git pull
-      6. git branch -D task/{taskId}
-      7. Output: "Merged! Task complete."
-      8. EXIT
+      3. git checkout main &amp;&amp; git pull (get merged changes FIRST)
+      4. git branch -D task/{taskId} (delete orphaned task branch)
+      5. Update task: status="done", add completed date
+      6. Commit on main: "docs({taskId}): done - {title}"
+      7. git push
+      8. Output: "Merged! Task complete."
+      9. EXIT
     </rule>
   </process>
 
