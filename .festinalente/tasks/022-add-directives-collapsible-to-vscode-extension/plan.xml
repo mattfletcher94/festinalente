@@ -59,7 +59,7 @@
   </inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-02-27T14:14:44.911Z">
       <name>Create directives domain types</name>
       <files>apps/vscode/src/types/directives-types.ts (create)</files>
       <requirements>FR2, FR3, FR4, FR5, FR7</requirements>
@@ -111,7 +111,7 @@
       <done>Types compile successfully, branded types prevent ID mixing</done>
     </task>
 
-    <task id="2" type="auto" depends="1">
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-02-27T14:17:00.000Z">
       <name>Create directives config computer</name>
       <files>apps/vscode/src/computers/directives-config.computer.ts (create)</files>
       <requirements>FR2, FR3, FR4, FR5, FR7</requirements>
@@ -167,7 +167,7 @@
       <done>Computer parses config.yaml and returns structured Workflow[] data</done>
     </task>
 
-    <task id="3" type="auto" depends="2">
+    <task id="3" type="auto" depends="2" completed="true" completed_at="2026-02-27T14:18:00.000Z">
       <name>Create directives view capability</name>
       <files>apps/vscode/src/capabilities/directives-view.capability.ts (create)</files>
       <requirements>FR1, FR2, FR3, FR4, FR5, FR6, FR7</requirements>
@@ -221,7 +221,7 @@
       <done>Capability provides TreeDataProvider with WorkflowItem and DirectiveItem classes</done>
     </task>
 
-    <task id="4" type="auto" depends="3">
+    <task id="4" type="auto" depends="3" completed="true" completed_at="2026-02-27T14:19:00.000Z">
       <name>Create directives orchestrator</name>
       <files>apps/vscode/src/orchestrators/directives.orchestrator.ts (create)</files>
       <requirements>FR1, FR4, FR8</requirements>
@@ -276,7 +276,7 @@
       <done>Orchestrator coordinates computer and capability, provides TreeDataProvider</done>
     </task>
 
-    <task id="5" type="auto" depends="4">
+    <task id="5" type="auto" depends="4" completed="true" completed_at="2026-02-27T14:20:00.000Z">
       <name>Add directives view to package.json</name>
       <files>apps/vscode/package.json (modify)</files>
       <requirements>FR1</requirements>
@@ -319,7 +319,7 @@
       <done>Directives view declared in package.json between Config and Product Docs</done>
     </task>
 
-    <task id="6" type="auto" depends="5">
+    <task id="6" type="auto" depends="5" completed="true" completed_at="2026-02-27T14:22:00.000Z">
       <name>Wire directives orchestrator in extension.ts</name>
       <files>apps/vscode/src/extension.ts (modify)</files>
       <requirements>FR1, FR8</requirements>
@@ -351,7 +351,7 @@
       <done>Extension wires directives orchestrator, TreeView appears in sidebar</done>
     </task>
 
-    <task id="7" type="auto" depends="6">
+    <task id="7" type="auto" depends="6" completed="true" completed_at="2026-02-27T14:23:00.000Z">
       <name>Verify circular dependency check</name>
       <files>N/A</files>
       <requirements>Coding directive V-A1</requirements>
@@ -366,7 +366,7 @@
       <done>No circular dependencies detected (exit code 0)</done>
     </task>
 
-    <task id="8" type="manual" depends="7">
+    <task id="8" type="manual" depends="7" completed="true" completed_at="2026-02-27T14:24:00.000Z">
       <name>Manual verification of all acceptance criteria</name>
       <files>N/A</files>
       <requirements>FR1, FR2, FR3, FR4, FR5, FR6, FR7, FR8</requirements>
