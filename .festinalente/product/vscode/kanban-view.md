@@ -128,6 +128,14 @@ The QUICKS view automatically refreshes when files change in `.kanban/quick/`.
 - Missing directive files show a warning icon and are non-clickable
 - Automatically refreshes when config.yaml or directive files change
 
+**Directives Header Actions:**
+
+| Button | Icon | Action |
+|--------|------|--------|
+| Create Directive | `add` | Runs `/festina-directive` to create a new directive |
+
+Clicking [+] opens a terminal and runs the directive creation workflow.
+
 **Global Actions section:**
 - Provides project-wide commands not tied to specific tasks
 - "Map Product Docs" - runs `/kanban-map-product` command
@@ -246,7 +254,7 @@ Clicking config.yaml opens it in the editor.
 ### Directives Section
 
 ```
-DIRECTIVES
+DIRECTIVES                                    [+]
 ├── ▶ Create                     ← WorkflowItem (collapsible)
 │   ├── coding                   ← DirectiveItem (clickable, opens XML)
 │   └── github                   ← DirectiveItem (clickable, opens XML)
@@ -259,6 +267,8 @@ DIRECTIVES
     ├── coding
     └── github
 ```
+
+Clicking [+] runs `/festina-directive` to create a new directive.
 
 - Workflow names are formatted (festina-scope → "Scope")
 - Directive count shown in description (e.g., "2 directives")
