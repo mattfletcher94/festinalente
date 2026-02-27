@@ -533,7 +533,7 @@ And their session is established
     
     If validation fails, fix the reported errors before completing.
     
-    <output>[KANBAN_COMPLETE]</output>
+    <output>[FESTINA_COMPLETE]</output>
   </step>
 </process>
 

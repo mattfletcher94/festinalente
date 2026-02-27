@@ -11,7 +11,7 @@ function main() {
 	if (args.length === 0) {
 		console.log(JSON.stringify({
 			error: true,
-			message: "Usage: get-skill-config.cjs <skill> (e.g., kanban-implement)"
+			message: "Usage: get-skill-config.cjs <skill> (e.g., festina-implement)"
 		}));
 		process.exit(1);
 	}
@@ -19,7 +19,7 @@ function main() {
 	if (!fs.default.existsSync(CONFIG_FILE)) {
 		console.log(JSON.stringify({
 			error: true,
-			message: `${CONFIG_FILE} not found. Run npx claude-kanban first.`
+			message: `${CONFIG_FILE} not found. Run npx festinalente first.`
 		}));
 		process.exit(1);
 	}

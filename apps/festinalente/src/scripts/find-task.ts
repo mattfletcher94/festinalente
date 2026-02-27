@@ -61,7 +61,7 @@ function main(): void {
     console.log(
       JSON.stringify({
         error: true,
-        message: `${TASKS_DIR}/ directory not found. Run npx claude-kanban first.`,
+        message: `${TASKS_DIR}/ directory not found. Run npx festinalente first.`,
       })
     );
     process.exit(1);

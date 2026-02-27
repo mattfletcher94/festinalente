@@ -58,7 +58,7 @@ function main() {
 	if (!fs.default.existsSync(ENGINEERING_DIR)) {
 		console.log(JSON.stringify({
 			error: true,
-			message: `${ENGINEERING_DIR}/ directory not found. Run npx claude-kanban first.`
+			message: `${ENGINEERING_DIR}/ directory not found. Run npx festinalente first.`
 		}));
 		process.exit(1);
 	}

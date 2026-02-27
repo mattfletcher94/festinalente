@@ -1,4 +1,4 @@
-# Claude Kanban Workflow Schema
+# Festina Lente Workflow Schema
 # This file defines the fixed workflow elements. Not user-configurable.
 # Skills, commands, and templates reference these definitions.
 
@@ -15,18 +15,12 @@ columns:
   - id: in-progress
     name: In Progress
     description: Tasks currently being implemented (code uncommitted)
-  - id: check
-    name: Check
-    description: Verification phase - automated checks, requirements, and QA
-  - id: update-docs
-    name: Update Docs
-    description: Checks passed, code committed, documentation needs updating
-  - id: pr
-    name: PR
-    description: Awaiting GitHub PR review and merge
+  - id: finalize
+    name: Finalize
+    description: Validation, documentation, and completion
   - id: done
     name: Done
-    description: PR merged, task complete
+    description: Task complete, merged to main
 
 labels:
   - id: bug
@@ -59,10 +53,8 @@ transitions:
   backlog: [scoped]
   scoped: [planned]
   planned: [in-progress]
-  in-progress: [check]
-  check: [update-docs, in-progress]  # check passes or rework
-  update-docs: [pr]
-  pr: [done, in-progress]  # merge or rework
+  in-progress: [finalize]
+  finalize: [done, in-progress]  # complete or rework
 
 commits:
   # Commit message formats by phase
@@ -70,10 +62,10 @@ commits:
   scope: "docs({id}): scope - {title}"
   plan: "docs({id}): plan - {title}"
   save: "wip({id}): {summary}"
-  check-retry: "docs({id}): check-retry - {title}"  # When AI retries check
-  check: "{commit-type}({id}): {title}"  # commit-type from label
+  finalize: "{commit-type}({id}): {title}"  # commit-type from label
+  finalize-retry: "docs({id}): check-retry - {title}"  # When AI retries check
+  finalize-docs: "docs({id}): {description}"  # product, engineering, or product+engineering
   rework: "docs({id}): rework - {title}"  # Consolidated fail command
-  docs: "docs({id}): product - {message}"
   done: "docs({id}): done - {title}"
   delete: "docs({id}): delete - {title}"
   # Product discovery commands (not part of task workflow)

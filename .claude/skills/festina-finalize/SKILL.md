@@ -1,0 +1,923 @@
+---
+name: festina-finalize
+description: Validate, commit, document, and complete a task. Consolidates check, docs, and merge into a single command.
+allowed-tools: Read, Write, Bash(*), Grep, AskUserQuestion
+argument-hint: "[task-id]"
+disable-model-invocation: true
+---
+
+# Finalize Festina Lente Task
+
+<purpose>
+Run directive checks, commit implementation, update documentation, and complete the task. This skill consolidates the check, docs, and merge phases into a single streamlined command.
+</purpose>
+
+<context>
+<note>
+- **`.claude/skills/festina-*/`** — Installed festina skills — READ ONLY
+- **`.festinalente/`** — Project data and config — READ/WRITE
+- **`.festinalente/tasks/{id}/`** — Task folder containing `task.xml`, `spec.xml`, `plan.xml`
+- **`.festinalente/quick/{id}/`** — Quick task folder containing `quick.xml` (for /festina-quick)
+- **`.festinalente/scripts/`** — Helper scripts for festina operations
+- **`.festinalente/templates/`** — Document templates
+- **`.festinalente/workflow.yaml`** — Workflow config (columns, labels, transitions)
+- **`.festinalente/directives/`** — User-defined directives (custom instructions for skills)
+</note>
+
+<note>Use these scripts to reliably find files:</note>
+
+<command description="Find task by ID (returns JSON with path and metadata)">node .festinalente/scripts/find-task.cjs {id}</command>
+
+
+<command description="Find plan by ID (returns JSON with path)">node .festinalente/scripts/find-plan.cjs {id}</command>
+
+
+
+<command description="Get current date/time (returns JSON with iso and date formats)">node .festinalente/scripts/get-date-time.cjs</command>
+
+<command description="Get skill configuration (returns JSON with directives)">node .festinalente/scripts/get-skill-config.cjs {skill}</command>
+<example_code lang="json">
+{
+  "skill": "festina-check",
+  "directives": [
+    { "name": "code-review", "path": ".festinalente/directives/code-review.xml", "exists": true }
+  ]
+}
+</example_code>
+
+
+
+<note>Use these scripts to work with product documentation:</note>
+
+
+<command description="Search product docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/search-product.cjs keyword1 keyword2 ...</command>
+<command description="With minimum score threshold">node .festinalente/scripts/search-product.cjs password reset --min-score=0.3</command>
+<note>Score interpretation: ≥0.5 = strong match | 0.3-0.5 = possible match | &lt;0.3 = weak match | No results = likely new feature</note>
+
+<command description="Check if product docs exist by ID">node .festinalente/scripts/check-product.cjs auth/login auth/mfa billing/invoices</command>
+
+<note>Path rule: ID `auth/login` → Path `.festinalente/product/auth/login.md`</note>
+
+<note>Use these scripts to work with engineering documentation:</note>
+
+
+<command description="Search engineering docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/search-engineering.cjs keyword1 keyword2 ...</command>
+<command description="With minimum score threshold">node .festinalente/scripts/search-engineering.cjs middleware pattern --min-score=0.3</command>
+<note>Score interpretation: ≥0.5 = strong match | 0.3-0.5 = possible match | &lt;0.3 = weak match | No results = likely new pattern/system</note>
+
+<command description="Check if engineering docs exist by ID">node .festinalente/scripts/check-engineering.cjs systems/auth patterns/middleware</command>
+
+<note>Path rules:
+- `overview` → `.festinalente/engineering/overview.md`
+- `systems/auth` → `.festinalente/engineering/systems/auth/_index.md`
+- `systems/auth/validator` → `.festinalente/engineering/systems/auth/validator.md`
+- `patterns/acyclic-arch` → `.festinalente/engineering/patterns/acyclic-arch.md`
+- `conventions/file-naming` → `.festinalente/engineering/conventions/file-naming.md`
+</note>
+
+<note>**`.festinalente/product/`** - Product documentation files organized by domain</note>
+
+<note>**`.festinalente/engineering/`** - Engineering documentation files (systems, patterns, conventions)</note>
+
+<note>**Diagram Guidelines:**</note>
+
+<note>**When to include Mermaid diagrams:**</note>
+- Workflows with 3+ steps or branching logic → `flowchart`
+- User/system interactions → `sequenceDiagram`
+- State transitions → `stateDiagram-v2`
+- System architecture with 3+ components → `flowchart`
+- Pattern relationships → `classDiagram`
+- Database/data models → `erDiagram`
+
+<note>**When to include ASCII mockups:**</note>
+- UI elements (dialogs, forms, panels)
+- Tree structures (file trees, hierarchies)
+- Sidebar/panel layouts
+
+<note>**Mermaid Syntax Quick Reference:**</note>
+
+<example_code lang="markdown">
+## Flowchart
+```mermaid
+flowchart LR
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Action 1]
+    B -->|No| D[Action 2]
+```
+
+## Sequence Diagram
+```mermaid
+sequenceDiagram
+    User->>+System: Request
+    System-->>-User: Response
+```
+
+## State Diagram
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Processing: start
+    Processing --> Done: complete
+```
+
+## Class Diagram
+```mermaid
+classDiagram
+    class Interface {
+        <<interface>>
+        +method()
+    }
+    Interface <|-- Implementation
+```
+
+## Entity Relationship Diagram
+```mermaid
+erDiagram
+    USER ||--o{ ORDER : places
+    ORDER ||--|{ LINE_ITEM : contains
+```
+</example_code>
+
+<note>**ASCII Conventions:**</note>
+
+<example_code lang="text">
+## Window/Dialog
+┌─────────────────────────────────┐
+│  Title                    [X]  │
+├─────────────────────────────────┤
+│  Content                        │
+│      [ Cancel ]  [ OK ]         │
+└─────────────────────────────────┘
+
+## Form Elements
+Label:     [________________]     ← Text input
+Dropdown:  [Option v]             ← Select
+Radio:     (*) Selected  ( ) Not  ← Radio
+Checkbox:  [x] Checked  [ ] Not   ← Checkbox
+Button:    [ Submit ]             ← Button
+
+## Tree View
+├── Parent
+│   ├── Child 1
+│   └── Child 2
+└── Sibling
+
+## Sidebar
+HEADER                    [+] [↻]
+├── ▼ Expanded (2)
+│   ├── Item 1
+│   └── Item 2
+└── ▶ Collapsed (3)
+</example_code>
+
+<note>**Smart Context:** `node .festinalente/scripts/select-context.cjs {taskId} --tier=standard` - Load similar docs for reference</note>
+
+<note>**Quality Check:** `node .festinalente/scripts/validate-docs.cjs {path}` - Validate doc meets quality standards</note>
+
+<note>**Glossary:** `.festinalente/glossary.yaml` - Project terminology (update when introducing new terms)</note>
+
+<note>Column transition: finalize → done</note>
+<note>See `.festinalente/workflow.yaml` for column definitions and valid transitions</note>
+
+<note>
+**This skill is an orchestrator with three phases:**
+- **Phase 1 (Validate):** Run directive checks, auto-fix if needed, commit implementation
+- **Phase 2 (Document):** Update product/engineering docs based on task's affects/engineering fields
+- **Phase 3 (Complete):** Push branch, merge to main (or create PR via directive), move task to done
+</note>
+
+## Reference Files
+
+Load these as needed during each phase:
+
+- **[checks.md](checks.md)** - Load in Phase 1: Contains plan verification, check execution by type, auto-fix loop with iteration logging, uncommitted changes check, and commit type determination
+- **[docs-product.md](docs-product.md)** - Load in Phase 2 if product docs needed: Contains impact analysis, smart context loading, doc update/complete/create flows, domain index updates, glossary updates, and validation
+- **[docs-engineering.md](docs-engineering.md)** - Load in Phase 2 if engineering docs needed: Contains impact analysis, smart context loading, type-specific sections (system/pattern/convention), and engineering index updates
+</context>
+
+<prohibited>
+- Do not commit code that fails directive checks without user approval
+- Do not skip documentation analysis
+- Do not merge with dirty working tree
+- Do not use invented commit types like `festina(...)` - valid types are: `feat`, `fix`, `refactor`, `docs`
+- Do not auto-fix without asking the user first
+- Do not commit sensitive files (.env, credentials)
+- Do not update docs for features NOT touched by this task
+- Do not skip pushing to remote before merge
+</prohibited>
+
+<process>
+  <step name="load_workflow">
+    <action>Read `.festinalente/workflow.yaml` for column definitions, labels, priorities, and commit formats</action>
+    <note>Use these values throughout this skill</note>
+  </step>
+
+  <step name="get_task_id" outputs="taskId">
+    <branch condition="$ARGUMENTS provided">
+      <action>Use $ARGUMENTS as taskId</action>
+    </branch>
+    <branch condition="$ARGUMENTS not provided">
+      <action>List tasks in `finalize` status from `.festinalente/tasks/`</action>
+      <action>Use AskUserQuestion tool with:
+        - header: "Task"
+        - question: "Which task would you like to finalize?"
+        - options: Build from task list (up to 4 tasks in finalize status), each with:
+          - label: "{taskId}: {short title}" (truncate title if needed)
+          - description: "Ready for finalization"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to type a task ID directly</note>
+    </branch>
+  </step>
+
+  <step name="read_task_file" outputs="taskPath, title, labels, affects, engineering">
+    <command>node .festinalente/scripts/find-task.cjs {taskId}</command>
+    <action>Read the file at the `path` from JSON output</action>
+    <action>Parse XML</action>
+    <validate>Verify status is `finalize`</validate>
+    <branch condition="status is not finalize">
+      <action>Use AskUserQuestion tool with:
+        - header: "Continue?"
+        - question: "Task is in {status} status. Expected: finalize. Continue anyway?"
+        - options:
+          - label: "Yes", description: "Proceed despite unexpected status"
+          - label: "No", description: "Cancel and check task status first"
+        - multiSelect: false
+      </action>
+    </branch>
+    <action>Extract title, labels, affects, engineering, and acceptance-criteria for later use</action>
+    <branch condition="task not found">
+      <output>Error: Task not found</output>
+      <action>Exit</action>
+    </branch>
+  </step>
+
+  <step name="verify_branch">
+    <command>git branch --show-current</command>
+    <validate>Must be on branch `task/{id}` where {id} is the task ID</validate>
+    <branch condition="not on expected branch">
+      <output>Error: This command must be run on branch task/{id}. Current branch: {branch}</output>
+      <output>Suggest: Switch to task branch with `git checkout task/{id}`</output>
+      <action>Exit</action>
+    </branch>
+  </step>
+
+  <step name="load_directives">
+    <command>node .festinalente/scripts/get-skill-config.cjs festina-finalize</command>
+    <action>Parse the JSON output</action>
+    
+    <branch condition="directives.length > 0">
+      <warning>Directives are MANDATORY. You MUST follow them.</warning>
+      <action>For EACH directive where `exists` is `true`:</action>
+      <action>Read the directive XML file at `path`</action>
+      <action>Parse and apply:</action>
+      <action>- `<context>` principles: Maintain as ongoing mindset</action>
+      <action>- `<process>` rules where phase="finalize": Follow as requirements</action>
+      <action>- `<override>` sections where phase="finalize": Apply step replacements</action>
+      <action>- `<verification>` commands: Note for use in task `<verify>` elements</action>
+    
+      <branch condition="directive has <override> section for phase=finalize">
+        <output>
+    **DIRECTIVE OVERRIDE ACTIVE: {directive.name}**
+    
+    The following skill steps are REPLACED by this directive:
+    
+    {For each &lt;skip&gt; element:}
+    **SKIP STEP: `{step}`** - Do NOT execute this step when you reach it in the skill process.
+    
+    **REPLACEMENT:** Execute directive rules {override.instead.rules} instead.
+    
+    **Reason:** {override.reason}
+    
+    **CRITICAL:** When you encounter any skipped step in the skill's &lt;process&gt;,
+    you MUST skip it entirely and follow the directive's replacement rules instead.
+        </output>
+      </branch>
+      <note>`<validation>` checks will run in directive_compliance step</note>
+      <note>`<examples>` will be shown if violations are found</note>
+    </branch>
+    
+    <example_code lang="json">
+    {
+      "skill": "festina-finalize",
+      "directives": [
+        { "name": "architecture", "path": ".festinalente/directives/architecture.xml", "exists": true }
+      ]
+    }
+    </example_code>
+  </step>
+
+  <step name="detect_resume_state" outputs="resumeFrom">
+    <note>Check what's already been done for resumability</note>
+    <command>git log --oneline -1</command>
+    <action>Check if last commit matches patterns:</action>
+    <branch condition="last commit is 'docs({taskId}): done - {title}'">
+      <output>Task already complete!</output>
+      <action>Exit</action>
+    </branch>
+    <branch condition="last commit is 'docs({taskId}): product' or 'docs({taskId}): engineering' or 'docs({taskId}): product+engineering'">
+      <note>Docs committed, skip to Phase 3</note>
+      <action>Set resumeFrom = "phase3"</action>
+    </branch>
+    <branch condition="last commit is '{type}({taskId}): {title}' where type is feat/fix/refactor">
+      <note>Implementation committed, skip to Phase 2</note>
+      <action>Set resumeFrom = "phase2"</action>
+    </branch>
+    <branch condition="else">
+      <action>Set resumeFrom = "phase1"</action>
+    </branch>
+  </step>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════
+       PHASE 1: VALIDATE AND COMMIT
+       Reference: checks.md
+       ═══════════════════════════════════════════════════════════════════════════ -->
+
+  <step name="phase1_validate" when="resumeFrom is phase1">
+    <output>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 1: VALIDATE AND COMMIT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    </output>
+    <action>Read checks.md for detailed guidance on this phase</action>
+  </step>
+
+  <step name="verify_plan_completion" when="resumeFrom is phase1">
+    <command>node .festinalente/scripts/find-plan.cjs {taskId}</command>
+    <action>Read the plan at the `path` from JSON output</action>
+    <validate>Verify all implementation tasks have completed="true"</validate>
+    <branch condition="any uncompleted tasks">
+      <action>Use AskUserQuestion tool with:
+        - header: "Incomplete"
+        - question: "Plan has incomplete tasks. Run checks anyway?"
+        - options:
+          - label: "Yes", description: "Proceed despite incomplete plan tasks"
+          - label: "No", description: "Cancel and complete remaining tasks first"
+        - multiSelect: false
+      </action>
+    </branch>
+  </step>
+
+  <step name="run_checks" when="resumeFrom is phase1">
+    <action>Read checks.md for check execution guidance</action>
+    <note>
+**For each check directive, determine type and execute:**
+
+```
+for each directive in checkDirectives:
+    Print: "Running check: {directive name}..."
+
+    # Determine check type from directive XML
+    if directive contains type="command":
+        Execute the command from <run> element
+        if exit code == 0:
+            Print "PASS: {directive name}"
+            continue to next directive
+        else:
+            issues = command error output
+
+    else if directive contains type="pattern":
+        Scan files matching glob for forbidden/required patterns
+        if no violations:
+            Print "PASS: {directive name}"
+            continue to next directive
+        else:
+            issues = list of pattern violations
+
+    else if directive contains type="checklist":
+        Review code against checklist items
+        if all items satisfied:
+            Print "PASS: {directive name}"
+            continue to next directive
+        else:
+            issues = unsatisfied items
+
+    # Handle failure
+    Print "FAIL: {directive name}"
+    Print issues
+
+    Use AskUserQuestion tool with:
+        - header: "Fix?"
+        - question: "Check failed. How should I proceed?"
+        - options:
+          - label: "Fix (Recommended)", description: "Attempt to fix the issues automatically"
+          - label: "Skip", description: "Continue to next check"
+          - label: "Abort", description: "Exit and fix manually"
+        - multiSelect: false
+
+    if user selects Fix:
+        Analyze the issues
+        Make code changes to fix
+
+        # Log attempt to plan
+        Add to <iterations> section:
+            <iteration phase="finalize" date="{YYYY-MM-DD}">
+              <fix directive="{name}">{description of fix}</fix>
+            </iteration>
+
+        # Commit the fix
+        git add {changed files}
+        git commit -m "docs({taskId}): check-retry - {title}"
+
+        # Restart all checks from beginning
+        break and restart loop
+
+    if user selects Skip:
+        continue to next directive
+
+    if user selects Abort:
+        Print: "Exiting. Fix issues manually and re-run /festina-finalize {taskId}"
+        Exit
+
+# If we get here, all checks passed
+Print "All automated checks passed!"
+```
+    </note>
+  </step>
+
+  <step name="check_uncommitted_changes" when="resumeFrom is phase1" outputs="changedFiles">
+    <command>git status</command>
+    <command>git diff --name-only</command>
+    <output>Display files that will be committed</output>
+    <branch condition="no changes found">
+      <output>Warning: No uncommitted changes to commit.</output>
+      <action>Use AskUserQuestion tool with:
+        - header: "Proceed?"
+        - question: "No uncommitted changes found. Proceed anyway (just move status)?"
+        - options:
+          - label: "Yes", description: "Continue to documentation phase"
+          - label: "No", description: "Cancel and investigate missing changes"
+        - multiSelect: false
+      </action>
+    </branch>
+  </step>
+
+  <step name="determine_commit_type" when="resumeFrom is phase1" outputs="commitType">
+    <action>Read checks.md for commit type determination guidance</action>
+    <action>Check task labels array</action>
+    <branch condition="contains `bug`">
+      <action>type = `fix`</action>
+    </branch>
+    <branch condition="contains `refactor`">
+      <action>type = `refactor`</action>
+    </branch>
+    <branch condition="contains `docs`">
+      <action>type = `docs`</action>
+    </branch>
+    <branch condition="contains `feature` or default">
+      <action>type = `feat`</action>
+    </branch>
+  </step>
+
+  <step name="commit_implementation" when="resumeFrom is phase1">
+    <note>Format: `{commitType}({taskId}): {title}`</note>
+    <warning>Valid commit types: `feat`, `fix`, `refactor`, `docs`</warning>
+
+    <action>Stage implementation files AND .festinalente files together</action>
+    <command>git add {implementation files}</command>
+    <command>git add .festinalente/</command>
+    <note>`.festinalente` files MUST be included - they accumulate status and plan changes</note>
+    <command>git commit -m "{commitType}({taskId}): {title}"</command>
+    <output>Implementation committed: {commitType}({taskId}): {title}</output>
+  </step>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════
+       PHASE 2: DOCUMENTATION
+       Reference: docs-product.md, docs-engineering.md
+       ═══════════════════════════════════════════════════════════════════════════ -->
+
+  <step name="phase2_document" when="resumeFrom is phase1 or phase2">
+    <output>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 2: DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    </output>
+  </step>
+
+  <step name="analyze_doc_impact" when="resumeFrom is phase1 or phase2" outputs="needsProductDocs, needsEngineeringDocs">
+    <action>Check task's `affects` element for product docs</action>
+    <action>Check task's `engineering` element for engineering docs</action>
+    <branch condition="affects is empty AND engineering is empty AND labels include [bug, refactor, chore]">
+      <output>No documentation updates needed (internal change)</output>
+      <action>Set needsProductDocs = false, needsEngineeringDocs = false</action>
+    </branch>
+    <branch condition="affects has values">
+      <action>Set needsProductDocs = true</action>
+    </branch>
+    <branch condition="engineering has values">
+      <action>Set needsEngineeringDocs = true</action>
+    </branch>
+  </step>
+
+  <step name="update_product_docs" when="needsProductDocs is true">
+    <action>Read docs-product.md for detailed guidance</action>
+    <note>This includes: analyze impact, load smart context, update/complete/create docs, update domain _index.md, update glossary, validate docs</note>
+
+    <command>node .festinalente/scripts/check-product.cjs {affects IDs}</command>
+    <action>Categorize into: stubDocs (need completing), existingDocs (need updating), missingDocs (need creating)</action>
+
+    <output>Product Doc Analysis for Task {taskId}:</output>
+    <output>Will COMPLETE (stub exists): {list}</output>
+    <output>Will UPDATE (doc exists): {list}</output>
+    <output>Will CREATE (new doc needed): {list}</output>
+
+    <action>Use AskUserQuestion tool with:
+      - header: "Product docs"
+      - question: "Proceed with product documentation updates?"
+      - options:
+        - label: "Yes (Recommended)", description: "Update/create product docs as analyzed"
+        - label: "No", description: "Skip product documentation updates"
+      - multiSelect: false
+    </action>
+
+    <branch condition="user selects Yes">
+      <action>Load smart context: `node .festinalente/scripts/select-context.cjs {taskId} --tier=standard --max=3 --type=product`</action>
+      <action>For existing docs: Read, make minimal focused updates, verify with user, update verified date and code_refs</action>
+      <action>For stub docs: Remove stub:true, fill ALL frontmatter fields, fill ALL content sections, complete diagrams</action>
+      <action>For new docs: Create using templates, fill ALL fields, keep scope focused</action>
+      <action>Update domain _index.md if applicable</action>
+      <action>Update glossary if new terms introduced</action>
+      <action>Run validation: `node .festinalente/scripts/validate-docs.cjs {changed doc paths}`</action>
+    </branch>
+  </step>
+
+  <step name="update_engineering_docs" when="needsEngineeringDocs is true">
+    <action>Read docs-engineering.md for detailed guidance</action>
+    <note>This includes: analyze impact, load smart context, type-specific sections (system/pattern/convention), update engineering _index.md</note>
+
+    <command>node .festinalente/scripts/check-engineering.cjs {engineering IDs}</command>
+    <action>Categorize into: engStubDocs, engExistingDocs, engMissingDocs</action>
+
+    <output>Engineering Doc Analysis for Task {taskId}:</output>
+    <output>Will COMPLETE (stub exists): {list}</output>
+    <output>Will UPDATE (doc exists): {list}</output>
+    <output>Will CREATE (new doc needed): {list}</output>
+
+    <action>Use AskUserQuestion tool with:
+      - header: "Eng docs"
+      - question: "Proceed with engineering documentation updates?"
+      - options:
+        - label: "Yes (Recommended)", description: "Update/create engineering docs as analyzed"
+        - label: "No", description: "Skip engineering documentation updates"
+      - multiSelect: false
+    </action>
+
+    <branch condition="user selects Yes">
+      <action>Load smart context: `node .festinalente/scripts/select-context.cjs {taskId} --tier=standard --max=3 --type=engineering`</action>
+      <action>For existing docs: Read, make minimal focused updates</action>
+      <action>For stub docs: Remove stub:true, fill ALL fields, use type-specific sections</action>
+      <action>For new docs: Determine type (system/pattern/convention), use correct template</action>
+      <action>Update engineering type _index.md if applicable</action>
+    </branch>
+  </step>
+
+  <step name="commit_docs" when="docs were created or updated">
+    <command>git add .festinalente/product/</command>
+    <command>git add .festinalente/engineering/</command>
+    <command>git add .festinalente/glossary.yaml</command>
+    <branch condition="both product and engineering">
+      <command>git commit -m "docs({taskId}): product+engineering - {description}"</command>
+    </branch>
+    <branch condition="only product">
+      <command>git commit -m "docs({taskId}): product - {description}"</command>
+    </branch>
+    <branch condition="only engineering">
+      <command>git commit -m "docs({taskId}): engineering - {description}"</command>
+    </branch>
+    <output>Documentation committed</output>
+  </step>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════
+       PHASE 3: COMPLETE
+       Default behavior can be overridden by directives (e.g., github.xml for PR workflow)
+       ═══════════════════════════════════════════════════════════════════════════ -->
+
+  <step name="phase3_complete">
+    <output>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 3: COMPLETE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    </output>
+  </step>
+
+  <step name="check_already_pushed">
+    <command>git log origin/task/{taskId}..HEAD --oneline 2>/dev/null || echo "no-remote"</command>
+    <branch condition="no new commits (already pushed)">
+      <note>Resuming - skip to merge confirmation</note>
+    </branch>
+    <branch condition="has new commits OR remote doesn't exist">
+      <command>git push -u origin task/{taskId}</command>
+      <output>Branch pushed to remote</output>
+    </branch>
+  </step>
+
+  <step name="verify_ready_to_merge" outputs="commitsToMerge">
+    <command>git status</command>
+    <validate>Ensure working tree is clean</validate>
+    <command>git log main..HEAD --oneline</command>
+    <output>Show commits to be merged</output>
+    <branch condition="working tree is dirty">
+      <output>Error: "Please commit or stash changes first"</output>
+      <action>Exit</action>
+    </branch>
+  </step>
+
+  <step name="prompt_merge_confirmation">
+    <note>DEFAULT behavior. Directives can override (e.g., github.xml skips this, uses PR approval instead)</note>
+    <output>Task: {taskId} - {title}</output>
+    <output>Branch: task/{taskId}</output>
+    <output>Commits to merge: {list from verify_ready_to_merge}</output>
+    <action>Use AskUserQuestion tool with:
+      - header: "Merge?"
+      - question: "Ready to merge this branch into main?"
+      - options:
+        - label: "Yes", description: "Merge branch task/{taskId} into main"
+        - label: "No", description: "Cancel - I'll merge later"
+      - multiSelect: false
+    </action>
+    <branch condition="user selects No">
+      <output>Branch pushed. Run /festina-finalize {taskId} again when ready to merge.</output>
+      <action>Exit</action>
+    </branch>
+  </step>
+
+  <step name="move_to_done_and_commit">
+    <note>Format: `docs({taskId}): done - {title}`</note>
+    <action>Change status to `done`</action>
+    <command>node .festinalente/scripts/get-date-time.cjs</command>
+    <action>Add `updated: {YYYY-MM-DD}`</action>
+    <action>Add `completed: {YYYY-MM-DD}`</action>
+    <action>Write updated task file</action>
+    <command>git add .festinalente/tasks/{taskId}/task.xml</command>
+    <command>git commit -m "docs({taskId}): done - {title}"</command>
+  </step>
+
+  <step name="merge_branch">
+    <command>git checkout main</command>
+    <command>git merge task/{taskId} --no-ff -m "Merge branch 'task/{taskId}'"</command>
+    <note>Use `--no-ff` to preserve branch history</note>
+  </step>
+
+  <step name="cleanup_branch">
+    <command>git branch -d task/{taskId}</command>
+  </step>
+
+  <step name="directive_compliance">
+    <note>Verify compliance with all loaded directives</note>
+  
+    <action>For each directive loaded in load_directives step:</action>
+    <action>Re-read the directive XML file</action>
+  
+    <action>Run each `<validation>` check:</action>
+  
+    <branch condition="check type=command">
+      <command>{content of <run> element}</command>
+      <validate>{content of <expect> element}</validate>
+    </branch>
+  
+    <branch condition="check type=pattern">
+      <action>For each file matching `files` glob that was modified:</action>
+      <action>Check content against `<forbidden>` or `<required>` regex</action>
+    </branch>
+  
+    <branch condition="check type=checklist">
+      <action>Self-assess each `<item>` as Y/N</action>
+    </branch>
+  
+    <branch condition="any check fails">
+      <output>Directive violation: {check id} - {reason}</output>
+      <action>Find `<example>` elements where ref matches failed check</action>
+      <action>Show violation examples to illustrate the problem</action>
+      <action>Show correct examples to illustrate the fix</action>
+      <action>Use AskUserQuestion tool with:
+        - header: "Violation"
+        - question: "Directive check failed. How would you like to proceed?"
+        - options:
+          - label: "Fix now", description: "Address the violation before continuing"
+          - label: "Continue anyway", description: "Acknowledge and proceed despite violation"
+        - multiSelect: false
+      </action>
+    </branch>
+  </step>
+
+  <step name="output_result">
+    <output>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Task {taskId} completed!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+- Status: done
+- Completed: {date}
+- Current branch: main
+
+Congratulations! Task complete.
+
+**Ready for next task:**
+```
+/clear
+/festina-overview
+```
+    </output>
+    ## Final Validation
+    
+    Before completing, validate all task XML:
+    
+    <command description="Validate XML in task files">node .festinalente/scripts/validate-xml.cjs {taskId}</command>
+    
+    If validation fails, fix the reported errors before completing.
+    
+    <output>[FESTINA_COMPLETE]</output>
+  </step>
+</process>
+
+<success_criteria>
+- Task file exists at `.festinalente/tasks/{taskId}/task.xml`
+- Task XML has `status="done"`
+- Task XML has `completed` attribute with date
+- All directive checks passed (or skipped with user approval)
+- Documentation updated (or skipped for internal changes)
+- Branch merged into main
+- Branch `task/{taskId}` deleted locally
+- Next steps shown to user
+</success_criteria>
+
+<example>
+**Full Finalization Flow:**
+
+User: `/festina-finalize 001`
+
+```
+Finalizing task 001 "Add user authentication"...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 1: VALIDATE AND COMMIT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Loading directives from config.yaml...
+- coding
+
+Running check: TypeScript...
+PASS: TypeScript
+
+Running check: Tests...
+PASS: Tests
+
+All automated checks passed!
+
+Staging files:
+- src/routes/auth.ts
+- src/middleware/jwt.ts
+- src/types/auth.ts
+- .festinalente/tasks/001/plan.xml
+
+Commit type: feat (from feature label)
+
+Commit: e5f6g7h feat(001): Add user authentication
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 2: DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Product Doc Analysis for Task 001:
+Will COMPLETE (stub exists): auth/login - stub created during /festina-create
+
+[User selects "Yes (Recommended)"]
+
+Loading context from similar docs...
+Found: auth/oauth.md, gui/settings.md (using as reference)
+
+Completing stub doc: .festinalente/product/auth/login.md
+- tldr: "User login flow with email/password authentication"
+- keywords: [login, authentication, password, session]
+- verified: 2026-02-27
+
+Updating glossary: Added term "JWT"
+Running validation... Quality check passed
+
+Commit: h8i9j0k docs(001): product - complete login documentation
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 3: COMPLETE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pushing branch...
+Branch pushed to remote.
+
+Task: 001 - Add user authentication
+Branch: task/001
+Commits to merge:
+  e5f6g7h feat(001): Add user authentication
+  h8i9j0k docs(001): product - complete login documentation
+
+[User selects "Yes" to merge]
+
+Merging branch into main...
+Branch merged successfully!
+
+Deleting branch task/001...
+Branch task/001 deleted.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Task 001 completed!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+- Status: done
+- Completed: 2026-02-27
+- Current branch: main
+
+Congratulations! Task complete.
+
+Ready for next task:
+/clear
+/festina-overview
+```
+</example>
+
+<example>
+**Check Fails, User Fixes:**
+
+User: `/festina-finalize 001`
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 1: VALIDATE AND COMMIT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Running check: TypeScript...
+FAIL: TypeScript
+
+Error output:
+  src/routes/auth.ts:45:10 - error TS2345: Argument of type 'string' is not assignable
+
+[User selects "Fix (Recommended)"]
+
+Analyzing failure...
+Found issue: Type mismatch in auth handler
+Fixing: Adding type assertion in src/routes/auth.ts:45
+
+Logging fix to plan.xml iterations...
+Committing fix...
+Commit: a1b2c3d docs(001): check-retry - Add user authentication
+
+Restarting checks...
+
+Running check: TypeScript...
+PASS: TypeScript
+
+Running check: Tests...
+PASS: Tests
+
+All automated checks passed!
+
+[Continues to commit implementation and remaining phases...]
+```
+</example>
+
+<example>
+**Internal Change (No Docs Needed):**
+
+User: `/festina-finalize 003`
+
+```
+Finalizing task 003 "Refactor database queries"...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 1: VALIDATE AND COMMIT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Running check: TypeScript...
+PASS: TypeScript
+
+All automated checks passed!
+
+Commit: d4e5f6g refactor(003): Refactor database queries
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 2: DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+No documentation updates needed (internal change)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 3: COMPLETE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[Merge flow continues...]
+
+Task 003 completed!
+```
+</example>
+
+<next_steps>
+Task complete! To start a new task:
+```
+/clear
+/festina-create "Task title"
+```
+
+Or view the board:
+```
+/clear
+/festina-overview
+```
+</next_steps>

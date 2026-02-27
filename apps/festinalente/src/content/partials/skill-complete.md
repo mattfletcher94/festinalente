@@ -6,4 +6,4 @@ Before completing, validate all task XML:
 
 If validation fails, fix the reported errors before completing.
 
-<output>[KANBAN_COMPLETE]</output>
+<output>[FESTINA_COMPLETE]</output>

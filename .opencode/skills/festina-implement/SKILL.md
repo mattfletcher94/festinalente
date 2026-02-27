@@ -1,6 +1,6 @@
 ---
 name: festina-implement
-description: Implement a planned task. Moves task to In Progress, executes the plan, then moves to Checks. No commit - code stays uncommitted.
+description: Implement a planned task. Moves task to In Progress, executes the plan, then moves to Finalize. No commit - code stays uncommitted.
 tools:
   read: true
   write: true
@@ -102,7 +102,7 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
       <output>Run `/festina-scope {taskId}` first.</output>
       <action>Exit</action>
     </branch>
-    <branch condition="status is checks or later">
+    <branch condition="status is finalize or later">
       <output>Warning: Task is past implementation phase.</output>
     </branch>
     <branch condition="task not found">
@@ -362,7 +362,7 @@ WARNING: Found incomplete work markers:
           - header: "Incomplete code"
           - question: "Found {n} incomplete markers (TODO, FIXME, etc). How to proceed?"
           - options:
-            - label: "Fix now", description: "Address these before moving to check"
+            - label: "Fix now", description: "Address these before moving to finalize"
             - label: "Proceed anyway", description: "These are intentional or will be addressed later"
           - multiSelect: false
         </action>
@@ -391,7 +391,7 @@ WARNING: These requirements may not be fully implemented:
           - question: "Some requirements may not be fully implemented. How to proceed?"
           - options:
             - label: "Review and fix", description: "Examine each and address gaps"
-            - label: "Proceed to check", description: "Implementation is complete, will verify in QA"
+            - label: "Proceed to finalize", description: "Implementation is complete, will verify in finalize"
           - multiSelect: false
         </action>
       </branch>
@@ -434,12 +434,12 @@ WARNING: New files created but not imported anywhere:
 
   <step name="check_completion">
     <branch condition="all tasks have completed='true' AND verification passed">
-      <action>Update task status to `check`</action>
-      <output>All implementation tasks complete. Moving to code check.</output>
+      <action>Update task status to `finalize`</action>
+      <output>All implementation tasks complete. Moving to finalize.</output>
       <output>
 Next:
 /clear
-/festina-check {taskId}
+/festina-finalize {taskId}
       </output>
     </branch>
     <branch condition="some tasks remain incomplete">
@@ -499,12 +499,12 @@ To save progress now:
     <output>Show files modified (uncommitted)</output>
     <output>Show status</output>
     <branch condition="ALL checkboxes complete">
-      <output>**Next: Run code checks**</output>
-      <output>Code check runs your configured checks from directives. If they pass, the task moves to QA for you to manually test the application.</output>
+      <output>**Next: Finalize the task**</output>
+      <output>Finalize runs your configured checks from directives, updates documentation, and completes the task.</output>
       <output>
 ```
 /clear
-/festina-check {taskId}
+/festina-finalize {taskId}
 ```
       </output>
     </branch>
@@ -525,13 +525,13 @@ To save progress now:
     
     If validation fails, fix the reported errors before completing.
     
-    <output>[KANBAN_COMPLETE]</output>
+    <output>[FESTINA_COMPLETE]</output>
   </step>
 </process>
 
 <success_criteria>
 - Task file exists at `.festinalente/tasks/{taskId}/task.xml`
-- If all tasks complete: `status: check`
+- If all tasks complete: `status: finalize`
 - If partial progress: `status: in-progress`
 - Plan file exists at `.festinalente/tasks/{taskId}/plan.xml`
 - Completed tasks have `completed="true"` attribute
@@ -584,16 +584,16 @@ Done criteria met: Login endpoint responds to POST
 **Requirements:** FR1
 **Pattern:** N/A
 
-⏭ Manual verification deferred to QA: Test login with valid and invalid credentials
-Done criteria met: Implementation complete, manual testing in QA
+⏭ Manual verification deferred: Test login with valid and invalid credentials
+Done criteria met: Implementation complete
 
-All implementation tasks complete. Moving to code check.
-- Status: check
+All implementation tasks complete. Moving to finalize.
+- Status: finalize
 - Files modified: 2 (uncommitted)
 
 Next:
 /clear
-/festina-check 001
+/festina-finalize 001
 ```
 
 **Resume Partial Implementation:**
@@ -645,13 +645,13 @@ Running verification: npx markdownlint README.md
 ✓ Verification passed
 Done criteria met: README has complete DB setup instructions
 
-All implementation tasks complete. Moving to code check.
-- Status: check
+All implementation tasks complete. Moving to finalize.
+- Status: finalize
 - Files modified: 5 (uncommitted)
 
 Next:
 /clear
-/festina-check 002
+/festina-finalize 002
 ```
 </example>
 
@@ -666,9 +666,9 @@ This commits your work-in-progress so you don't lose it.
 When implementation complete:
 ```
 /clear
-/festina-check {id}
+/festina-finalize {id}
 ```
-Code check runs your configured checks from directives. If they pass, the task moves to QA for you to manually test the application.
+Finalize runs directive checks, updates documentation, and completes the task.
 
-Code stays uncommitted until you approve after QA.
+Code stays uncommitted until you run /festina-finalize.
 </next_steps>

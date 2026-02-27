@@ -9,9 +9,7 @@ export type TaskStatus =
   | 'scoped'
   | 'planned'
   | 'in-progress'
-  | 'check'
-  | 'update-docs'
-  | 'pr'
+  | 'finalize'
   | 'done';
 
 export type TaskPriority = 'critical' | 'high' | 'medium' | 'low';

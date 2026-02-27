@@ -22,10 +22,8 @@ directives:
   festina-implement:
     - coding
   festina-save: []
-  festina-check:
+  festina-finalize:
     - coding
-  festina-docs: []
-  festina-merge:
     - github
   festina-rework:
     - coding

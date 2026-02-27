@@ -158,7 +158,7 @@ Commit: a1b2c3d docs(005): delete - Fix typo in README
 
 Task 005 deleted successfully.
 
-[KANBAN_COMPLETE]
+[FESTINA_COMPLETE]
 ```
 </example>
 

@@ -59,35 +59,12 @@ export function createTaskActionsComputer(): CreateTaskActionsComputerReturn {
           },
         ];
 
-      case 'check':
+      case 'finalize':
         return [
           {
-            label: 'Check',
-            command: buildCommand('check', id),
-            description: 'Run checks, QA, and commit',
-          },
-          {
-            label: 'Rework',
-            command: buildCommand('rework', id),
-            description: 'Send back for fixes',
-          },
-        ];
-
-      case 'update-docs':
-        return [
-          {
-            label: 'Update Docs',
-            command: buildCommand('docs', id),
-            description: 'Update documentation',
-          },
-        ];
-
-      case 'pr':
-        return [
-          {
-            label: 'Merge',
-            command: buildCommand('merge', id),
-            description: 'Merge to main',
+            label: 'Finalize',
+            command: buildCommand('finalize', id),
+            description: 'Validate, document, and complete',
           },
           {
             label: 'Rework',

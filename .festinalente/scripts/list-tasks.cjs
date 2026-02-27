@@ -19,7 +19,7 @@ function main() {
 	if (!fs.default.existsSync(TASKS_DIR)) {
 		console.log(JSON.stringify({
 			error: true,
-			message: `${TASKS_DIR}/ directory not found. Run npx claude-kanban first.`
+			message: `${TASKS_DIR}/ directory not found. Run npx festinalente first.`
 		}));
 		process.exit(1);
 	}

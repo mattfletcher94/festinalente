@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Build script for Claude Kanban
+ * Build script for Festina Lente
  *
  * Compiles Handlebars templates from src/content to dist/
  * - skills/*.md files are compiled with partials
@@ -118,7 +118,7 @@ async function copyFile(srcFile: string, distFile: string): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  console.log('Building Claude Kanban...');
+  console.log('Building Festina Lente...');
   console.log(`  Source: ${SRC_CONTENT}`);
   console.log(`  Output: ${DIST}\n`);
 

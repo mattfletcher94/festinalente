@@ -16,9 +16,7 @@ export interface CreateTaskGroupingComputerReturn {
 export function createTaskGroupingComputer(): CreateTaskGroupingComputerReturn {
   const COLUMNS: TaskColumn[] = [
     { id: 'in-progress', name: 'In Progress', open: true },
-    { id: 'check', name: 'Check', open: true },
-    { id: 'update-docs', name: 'Update Docs', open: true },
-    { id: 'pr', name: 'PR', open: true },
+    { id: 'finalize', name: 'Finalize', open: true },
     { id: 'planned', name: 'Planned', open: true },
     { id: 'scoped', name: 'Scoped', open: true },
     { id: 'backlog', name: 'Backlog', open: true },

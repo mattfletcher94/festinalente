@@ -1,6 +1,6 @@
 ---
 name: festina-rework
-description: Return task to In Progress with structured issue report. Works from Check or PR columns.
+description: Return task to In Progress with structured issue report. Works from Finalize column.
 allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *, gh pr *), AskUserQuestion
 argument-hint: "[task-id]"
 disable-model-invocation: true
@@ -49,8 +49,7 @@ Return a task to In Progress when human review finds issues. Gather structured i
 
 <note>Column Transitions:
 ```
-check → in-progress
-pr → in-progress
+finalize → in-progress
 ```
 See `.festinalente/workflow.yaml` for column definitions and valid transitions.
 </note>
@@ -73,13 +72,13 @@ See `.festinalente/workflow.yaml` for column definitions and valid transitions.
       <action>Use $ARGUMENTS as taskId</action>
     </branch>
     <branch condition="$ARGUMENTS not provided">
-      <action>List tasks in `check` or `pr` status from `.festinalente/tasks/`</action>
+      <action>List tasks in `finalize` status from `.festinalente/tasks/`</action>
       <action>Use AskUserQuestion tool with:
         - header: "Task"
         - question: "Which task needs rework?"
-        - options: Build from task list (up to 4 tasks in check or pr status), each with:
+        - options: Build from task list (up to 4 tasks in finalize status), each with:
           - label: "{taskId}: {short title}" (truncate title if needed)
-          - description: "Status: {status} | Ready for rework"
+          - description: "Status: finalize | Ready for rework"
         - multiSelect: false
       </action>
       <note>User can select "Other" to type a task ID directly</note>
@@ -90,11 +89,11 @@ See `.festinalente/workflow.yaml` for column definitions and valid transitions.
     <command>node .festinalente/scripts/find-task.cjs {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse XML</action>
-    <validate>Verify current status is `check` or `pr`</validate>
-    <branch condition="status is not check or pr">
+    <validate>Verify current status is `finalize`</validate>
+    <branch condition="status is not finalize">
       <action>Use AskUserQuestion tool with:
         - header: "Continue?"
-        - question: "Task is in {status} status. Expected: check or pr. Continue with rework anyway?"
+        - question: "Task is in {status} status. Expected: finalize. Continue with rework anyway?"
         - options:
           - label: "Yes", description: "Proceed with rework despite unexpected status"
           - label: "No", description: "Cancel and check task status first"
@@ -172,9 +171,13 @@ See `.festinalente/workflow.yaml` for column definitions and valid transitions.
     </example_code>
   </step>
 
-  <step name="close_pr" when="status was `pr`">
-    <command>gh pr close</command>
-    <output>PR closed</output>
+  <step name="close_pr" when="PR exists for this branch">
+    <note>Check if a PR was created (via github directive) and close it if needed</note>
+    <command>gh pr view task/{taskId} --json state 2>/dev/null || echo "no-pr"</command>
+    <branch condition="PR exists and is open">
+      <command>gh pr close</command>
+      <output>PR closed</output>
+    </branch>
   </step>
 
   <!-- ============================================ -->
@@ -306,13 +309,11 @@ Let me gather the details needed for a proper issue report.
   <step name="update_plan_with_iteration">
     <note>Following template at `.festinalente/templates/plan.xml`</note>
     <action>Increment `iteration` attribute in plan XML</action>
-    <action>Determine phase name based on original status:
-- `check` → "Check"
-- `pr` → "PR"</action>
+    <action>Set phase name to "Finalize"</action>
     <action>Add to `<iterations>` section</action>
 
     <example_code lang="xml">
-<iteration number="{n}" phase="{check|pr}" result="failed" date="{YYYY-MM-DD}">
+<iteration number="{n}" phase="finalize" result="failed" date="{YYYY-MM-DD}">
   <issue type="{issueType}" severity="{severity}">
     <summary>{one-line summary}</summary>
     <expected>{expected behavior or target}</expected>
@@ -331,7 +332,7 @@ Let me gather the details needed for a proper issue report.
   </step>
 
   <step name="move_to_in_progress">
-    <action>Change `status: {check|pr}` to `status: in-progress`</action>
+    <action>Change `status: finalize` to `status: in-progress`</action>
     <action>Add `updated: {YYYY-MM-DD}`</action>
     <action>Write updated task file</action>
   </step>
@@ -399,10 +400,10 @@ The issue report has been added to the plan file. When you resume implementation
 /festina-implement {taskId}
 ```
 
-Then re-verify:
+Then finalize:
 ```
 /clear
-/festina-check {taskId}
+/festina-finalize {taskId}
 ```
     </output>
     ## Final Validation
@@ -413,7 +414,7 @@ Then re-verify:
     
     If validation fails, fix the reported errors before completing.
     
-    <output>[KANBAN_COMPLETE]</output>
+    <output>[FESTINA_COMPLETE]</output>
   </step>
 </process>
 
@@ -429,12 +430,12 @@ Then re-verify:
 - Next steps shown to user
 </success_criteria>
 
-<example label="Bug from QA">
+<example label="Bug found during finalize">
 User: `/festina-rework 007`
 
 ```
 Task: 007 - Add user authentication
-Status: check
+Status: finalize
 
 What type of issue was found?
 > Bug
@@ -501,7 +502,7 @@ User: `/festina-rework 008`
 
 ```
 Task: 008 - Add password reset flow
-Status: check
+Status: finalize
 
 What type of issue was found?
 > Incomplete
@@ -607,9 +608,9 @@ Fix the issues (see plan's iterations section):
 /festina-implement {id}
 ```
 
-Then re-verify:
+Then finalize:
 ```
 /clear
-/festina-check {id}
+/festina-finalize {id}
 ```
 </next_steps>

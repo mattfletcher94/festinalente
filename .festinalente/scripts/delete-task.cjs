@@ -39,7 +39,7 @@ function main() {
 	const id = args[0];
 	if (!fs.default.existsSync(TASKS_DIR)) outputResult({
 		error: true,
-		message: `${TASKS_DIR}/ directory not found. Run npx claude-kanban first.`
+		message: `${TASKS_DIR}/ directory not found. Run npx festinalente first.`
 	}, 1);
 	const taskPath = findTaskFile(id);
 	if (!taskPath) outputResult({

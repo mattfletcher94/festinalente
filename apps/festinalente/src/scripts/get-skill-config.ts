@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-// Get skill configuration for a specific kanban command
+// Get skill configuration for a specific festina command
 // Usage: node get-skill-config.cjs <skill>
-// Example: node get-skill-config.cjs kanban-implement
+// Example: node get-skill-config.cjs festina-implement
 // Returns JSON with directives for the skill
 
 import fs from 'fs';
@@ -33,7 +33,7 @@ function main(): void {
   if (args.length === 0) {
     console.log(JSON.stringify({
       error: true,
-      message: 'Usage: get-skill-config.cjs <skill> (e.g., kanban-implement)'
+      message: 'Usage: get-skill-config.cjs <skill> (e.g., festina-implement)'
     }));
     process.exit(1);
   }
@@ -43,7 +43,7 @@ function main(): void {
   if (!fs.existsSync(CONFIG_FILE)) {
     console.log(JSON.stringify({
       error: true,
-      message: `${CONFIG_FILE} not found. Run npx claude-kanban first.`
+      message: `${CONFIG_FILE} not found. Run npx festinalente first.`
     }));
     process.exit(1);
   }

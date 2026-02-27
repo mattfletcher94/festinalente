@@ -67,7 +67,7 @@
     <rule id="P-A5" phase="implement">
       Create domain orchestrators in orchestrators/ directory when adding new domains
     </rule>
-    <rule id="P-A6" phase="check">
+    <rule id="P-A6" phase="finalize">
       Verify orchestrator size - if >300 lines, plan decomposition into domain orchestrators
     </rule>
     <rule id="P-T1" phase="implement">
@@ -85,13 +85,13 @@
     <rule id="P-D2" phase="implement">
       Include @param, @returns, and @throws tags where applicable
     </rule>
-    <rule id="P-R1" phase="check">
+    <rule id="P-R1" phase="finalize">
       Scan for forbidden patterns before any manual review
     </rule>
-    <rule id="P-R2" phase="check">
+    <rule id="P-R2" phase="finalize">
       Check architectural classification of all new/modified modules
     </rule>
-    <rule id="P-B1" phase="check">
+    <rule id="P-B1" phase="finalize">
       Run all relevant build commands for modified packages
     </rule>
     <rule id="P-B2" phase="implement">

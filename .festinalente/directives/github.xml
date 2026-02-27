@@ -28,7 +28,7 @@
     </principle>
   </context>
 
-  <override phase="merge">
+  <override phase="finalize">
     <skip step="merge_branch"/>
     <skip step="cleanup_branch"/>
     <reason>GitHub PR workflow replaces local git merge</reason>
@@ -54,14 +54,14 @@
         4. Output: "Created GitHub Issue #N"
     </rule>
 
-    <rule id="M-G1" phase="merge">
+    <rule id="M-G1" phase="finalize">
       STATE CHECK: Read task.xml, check for github-pr attribute.
 
       No github-pr → Go to M-G2 (create PR)
       Has github-pr → Go to M-G3 (check status)
     </rule>
 
-    <rule id="M-G2" phase="merge">
+    <rule id="M-G2" phase="finalize">
       CREATE PR:
       1. git push -u origin task/{taskId}
       2. Get owner/repo from git remote
@@ -75,7 +75,7 @@
       7. EXIT skill
     </rule>
 
-    <rule id="M-G3" phase="merge">
+    <rule id="M-G3" phase="finalize">
       CHECK PR STATUS via mcp__GitHub__pull_request_read (method: "get"):
 
       - state="merged" → Go to M-G4
@@ -86,7 +86,7 @@
       - else → Prompt: "Awaiting review or checks", EXIT
     </rule>
 
-    <rule id="M-G4" phase="merge">
+    <rule id="M-G4" phase="finalize">
       PR ALREADY MERGED (cleanup):
       1. Update task: status="done", add completed date
       2. Commit: "docs({taskId}): done"
@@ -96,7 +96,7 @@
       6. EXIT
     </rule>
 
-    <rule id="M-G5" phase="merge">
+    <rule id="M-G5" phase="finalize">
       MERGE APPROVED PR:
       1. Prompt: "PR approved. Ready to merge? [Merge now] [Wait]"
       2. If merge: mcp__GitHub__merge_pull_request (merge_method: "rebase")

@@ -325,7 +325,7 @@ gh pr create --title "quick({quickId}): {title}"
 ```
       </output>
     </branch>
-    <output>[KANBAN_COMPLETE]</output>
+    <output>[FESTINA_COMPLETE]</output>
   </step>
 </process>
 
@@ -390,7 +390,7 @@ Merged quick/000 into main.
 - Commit: a1b2c3d
 - Files: src/components/LoginButton.tsx
 
-[KANBAN_COMPLETE]
+[FESTINA_COMPLETE]
 ```
 
 **With research:**

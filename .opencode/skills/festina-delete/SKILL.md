@@ -171,7 +171,7 @@ Permanently delete a task from the festina board. Only tasks in Backlog status c
     
     If validation fails, fix the reported errors before completing.
     
-    <output>[KANBAN_COMPLETE]</output>
+    <output>[FESTINA_COMPLETE]</output>
   </step>
 </process>
 
@@ -204,7 +204,7 @@ Commit: a1b2c3d docs(005): delete - Fix typo in README
 
 Task 005 deleted successfully.
 
-[KANBAN_COMPLETE]
+[FESTINA_COMPLETE]
 ```
 </example>
 

@@ -279,7 +279,28 @@ Run directive checks, commit implementation, update docs, and complete the task.
     {{> load-directives skill="finalize"}}
   </step>
 
-  <!-- PHASE 1: VALIDATE -->
+  <step name="detect_resume_state">
+    <note>Check what's already been done (for resumability)</note>
+    <command>git log --oneline -1</command>
+    <action>Check if last commit matches patterns:</action>
+    <branch condition="last commit is 'docs({id}): done'">
+      <output>Task already complete!</output>
+      <action>Exit</action>
+    </branch>
+    <branch condition="last commit is 'docs({id}): product/engineering'">
+      <note>Docs committed, skip to Phase 3</note>
+      <action>Set resumeFrom = "phase3"</action>
+    </branch>
+    <branch condition="last commit is '{type}({id}): {title}'">
+      <note>Implementation committed, skip to Phase 2</note>
+      <action>Set resumeFrom = "phase2"</action>
+    </branch>
+    <branch condition="else">
+      <action>Set resumeFrom = "phase1"</action>
+    </branch>
+  </step>
+
+  <!-- PHASE 1: VALIDATE (skip if resumeFrom > phase1) -->
   <step name="verify_plan_completion">
     <action>Read checks.md for detailed guidance</action>
     <command>node .festinalente/scripts/find-plan.cjs {taskId}</command>
@@ -350,16 +371,44 @@ Run directive checks, commit implementation, update docs, and complete the task.
   </step>
 
   <!-- PHASE 3: COMPLETE -->
-  <step name="push_branch">
-    <command>git push -u origin task/{taskId}</command>
+  <step name="check_already_pushed">
+    <command>git log origin/task/{taskId}..HEAD --oneline 2>/dev/null</command>
+    <branch condition="no new commits (already pushed)">
+      <note>Resuming - skip to merge confirmation</note>
+      <action>Go to prompt_merge_confirmation</action>
+    </branch>
+    <branch condition="has new commits OR remote doesn't exist">
+      <command>git push -u origin task/{taskId}</command>
+    </branch>
+  </step>
+
+  <step name="verify_ready_to_merge">
+    <command>git log main..HEAD --oneline</command>
+    <output>Show commits to be merged</output>
+  </step>
+
+  <step name="prompt_merge_confirmation">
+    <note>DEFAULT behavior. Directives can override (e.g., github.xml skips this, uses PR approval instead)</note>
+    <action>Use AskUserQuestion tool with:
+      - header: "Merge?"
+      - question: "Ready to merge this branch into main?"
+      - options:
+        - label: "Yes", description: "Merge branch task/{taskId} into main"
+        - label: "No", description: "Cancel - I'll merge later"
+      - multiSelect: false
+    </action>
+    <branch condition="user selects No">
+      <output>Branch pushed. Run /festina-finalize {taskId} again when ready to merge.</output>
+      <action>Exit</action>
+    </branch>
   </step>
 
   <step name="complete_task">
-    <note>DEFAULT: Local merge. Directives can override (e.g., github.xml → PR workflow)</note>
     <command>git checkout main</command>
     <command>git merge task/{taskId} --no-ff</command>
     <command>git branch -d task/{taskId}</command>
     <action>Update task status to done, add completed date</action>
+    <action>Commit: docs({taskId}): done - {title}</action>
   </step>
 
   {{> directive-compliance}}
@@ -728,21 +777,67 @@ festina-finalize: [coding, gitlab]   # User with GitLab integration
   - Output messaging: "Next: /festina-finalize {id}"
   - Remove references to /festina-check
 
-### Phase 4: Config Updates
+### Phase 4: Config & Workflow Updates
+
+**Config files:**
 - [ ] Update `.festinalente/config.yaml`:
   - Remove: festina-check, festina-docs, festina-merge
   - Add: festina-finalize: []  (directives are user-configured)
-- [ ] Update workflow columns:
-  - Remove: CHECK, UPDATE-DOCS, PR
-  - Add: FINALIZE
-  - Transitions: IN-PROGRESS → FINALIZE → DONE
 
-### Phase 5: Directive Updates (in this repo's .festinalente/directives/)
-- [ ] Update `coding.xml`: phase="check" → phase="finalize"
-- [ ] Update `github.xml`: phase="merge" → phase="finalize"
-- [ ] Note: These are THIS repo's directives, not part of the distributed skill
+**Templates:**
+- [ ] Update `apps/festinalente/src/content/templates/config.yaml` (lines 18-20):
+  - Remove: `festina-check`, `festina-docs`, `festina-merge`
+  - Add: `festina-finalize: []`
 
-### Phase 6: VSCode Extension Updates
+**Workflow definition (source of truth):**
+- [ ] Update `apps/festinalente/src/content/workflow.yaml`:
+  - Remove columns: `check`, `update-docs`, `pr` (lines 18-26)
+  - Add column: `finalize` with description "Validation, documentation, and completion"
+  - Update transitions (lines 62-65):
+    - `in-progress: [finalize]`
+    - `finalize: [done, in-progress]` (complete or rework)
+  - Update commits section (lines 73-76):
+    - Remove: `check-retry`, `check`, `docs`
+    - Add: `finalize: "{commit-type}({id}): {title}"` and `finalize-docs: "docs({id}): {description}"`
+
+### Phase 5: Other Skills Updates
+
+**festina-rework** (`apps/festinalente/src/content/skills/festina-rework/SKILL.md`):
+- [ ] Update column transitions comment (lines 21-25): `check → in-progress` and `pr → in-progress` → `finalize → in-progress`
+- [ ] Update task listing (line 45): `check` or `pr` status → `finalize` status
+- [ ] Update validation (line 62): status is `check` or `pr` → status is `finalize`
+- [ ] Update phase name logic (lines 232-233): Remove check/pr distinction
+- [ ] Update next steps (lines 290-292, 487-492): `/festina-check` → `/festina-finalize`
+
+**festina-overview** (`apps/festinalente/src/content/skills/festina-overview/SKILL.md`):
+- [ ] Update active states (line 59): `check, update-docs, pr` → `finalize`
+- [ ] Update column order note (line 97): Remove `check, update-docs, pr`, add `finalize`
+- [ ] Update board overview output (lines 106-113): Remove Check/Update Docs/PR sections, add Finalize
+- [ ] Update visual board column list (lines 137-145): Replace old columns with `finalize`
+- [ ] Update next command suggestions (lines 286-293):
+  - Remove: `case check`, `case update-docs`, `case pr`
+  - Add: `case finalize` → `/festina-finalize {taskId}` or `/festina-rework {taskId}`
+- [ ] Update examples (lines 324, 338-340, 364-366): Replace old column names
+
+### Phase 6: Directive Updates (in this repo's .festinalente/directives/)
+
+**coding.xml:**
+- [ ] Line 70: `<rule id="P-A6" phase="check">` → `phase="finalize"`
+- [ ] Line 88: `<rule id="P-R1" phase="check">` → `phase="finalize"`
+- [ ] Line 91: `<rule id="P-R2" phase="check">` → `phase="finalize"`
+- [ ] Line 94: `<rule id="P-B1" phase="check">` → `phase="finalize"`
+
+**github.xml:**
+- [ ] Line 31: `<override phase="merge">` → `phase="finalize"`
+- [ ] Line 57: `<rule id="M-G1" phase="merge">` → `phase="finalize"`
+- [ ] Line 64: `<rule id="M-G2" phase="merge">` → `phase="finalize"`
+- [ ] Line 78: `<rule id="M-G3" phase="merge">` → `phase="finalize"`
+- [ ] Line 89: `<rule id="M-G4" phase="merge">` → `phase="finalize"`
+- [ ] Line 99: `<rule id="M-G5" phase="merge">` → `phase="finalize"`
+
+**Note:** These are THIS repo's directives, not part of the distributed skill. Users with their own directives will need to update them similarly.
+
+### Phase 7: VSCode Extension Updates
 
 The VSCode extension has hardcoded status values that must be updated.
 
@@ -767,9 +862,65 @@ The VSCode extension has hardcoded status values that must be updated.
 
 - [ ] Rebuild extension: `pnpm --filter @mattfletcher94/festinalente-vscode build`
 
-### Phase 7: Rebuild & Documentation
-- [ ] Run build to regenerate `.claude/skills/`, `.opencode/skills/`, `dist/skills/`
-- [ ] Update product docs for new 2-command workflow
+### Phase 8: Product Documentation Updates
+
+**Task domain docs** (`.festinalente/product/tasks/`):
+
+- [ ] **Delete** `.festinalente/product/tasks/check.md` (replaced by finalize)
+- [ ] **Create** `.festinalente/product/tasks/finalize.md`:
+  - Document the new finalize skill
+  - Cover all 3 phases: validate, document, complete
+  - Include mermaid diagram showing the flow
+  - Update code_refs to point to new skill location
+
+- [ ] **Update** `.festinalente/product/tasks/workflow.md`:
+  - Line 5: tldr "8-column" → "6-column"
+  - Line 6: summary - remove "check, update-docs, pr", add "finalize"
+  - Lines 30-43: Update mermaid stateDiagram:
+    - Remove: Check, UpdateDocs, PR states
+    - Add: Finalize state
+    - Update transitions
+  - Lines 45-52: Update workflow description
+  - Lines 57-61: Update happy path and rework paths
+  - Lines 71-78: Update transitions YAML example
+  - Lines 81-88: Update edge case example
+
+- [ ] **Update** `.festinalente/product/tasks/_index.md`:
+  - Line 6: summary - remove "check, update-docs, pr", add "finalize"
+  - Line 10: contains array - replace `tasks/check` with `tasks/finalize`
+  - Line 22: "9-column workflow" → "6-column workflow"
+  - Line 46: table - replace check row with finalize row
+  - Lines 62-64: Update mermaid diagram (remove Check/Update Docs/PR, add Finalize)
+  - Line 75: Update column list
+
+- [ ] **Update** `.festinalente/product/tasks/rework.md` (if exists):
+  - Update references to check/pr columns → finalize
+  - Update next step suggestions
+
+### Phase 9: README Updates
+
+**README.md** (root):
+- [ ] Update workflow diagram (line 28):
+  - FROM: `BACKLOG → SCOPED → PLANNED → IN PROGRESS → CHECK → UPDATE DOCS → PR → DONE`
+  - TO: `BACKLOG → SCOPED → PLANNED → IN PROGRESS → FINALIZE → DONE`
+- [ ] Remove `/festina-check` section (lines 87-98)
+- [ ] Remove `/festina-docs` section (lines 100-111)
+- [ ] Remove `/festina-merge` section (lines 113-119)
+- [ ] Add `/festina-finalize` section describing the consolidated command
+- [ ] Update config.yaml example (lines 241-242): Remove `festina-check`, add `festina-finalize`
+- [ ] Update command reference table (lines 289-301):
+  - Remove: `/festina-check`, `/festina-docs`, `/festina-merge`
+  - Add: `/festina-finalize` with description "Validate, document, and complete task"
+
+### Phase 10: Rebuild & Final Verification
+- [ ] Run full build: `pnpm build` to regenerate:
+  - `.claude/skills/` - Built Claude Code skills
+  - `.opencode/skills/` - Built OpenCode skills
+  - `apps/festinalente/dist/` - Distribution package
+- [ ] Verify no references to old skills remain: `grep -r "festina-check\|festina-docs\|festina-merge" .claude .opencode`
+- [ ] Verify no references to old columns remain: `grep -r "'check'\|'update-docs'\|'pr'" apps/vscode/src`
+- [ ] Test the new workflow end-to-end with a sample task
+- [ ] Update any product docs in `.festinalente/product/` that describe the workflow
 
 ---
 

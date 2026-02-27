@@ -257,7 +257,7 @@ Save partial implementation progress when interrupted. Task stays in In Progress
     
     If validation fails, fix the reported errors before completing.
     
-    <output>[KANBAN_COMPLETE]</output>
+    <output>[FESTINA_COMPLETE]</output>
   </step>
 </process>
 

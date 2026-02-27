@@ -70,7 +70,7 @@ function main(): void {
   if (!fs.existsSync(TASKS_DIR)) {
     outputResult({
       error: true,
-      message: `${TASKS_DIR}/ directory not found. Run npx claude-kanban first.`
+      message: `${TASKS_DIR}/ directory not found. Run npx festinalente first.`
     }, 1);
   }
 

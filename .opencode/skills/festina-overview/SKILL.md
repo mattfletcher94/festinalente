@@ -61,7 +61,7 @@ No tasks found.
       
       If validation fails, fix the reported errors before completing.
       
-      <output>[KANBAN_COMPLETE]</output>
+      <output>[FESTINA_COMPLETE]</output>
     </branch>
   </step>
 
@@ -83,7 +83,7 @@ No tasks found.
   <!-- ============================================ -->
 
   <step name="show_current_status" when="user selected 'Current status'">
-    <action>Find tasks in active states: in-progress, check, update-docs, pr</action>
+    <action>Find tasks in active states: in-progress, finalize</action>
     <action>For in-progress tasks, read plan.xml and count progress</action>
 
     <branch condition="no active tasks">
@@ -106,7 +106,7 @@ No tasks in progress.
       
       If validation fails, fix the reported errors before completing.
       
-      <output>[KANBAN_COMPLETE]</output>
+      <output>[FESTINA_COMPLETE]</output>
     </branch>
 
     <output>
@@ -127,7 +127,7 @@ No tasks in progress.
     
     If validation fails, fix the reported errors before completing.
     
-    <output>[KANBAN_COMPLETE]</output>
+    <output>[FESTINA_COMPLETE]</output>
   </step>
 
   <!-- ============================================ -->
@@ -137,7 +137,7 @@ No tasks in progress.
   <step name="show_board_overview" when="user selected 'Board overview'">
     <action>Group tasks by status</action>
     <action>For in-progress tasks, read plan and count progress</action>
-    <note>Order columns by workflow: in-progress, check, update-docs, pr, planned, scoped, backlog, done</note>
+    <note>Order columns by workflow: in-progress, finalize, planned, scoped, backlog, done</note>
     <note>Only show columns that have tasks</note>
 
     <output>
@@ -175,7 +175,7 @@ No tasks in progress.
     
     If validation fails, fix the reported errors before completing.
     
-    <output>[KANBAN_COMPLETE]</output>
+    <output>[FESTINA_COMPLETE]</output>
   </step>
 
   <!-- ============================================ -->
@@ -223,7 +223,7 @@ Done ({count} tasks)
     
     If validation fails, fix the reported errors before completing.
     
-    <output>[KANBAN_COMPLETE]</output>
+    <output>[FESTINA_COMPLETE]</output>
   </step>
 
   <!-- ============================================ -->
@@ -257,7 +257,7 @@ Done ({count} tasks)
       
       If validation fails, fix the reported errors before completing.
       
-      <output>[KANBAN_COMPLETE]</output>
+      <output>[FESTINA_COMPLETE]</output>
     </branch>
 
     <branch condition="input mentions priority (e.g. 'high priority', 'urgent')">
@@ -280,7 +280,7 @@ Done ({count} tasks)
       
       If validation fails, fix the reported errors before completing.
       
-      <output>[KANBAN_COMPLETE]</output>
+      <output>[FESTINA_COMPLETE]</output>
     </branch>
 
     <branch condition="input asks about git history">
@@ -300,7 +300,7 @@ Done ({count} tasks)
       
       If validation fails, fix the reported errors before completing.
       
-      <output>[KANBAN_COMPLETE]</output>
+      <output>[FESTINA_COMPLETE]</output>
     </branch>
 
     <branch condition="cannot determine intent">
@@ -318,7 +318,7 @@ I didn't understand "{input}". You can:
       
       If validation fails, fix the reported errors before completing.
       
-      <output>[KANBAN_COMPLETE]</output>
+      <output>[FESTINA_COMPLETE]</output>
     </branch>
   </step>
 
@@ -340,7 +340,7 @@ I didn't understand "{input}". You can:
       
       If validation fails, fix the reported errors before completing.
       
-      <output>[KANBAN_COMPLETE]</output>
+      <output>[FESTINA_COMPLETE]</output>
     </branch>
 
     <action>Extract title, status, labels, priority from task XML</action>
@@ -382,8 +382,8 @@ I didn't understand "{input}". You can:
     <branch condition="status is in-progress">
       <output>**Next:** `/festina-implement {taskId}` (resume)</output>
     </branch>
-    <branch condition="status is check">
-      <output>**Next:** `/festina-check {taskId}` or `/festina-rework {taskId}`</output>
+    <branch condition="status is finalize">
+      <output>**Next:** `/festina-finalize {taskId}` or `/festina-rework {taskId}`</output>
     </branch>
     <branch condition="status is update-docs">
       <output>**Next:** `/festina-docs {taskId}`</output>
@@ -403,7 +403,7 @@ I didn't understand "{input}". You can:
     
     If validation fails, fix the reported errors before completing.
     
-    <output>[KANBAN_COMPLETE]</output>
+    <output>[FESTINA_COMPLETE]</output>
   </step>
 </process>
 
@@ -428,7 +428,7 @@ User: `/festina-overview`
 
 **005: Fix login redirect**
 - Status: check
-- Next: `/festina-check 005` or `/festina-rework 005`
+- Next: `/festina-finalize 005` or `/festina-rework 005`
 ```
 </example>
 
