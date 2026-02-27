@@ -2,20 +2,21 @@
 id: "vscode/kanban-view"
 title: "Kanban View"
 type: feature
-tldr: "Sidebar tree view displaying tasks grouped by workflow column, quick tasks, config access, global actions, and documentation browsers"
-summary: "VSCode TreeDataProvider showing tasks organized by status (backlog, scoped, planned, in-progress, etc.) with priority indicators, labels, and file status. Includes QUICKS section for quick tasks, Kanban Config, Global Actions, Product Docs, and Engineering Docs sections."
-keywords: [kanban, view, treeview, sidebar, columns, status, config, global-actions, product-docs, engineering-docs, quicks, quick-tasks]
+tldr: "Sidebar tree view displaying tasks grouped by workflow column, quick tasks, config access, directives, and documentation browsers"
+summary: "VSCode TreeDataProvider showing tasks organized by status (backlog, scoped, planned, in-progress, etc.) with priority indicators, labels, and file status. Includes QUICKS section for quick tasks, Kanban Config, Directives, Product Docs, and Engineering Docs sections."
+keywords: [kanban, view, treeview, sidebar, columns, status, config, directives, product-docs, engineering-docs, quicks, quick-tasks]
 aliases: [task-view, kanban-board, tasks-view]
 boundary: "Does NOT provide drag-and-drop; tasks move via commands"
 related: [vscode/codelens, vscode/terminal, tasks/workflow]
-updated: 2026-02-25
-verified: 2026-02-25
+updated: 2026-02-27
+verified: 2026-02-27
 code_refs:
   - apps/vscode/src/extension.ts
   - apps/vscode/src/capabilities/tasks-view.capability.ts
   - apps/vscode/src/capabilities/quicks-view.capability.ts
   - apps/vscode/src/capabilities/config-view.capability.ts
   - apps/vscode/src/capabilities/global-actions-view.capability.ts
+  - apps/vscode/src/capabilities/directives-view.capability.ts
   - apps/vscode/src/capabilities/docs-view.capability.ts
   - apps/vscode/package.json
 ---
@@ -28,7 +29,7 @@ code_refs:
 
 Kanban View provides a sidebar TreeView showing all tasks organized by their workflow status. Each column (backlog, scoped, planned, in-progress, check, update-docs, pr, done) expands to show tasks with priority indicators and labels. Clicking a task opens its task.xml file.
 
-The sidebar also includes a "QUICKS" section for quick tasks (fast implementation for simple fixes), a "Kanban Config" section for quick access to config.yaml, a "Global Actions" section providing project-wide commands like documentation mapping, and "Product Docs" and "Engineering Docs" sections for browsing documentation directly from the sidebar.
+The sidebar also includes a "QUICKS" section for quick tasks (fast implementation for simple fixes), a "Kanban Config" section for quick access to config.yaml, a "Directives" section showing workflow-to-directive assignments from config.yaml, and "Product Docs" and "Engineering Docs" sections for browsing documentation directly from the sidebar.
 
 **Summary:** Visual task organization matching the workflow columns, plus quicks, config, global actions, and documentation browsers.
 
@@ -118,6 +119,14 @@ The QUICKS view automatically refreshes when files change in `.kanban/quick/`.
 - Clicking opens config.yaml in the editor
 - Shows welcome message when config.yaml doesn't exist
 - Automatically refreshes when config.yaml is created, modified, or deleted
+
+**Directives section:**
+- Displays workflows from config.yaml's directives section
+- Each workflow shows as a collapsible row with the workflow name (e.g., "Scope" for festina-scope)
+- Expanding a workflow reveals its assigned directives as children
+- Clicking a directive opens its XML file in the editor
+- Missing directive files show a warning icon and are non-clickable
+- Automatically refreshes when config.yaml or directive files change
 
 **Global Actions section:**
 - Provides project-wide commands not tied to specific tasks
@@ -233,6 +242,28 @@ KANBAN CONFIG
 ```
 
 Clicking config.yaml opens it in the editor.
+
+### Directives Section
+
+```
+DIRECTIVES
+├── ▶ Create                     ← WorkflowItem (collapsible)
+│   ├── coding                   ← DirectiveItem (clickable, opens XML)
+│   └── github                   ← DirectiveItem (clickable, opens XML)
+├── ▶ Scope (2 directives)
+│   └── coding
+├── ▶ Plan (1 directive)
+│   └── coding
+├── ▼ Quick (No directives)      ← Collapsed, no children
+└── ▶ Finalize (2 directives)
+    ├── coding
+    └── github
+```
+
+- Workflow names are formatted (festina-scope → "Scope")
+- Directive count shown in description (e.g., "2 directives")
+- Clicking a directive opens its `.festinalente/directives/{name}.xml` file
+- Missing directives show warning icon (⚠) instead of symbol-ruler
 
 ### Global Actions Section
 
