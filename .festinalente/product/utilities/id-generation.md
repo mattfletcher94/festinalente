@@ -9,6 +9,10 @@ aliases: [next-id, task-id, id-generator]
 boundary: "Does NOT create task files; only returns next available ID with slug"
 related: [tasks/create]
 updated: 2026-02-27
+verified: 2026-02-27
+code_refs:
+  - apps/festinalente/src/scripts/next-id.ts
+  - apps/festinalente/src/scripts/find-task.ts
 ---
 
 # ID Generation
