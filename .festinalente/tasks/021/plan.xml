@@ -52,7 +52,7 @@
   </inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-02-27T10:56:13.577Z">
       <name>Add slugify dependency</name>
       <files>apps/festinalente/package.json (modify)</files>
       <requirements>FR2</requirements>
@@ -84,7 +84,7 @@
       <done>slugify package installed and available for import</done>
     </task>
 
-    <task id="2" type="auto" depends="1">
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-02-27T10:58:00.000Z">
       <name>Update next-id.ts to generate slug-based IDs</name>
       <files>apps/festinalente/src/scripts/next-id.ts (modify)</files>
       <requirements>FR1, FR2, FR3, FR4</requirements>
@@ -146,7 +146,7 @@
       <done>next-id.ts generates slug-based IDs in format {number}-{slug}</done>
     </task>
 
-    <task id="3" type="auto" depends="2">
+    <task id="3" type="auto" depends="2" completed="true" completed_at="2026-02-27T11:00:00.000Z">
       <name>Update find-task.ts to extract numeric portion from slug IDs</name>
       <files>apps/festinalente/src/scripts/find-task.ts (modify)</files>
       <requirements>FR5</requirements>
@@ -210,7 +210,7 @@
       <done>find-task.ts can locate tasks by numeric prefix (021) or full slug ID (021-support-task-id-slugs)</done>
     </task>
 
-    <task id="4" type="auto" depends="2">
+    <task id="4" type="auto" depends="2" completed="true" completed_at="2026-02-27T11:02:00.000Z">
       <name>Update list-tasks.ts to handle slug folder names</name>
       <files>apps/festinalente/src/scripts/list-tasks.ts (modify)</files>
       <requirements>FR5, FR6</requirements>
@@ -241,7 +241,7 @@
       <done>list-tasks.ts correctly lists tasks with both numeric and slug folder names</done>
     </task>
 
-    <task id="5" type="auto" depends="2">
+    <task id="5" type="auto" depends="2" completed="true" completed_at="2026-02-27T11:08:00.000Z">
       <name>Update festina-create skill to pass title to next-id</name>
       <files>.claude/skills/festina-create/SKILL.md (modify)</files>
       <requirements>FR1, FR4</requirements>
@@ -276,7 +276,7 @@
       <done>festina-create skill passes task title to next-id script</done>
     </task>
 
-    <task id="6" type="auto" depends="2">
+    <task id="6" type="auto" depends="2" completed="true" completed_at="2026-02-27T11:10:00.000Z">
       <name>Update id-generation product documentation</name>
       <files>.festinalente/product/utilities/id-generation.md (modify)</files>
       <requirements>FR1, FR2, FR3, FR4</requirements>
@@ -300,7 +300,7 @@
       <done>Product documentation reflects slug-based ID format</done>
     </task>
 
-    <task id="7" type="manual" depends="3,4,5,6">
+    <task id="7" type="manual" depends="3,4,5,6" completed="true" completed_at="2026-02-27T11:15:00.000Z">
       <name>Final verification</name>
       <files>N/A</files>
       <requirements>FR1, FR2, FR3, FR4, FR5, FR6</requirements>
