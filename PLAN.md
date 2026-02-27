@@ -1,723 +1,856 @@
-# PLAN: GitHub Integration Directive
+# Workflow Consolidation Plan
 
-## Status: Design Complete
+## Status: Ready for Implementation
 
-## Context
-
-**Festina Lente** is a spec-driven development framework for AI coding assistants (Claude Code, OpenCode). It uses XML files (task.xml, spec.xml, plan.xml) to guide LLMs through structured workflows via "skills" (slash commands like `/festina-create`, `/festina-merge`).
-
-**Directives** are XML files that add rules to skills. They're loaded at runtime and the LLM follows them as requirements.
-
-**Source files** are in `apps/festinalente/src/`. After changes, run `pnpm build` to compile to `.festinalente/` and `.claude/`.
-
-## Prerequisites (Already Done)
-
-- GitHub MCP server connected: `claude mcp add --transport http GitHub "https://api.githubcopilot.com/mcp" -H "Authorization: Bearer $GITHUB_TOKEN"`
-- `GITHUB_TOKEN` in `.env` at project root
-- MCP tools available: `mcp__GitHub__*`
-
-## Problem Statement
-
-Users want visibility into Festina tasks through GitHub's UI (Issues, PRs, Projects) while keeping the LLM-optimized XML format as the source of truth.
-
-**Key constraints:**
-- Bi-directional sync is hard (state can drift)
-- Team workflows require PR approvals before merge
-- Solution must be optional (directive-based, not core)
+This document tracks the planning and implementation of consolidating the festina/kanban workflow from a 4-step post-implementation process to a 2-step process.
 
 ---
 
-## Solution: GitHub Directive
+## Current State Analysis
 
-A directive that modifies `festina-create` and `festina-merge` to integrate with GitHub Issues and PRs via MCP.
+### Existing Workflow (Post-Implementation)
 
-### Core Principles
+```
+implement → check → docs → merge → DONE
+     │         │       │       │
+     │         │       │       └─ Create PR, wait for approval, merge (github directive)
+     │         │       └─ Update product/engineering docs, push branch
+     │         └─ Run validations, QA approval, commit code
+     └─ Execute plan steps, leave code uncommitted
+```
 
-1. **GitHub Issues** = Human-readable view of tasks
-2. **GitHub PRs** = Code review and approval workflow
-3. **State lives in GitHub** = No sync problems (LLM reads GitHub state each run)
-4. **Stateless & resumable** = User can close terminal, run command again anytime
+### Current Column Progression
+```
+PLANNED → IN-PROGRESS → CHECK → UPDATE-DOCS → PR → DONE
+```
+
+### What Each Skill Currently Does
+
+| Skill | Input State | Key Actions | Output State | Commits |
+|-------|-------------|-------------|--------------|---------|
+| `festina-implement` | planned | Execute plan tasks, run per-task verification | in-progress → check | None (code uncommitted) |
+| `festina-check` | check | Run directive checks, verify requirements, prompt QA, auto-fix loop | update-docs | Yes: `feat/fix/refactor({id}): {title}` |
+| `festina-docs` | update-docs | Update product/eng docs, push branch | pr | Yes: `docs({id}): product - {desc}` |
+| `festina-merge` | pr | Create PR, check approval status, merge when approved | done | Yes: `docs({id}): done - {title}` |
+
+### Key Files
+- **Skills:** `.claude/skills/kanban-*/SKILL.md` (also `.claude/skills/festina-*/SKILL.md`)
+- **Config:** `.festinalente/config.yaml` - maps directives to skills
+- **Directives:** `.festinalente/directives/*.xml` - especially `github.xml` for PR workflow
+- **Workflow:** `.kanban/workflow.yaml` - column definitions and transitions
 
 ---
 
-## How Directives Work (Background)
+## Proposed Change
 
-Understanding how directives integrate with skills is critical for this design.
+### User's Core Insight
+> "The check→merge boundary is artificial - they're really one continuous 'finalize the work' phase"
 
-### Directive Loading Flow
-
+### Proposed New Workflow
 ```
-Skill starts (e.g., festina-merge)
-    │
-    ▼
-load_directives step
-    │
-    ├── Run: node .festinalente/scripts/get-skill-config.cjs festina-merge
-    ├── Returns: { directives: [{ name: "github", path: "...", exists: true }] }
-    │
-    └── For each directive where exists=true:
-        ├── Read the XML file
-        ├── <context> principles → Maintain as ongoing mindset
-        └── <process> rules where phase="merge" → Follow as REQUIREMENTS
-    │
-    ▼
-Skill executes its <process> steps
-    │
-    ├── LLM follows skill instructions
-    ├── LLM ALSO follows directive rules (they are requirements)
-    │
-    ▼
-directive_compliance step
-    │
-    └── Runs <validation> checks from directive
+implement → finalize → DONE
+     │          │
+     │          └─ Validate → Commit → Docs → Commit → PR → Merge
+     └─ Execute plan steps, leave code UNCOMMITTED
 ```
 
-### Key Insight: Directives ADD, They Don't Replace
+### Proposed Column Progression
+```
+PLANNED → IN-PROGRESS → FINALIZE → DONE
+```
 
-Directives add rules that the LLM must follow alongside the skill's own instructions. They don't automatically override skill behavior.
+**Columns removed:** `CHECK`, `UPDATE-DOCS`, `PR`
+**Column renamed/added:** `FINALIZE` (task is ready for `/festina-finalize`)
 
-**To achieve override behavior**, directive rules must be explicit:
-- "DO NOT perform X"
-- "SKIP step Y"
-- "INSTEAD OF Z, do W"
-
-The LLM is smart enough to resolve these instructions and skip conflicting skill steps.
+| After this skill... | Task status becomes |
+|---------------------|---------------------|
+| festina-implement | `finalize` |
+| festina-finalize | `done` |
 
 ---
 
-## Architecture
+## Open Questions (Socratic Discovery)
 
+### Q1: When Should Code Be Committed?
+
+**Current:** Code is committed in `festina-check` after QA approval.
+
+**REVISED DECISION:** Code committed in `festina-finalize` Phase 1, AFTER directive checks pass.
+
+**Constraint identified:** User does NOT want code committed before directive checks (build, lint, types) pass. But also doesn't want to bloat `implement` with check logic.
+
+**Solution:**
+- `implement` stays as-is: execute plan, verify spec, leave code **uncommitted**
+- `festina-finalize` Phase 1: run directive checks → auto-fix if needed → commit
+
+**Flow:**
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                      User's config.yaml                              │
-├─────────────────────────────────────────────────────────────────────┤
-│  directives:                                                         │
-│    festina-create:                                                   │
-│      - design                                                        │
-│      - github       ← Enables GitHub Issue creation                 │
-│    festina-merge:                                                    │
-│      - github       ← Enables PR workflow (replaces local merge)    │
-└─────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│              .festinalente/directives/github.xml                     │
-├─────────────────────────────────────────────────────────────────────┤
-│  • Issue creation/linking rules (additive)                          │
-│  • PR workflow rules (replaces local merge)                         │
-│  • Stateless state-machine for merge flow                           │
-└─────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                     GitHub MCP Server                                │
-├─────────────────────────────────────────────────────────────────────┤
-│  Tools: create_issue, get_issue, create_pull_request,               │
-│         pull_request_read, merge_pull_request, etc.                 │
-└─────────────────────────────────────────────────────────────────────┘
+implement (code uncommitted)
+    ↓
+festina-finalize Phase 1:
+    ├─ Run directive checks (coding.xml validations)
+    ├─ If fails: auto-fix loop
+    ├─ Prompt: "Checks passed. Ready to commit?"
+    └─ If Yes: commit with feat/fix/refactor({id}): {title}
 ```
+
+**Implications:**
+- `implement` stays lean (no check logic)
+- Nothing commits until checks pass (safety guarantee preserved)
+- Single "finalize" command handles everything post-implement
 
 ---
 
-## Workflow: festina-create
+### Q2: Where Does the QA Step Go?
 
-### Festina-First (create locally, push to GitHub)
+**Current:** QA happens in `festina-check` after automated checks pass.
 
-```
-/festina-create "Add logout button"
-    │
-    ├── Create task.xml locally (existing behavior)
-    │
-    └── GitHub directive:
-        ├── Create GitHub Issue
-        │   └── Title: "Add logout button"
-        │   └── Body: Raw XML content
-        ├── Store github-issue="#123" on task
-        └── Output: "Created GitHub Issue #123"
-```
+**Options:**
+1. **QA before PR** - User tests locally, approves, then PR is created
+2. **QA during PR review** - PR serves as the QA trigger, user reviews in PR context
+3. **QA is implicit** - Automated checks are sufficient; PR review replaces manual QA
 
-### GitHub-First (pull from existing issue)
+**Considerations:**
+- PR review provides a natural "pause and test" moment
+- Some users may want to QA before exposing to team
+- Automated checks catch most issues; human QA catches UX issues
 
-```
-/festina-create #456
-    │
-    └── GitHub directive:
-        ├── Fetch Issue #456 from GitHub
-        ├── Create task.xml from issue body
-        ├── Store github-issue="#456" on task
-        └── Continue normal festina-create flow
-```
+**Decision:** User handles QA themselves. The LLM ignores QA; user tests before running `/festina-finalize` if they want.
 
 ---
 
-## Workflow: festina-merge (Stateless State Machine)
+### Q3: What Validation Checks Run When?
 
-The directive makes festina-merge check GitHub state and prompt accordingly:
+**Current `festina-check` responsibilities:**
+- Run directive-configured automated checks (build, lint, type checks)
+- Pattern scanning for code violations
+- Requirements verification (trace spec to implementation)
+- Human QA prompt
+- Auto-fix loop with user approval
+- Commit code
 
-```
-/festina-merge 001
-       │
-       ▼
-   Read task.xml
-   Check for github-issue and github-pr attributes
-       │
-       ▼
-   ┌─────────────────────────────────────────────────────────────┐
-   │                    STATE MACHINE                             │
-   ├─────────────────────────────────────────────────────────────┤
-   │                                                              │
-   │  ┌──────────────────┐                                       │
-   │  │ No PR exists     │                                       │
-   │  └────────┬─────────┘                                       │
-   │           │                                                  │
-   │           ▼                                                  │
-   │  • Push branch to origin                                    │
-   │  • Create PR via MCP                                        │
-   │    └── Body: "Closes #123" (links to issue)                │
-   │  • Store github-pr="#456" on task                          │
-   │  • Prompt user:                                             │
-   │    ┌─────────────────────────────────────┐                 │
-   │    │ PR #456 created. Waiting for review │                 │
-   │    │                                     │                 │
-   │    │ [1] Open in browser                 │                 │
-   │    │ [2] Done for now                    │                 │
-   │    └─────────────────────────────────────┘                 │
-   │                                                              │
-   │  ┌──────────────────┐                                       │
-   │  │ PR pending review│                                       │
-   │  └────────┬─────────┘                                       │
-   │           │                                                  │
-   │           ▼                                                  │
-   │  • Check PR via MCP (approvals, checks)                    │
-   │  • Prompt user:                                             │
-   │    ┌─────────────────────────────────────┐                 │
-   │    │ PR #456 awaiting review (1/2)       │                 │
-   │    │                                     │                 │
-   │    │ [1] Open in browser                 │                 │
-   │    │ [2] Done for now                    │                 │
-   │    └─────────────────────────────────────┘                 │
-   │                                                              │
-   │  ┌──────────────────┐                                       │
-   │  │ PR approved ✓    │                                       │
-   │  └────────┬─────────┘                                       │
-   │           │                                                  │
-   │           ▼                                                  │
-   │  • Prompt user:                                             │
-   │    ┌─────────────────────────────────────┐                 │
-   │    │ PR #456 approved! Ready to merge.   │                 │
-   │    │                                     │                 │
-   │    │ [1] Merge now (recommended)         │                 │
-   │    │ [2] Wait                            │                 │
-   │    └─────────────────────────────────────┘                 │
-   │           │                                                  │
-   │           ▼ (if merge)                                      │
-   │  • Merge PR via MCP                                        │
-   │  • Issue #123 auto-closes (via "Closes #123")             │
-   │  • Update task status → "done"                             │
-   │  • Output: "Merged! Task complete."                        │
-   │                                                              │
-   │  ┌──────────────────┐                                       │
-   │  │ Changes requested│                                       │
-   │  └────────┬─────────┘                                       │
-   │           │                                                  │
-   │           ▼                                                  │
-   │  • Prompt user:                                             │
-   │    ┌─────────────────────────────────────┐                 │
-   │    │ PR #456 has requested changes.      │                 │
-   │    │                                     │                 │
-   │    │ [1] View comments                   │                 │
-   │    │ [2] Run /festina-rework 001         │                 │
-   │    └─────────────────────────────────────┘                 │
-   │                                                              │
-   │  ┌──────────────────┐                                       │
-   │  │ PR already merged│                                       │
-   │  └────────┬─────────┘                                       │
-   │           │                                                  │
-   │           ▼                                                  │
-   │  • Update task status → "done"                             │
-   │  • Output: "Already merged! Task complete."                │
-   │                                                              │
-   └─────────────────────────────────────────────────────────────┘
-```
+**For the new `festina-finalize`:**
+- Which checks MUST pass before creating a PR?
+- Which checks can be deferred to CI?
+- Which checks happen during PR review?
 
-**Key insight:** User can close terminal at any prompt. Next run reads GitHub state and resumes from correct position.
+**Decision:** This is up to the user's directive configuration. User defines what validation checks run in their `coding.xml` or equivalent.
 
 ---
 
-## Task XML Attributes
+### Q4: Should `festina-merge` Be Renamed to `festina-pr`?
+
+**Arguments for `festina-pr`:**
+- More accurately describes what happens: PR creation, review, merge
+- "Merge" implies immediate action; PR is a process
+- Consistent with GitHub-centric workflow
+
+**Arguments against:**
+- `merge` describes the end goal, which is clearer for the user
+- "PR" is jargon (though widely understood)
+- Breaking change for existing users/scripts
+
+**Decision:** The skill will be named `festina-finalize`. It describes the action: finalize the work.
+
+---
+
+### Q5: What Happens If Checks Fail During `festina-finalize`?
+
+**Options:**
+1. **Block PR creation** - No PR until all checks pass
+2. **Create draft PR** - PR exists but marked as draft/blocked
+3. **Create PR anyway** - Let CI report failures in PR context
+4. **Return to implement** - Like current rework flow
+
+**Considerations:**
+- CI will run checks anyway on PR
+- Blocking locally saves time (fail fast)
+- Draft PRs can be useful for "WIP - needs CI fixes"
+
+**Decision:** Ask the user. When checks fail, prompt user with options: Fix? / Skip? / Abort?
+
+---
+
+### Q6: How Does `festina-docs` Fit in the New Flow?
+
+**User's suggestion:** docs comes after implement, before pr.
+
+**Current flow:** implement → check → docs → merge
+**Proposed flow:** implement → docs → pr
+
+**Questions:**
+- Should docs be REQUIRED before PR, or optional?
+- What if implementation has no user-facing changes?
+- Should docs be part of PR, or committed before?
+
+**Decision:** Docs run as part of finalize (Phase 2), before PR/merge. If no docs needed (internal change), skip the doc phase.
+
+---
+
+## Architecture: Reference-Based Skill Design
+
+### Confirmed by Official Docs
+
+From [Claude Code Skills Documentation](https://code.claude.com/docs/en/skills):
+
+> **Keep `SKILL.md` under 500 lines. Move detailed reference material to separate files.**
+>
+> Reference supporting files from `SKILL.md` so Claude knows what each file contains and when to load them. This keeps SKILL.md focused on the essentials while letting Claude access detailed reference material only when needed.
+
+### The Pattern
+Instead of embedding all guidance in one massive skill, the main skill acts as an **orchestrator** that loads reference files on-demand at each phase.
+
+### Proposed Structure
+
+**Source location:** `apps/festinalente/src/content/skills/` (builds to `.claude/skills/`, `.opencode/skills/`, `dist/skills/`)
+
+```
+apps/festinalente/src/content/skills/festina-finalize/
+├── SKILL.md                    # Lean orchestrator (~400 lines)
+├── checks.md                   # Phase 1: How to run directive checks, auto-fix patterns
+├── docs-product.md             # Phase 2: Product doc templates, frontmatter, mermaid
+└── docs-engineering.md         # Phase 2: Engineering doc templates
+```
+
+**Note:** Phase 3 (complete) behavior comes from user's directives, not skill reference files. The skill provides a default (local merge), directives can override.
+
+### Pattern Compliance
+
+**SKILL.md MUST follow existing skill patterns:**
+
+- `<step name="...">` NOT `<phase>` (phases are conceptual, not XML tags)
+- Handlebars partials: `{{> directory-reference}}`, `{{> helper-scripts}}`, `{{> workflow-load}}`, `{{> branch-verify-task}}`, `{{> load-directives}}`, `{{> directive-compliance}}`, `{{> skill-complete}}`
+- Step elements: `<action>`, `<command>`, `<branch condition="...">`, `<validate>`, `<note>`, `<output>`
+- AskUserQuestion format: header, question, options (label + description), multiSelect
+
+**The ONLY new pattern introduced:**
+```xml
+<action>Read checks.md for detailed check execution guidance</action>
+```
+This tells the LLM to load a reference file when needed. Everything else follows existing conventions.
+
+### SKILL.md Skeleton
 
 ```xml
-<task id="001"
-      status="pr"
-      github-issue="#123"
-      github-pr="#456"
-      github-url="https://github.com/owner/repo/issues/123">
-  ...
-</task>
+---
+name: festina-finalize
+description: Validate, commit, document, and complete a task.
+allowed-tools: Read, Write, Bash(*), Grep, AskUserQuestion
+argument-hint: "[task-id]"
+disable-model-invocation: true
+---
+
+# Finalize Festina Lente Task
+
+<purpose>
+Run directive checks, commit implementation, update docs, and complete the task.
+</purpose>
+
+<context>
+{{> directory-reference}}
+{{> helper-scripts show_find_task=true show_find_plan=true show_get_date_time=true show_get_skill_config=true}}
+{{> column-transition from="finalize" to="done"}}
+</context>
+
+<prohibited>
+- Do not commit code that fails directive checks without user approval
+- Do not skip documentation analysis
+- Do not merge with dirty working tree
+</prohibited>
+
+<process>
+  <step name="load_workflow">
+    {{> workflow-load}}
+  </step>
+
+  <step name="get_task_id" outputs="taskId">
+    <!-- Same pattern as other skills -->
+  </step>
+
+  <step name="read_task_file">
+    <!-- Same pattern -->
+  </step>
+
+  <step name="verify_branch">
+    {{> branch-verify-task}}
+  </step>
+
+  <step name="load_directives">
+    {{> load-directives skill="finalize"}}
+  </step>
+
+  <!-- PHASE 1: VALIDATE -->
+  <step name="verify_plan_completion">
+    <action>Read checks.md for detailed guidance</action>
+    <command>node .festinalente/scripts/find-plan.cjs {taskId}</command>
+    <action>Read plan.xml, verify all tasks have completed="true"</action>
+    <branch condition="incomplete tasks exist">
+      <action>Prompt user: proceed anyway or cancel?</action>
+    </branch>
+  </step>
+
+  <step name="run_checks">
+    <action>Read checks.md for check execution and auto-fix loop</action>
+    <action>Run <validation> checks from loaded directives</action>
+    <branch condition="check fails">
+      <action>Ask user: Fix? / Skip? / Abort?</action>
+      <action>If Fix: make changes, log to plan.xml iterations, restart checks</action>
+    </branch>
+  </step>
+
+  <step name="check_uncommitted_changes">
+    <action>Read checks.md for guidance</action>
+    <command>git status</command>
+    <command>git diff --name-only</command>
+    <output>Display files that will be committed</output>
+    <branch condition="no changes found">
+      <action>Warn user, prompt to proceed or cancel</action>
+    </branch>
+  </step>
+
+  <step name="commit_implementation">
+    <action>Read checks.md for commit type determination</action>
+    <action>Determine commit type from labels (feat/fix/refactor/docs)</action>
+    <command>git add {implementation files}</command>
+    <command>git add .festinalente/</command>
+    <command>git commit -m "{type}({taskId}): {title}"</command>
+  </step>
+
+  <!-- PHASE 2: DOCUMENT -->
+  <step name="analyze_doc_impact">
+    <action>Check affects/engineering fields in task</action>
+    <branch condition="product docs needed">
+      <action>Read docs-product.md for detailed guidance</action>
+      <action>Includes: analyze impact, load smart context, update/complete/create docs</action>
+      <action>Includes: update domain _index.md, update glossary, validate docs</action>
+    </branch>
+    <branch condition="engineering docs needed">
+      <action>Read docs-engineering.md for detailed guidance</action>
+      <action>Includes: analyze impact, load smart context, update/complete/create docs</action>
+      <action>Includes: update engineering _index.md</action>
+    </branch>
+    <branch condition="no docs needed">
+      <output>No documentation updates needed (internal change)</output>
+    </branch>
+  </step>
+
+  <step name="commit_docs" when="docs were created or updated">
+    <command>git add .festinalente/product/</command>
+    <command>git add .festinalente/engineering/</command>
+    <command>git add .festinalente/glossary.yaml</command>
+    <branch condition="both product and engineering">
+      <command>git commit -m "docs({taskId}): product+engineering - {description}"</command>
+    </branch>
+    <branch condition="only product">
+      <command>git commit -m "docs({taskId}): product - {description}"</command>
+    </branch>
+    <branch condition="only engineering">
+      <command>git commit -m "docs({taskId}): engineering - {description}"</command>
+    </branch>
+  </step>
+
+  <!-- PHASE 3: COMPLETE -->
+  <step name="push_branch">
+    <command>git push -u origin task/{taskId}</command>
+  </step>
+
+  <step name="complete_task">
+    <note>DEFAULT: Local merge. Directives can override (e.g., github.xml → PR workflow)</note>
+    <command>git checkout main</command>
+    <command>git merge task/{taskId} --no-ff</command>
+    <command>git branch -d task/{taskId}</command>
+    <action>Update task status to done, add completed date</action>
+  </step>
+
+  {{> directive-compliance}}
+
+  <step name="output_result">
+    <output>Task {taskId} completed!</output>
+    {{> skill-complete}}
+  </step>
+</process>
 ```
 
-| Attribute | Set by | Purpose |
-|-----------|--------|---------|
-| `github-issue` | festina-create | Links to GitHub Issue |
-| `github-pr` | festina-merge | Links to Pull Request |
-| `github-url` | festina-create | Quick reference URL |
+### Reference Files
+
+Reference files contain detailed guidance that would bloat SKILL.md. They are plain markdown (no Handlebars) and loaded on-demand.
+
+**CRITICAL: These files MUST preserve ALL behaviors from the merged skills.**
 
 ---
 
-## The Directive
+#### checks.md (~200 lines)
 
-`.festinalente/directives/github.xml`:
+**Source:** Extracted from `festina-check/SKILL.md` steps: `read_plan_file`, `run_checks`, `check_uncommitted_changes`, `determine_commit_type`
 
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<directive name="github" version="1"
-           created="2026-02-27" updated="2026-02-27">
+**MUST include:**
 
-  <description>
-    Integrate with GitHub Issues and PRs via MCP.
-    Issues provide human visibility. PRs enable team review workflow.
-    State lives in GitHub - commands are stateless and resumable.
-  </description>
+1. **Verify plan completion** (from `read_plan_file`)
+   - Read plan.xml via `find-plan.cjs`
+   - Verify all implementation tasks have `completed="true"`
+   - If incomplete tasks exist: prompt user to proceed or cancel
 
-  <context>
-    <principle id="G1" keywords="issue,create,sync">
-      Every task syncs to a GitHub Issue. Title from task/title, body is raw XML.
-    </principle>
-    <principle id="G2" keywords="pr,merge,review">
-      PRs are created at merge time. Merging requires checking PR approval state.
-    </principle>
-    <principle id="G3" keywords="stateless,resumable">
-      Commands read GitHub state each run. User can close terminal and resume anytime.
-    </principle>
-    <principle id="G4" keywords="closes,autolink">
-      PR body includes "Closes #N" to auto-close issue when PR merges.
-    </principle>
-    <principle id="G5" keywords="mcp,github,tools">
-      Use GitHub MCP tools for all GitHub operations: mcp__GitHub__create_issue,
-      mcp__GitHub__issue_read, mcp__GitHub__create_pull_request,
-      mcp__GitHub__pull_request_read, mcp__GitHub__merge_pull_request.
-    </principle>
-  </context>
+2. **Check execution by type** (from `run_checks`)
+   - `type="command"`: Execute `<run>` element, check exit code
+   - `type="pattern"`: Scan files matching glob for forbidden/required patterns
+   - `type="checklist"`: Review code against checklist items
+   - Print PASS/FAIL for each check
 
-  <process>
-    <!-- festina-create: ADDITIVE rules (run after normal create flow) -->
-    <rule id="C-G1" phase="create">
-      AFTER creating task.xml, check if $ARGUMENTS was a GitHub issue number (#N):
-      If yes:
-        1. Fetch issue #N from GitHub via mcp__GitHub__issue_read
-        2. Parse the issue body (which contains task XML from a previous sync)
-        3. Store github-issue="#N" and github-url on task element
-      If no (normal title):
-        1. Create GitHub Issue via mcp__GitHub__issue_write with:
-           - title: task title
-           - body: raw XML content of task.xml
-        2. Store github-issue="#N" and github-url on task element
-    </rule>
+3. **Auto-fix loop** (from `run_checks`)
+   - On failure: prompt "Fix? / Skip? / Abort?"
+   - If Fix: analyze issues, make code changes
+   - **Log fix to plan.xml iterations:**
+     ```xml
+     <iteration phase="finalize" date="{YYYY-MM-DD}">
+       <fix directive="{name}">{description of fix}</fix>
+     </iteration>
+     ```
+   - Commit fix: `docs({taskId}): check-retry - {title}`
+   - Restart ALL checks from beginning after fix
 
-    <!-- festina-merge: OVERRIDE rules (replace normal merge behavior) -->
-    <rule id="M-G0" phase="merge">
-      CRITICAL OVERRIDE: When this directive is active, DO NOT perform the normal
-      local git merge workflow. Specifically, SKIP these steps from festina-merge:
-        - git checkout main
-        - git merge task/{taskId} --no-ff
-        - git branch -d task/{taskId}
+4. **Check uncommitted changes** (from `check_uncommitted_changes`)
+   - Run `git status` and `git diff --name-only`
+   - Display files that will be committed
+   - If NO changes found: warn user and prompt to proceed or cancel
 
-      INSTEAD, follow the GitHub PR workflow defined in rules M-G1 through M-G5.
-      The merge will happen via GitHub, not locally.
-    </rule>
-
-    <rule id="M-G1" phase="merge">
-      STATE CHECK: Read task.xml and check for github-pr attribute.
-
-      If task has NO github-pr attribute → Go to rule M-G2 (create PR)
-      If task HAS github-pr attribute → Go to rule M-G3 (check PR status)
-    </rule>
-
-    <rule id="M-G2" phase="merge">
-      CREATE PR (when no github-pr exists):
-      1. Ensure branch is pushed to origin: git push -u origin task/{taskId}
-      2. Create PR via mcp__GitHub__create_pull_request:
-         - title: task title
-         - body: "Closes #{github-issue}\n\n{task XML content}"
-         - head: task/{taskId}
-         - base: main
-      3. Store github-pr="#{pr-number}" on task element
-      4. Commit the task.xml update
-      5. Prompt user with AskUserQuestion:
-         - header: "PR Created"
-         - question: "PR #{pr-number} created. What would you like to do?"
-         - options:
-           - "Open in browser" → Output PR URL, exit
-           - "Done for now" → Exit
-      6. EXIT skill (do not continue)
-    </rule>
-
-    <rule id="M-G3" phase="merge">
-      CHECK PR STATUS (when github-pr exists):
-      1. Fetch PR status via mcp__GitHub__pull_request_read (method: "get")
-      2. Route based on PR state:
-         - state="merged" → Go to rule M-G4
-         - state="closed" → Prompt: "PR was closed. Create new PR?"
-         - reviewDecision="CHANGES_REQUESTED" → Prompt: "Changes requested. [View comments] [Run /festina-rework]", exit
-         - reviewDecision="APPROVED" → Go to rule M-G5
-         - reviewDecision=null/PENDING → Prompt: "Awaiting review. [Open in browser] [Done]", exit
-    </rule>
-
-    <rule id="M-G4" phase="merge">
-      PR ALREADY MERGED:
-      1. Update task.xml: status="done", add completed="{date}"
-      2. Commit: git add task.xml && git commit -m "docs({taskId}): done - {title}"
-      3. Pull latest main: git checkout main && git pull
-      4. Delete local branch: git branch -d task/{taskId}
-      5. Output: "PR was already merged! Task complete."
-      6. EXIT skill
-    </rule>
-
-    <rule id="M-G5" phase="merge">
-      MERGE APPROVED PR:
-      1. Prompt user with AskUserQuestion:
-         - header: "Ready to Merge"
-         - question: "PR #{pr-number} is approved. Ready to merge?"
-         - options:
-           - "Merge now (recommended)" → Continue to step 2
-           - "Wait" → Exit skill
-      2. Merge via mcp__GitHub__merge_pull_request (merge_method: "squash")
-      3. Update task.xml: status="done", add completed="{date}"
-      4. Commit: git add task.xml && git commit -m "docs({taskId}): done - {title}"
-      5. Pull latest main: git checkout main && git pull
-      6. Output: "Merged! Task complete."
-      7. EXIT skill
-    </rule>
-  </process>
-
-  <validation>
-    <check id="V-G1" type="checklist" severity="error">
-      <item>GitHub MCP server is connected (test with any mcp__GitHub__ tool)</item>
-      <item>Repository has remote origin configured (git remote -v shows origin)</item>
-      <item>Current branch is task/{taskId} when running merge</item>
-    </check>
-  </validation>
-
-</directive>
-```
+5. **Determine commit type** (from `determine_commit_type`)
+   - Check task labels array
+   - `bug` → `fix`
+   - `refactor` → `refactor`
+   - `docs` → `docs`
+   - `feature` or default → `feat`
 
 ---
 
-## What This Replaces
+#### docs-product.md (~350 lines)
 
-When the GitHub directive is active on festina-merge:
+**Source:** Extracted from `festina-docs/SKILL.md` steps: `analyze_product_doc_impact`, `load_smart_context`, `update_existing_docs`, `complete_stub_docs`, `create_new_docs`, `handle_internal_changes`, `update_domain_index`, `update_glossary`, `validate_docs`
 
-| Without Directive | With Directive |
-|-------------------|----------------|
-| Local merge to main | PR-based merge via GitHub |
-| `git merge --no-ff` | `merge_pull_request` MCP call |
-| Branch deleted locally | Branch deleted by GitHub on merge |
-| No review process | Full PR review workflow |
+**MUST include:**
 
-The directive **overrides** the normal local merge behavior entirely.
+1. **Analyze product doc impact** (from `analyze_product_doc_impact`)
+   - Read task's `affects` element
+   - Run `check-product.cjs {affects IDs}`
+   - Categorize into: stubDocs, existingDocs, missingDocs
+   - Search for unlisted impacts via `search-product.cjs`
+   - Present analysis to user with AskUserQuestion
 
----
+2. **Load smart context** (from `load_smart_context`)
+   - Run `select-context.cjs {taskId} --tier=standard --max=3 --type=product`
+   - Parse JSON output
+   - Note structure and quality patterns from similar docs
+   - Use as reference when writing new docs
 
-## Edge Cases
+3. **Update existing docs** (from `update_existing_docs`)
+   - Read current doc at `.festinalente/product/{id}.md`
+   - Make minimal, focused updates (don't rewrite entire doc)
+   - Verification prompt: "Does this doc accurately reflect the implementation?"
+   - If Yes: update `verified: {date}` and `code_refs`
+   - If Needs correction: get details, fix, re-verify
+   - Update diagrams if architecture/data flow/UI changed
 
-| Scenario | Behavior |
-|----------|----------|
-| No internet | MCP calls fail, user sees error |
-| PR closed without merge | Prompt shows "PR closed" state, suggest reopen or new PR |
-| Branch conflicts | GitHub blocks merge, prompt shows "Has conflicts" |
-| Required checks failing | Prompt shows "Checks failing", link to PR |
+4. **Complete stub docs** (from `complete_stub_docs`)
+   - Remove `stub: true` and `task:` from frontmatter
+   - **Required frontmatter fields:**
+     - `tldr:` Single sentence, max 100 chars
+     - `summary:` One sentence for LLM discovery
+     - `keywords:` 3-5 search terms
+     - `aliases:` Alternative names
+     - `boundary:` What this does NOT cover
+     - `updated:` Current date
+     - `verified:` Current date
+     - `code_refs:` Files touched by this task
+   - **Required content sections:**
+     - TL;DR blockquote at top
+     - Overview with summary
+     - How It Works with key workflows
+     - Examples with code snippets from implementation
+     - Boundaries listing what it does NOT do
+   - **Diagram completion:**
+     - Review code flow for sequence/flowchart diagrams
+     - Check for UI components → ASCII mockups
+     - Trace data flow → data flow diagrams
+     - If database models exist → erDiagram
 
----
+5. **Create new docs** (from `create_new_docs`)
+   - Create domain folder if needed: `.festinalente/product/{domain}/`
+   - Use templates: `product-feature.md` or `product-concept.md`
+   - Fill ALL frontmatter fields (same as stub completion)
+   - Keep scope focused on THIS feature/concept only
 
-## Solo Developer Mode
+6. **Handle internal changes** (from `handle_internal_changes`)
+   - If `affects` is empty AND labels include [bug, refactor, chore]
+   - Analyze if any product behavior actually changed
+   - If no user-facing changes: skip with message "No product doc updates needed"
 
-For solo devs who don't need approvals:
+7. **Update domain index** (from `update_domain_index`)
+   - Check if `.festinalente/product/{domain}/_index.md` exists
+   - If exists: add new doc to appropriate section with one-line description (from tldr)
+   - If multiple docs now exist but no _index.md: consider creating one
 
-1. Create PR (required for visibility)
-2. Immediately select "Merge now" (no waiting)
+8. **Update glossary** (from `update_glossary`)
+   - Identify new terms introduced by this feature
+   - Check if terms exist in `.festinalente/glossary.yaml`
+   - If new terms found, add entries with:
+     - `term:` The canonical name
+     - `aliases:` Alternative names/spellings
+     - `definition:` Brief explanation
+   - Output: "Added to glossary: {terms}"
 
-The workflow still uses PRs for history/visibility but doesn't block on approvals.
-
----
-
-## Testing the Directive
-
-### Test 1: festina-create with GitHub sync
-
-```bash
-# Add github directive to festina-create in config.yaml
-/festina-create "Test GitHub integration"
-```
-
-**Expected:**
-- Task created locally
-- GitHub Issue created
-- `github-issue` and `github-url` attributes added to task.xml
-
-### Test 2: festina-merge creates PR
-
-```bash
-# Work through normal flow: scope, plan, implement, check, docs
-# Then run merge
-/festina-merge {taskId}
-```
-
-**Expected (first run):**
-- Branch pushed to origin
-- PR created on GitHub
-- `github-pr` attribute added to task.xml
-- User prompted with "PR created" options
-- Skill exits (no local merge)
-
-### Test 3: festina-merge checks PR status
-
-```bash
-# Run again after PR exists
-/festina-merge {taskId}
-```
-
-**Expected:**
-- PR status fetched from GitHub
-- User prompted based on state (awaiting review / approved / changes requested)
-
-### Test 4: festina-merge completes on approval
-
-```bash
-# After PR is approved on GitHub, run merge
-/festina-merge {taskId}
-```
-
-**Expected:**
-- User prompted "Ready to merge?"
-- On "Merge now": PR merged via MCP, task marked done
-- Local main branch updated
+9. **Validate docs** (from `validate_docs`)
+   - Run `validate-docs.cjs {changed doc paths}`
+   - If passes: output "Quality check passed"
+   - If fails: output issues, fix them, re-run validation
 
 ---
 
-## Potential Issues
+#### docs-engineering.md (~250 lines)
 
-| Issue | Solution |
-|-------|----------|
-| LLM still tries local merge | Make M-G0 rule more explicit, list exact steps to skip |
-| MCP tools not available | Validation check V-G1 catches this early |
-| Branch not pushed | Rule M-G2 handles push before PR creation |
-| PR conflicts | GitHub will reject merge, user sees error |
-| Rate limiting | GitHub MCP should handle, user may need to wait |
+**Source:** Extracted from `festina-docs/SKILL.md` steps: `analyze_engineering_doc_impact`, `load_smart_context`, `complete_stub_engineering_docs`, `update_engineering_docs`, `create_new_engineering_docs`, `update_engineering_index`
 
----
+**MUST include:**
 
----
+1. **Analyze engineering doc impact** (from `analyze_engineering_doc_impact`)
+   - Read task's `engineering` element
+   - Run `check-engineering.cjs {engineering IDs}`
+   - Categorize into: engStubDocs, engExistingDocs, engMissingDocs
+   - Search for unlisted impacts via `search-engineering.cjs`
+   - Present analysis to user with AskUserQuestion
 
-## Part 2: Directive System Enhancement
+2. **Load smart context** (from `load_smart_context`)
+   - Run `select-context.cjs {taskId} --tier=standard --max=3 --type=engineering`
+   - Note engineering doc structure patterns
+   - Use as reference when writing new docs
 
-Before creating the github directive, we need to enhance the directive system to formally support overrides.
+3. **Complete stub engineering docs** (from `complete_stub_engineering_docs`)
+   - Remove `stub: true` and `task:` from frontmatter
+   - **Required frontmatter fields:** (same as product docs)
+   - **Required content sections by type:**
+     - **system:** Overview, Architecture, Components, Data Flow, Integration, Boundaries
+     - **pattern:** Overview, Problem, Solution, When to Use, Implementation, Examples, Boundaries
+     - **convention:** Overview, Rule, Rationale, Examples, Exceptions, Boundaries
+   - **Diagram completion by type:**
+     - **system:** Architecture diagram, Data Flow diagram
+     - **pattern:** Structure diagram (classDiagram)
+     - **convention:** ASCII diagrams showing correct vs incorrect
 
-### Why This Is Needed
+4. **Update engineering docs** (from `update_engineering_docs`)
+   - Read current doc (use ID→path rules from check-engineering)
+   - Identify sections needing changes based on implementation
+   - Make minimal, focused updates
+   - SCOPE RESTRICTION: Only update what THIS task implemented
 
-Currently, directives ADD rules but have no formal way to OVERRIDE skill steps. Our github directive needs to REPLACE the local merge steps with PR workflow. Without structured overrides, we rely on the LLM interpreting natural language like "SKIP these steps" - which is unreliable.
+5. **Create new engineering docs** (from `create_new_engineering_docs`)
+   - Determine doc type: system, pattern, or convention
+   - Use AskUserQuestion to confirm type if unclear
+   - Create folder if needed: `.festinalente/engineering/{type}s/`
+   - Use templates: `engineering-system.md`, `engineering-pattern.md`, `engineering-convention.md`
+   - Fill ALL frontmatter fields
+   - Keep scope focused on THIS system/pattern/convention only
 
-### The Solution: Add `<override>` Section
+6. **Update engineering index** (from `update_engineering_index`)
+   - Check if `.festinalente/engineering/{type}s/_index.md` exists
+   - If exists: add new doc to appropriate section with one-line description
+   - If multiple docs now exist but no _index.md: consider creating one
 
-Directives can declare which skill steps to skip and what replaces them:
+### How It Works
 
-```xml
-<directive name="github">
+The main SKILL.md contains:
+1. Context/prohibited sections (shared)
+2. High-level process flow with phases
+3. Markdown links to reference files with descriptions of when to load them
 
-  <!-- NEW: Formal override declaration -->
-  <override phase="merge">
-    <skip step="merge_branch"/>
-    <skip step="cleanup_branch"/>
-    <reason>GitHub PR workflow replaces local merge</reason>
-    <instead rules="M-G1,M-G2,M-G3,M-G4,M-G5"/>
-  </override>
-
-  <context>...</context>
-  <process>...</process>
-
-</directive>
-```
-
-### Files to Modify
-
-All source files are in `apps/festinalente/src/`:
-
-| File | Change |
-|------|--------|
-| `content/partials/load-directives.md` | Parse `<override>` sections, output explicit skip instructions |
-| `content/skills/festina-directive/SKILL.md` | Add Q&A flow for creating overrides |
-| `scripts/validate-directive.ts` | Validate step names exist in target skill |
-
-### Change 1: `load-directives.md`
-
-**Location:** `apps/festinalente/src/content/partials/load-directives.md`
-
-Add after existing directive loading logic:
-
+**From SKILL.md (at the end):**
 ```markdown
-<branch condition="directive has <override> for phase={{skill}}">
-  <output>
-**DIRECTIVE OVERRIDE ACTIVE: {{directive.name}}**
+## Reference Files
 
-When executing this skill, the following steps are REPLACED:
+Load these as needed during each phase:
 
-{{#each override.skip}}
-SKIP: <step name="{{step}}"> — Do NOT execute this step.
-{{/each}}
-
-INSTEAD, execute these directive rules in order:
-{{#each override.instead}}
-- Rule {{rule}}: [description from directive]
-{{/each}}
-
-Reason: {{override.reason}}
-
-IMPORTANT: When you encounter a skipped step in the skill's <process>,
-do not execute it. Execute the replacement rules from the directive instead.
-  </output>
-</branch>
+- **[checks.md](checks.md)** - Load in Phase 1: Contains plan verification, check execution by type, auto-fix loop with iteration logging, uncommitted changes check, and commit type determination
+- **[docs-product.md](docs-product.md)** - Load in Phase 2 if product docs needed: Contains impact analysis, smart context loading, doc update/complete/create flows, domain index updates, glossary updates, and validation
+- **[docs-engineering.md](docs-engineering.md)** - Load in Phase 2 if engineering docs needed: Contains impact analysis, smart context loading, type-specific sections (system/pattern/convention), and engineering index updates
 ```
 
-### Change 2: `festina-directive` Skill
+### Size Estimates
 
-**Location:** `apps/festinalente/src/content/skills/festina-directive/SKILL.md`
+| Component | Lines | When Loaded |
+|-----------|-------|-------------|
+| SKILL.md (orchestrator) | ~400 | Always |
+| checks.md | ~200 | Phase 1 |
+| docs-product.md | ~350 | Phase 2 (if product docs needed) |
+| docs-engineering.md | ~250 | Phase 2 (if engineering docs needed) |
 
-Add new step after `collect_process`:
+**Max context at any phase:** ~600-750 lines (orchestrator + one ref)
 
-```markdown
-<step name="collect_overrides" when="user selected Process">
-  <action>Use AskUserQuestion tool with:
-    - header: "Override"
-    - question: "Does this directive need to REPLACE any existing skill steps?"
-    - options:
-      - label: "No", description: "Just add new rules alongside existing behavior"
-      - label: "Yes", description: "Replace specific steps with directive rules"
-    - multiSelect: false
-  </action>
+### Benefits
+- **Single command:** `/festina-finalize` does everything post-implement
+- **Context stays manageable:** Only loads relevant reference per phase
+- **Reference files updateable independently:** Change docs guidance without touching orchestrator
+- **Docs reference only loaded when needed:** Internal refactors skip Phase 2 entirely
+- **Matches existing pattern:** Skills already load directives on-demand
+- **Two-command workflow:** Just `implement` then `finalize`
 
-  <branch condition="user selects Yes">
-    <action>Use AskUserQuestion tool with:
-      - header: "Skill"
-      - question: "Which skill's steps are being replaced?"
-      - options:
-        - label: "festina-create", description: "Task creation"
-        - label: "festina-merge", description: "Branch merging"
-        - label: "festina-implement", description: "Code implementation"
-        - label: "festina-check", description: "Code review"
-      - multiSelect: false
-    </action>
+### Directive Handling Strategy
 
-    <action>Read the selected skill file to get step names</action>
-    <action>List available steps to user</action>
+**Directives are user-defined.** The skill loads whatever directives the user configures - it does NOT hardcode specific directives like `github.xml`.
 
-    <action>Use AskUserQuestion tool with:
-      - header: "Steps"
-      - question: "Which steps should be SKIPPED when this directive is active?"
-      - options: [dynamically built from skill's step names]
-      - multiSelect: true
-    </action>
-
-    <action>Use AskUserQuestion tool with:
-      - header: "Replacement"
-      - question: "Which directive rules replace the skipped steps?"
-      - options:
-        - label: "Skip", description: "I'll specify rule IDs manually"
-      - multiSelect: false
-    </action>
-    <note>User provides rule IDs like "M-G1,M-G2,M-G3"</note>
-
-    <action>Use AskUserQuestion tool with:
-      - header: "Reason"
-      - question: "Why are these steps being replaced?"
-      - options:
-        - label: "Skip", description: "Move to next section"
-      - multiSelect: false
-    </action>
-  </branch>
-</step>
-
-<step name="generate_xml" outputs="directivePath">
-  <!-- Add override section to generated XML if collected -->
-  <branch condition="overrides were collected">
-    <action>Add <override> section to directive XML:</action>
-    <example_code lang="xml">
-<override phase="{skill}">
-  {{#each skipped_steps}}
-  <skip step="{{this}}"/>
-  {{/each}}
-  <reason>{reason}</reason>
-  <instead rules="{rule_ids}"/>
-</override>
-    </example_code>
-  </branch>
-</step>
+**Example user config:**
+```yaml
+festina-finalize: [coding]           # User without GitHub
+festina-finalize: [coding, github]   # User with GitHub integration
+festina-finalize: [coding, gitlab]   # User with GitLab integration
 ```
 
-### Change 3: `validate-directive.ts`
+**How it works:**
+1. Skill reads config to get directive list for `festina-finalize`
+2. At start of each phase, load ALL configured directives
+3. Apply `<process>` rules matching the current phase
+4. Apply `<override>` sections that skip/replace default behavior
+5. Run `<validation>` checks from directives
 
-**Location:** `apps/festinalente/src/scripts/validate-directive.ts`
+**Default behavior (no directives):**
+- Phase 1: No automated checks, just commit
+- Phase 2: Update docs based on reference files
+- Phase 3: Local git merge to main, cleanup branch
 
-Add validation for override sections:
+**With directives (user-defined):**
+- `coding.xml` adds validation checks to Phase 1
+- `github.xml` overrides Phase 3 with PR workflow
+- Any directive can add/override behavior
 
-```javascript
-// Validate <override> sections
-const overrides = doc.querySelectorAll('override');
-for (const override of overrides) {
-  const phase = override.getAttribute('phase');
-  if (!phase) {
-    errors.push('<override> must have a phase attribute');
-    continue;
-  }
+**Cleanup required:**
+- Delete `festina-check` skill (merged into finalize)
+- Delete `festina-docs` skill (merged into finalize)
+- Delete `festina-merge` skill (replaced by finalize)
+- Update config to remove old skill directive mappings
 
-  // Check that referenced steps exist in target skill
-  const skillPath = `content/skills/festina-${phase}/SKILL.md`;
-  const skillContent = fs.readFileSync(skillPath, 'utf-8');
+### Flow Visualization
 
-  const skips = override.querySelectorAll('skip');
-  for (const skip of skips) {
-    const stepName = skip.getAttribute('step');
-    if (!skillContent.includes(`name="${stepName}"`)) {
-      errors.push(`Override references unknown step "${stepName}" in festina-${phase}`);
-    }
-  }
-
-  // Check that replacement rules exist in this directive
-  const instead = override.querySelector('instead');
-  if (instead) {
-    const ruleIds = instead.getAttribute('rules').split(',');
-    for (const ruleId of ruleIds) {
-      if (!doc.querySelector(`rule[id="${ruleId.trim()}"]`)) {
-        errors.push(`Override references unknown rule "${ruleId}" in this directive`);
-      }
-    }
-  }
-}
 ```
+/festina-finalize 001
+    │
+    │   [Code is UNCOMMITTED at this point]
+    │
+    ├─► Phase 1: VALIDATE (load checks.md)
+    │   │
+    │   ├─ Verify plan completion
+    │   │   └─ Check all plan tasks have completed="true"
+    │   │
+    │   ├─ Load configured directives
+    │   │
+    │   ├─ Run <validation> checks from directives
+    │   │   ├─ For each check: PASS or FAIL
+    │   │   └─ If FAIL: Ask "Fix? / Skip? / Abort?"
+    │   │       ├─ Fix: make changes, log to plan.xml, commit retry, RESTART all checks
+    │   │       ├─ Skip: continue to next check
+    │   │       └─ Abort: exit skill
+    │   │
+    │   ├─ Check uncommitted changes
+    │   │   └─ If none: warn user, prompt to proceed
+    │   │
+    │   ├─ Determine commit type from labels
+    │   │   └─ bug→fix, refactor→refactor, docs→docs, default→feat
+    │   │
+    │   └─ Commit: {type}(001): {title}
+    │
+    │   [Implementation is now COMMITTED]
+    │
+    ├─► Phase 2: DOCUMENT (load docs-product.md / docs-engineering.md)
+    │   │
+    │   ├─ Analyze doc impact
+    │   │   ├─ Check affects field → product docs
+    │   │   ├─ Check engineering field → engineering docs
+    │   │   └─ If neither: skip (internal change)
+    │   │
+    │   ├─ Load smart context (select-context.cjs)
+    │   │   └─ Find similar docs as quality reference
+    │   │
+    │   ├─ Update/Complete/Create docs
+    │   │   ├─ Existing docs: minimal updates, verify with user
+    │   │   ├─ Stub docs: fill frontmatter + content + diagrams
+    │   │   └─ New docs: use templates, fill all fields
+    │   │
+    │   ├─ Update indexes
+    │   │   ├─ Domain _index.md for product docs
+    │   │   └─ Type _index.md for engineering docs
+    │   │
+    │   ├─ Update glossary (if new terms)
+    │   │
+    │   ├─ Validate docs (validate-docs.cjs)
+    │   │
+    │   └─ Commit: docs(001): {product|engineering|product+engineering} - {description}
+    │
+    │   [Docs are now COMMITTED]
+    │
+    └─► Phase 3: COMPLETE
+        │
+        ├─ Push branch: git push -u origin task/001
+        │
+        ├─ Verify ready to merge
+        │   ├─ Ensure working tree is clean
+        │   └─ Show commits to be merged
+        │
+        │   [DEFAULT - no directive override]
+        ├─ Update task: status=done, add completed date
+        ├─ Commit: docs(001): done - {title}
+        ├─ git checkout main
+        ├─ git merge task/001 --no-ff
+        ├─ git branch -d task/001
+        │
+        │   [WITH DIRECTIVE OVERRIDE - e.g., github.xml]
+        └─ Directive replaces default with PR workflow
+```
+
+**Note:** No QA prompt. User handles QA themselves before running `/festina-finalize`.
 
 ---
 
-## Implementation Order
+## Implementation Checklist
 
-| Step | Task | Files |
-|------|------|-------|
-| 1 | Update load-directives.md with override handling | `apps/festinalente/src/content/partials/load-directives.md` |
-| 2 | Update festina-directive skill with override Q&A | `apps/festinalente/src/content/skills/festina-directive/SKILL.md` |
-| 3 | Update validate-directive.ts with override validation | `apps/festinalente/src/scripts/validate-directive.ts` |
-| 4 | Rebuild festinalente (`pnpm build`) | - |
-| 5 | Create github.xml directive with override section | `.festinalente/directives/github.xml` |
-| 6 | Update config.yaml to assign directive | `.festinalente/config.yaml` |
-| 7 | Test the full workflow | - |
+**Source location:** `apps/festinalente/src/content/skills/`
+
+### Phase 1: Create festina-finalize Skill
+- [ ] Create `apps/festinalente/src/content/skills/festina-finalize/SKILL.md` (~400 lines orchestrator)
+- [ ] Create `apps/festinalente/src/content/skills/festina-finalize/checks.md` (how to run directive checks)
+- [ ] Create `apps/festinalente/src/content/skills/festina-finalize/docs-product.md` (from festina-docs product logic)
+- [ ] Create `apps/festinalente/src/content/skills/festina-finalize/docs-engineering.md` (from festina-docs engineering logic)
+
+### Phase 2: Delete Old Skills
+- [ ] Delete `apps/festinalente/src/content/skills/festina-check/`
+- [ ] Delete `apps/festinalente/src/content/skills/festina-docs/`
+- [ ] Delete `apps/festinalente/src/content/skills/festina-merge/`
+
+### Phase 3: Update festina-implement
+- [ ] Update `apps/festinalente/src/content/skills/festina-implement/SKILL.md`:
+  - **Add requirement verification at end** (moved from festina-check):
+    - For each FR: identify code, verify no stubs, verify wired in
+    - If gaps: ask user to fix or proceed
+  - Output messaging: "Next: /festina-finalize {id}"
+  - Remove references to /festina-check
+
+### Phase 4: Config Updates
+- [ ] Update `.festinalente/config.yaml`:
+  - Remove: festina-check, festina-docs, festina-merge
+  - Add: festina-finalize: []  (directives are user-configured)
+- [ ] Update workflow columns:
+  - Remove: CHECK, UPDATE-DOCS, PR
+  - Add: FINALIZE
+  - Transitions: IN-PROGRESS → FINALIZE → DONE
+
+### Phase 5: Directive Updates (in this repo's .festinalente/directives/)
+- [ ] Update `coding.xml`: phase="check" → phase="finalize"
+- [ ] Update `github.xml`: phase="merge" → phase="finalize"
+- [ ] Note: These are THIS repo's directives, not part of the distributed skill
+
+### Phase 6: VSCode Extension Updates
+
+The VSCode extension has hardcoded status values that must be updated.
+
+**Files to update:**
+
+- [ ] `apps/vscode/src/types/task-types.ts` (lines 12-14)
+  - Remove: `'check'`, `'update-docs'`, `'pr'`
+  - Add: `'finalize'`
+
+- [ ] `apps/vscode/src/computers/task-grouping.computer.ts` (lines 19-21)
+  - Remove columns: `{ id: 'check', ... }`, `{ id: 'update-docs', ... }`, `{ id: 'pr', ... }`
+  - Add column: `{ id: 'finalize', name: 'Finalize', open: true }`
+
+- [ ] `apps/vscode/src/computers/task-actions.computer.ts` (lines 62-95)
+  - Remove cases: `case 'check':`, `case 'update-docs':`, `case 'pr':`
+  - Add case: `case 'finalize':` with action `{ label: 'Finalize', command: '/festina-finalize {id}', description: 'Validate, document, and complete' }`
+  - Update `case 'in-progress':` to suggest finalize as next step
+
+- [ ] `apps/vscode/src/capabilities/tasks-view.capability.ts` (lines 37-41)
+  - Remove icon mappings for: `'check'`, `'update-docs'`, `'pr'`
+  - Add icon mapping for: `'finalize'`
+
+- [ ] Rebuild extension: `pnpm --filter @mattfletcher94/festinalente-vscode build`
+
+### Phase 7: Rebuild & Documentation
+- [ ] Run build to regenerate `.claude/skills/`, `.opencode/skills/`, `dist/skills/`
+- [ ] Update product docs for new 2-command workflow
 
 ---
 
-## Summary
+## Decisions Log
 
-| Component | Purpose |
-|-----------|---------|
-| **GitHub Issue** | Human-readable task view |
-| **GitHub PR** | Code review and approval |
-| **github.xml directive** | Adds GitHub behavior to create/merge |
-| **MCP Server** | API access to GitHub |
-| **Stateless design** | No sync problems, resumable anytime |
-| **`<override>` system** | Formal way for directives to replace skill steps |
-| **load-directives.md** | Outputs explicit skip instructions to LLM |
-| **festina-directive skill** | Helps users create directives with overrides |
+| Question | Decision | Rationale | Date |
+|----------|----------|-----------|------|
+| Q1: Commit timing | In festina-finalize Phase 1, AFTER checks pass | Keep implement lean; preserve "no commit until checks pass" guarantee | 2026-02-27 |
+| Q2: QA placement | **User handles QA themselves** | LLM ignores QA; user tests before running finalize if they want | 2026-02-27 |
+| Q3: Validation distribution | **Defined by user's directive** | User configures what checks run in their coding.xml | 2026-02-27 |
+| Q4: Skill name | `festina-finalize` | Describes the action: finalize the work | 2026-02-27 |
+| Q5: Failed check handling | **Ask user** | Prompt user on what to do when checks fail | 2026-02-27 |
+| Q6: Docs in flow | Part of finalize Phase 2, before PR | Docs committed before PR is created | 2026-02-27 |
+| **Architecture** | **Reference-based skill with 3 ref files** | Official docs recommend <500 line SKILL.md + separate reference files | 2026-02-27 |
+
+---
+
+## Behaviors Preserved (Verification Checklist)
+
+**CRITICAL: Use this checklist during implementation to verify NO behaviors are lost.**
+
+### From festina-check → Phase 1 (checks.md)
+
+- [ ] `read_plan_file`: Verify all plan tasks have `completed="true"` before running checks
+- [ ] `run_checks`: Execute each check type (command/pattern/checklist)
+- [ ] `run_checks`: Print PASS/FAIL for each directive check
+- [ ] `run_checks`: Auto-fix loop with user prompt (Fix? / Skip? / Abort?)
+- [ ] `run_checks`: Log fix to plan.xml `<iteration phase="finalize">` section
+- [ ] `run_checks`: Commit fix with `docs({id}): check-retry - {title}`
+- [ ] `run_checks`: Restart ALL checks from beginning after fix
+- [ ] `check_uncommitted_changes`: Warn if no uncommitted changes found
+- [ ] `determine_commit_type`: Map labels to commit type (bug→fix, refactor→refactor, etc.)
+- [ ] `stage_and_commit`: Stage implementation files AND .festinalente/ together
+- [ ] `stage_and_commit`: Use correct commit format `{type}({id}): {title}`
+
+### From festina-docs → Phase 2 (docs-product.md, docs-engineering.md)
+
+- [ ] `analyze_product_doc_impact`: Check `affects` field, run `check-product.cjs`
+- [ ] `analyze_product_doc_impact`: Categorize as stub/existing/missing
+- [ ] `analyze_product_doc_impact`: Search for unlisted impacts via `search-product.cjs`
+- [ ] `analyze_product_doc_impact`: Present analysis to user with AskUserQuestion
+- [ ] `analyze_engineering_doc_impact`: Same flow for `engineering` field
+- [ ] `load_smart_context`: Run `select-context.cjs` to load similar docs as reference
+- [ ] `update_existing_docs`: Minimal focused updates, verification prompt
+- [ ] `update_existing_docs`: Update `verified` date and `code_refs`
+- [ ] `update_existing_docs`: Update diagrams if architecture/flow/UI changed
+- [ ] `complete_stub_docs`: Remove `stub: true` and `task:` from frontmatter
+- [ ] `complete_stub_docs`: Fill ALL required frontmatter fields (tldr, summary, keywords, aliases, boundary, etc.)
+- [ ] `complete_stub_docs`: Fill ALL required content sections (TL;DR, Overview, How It Works, Examples, Boundaries)
+- [ ] `complete_stub_docs`: Complete diagrams based on implementation analysis
+- [ ] `complete_stub_engineering_docs`: Type-specific sections (system/pattern/convention)
+- [ ] `complete_stub_engineering_docs`: Type-specific diagrams
+- [ ] `create_new_docs`: Use templates, fill all fields, keep scope focused
+- [ ] `create_new_engineering_docs`: Determine type, use correct template
+- [ ] `handle_internal_changes`: Skip docs if no user-facing changes
+- [ ] `update_domain_index`: Add new doc to `_index.md` with one-line description
+- [ ] `update_engineering_index`: Add new doc to type's `_index.md`
+- [ ] `update_glossary`: Add new terms to `glossary.yaml` with aliases and definition
+- [ ] `validate_docs`: Run `validate-docs.cjs`, fix issues if validation fails
+- [ ] `commit_docs_and_task`: Correct commit format based on what changed (product/engineering/both)
+
+### From festina-merge → Phase 3 (SKILL.md complete_task step)
+
+- [ ] `verify_ready_to_merge`: Ensure working tree is clean
+- [ ] `verify_ready_to_merge`: Show commits to be merged (`git log main..HEAD --oneline`)
+- [ ] `move_to_done_and_commit`: Update status to `done`, add `updated` and `completed` dates
+- [ ] `move_to_done_and_commit`: Commit with `docs({id}): done - {title}`
+- [ ] `merge_branch`: Use `--no-ff` to preserve branch history
+- [ ] `cleanup_branch`: Delete task branch after merge
+- [ ] `output_result`: Show next steps to user
+
+### Removed (Intentionally)
+
+- [ ] `prompt_qa_confirmation`: User handles QA themselves before running /festina-finalize
+- [ ] `prompt_merge_confirmation`: Simplified flow, no confirmation needed
+
+---
+
+## References
+
+- Current skills: `.claude/skills/festina-*/SKILL.md` and `.claude/skills/kanban-*/SKILL.md`
+- GitHub directive: `.festinalente/directives/github.xml`
+- Workflow config: `.kanban/workflow.yaml`
+- Skill config: `.festinalente/config.yaml`
