@@ -138,6 +138,11 @@
         "command": "festinalente.refreshQuicks",
         "title": "Festina Lente: Refresh Quicks",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "festinalente.createDirective",
+        "title": "Festina Lente: Create Directive",
+        "icon": "$(add)"
       }
     ],
     "menus": {
@@ -171,6 +176,11 @@
           "command": "festinalente.findQuick",
           "when": "view == festinalenteQuicks && festinalente.hasFestinalenteFolder",
           "group": "navigation@3"
+        },
+        {
+          "command": "festinalente.createDirective",
+          "when": "view == festinalenteDirectives && festinalente.hasFestinalenteFolder",
+          "group": "navigation@1"
         }
       ],
       "view/item/context": [
