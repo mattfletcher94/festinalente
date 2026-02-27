@@ -82,7 +82,8 @@
       - state="closed" → Prompt: "PR closed. Create new?"
       - reviewDecision="CHANGES_REQUESTED" → Prompt with PR link, EXIT
       - reviewDecision="APPROVED" → Go to M-G5
-      - else (pending) → Prompt: "Awaiting review", EXIT
+      - reviewDecision=null AND mergeable_state="clean" → Go to M-G5 (no review required)
+      - else → Prompt: "Awaiting review or checks", EXIT
     </rule>
 
     <rule id="M-G4" phase="merge">
@@ -90,7 +91,7 @@
       1. Update task: status="done", add completed date
       2. Commit: "docs({taskId}): done"
       3. git checkout main && git pull
-      4. git branch -d task/{taskId}
+      4. git branch -D task/{taskId}
       5. Output: "PR was already merged! Task complete."
       6. EXIT
     </rule>
@@ -98,12 +99,13 @@
     <rule id="M-G5" phase="merge">
       MERGE APPROVED PR:
       1. Prompt: "PR approved. Ready to merge? [Merge now] [Wait]"
-      2. If merge: mcp__GitHub__merge_pull_request (merge_method: "squash")
+      2. If merge: mcp__GitHub__merge_pull_request (merge_method: "rebase")
       3. Update task: status="done", add completed date
       4. Commit: "docs({taskId}): done"
       5. git checkout main && git pull
-      6. Output: "Merged! Task complete."
-      7. EXIT
+      6. git branch -D task/{taskId}
+      7. Output: "Merged! Task complete."
+      8. EXIT
     </rule>
   </process>
 
