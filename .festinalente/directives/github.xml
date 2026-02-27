@@ -36,7 +36,6 @@
   </override>
 
   <process>
-    <!-- festina-create: ADDITIVE (runs after normal create) -->
     <rule id="C-G1" phase="create">
       AFTER creating task.xml, sync to GitHub:
 
@@ -55,7 +54,6 @@
         4. Output: "Created GitHub Issue #N"
     </rule>
 
-    <!-- festina-merge: OVERRIDE (replaces merge_branch and cleanup_branch) -->
     <rule id="M-G1" phase="merge">
       STATE CHECK: Read task.xml, check for github-pr attribute.
 
