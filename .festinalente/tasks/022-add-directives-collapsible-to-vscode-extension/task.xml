@@ -1,4 +1,4 @@
-<task id="022-add-directives-collapsible-to-vscode-extension" status="finalize" priority="medium" created="2026-02-27" updated="2026-02-27" github-issue="#4" github-url="https://github.com/mattfletcher94/festinalente/issues/4">
+<task id="022-add-directives-collapsible-to-vscode-extension" status="finalize" priority="medium" created="2026-02-27" updated="2026-02-27" github-issue="#4" github-url="https://github.com/mattfletcher94/festinalente/issues/4" github-pr="#5">
   <title>Add directives collapsible to VSCode extension</title>
 
   <labels>
