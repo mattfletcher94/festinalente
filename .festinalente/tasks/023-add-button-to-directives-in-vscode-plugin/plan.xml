@@ -1,0 +1,250 @@
+<plan task="023-add-button-to-directives-in-vscode-plugin" spec="tasks/023-add-button-to-directives-in-vscode-plugin/spec.xml" status="approved"
+      complexity="simple" created="2026-02-27" updated="2026-02-27"
+      generated-by="claude" model="claude-opus-4-5-20251101" version="1" iteration="1">
+  <title>Add + button to directives in VSCode plugin similar to TASKS which triggers festina-directive</title>
+
+  <overview>
+    Add a [+] button to the DIRECTIVES section header by: (1) defining the createDirective command
+    in package.json with $(add) icon, (2) adding a view/title menu contribution for the
+    festinalenteDirectives view, (3) injecting terminal orchestrator into directives orchestrator,
+    and (4) registering the command to execute /festina-directive. This follows the exact pattern
+    established by TASKS and QUICKS sections.
+  </overview>
+
+  <approach>
+    <rationale>
+      Following three existing patterns:
+      - Header button definition: package.json:96-98 (festinalente.createTask with $(add) icon)
+      - Menu contribution: package.json:144-149 (view/title with when clause for hasFestinalenteFolder)
+      - Terminal injection: tasks.orchestrator.ts:26-29 (terminal dependency pattern)
+      - Command registration: tasks.orchestrator.ts:264-277 (registerCommand with executeInTerminal)
+
+      Unlike TASKS/QUICKS, no title prompt is needed - /festina-directive handles its own Q&A workflow.
+    </rationale>
+    <breaking-changes>None</breaking-changes>
+  </approach>
+
+  <inventory></inventory>
+
+  <tasks>
+    <task id="1" type="auto">
+      <name>Add createDirective command definition to package.json</name>
+      <files>apps/vscode/package.json (modify)</files>
+      <requirements>FR2</requirements>
+      <pattern>Command definition at apps/vscode/package.json:96-98</pattern>
+      <action>
+        - Add new command object to contributes.commands array
+        - Use command: "festinalente.createDirective"
+        - Use title: "Festina Lente: Create Directive"
+        - Use icon: "$(add)"
+
+        Pattern to follow (approximate):
+        ```json
+        {
+          "command": "festinalente.createTask",
+          "title": "Festina Lente: Create Task - Capture problem, value, and acceptance criteria",
+          "icon": "$(add)"
+        }
+        ```
+
+        Add after refreshQuicks command (around line 141):
+        ```json
+        {
+          "command": "festinalente.createDirective",
+          "title": "Festina Lente: Create Directive",
+          "icon": "$(add)"
+        }
+        ```
+      </action>
+      <verify>pnpm --filter @mattfletcher94/claudeban-vscode build</verify>
+      <done>Command definition added to package.json commands array</done>
+    </task>
+
+    <task id="2" type="auto" depends="1">
+      <name>Add view/title menu contribution for directives view</name>
+      <files>apps/vscode/package.json (modify)</files>
+      <requirements>FR1, FR4</requirements>
+      <pattern>Menu contribution at apps/vscode/package.json:144-149</pattern>
+      <action>
+        - Add new menu entry to contributes.menus.view/title array
+        - Use command: "festinalente.createDirective"
+        - Use when: "view == festinalenteDirectives &amp;&amp; festinalente.hasFestinalenteFolder"
+        - Use group: "navigation@1" (leftmost position)
+
+        Pattern to follow (approximate):
+        ```json
+        {
+          "command": "festinalente.createTask",
+          "when": "view == festinalenteTasks && festinalente.hasFestinalenteFolder",
+          "group": "navigation@1"
+        }
+        ```
+
+        Add after existing directives-related menu entries or at end of view/title array:
+        ```json
+        {
+          "command": "festinalente.createDirective",
+          "when": "view == festinalenteDirectives && festinalente.hasFestinalenteFolder",
+          "group": "navigation@1"
+        }
+        ```
+      </action>
+      <verify>pnpm --filter @mattfletcher94/claudeban-vscode build</verify>
+      <done>Menu contribution added with correct when clause and navigation@1 position</done>
+    </task>
+
+    <task id="3" type="auto" depends="2">
+      <name>Add terminal dependency to directives orchestrator</name>
+      <files>apps/vscode/src/orchestrators/directives.orchestrator.ts (modify)</files>
+      <requirements>FR3</requirements>
+      <pattern>Terminal injection at apps/vscode/src/orchestrators/tasks.orchestrator.ts:26-29</pattern>
+      <action>
+        - Import createTerminalOrchestrator type
+        - Add terminal to DirectivesOrchestratorDeps interface
+        - Add registerCommands method to CreateDirectivesOrchestratorReturn interface
+
+        Current DirectivesOrchestratorDeps:
+        ```typescript
+        export interface DirectivesOrchestratorDeps {
+          readonly fs: ReturnType&lt;typeof createFileSystemCapability&gt;;
+          readonly festinalenteDir: string;
+        }
+        ```
+
+        Change to:
+        ```typescript
+        export interface DirectivesOrchestratorDeps {
+          readonly fs: ReturnType&lt;typeof createFileSystemCapability&gt;;
+          readonly festinalenteDir: string;
+          readonly terminal: ReturnType&lt;typeof createTerminalOrchestrator&gt;;
+        }
+        ```
+
+        Add to CreateDirectivesOrchestratorReturn interface:
+        ```typescript
+        readonly registerCommands: (context: vscode.ExtensionContext) =&gt; void;
+        ```
+      </action>
+      <verify>pnpm --filter @mattfletcher94/claudeban-vscode build</verify>
+      <done>Terminal dependency added to deps interface, registerCommands added to return interface</done>
+    </task>
+
+    <task id="4" type="auto" depends="3">
+      <name>Implement registerCommands in directives orchestrator</name>
+      <files>apps/vscode/src/orchestrators/directives.orchestrator.ts (modify)</files>
+      <requirements>FR3</requirements>
+      <pattern>Command registration at apps/vscode/src/orchestrators/tasks.orchestrator.ts:264-277</pattern>
+      <action>
+        - Add registerCommands function inside createDirectivesOrchestrator
+        - Register festinalente.createDirective command
+        - Execute /festina-directive in terminal (no title prompt needed)
+        - Include registerCommands in return object
+
+        Add before the return statement:
+        ```typescript
+        /**
+         * Register directives-related commands.
+         *
+         * @param context - VSCode extension context.
+         */
+        function registerCommands(context: vscode.ExtensionContext): void {
+          // Create directive command
+          context.subscriptions.push(
+            vscode.commands.registerCommand('festinalente.createDirective', () =&gt; {
+              deps.terminal.executeInTerminal('/festina-directive');
+            })
+          );
+        }
+        ```
+
+        Update return to include registerCommands:
+        ```typescript
+        return {
+          treeDataProvider,
+          refresh,
+          createFileWatcher,
+          registerCommands,
+        };
+        ```
+      </action>
+      <verify>pnpm --filter @mattfletcher94/claudeban-vscode build</verify>
+      <done>createDirective command registered, executes /festina-directive in terminal</done>
+    </task>
+
+    <task id="5" type="auto" depends="4">
+      <name>Wire terminal to directives orchestrator in extension.ts</name>
+      <files>apps/vscode/src/extension.ts (modify)</files>
+      <requirements>FR3</requirements>
+      <pattern>Terminal injection at apps/vscode/src/extension.ts:77-81</pattern>
+      <action>
+        - Add terminal: terminalOrch to directivesOrch creation (line 104-107)
+        - Call directivesOrch.registerCommands(context) after existing registerCommands calls (line 182)
+
+        Current directives orchestrator creation:
+        ```typescript
+        const directivesOrch = createDirectivesOrchestrator({
+          fs,
+          festinalenteDir,
+        });
+        ```
+
+        Change to:
+        ```typescript
+        const directivesOrch = createDirectivesOrchestrator({
+          fs,
+          festinalenteDir,
+          terminal: terminalOrch,
+        });
+        ```
+
+        Add after docsOrch.registerCommands(context) on line 182:
+        ```typescript
+        directivesOrch.registerCommands(context);
+        ```
+      </action>
+      <verify>pnpm --filter @mattfletcher94/claudeban-vscode build</verify>
+      <done>Terminal orchestrator wired to directives orchestrator, registerCommands called</done>
+    </task>
+
+    <task id="6" type="manual" depends="5">
+      <name>Final verification</name>
+      <files>N/A</files>
+      <requirements>FR1, FR2, FR3, FR4</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Reload VSCode window
+        - Verify [+] button appears in DIRECTIVES section header
+        - Click [+] button
+        - Verify terminal opens and runs /festina-directive command
+        - Complete directive creation workflow
+        - Verify DIRECTIVES section refreshes to show new directive
+      </action>
+      <verify>Manual: Test all acceptance criteria</verify>
+      <done>All acceptance criteria pass - button visible, terminal executes /festina-directive</done>
+    </task>
+  </tasks>
+
+  <testing>
+    <automated>None required - straightforward wiring, build verification is sufficient</automated>
+    <manual>
+      - Click [+] button on DIRECTIVES header, verify /festina-directive runs in terminal
+      - Verify button only appears when .festinalente folder exists
+      - Complete directive creation, verify DIRECTIVES section refreshes (existing file watcher handles this)
+    </manual>
+    <regression>Verify existing TASKS and QUICKS [+] buttons still work correctly</regression>
+  </testing>
+
+  <edge-cases>
+    <case scenario="No .festinalente folder">Button hidden via when clause (festinalente.hasFestinalenteFolder)</case>
+    <case scenario="User cancels /festina-directive">Terminal stays open, no harm done - directive skill handles gracefully</case>
+  </edge-cases>
+
+  <pitfalls>
+    <pitfall issue="Forgetting to wire terminal">Must add terminal to deps AND call registerCommands in extension.ts</pitfall>
+    <pitfall issue="Wrong view ID in when clause">Must use festinalenteDirectives not festinalente.directives</pitfall>
+  </pitfalls>
+
+  <iterations></iterations>
+  <wip></wip>
+  <completeness></completeness>
+</plan>
