@@ -1,6 +1,7 @@
 <task id="023-add-button-to-directives-in-vscode-plugin" status="finalize" priority="high" created="2026-02-27" updated="2026-02-27"
       github-issue="#6"
-      github-url="https://github.com/mattfletcher94/festinalente/issues/6">
+      github-url="https://github.com/mattfletcher94/festinalente/issues/6"
+      github-pr="#7">
   <title>Add + button to directives in VSCode plugin similar to TASKS which triggers festina-directive</title>
 
   <labels>
