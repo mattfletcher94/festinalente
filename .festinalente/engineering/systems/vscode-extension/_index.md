@@ -17,8 +17,8 @@ related:
 paths:
   - apps/vscode/src
   - apps/vscode/bin
-updated: 2026-02-25
-verified: 2026-02-25
+updated: 2026-02-27
+verified: 2026-02-27
 code_refs:
   - apps/vscode/src/extension.ts
   - apps/vscode/src/orchestrators/terminal.orchestrator.ts
@@ -26,11 +26,13 @@ code_refs:
   - apps/vscode/src/orchestrators/quicks.orchestrator.ts
   - apps/vscode/src/orchestrators/docs.orchestrator.ts
   - apps/vscode/src/orchestrators/config.orchestrator.ts
+  - apps/vscode/src/orchestrators/directives.orchestrator.ts
   - apps/vscode/src/capabilities/tasks-view.capability.ts
   - apps/vscode/src/capabilities/quicks-view.capability.ts
   - apps/vscode/src/capabilities/terminal.capability.ts
   - apps/vscode/src/capabilities/claude-settings.capability.ts
   - apps/vscode/src/capabilities/config-view.capability.ts
+  - apps/vscode/src/capabilities/directives-view.capability.ts
   - apps/vscode/src/capabilities/docs-view.capability.ts
   - apps/vscode/src/capabilities/file-system.capability.ts
   - apps/vscode/src/capabilities/codelens.capability.ts
@@ -38,8 +40,10 @@ code_refs:
   - apps/vscode/src/computers/task-actions.computer.ts
   - apps/vscode/src/computers/task-grouping.computer.ts
   - apps/vscode/src/computers/quick-parser.computer.ts
+  - apps/vscode/src/computers/directives-config.computer.ts
   - apps/vscode/src/computers/claude-settings.computer.ts
   - apps/vscode/src/types/task-types.ts
+  - apps/vscode/src/types/directives-types.ts
   - apps/vscode/src/types/quick-types.ts
   - apps/vscode/bin/install.cjs
   - apps/vscode/package.json
@@ -67,7 +71,8 @@ apps/vscode/src/
 │   ├── tasks.orchestrator.ts            # Task domain policy (279 lines)
 │   ├── quicks.orchestrator.ts           # Quick task domain policy (178 lines)
 │   ├── docs.orchestrator.ts             # Documentation domain policy (136 lines)
-│   └── config.orchestrator.ts           # Config domain policy (109 lines)
+│   ├── config.orchestrator.ts           # Config domain policy (109 lines)
+│   └── directives.orchestrator.ts       # Directives domain policy
 ├── capabilities/
 │   ├── file-system.capability.ts        # File I/O wrapper
 │   ├── terminal.capability.ts           # Terminal lifecycle
@@ -76,16 +81,19 @@ apps/vscode/src/
 │   ├── quicks-view.capability.ts        # Quicks TreeView
 │   ├── docs-view.capability.ts          # Docs TreeViews
 │   ├── config-view.capability.ts        # Config TreeView
+│   ├── directives-view.capability.ts    # Directives TreeView
 │   └── codelens.capability.ts           # CodeLens provider
 ├── computers/
 │   ├── task-parser.computer.ts          # XML parsing for tasks
 │   ├── task-actions.computer.ts         # Task action generation
 │   ├── task-grouping.computer.ts        # Task grouping by status
 │   ├── quick-parser.computer.ts         # XML parsing for quicks
+│   ├── directives-config.computer.ts    # YAML parsing for directives
 │   └── claude-settings.computer.ts      # YOLO mode detection
 └── types/
     ├── task-types.ts                    # Task domain types
-    └── quick-types.ts                   # Quick domain types
+    ├── quick-types.ts                   # Quick domain types
+    └── directives-types.ts              # Directive domain types
 ```
 
 ## Architecture Layers
@@ -114,6 +122,7 @@ Each domain has its own orchestrator handling policy decisions (when/whether to 
 | quicks | Quick loading, parsing, quick commands, file watching | `orchestrators/quicks.orchestrator.ts` |
 | docs | Product/engineering docs providers, global actions, file watching | `orchestrators/docs.orchestrator.ts` |
 | config | Config existence checking, config view, file watching | `orchestrators/config.orchestrator.ts` |
+| directives | Directive-workflow mappings from config.yaml, file watching | `orchestrators/directives.orchestrator.ts` |
 
 #### Orchestrator Dependencies
 
@@ -126,6 +135,7 @@ graph TD
     QUICKS["quicks.orchestrator"]
     DOCS["docs.orchestrator"]
     CONFIG["config.orchestrator"]
+    DIR["directives.orchestrator"]
 
     FS["file-system.capability<br/>(shared)"]
 
@@ -134,6 +144,7 @@ graph TD
     EXT --> QUICKS
     EXT --> DOCS
     EXT --> CONFIG
+    EXT --> DIR
 
     TASKS --> TERM
     QUICKS --> TERM
@@ -144,6 +155,7 @@ graph TD
     QUICKS --> FS
     DOCS --> FS
     CONFIG --> FS
+    DIR --> FS
 
     style EXT fill:#fff9c4
     style TERM fill:#e1bee7
@@ -151,6 +163,7 @@ graph TD
     style QUICKS fill:#b2dfdb
     style DOCS fill:#ffe0b2
     style CONFIG fill:#f5f5f5
+    style DIR fill:#d1c4e9
     style FS fill:#c8e6c9
 ```
 
@@ -169,6 +182,7 @@ Capabilities handle I/O and side effects. They wrap VSCode APIs and file system 
 | quicks-view | TreeView for quick tasks list | `capabilities/quicks-view.capability.ts` |
 | docs-view | TreeViews for product/engineering docs | `capabilities/docs-view.capability.ts` |
 | config-view | TreeView for config.yaml access | `capabilities/config-view.capability.ts` |
+| directives-view | TreeView for workflow/directive mappings | `capabilities/directives-view.capability.ts` |
 | codelens | CodeLens provider for task.xml files | `capabilities/codelens.capability.ts` |
 
 #### TreeItem Types in tasks-view
@@ -206,6 +220,7 @@ Computers contain pure functions with no side effects.
 | task-actions | Generates available actions per task status | `computers/task-actions.computer.ts` |
 | task-grouping | Groups tasks by status, defines columns | `computers/task-grouping.computer.ts` |
 | quick-parser | Parses quick.xml files using fast-xml-parser | `computers/quick-parser.computer.ts` |
+| directives-config | Parses config.yaml directives section using js-yaml | `computers/directives-config.computer.ts` |
 | claude-settings | YOLO mode detection from Claude settings | `computers/claude-settings.computer.ts` |
 
 ### Types Layer
@@ -214,6 +229,7 @@ Computers contain pure functions with no side effects.
 |-----------|---------|------|
 | task-types | Task, TaskStatus, TaskPriority, TaskAction interfaces | `types/task-types.ts` |
 | quick-types | Quick, QuickStatus interfaces | `types/quick-types.ts` |
+| directives-types | Workflow, Directive, WorkflowId, DirectiveId interfaces | `types/directives-types.ts` |
 
 ## Architecture Diagram
 
@@ -388,6 +404,7 @@ YOLO mode is enabled when either condition is true:
 | docs | `product/**/*.md` | Refresh product docs view |
 | docs | `engineering/**/*.md` | Refresh engineering docs view |
 | config | `config.yaml` | Refresh config view, update context |
+| directives | `config.yaml`, `directives/**/*.xml` | Refresh directives view |
 
 ## Distribution
 
