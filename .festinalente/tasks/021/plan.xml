@@ -1,0 +1,378 @@
+<plan task="021" spec="tasks/021/spec.xml" status="approved"
+      complexity="medium" created="2026-02-27" updated="2026-02-27"
+      generated-by="claude" model="claude-opus-4-5-20251101" version="1" iteration="1">
+  <title>Support task ID slugs</title>
+
+  <overview>
+    Extend the ID generation system to produce slug-based IDs (e.g., 021-support-task-id-slugs)
+    instead of plain numeric IDs. Uses the slugify npm package for URL-safe slug generation.
+    Task lookup scripts must extract the numeric portion using /^(\d+)/ regex to support
+    both legacy numeric folders (001-020) and new slug-based folders.
+  </overview>
+
+  <approach>
+    <rationale>
+      Following existing patterns:
+      - CLI Script Flow: parse args -> read config -> process -> output JSON (systems/cli/_index.md:120-170)
+      - Tagged Union Errors: { success: true, data } or { error: true, message } (patterns/tagged-union-errors.md:34-49)
+      - Numeric Prefix Parsing: /^(\d+)/ regex pattern (apps/festinalente/src/scripts/select-context.ts:78)
+
+      Key design decisions:
+      - Slugify with strict mode and lowercase to ensure filesystem-safe slugs
+      - MAX_SLUG_LENGTH = 50 hardcoded constant (no config overhead)
+      - Numeric prefix ensures uniqueness even if titles truncate to same 50-char slug
+      - No migration of existing tasks (001-020 remain numeric)
+    </rationale>
+    <breaking-changes>
+      <change type="api">
+        <old>node .festinalente/scripts/next-id.cjs (no args)</old>
+        <new>node .festinalente/scripts/next-id.cjs --title="Task title here"</new>
+        <affects>festina-create skill, any script calling next-id</affects>
+      </change>
+      <change type="api">
+        <old>{ nextId: "022", currentHighest: "021", padding: 3 }</old>
+        <new>{ nextId: "022-task-title-slug", currentHighest: "021", padding: 3, slug: "task-title-slug" }</new>
+        <affects>Scripts consuming next-id output</affects>
+      </change>
+    </breaking-changes>
+  </approach>
+
+  <inventory>
+    <set name="cli-scripts-to-modify" count="3">
+      <item>apps/festinalente/src/scripts/next-id.ts</item>
+      <item>apps/festinalente/src/scripts/find-task.ts</item>
+      <item>apps/festinalente/src/scripts/list-tasks.ts</item>
+    </set>
+    <set name="skill-files-to-modify" count="1">
+      <item>.claude/skills/festina-create/SKILL.md</item>
+    </set>
+    <set name="docs-to-update" count="1">
+      <item>.festinalente/product/utilities/id-generation.md</item>
+    </set>
+  </inventory>
+
+  <tasks>
+    <task id="1" type="auto">
+      <name>Add slugify dependency</name>
+      <files>apps/festinalente/package.json (modify)</files>
+      <requirements>FR2</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Add slugify ^1.6.6 to dependencies in apps/festinalente/package.json
+        - Run pnpm install to update lockfile
+
+        Current code (approximate):
+        ```json
+        {
+          "dependencies": {
+            // existing deps
+          }
+        }
+        ```
+
+        Change to:
+        ```json
+        {
+          "dependencies": {
+            // existing deps
+            "slugify": "^1.6.6"
+          }
+        }
+        ```
+      </action>
+      <verify>pnpm install</verify>
+      <done>slugify package installed and available for import</done>
+    </task>
+
+    <task id="2" type="auto" depends="1">
+      <name>Update next-id.ts to generate slug-based IDs</name>
+      <files>apps/festinalente/src/scripts/next-id.ts (modify)</files>
+      <requirements>FR1, FR2, FR3, FR4</requirements>
+      <pattern>CLI Script Flow at .festinalente/engineering/systems/cli/_index.md:120-170</pattern>
+      <action>
+        - Import slugify from 'slugify'
+        - Add MAX_SLUG_LENGTH = 50 constant
+        - Add --title argument parsing (required for slug generation)
+        - Generate slug using slugify(title, { lower: true, strict: true })
+        - Truncate slug to MAX_SLUG_LENGTH characters
+        - Return nextId in format "{paddedNumber}-{slug}"
+        - Add slug field to output JSON
+        - Handle missing --title: return error JSON with usage message
+
+        Current code (lines 81-92):
+        ```typescript
+        // Find highest ID (folder names are "001", "002", etc.)
+        let highest = 0;
+        for (const folderName of folders) {
+          const id = parseInt(folderName, 10);
+          if (!isNaN(id) && id > highest) {
+            highest = id;
+          }
+        }
+        const nextId = (highest + 1).toString().padStart(padding, '0');
+        ```
+
+        Change to:
+        ```typescript
+        const MAX_SLUG_LENGTH = 50;
+
+        // Parse --title argument
+        const titleArg = process.argv.find(arg => arg.startsWith('--title='));
+        if (!titleArg) {
+          console.log(JSON.stringify({ error: true, message: 'Usage: next-id.cjs --title="Task title"' }));
+          process.exit(1);
+        }
+        const title = titleArg.slice('--title='.length);
+
+        // Find highest ID (folder names can be "001" or "001-slug-here")
+        let highest = 0;
+        for (const folderName of folders) {
+          const match = folderName.match(/^(\d+)/);
+          if (match) {
+            const id = parseInt(match[1], 10);
+            if (!isNaN(id) && id > highest) {
+              highest = id;
+            }
+          }
+        }
+
+        // Generate slug
+        const slug = slugify(title, { lower: true, strict: true }).slice(0, MAX_SLUG_LENGTH);
+        const paddedNumber = (highest + 1).toString().padStart(padding, '0');
+        const nextId = `${paddedNumber}-${slug}`;
+        ```
+      </action>
+      <verify>pnpm kanban:build</verify>
+      <done>next-id.ts generates slug-based IDs in format {number}-{slug}</done>
+    </task>
+
+    <task id="3" type="auto" depends="2">
+      <name>Update find-task.ts to extract numeric portion from slug IDs</name>
+      <files>apps/festinalente/src/scripts/find-task.ts (modify)</files>
+      <requirements>FR5</requirements>
+      <pattern>Numeric Prefix Parsing at apps/festinalente/src/scripts/select-context.ts:78</pattern>
+      <action>
+        - Modify findTaskFile to scan task folders and match by numeric prefix
+        - Use /^(\d+)/ regex to extract numeric portion from input ID
+        - Find folder that starts with the same numeric prefix
+        - This handles both "021" input finding "021-slug/" and "021-slug" input finding "021-slug/"
+
+        Current code (lines 13-18):
+        ```typescript
+        function findTaskFile(id: string): string | null {
+          const taskPath = path.join(TASKS_DIR, id, 'task.xml');
+          if (fs.existsSync(taskPath)) {
+            return taskPath.replace(/\\/g, '/');
+          }
+          return null;
+        }
+        ```
+
+        Change to:
+        ```typescript
+        function findTaskFile(id: string): string | null {
+          // Extract numeric prefix from input (handles both "021" and "021-slug")
+          const numericMatch = id.match(/^(\d+)/);
+          if (!numericMatch) {
+            return null;
+          }
+          const numericPrefix = numericMatch[1];
+
+          // First try exact match (for legacy numeric folders)
+          const exactPath = path.join(TASKS_DIR, id, 'task.xml');
+          if (fs.existsSync(exactPath)) {
+            return exactPath.replace(/\\/g, '/');
+          }
+
+          // Scan for folder starting with numeric prefix
+          if (!fs.existsSync(TASKS_DIR)) {
+            return null;
+          }
+          const folders = fs.readdirSync(TASKS_DIR, { withFileTypes: true })
+            .filter(f => f.isDirectory())
+            .map(f => f.name);
+
+          for (const folder of folders) {
+            const folderMatch = folder.match(/^(\d+)/);
+            if (folderMatch && folderMatch[1] === numericPrefix) {
+              const taskPath = path.join(TASKS_DIR, folder, 'task.xml');
+              if (fs.existsSync(taskPath)) {
+                return taskPath.replace(/\\/g, '/');
+              }
+            }
+          }
+
+          return null;
+        }
+        ```
+      </action>
+      <verify>pnpm kanban:build</verify>
+      <done>find-task.ts can locate tasks by numeric prefix (021) or full slug ID (021-support-task-id-slugs)</done>
+    </task>
+
+    <task id="4" type="auto" depends="2">
+      <name>Update list-tasks.ts to handle slug folder names</name>
+      <files>apps/festinalente/src/scripts/list-tasks.ts (modify)</files>
+      <requirements>FR5, FR6</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Update folder reading to use full folder name as ID (no changes needed for basic listing)
+        - The current code already uses folderId directly which works for both formats
+        - Verify --status, --label, --priority filters still work
+        - No changes needed - current implementation is already compatible
+
+        Current code (lines 65-81) already handles this correctly:
+        ```typescript
+        for (const folderId of folders) {
+          const filePath = path.join(TASKS_DIR, folderId, 'task.xml').replace(/\\/g, '/');
+          // ...
+          const task: Task = {
+            id: folderId,  // Uses full folder name (works for both "021" and "021-slug")
+            // ...
+          };
+        }
+        ```
+
+        The task.id from XML should match the folder, but if XML stores just numeric ID,
+        we may need to update. Check if task.xml has id="021" or id="021-slug".
+        Based on spec: folder uses full slug-based ID, so XML id attribute will also use full ID.
+      </action>
+      <verify>pnpm kanban:build</verify>
+      <done>list-tasks.ts correctly lists tasks with both numeric and slug folder names</done>
+    </task>
+
+    <task id="5" type="auto" depends="2">
+      <name>Update festina-create skill to pass title to next-id</name>
+      <files>.claude/skills/festina-create/SKILL.md (modify)</files>
+      <requirements>FR1, FR4</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Update get_next_id step to pass --title argument to next-id script
+        - Must run after get_task_title step (already is - get_task_title outputs title)
+        - Update command invocation to include title
+
+        Current code (line 148):
+        ```xml
+        <command>node .festinalente/scripts/next-id.cjs</command>
+        ```
+
+        Change to:
+        ```xml
+        <command>node .festinalente/scripts/next-id.cjs --title="{title}"</command>
+        ```
+
+        Also update create_task_file step notes (lines 445-447):
+        Current:
+        ```xml
+        <note>`{nextId}` = the nextId from step get_next_id (e.g., "001")</note>
+        ```
+
+        Change to:
+        ```xml
+        <note>`{nextId}` = the nextId from step get_next_id (e.g., "022-add-dark-mode-toggle")</note>
+        ```
+      </action>
+      <verify>Manual: Review SKILL.md changes for correctness</verify>
+      <done>festina-create skill passes task title to next-id script</done>
+    </task>
+
+    <task id="6" type="auto" depends="2">
+      <name>Update id-generation product documentation</name>
+      <files>.festinalente/product/utilities/id-generation.md (modify)</files>
+      <requirements>FR1, FR2, FR3, FR4</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Update TL;DR to mention slug-based IDs
+        - Update Overview to explain new format
+        - Update "How It Works" section with slug generation step
+        - Update usage examples with --title argument
+        - Update output examples with slug field
+        - Add note about MAX_SLUG_LENGTH = 50
+        - Add note about backwards compatibility with numeric IDs
+
+        Key changes:
+        - Old: `node .kanban/scripts/next-id.cjs`
+        - New: `node .kanban/scripts/next-id.cjs --title="Task title"`
+        - Old output: `{ "nextId": "004" }`
+        - New output: `{ "nextId": "004-task-title-slug", "slug": "task-title-slug" }`
+      </action>
+      <verify>Manual: Review documentation for accuracy</verify>
+      <done>Product documentation reflects slug-based ID format</done>
+    </task>
+
+    <task id="7" type="manual" depends="3,4,5,6">
+      <name>Final verification</name>
+      <files>N/A</files>
+      <requirements>FR1, FR2, FR3, FR4, FR5, FR6</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Run pnpm kanban:build to verify all scripts compile
+        - Test next-id with title: node .festinalente/scripts/next-id.cjs --title="Test task with long title"
+        - Verify output has nextId in format {number}-{slug}
+        - Verify slug is truncated to 50 chars max
+        - Test find-task with numeric ID: node .festinalente/scripts/find-task.cjs 001
+        - Verify it finds legacy numeric folder
+        - Test list-tasks: node .festinalente/scripts/list-tasks.cjs
+        - Verify all tasks listed correctly
+      </action>
+      <verify>Manual: All acceptance criteria verified</verify>
+      <done>All acceptance criteria from task pass</done>
+    </task>
+  </tasks>
+
+  <testing>
+    <automated>
+      - pnpm kanban:build verifies TypeScript compilation
+      - No unit tests required for this change (CLI scripts, manual verification sufficient)
+    </automated>
+    <manual>
+      - Test next-id.cjs --title="Test slug generation" returns valid slug ID
+      - Test find-task.cjs with numeric ID finds existing tasks
+      - Test find-task.cjs with full slug ID finds task
+      - Test list-tasks.cjs shows correct task IDs
+      - Create new task with /festina-create and verify slug ID generated
+    </manual>
+    <regression>
+      - Verify existing tasks (001-020) still accessible via find-task
+      - Verify list-tasks shows all existing tasks correctly
+      - Verify VSCode extension kanban view still works (reads ID from XML, not folder)
+    </regression>
+  </testing>
+
+  <edge-cases>
+    <case scenario="Title with special characters (e.g., 'Add $100 feature!')">
+      slugify strict mode removes special chars: "add-100-feature"
+    </case>
+    <case scenario="Title exceeds 50 characters when slugified">
+      Truncate at 50 characters: "very-long-task-title-that-exceeds-fifty-charac"
+    </case>
+    <case scenario="Title produces empty slug (all special chars)">
+      This should not happen in practice; if it does, the numeric prefix alone identifies the task
+    </case>
+    <case scenario="User passes numeric ID to find-task (e.g., '021')">
+      Script extracts numeric prefix and finds matching folder (021-slug-here/)
+    </case>
+    <case scenario="User passes full slug ID to find-task (e.g., '021-support-task-id-slugs')">
+      Script extracts numeric prefix 021 and finds matching folder
+    </case>
+  </edge-cases>
+
+  <pitfalls>
+    <pitfall issue="Missing --title argument">
+      next-id.ts must validate --title is provided and return clear error message with usage
+    </pitfall>
+    <pitfall issue="Regex matching for numeric prefix">
+      Use /^(\d+)/ to extract leading digits; handles both "021" and "021-slug" formats
+    </pitfall>
+    <pitfall issue="Skill file SKILL.md uses {title} variable">
+      Ensure title is available from get_task_title step before get_next_id runs; already correct order
+    </pitfall>
+    <pitfall issue="Product doc paths use .kanban not .festinalente">
+      Update paths in documentation to match actual script location
+    </pitfall>
+  </pitfalls>
+
+  <iterations></iterations>
+  <wip></wip>
+  <completeness></completeness>
+</plan>
