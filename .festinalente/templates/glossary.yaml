@@ -4,7 +4,7 @@
 # When searching for "sign in", also match docs tagged with "login".
 #
 # This file is:
-# - Auto-populated during /kanban-map-product and /kanban-map-engineering
+# - Auto-populated during /festina-map-product and /festina-map-engineering
 # - Editable by hand to add custom terms
 # - Used by search scripts to expand queries
 #

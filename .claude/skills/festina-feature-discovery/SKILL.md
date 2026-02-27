@@ -14,11 +14,11 @@ Analyze the codebase, product docs, and patterns to discover potential new featu
 
 <context>
 <note>
-- **`.claude/skills/festina-*/`** — Installed kanban skills — READ ONLY
+- **`.claude/skills/festina-*/`** — Installed festina skills — READ ONLY
 - **`.festinalente/`** — Project data and config — READ/WRITE
 - **`.festinalente/tasks/{id}/`** — Task folder containing `task.xml`, `spec.xml`, `plan.xml`
 - **`.festinalente/quick/{id}/`** — Quick task folder containing `quick.xml` (for /festina-quick)
-- **`.festinalente/scripts/`** — Helper scripts for kanban operations
+- **`.festinalente/scripts/`** — Helper scripts for festina operations
 - **`.festinalente/templates/`** — Document templates
 - **`.festinalente/workflow.yaml`** — Workflow config (columns, labels, transitions)
 - **`.festinalente/directives/`** — User-defined directives (custom instructions for skills)
@@ -220,7 +220,7 @@ Output as a structured list.
         <agent name="Task Theme Analyzer" subagent_type="Explore">
           <description>Analyze existing tasks for gaps</description>
           <prompt>
-Analyze existing kanban tasks to find gaps.
+Analyze existing festina tasks to find gaps.
 Focus area: "{focusArea}"
 
 Your job:

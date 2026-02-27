@@ -4,14 +4,16 @@ const fs = require_chunk.__toESM(require("fs"));
 const fast_xml_parser = require_chunk.__toESM(require("fast-xml-parser"));
 
 //#region src/scripts/validate-directive.ts
-const DIRECTIVES_DIR = ".kanban/directives";
+const DIRECTIVES_DIR = ".festinalente/directives";
 const VALID_PHASES = [
 	"scope",
 	"plan",
 	"implement",
 	"check",
 	"rework",
-	"docs"
+	"docs",
+	"create",
+	"merge"
 ];
 const VALID_SEVERITIES = [
 	"error",
@@ -60,7 +62,9 @@ function validateDirective(content, expectedName) {
 			"rule",
 			"check",
 			"item",
-			"example"
+			"example",
+			"override",
+			"skip"
 		].includes(tagName)
 	});
 	let parsed;
@@ -155,6 +159,35 @@ function validateDirective(content, expectedName) {
 			if (ref && !allIds.has(ref)) warnings.push(`Example ref="${ref}" doesn't match any rule/check ID`);
 			if (type && !["correct", "violation"].includes(type)) errors.push(`Invalid example type "${type}". Valid: correct, violation`);
 		}
+	}
+	const overrideList = directive.override;
+	const overrides = overrideList ? Array.isArray(overrideList) ? overrideList : [overrideList] : [];
+	for (const override of overrides) {
+		const phase = override.phase;
+		if (!phase) {
+			errors.push("<override> must have a phase attribute");
+			continue;
+		}
+		const skipList = override.skip;
+		const skips = skipList ? Array.isArray(skipList) ? skipList : [skipList] : [];
+		for (const skip of skips) {
+			const stepName = skip.step;
+			if (!stepName) errors.push("<skip> element must have a step attribute");
+		}
+		const instead = override.instead;
+		if (instead) {
+			const rulesAttr = instead.rules;
+			if (rulesAttr) {
+				const ruleIds = rulesAttr.split(",").map((r) => r.trim());
+				const processSection = directive.process;
+				const rules = processSection?.rule;
+				for (const ruleId of ruleIds) {
+					const ruleExists = rules?.some((r) => r.id === ruleId);
+					if (!ruleExists) errors.push(`Override references unknown rule "${ruleId}" in <instead>`);
+				}
+			}
+		}
+		if (!override.reason) warnings.push("<override> should have a <reason> element");
 	}
 	if (duplicateIds.length > 0) errors.push(`Duplicate IDs found: ${duplicateIds.join(", ")}`);
 	if (!context && !process$1 && !validation && !examples) warnings.push("Directive has no content sections (context, process, validation, or examples)");

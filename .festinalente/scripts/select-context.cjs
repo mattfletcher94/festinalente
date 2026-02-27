@@ -6,9 +6,9 @@ const path = require_chunk.__toESM(require("path"));
 
 //#region src/scripts/select-context.ts
 var import_gray_matter = require_chunk.__toESM(require_gray_matter$1.require_gray_matter(), 1);
-const TASKS_DIR = ".kanban/tasks";
-const PRODUCT_DIR = ".kanban/product";
-const ENGINEERING_DIR = ".kanban/engineering";
+const TASKS_DIR = ".festinalente/tasks";
+const PRODUCT_DIR = ".festinalente/product";
+const ENGINEERING_DIR = ".festinalente/engineering";
 function parseArgs(args) {
 	const result = { _: [] };
 	for (const arg of args) if (arg.startsWith("--")) {

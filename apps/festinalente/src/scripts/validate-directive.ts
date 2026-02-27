@@ -10,7 +10,7 @@ import { XMLParser } from 'fast-xml-parser';
 
 const DIRECTIVES_DIR = '.festinalente/directives';
 
-const VALID_PHASES = ['scope', 'plan', 'implement', 'check', 'rework', 'docs'];
+const VALID_PHASES = ['scope', 'plan', 'implement', 'check', 'rework', 'docs', 'create', 'merge'];
 const VALID_SEVERITIES = ['error', 'warning', 'info'];
 const VALID_CHECK_TYPES = ['command', 'pattern', 'checklist'];
 
@@ -60,7 +60,7 @@ function validateDirective(content: string, expectedName: string): ValidationRes
     ignoreAttributes: false,
     attributeNamePrefix: '',
     textNodeName: '_text',
-    isArray: (tagName) => ['principle', 'rule', 'check', 'item', 'example'].includes(tagName)
+    isArray: (tagName) => ['principle', 'rule', 'check', 'item', 'example', 'override', 'skip'].includes(tagName)
   });
 
   let parsed: Record<string, unknown>;
@@ -223,6 +223,52 @@ function validateDirective(content: string, expectedName: string): ValidationRes
           errors.push(`Invalid example type "${type}". Valid: correct, violation`);
         }
       }
+    }
+  }
+
+  // Validate <override> sections
+  const overrideList = directive.override as Array<Record<string, unknown>> | Record<string, unknown> | undefined;
+  const overrides = overrideList ? (Array.isArray(overrideList) ? overrideList : [overrideList]) : [];
+
+  for (const override of overrides) {
+    const phase = override.phase as string | undefined;
+    if (!phase) {
+      errors.push('<override> must have a phase attribute');
+      continue;
+    }
+
+    // Validate <skip> elements have step attribute
+    const skipList = override.skip as Array<Record<string, unknown>> | Record<string, unknown> | undefined;
+    const skips = skipList ? (Array.isArray(skipList) ? skipList : [skipList]) : [];
+
+    for (const skip of skips) {
+      const stepName = skip.step as string | undefined;
+      if (!stepName) {
+        errors.push('<skip> element must have a step attribute');
+      }
+    }
+
+    // Validate <instead> references existing rules
+    const instead = override.instead as Record<string, unknown> | undefined;
+    if (instead) {
+      const rulesAttr = instead.rules as string | undefined;
+      if (rulesAttr) {
+        const ruleIds = rulesAttr.split(',').map(r => r.trim());
+        const processSection = directive.process as Record<string, unknown> | undefined;
+        const rules = processSection?.rule as Array<Record<string, unknown>> | undefined;
+
+        for (const ruleId of ruleIds) {
+          const ruleExists = rules?.some(r => r.id === ruleId);
+          if (!ruleExists) {
+            errors.push(`Override references unknown rule "${ruleId}" in <instead>`);
+          }
+        }
+      }
+    }
+
+    // Warn if no reason provided
+    if (!override.reason) {
+      warnings.push('<override> should have a <reason> element');
     }
   }
 

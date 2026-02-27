@@ -5,8 +5,8 @@ const path = require_chunk.__toESM(require("path"));
 const fast_xml_parser = require_chunk.__toESM(require("fast-xml-parser"));
 
 //#region src/scripts/validate-xml.ts
-const TASKS_DIR = ".kanban/tasks";
-const QUICK_DIR = ".kanban/quick";
+const TASKS_DIR = ".festinalente/tasks";
+const QUICK_DIR = ".festinalente/quick";
 const parser = new fast_xml_parser.XMLParser({
 	ignoreAttributes: false,
 	attributeNamePrefix: "@_",
@@ -26,15 +26,10 @@ function validateFile(filePath) {
 	}
 }
 /**
-
 * Get XML files for a quick task.
-
 *
-
 * @param quickId - The quick task ID (e.g., "001").
-
 * @returns Array of XML file paths, or null if quick task not found.
-
 */
 function getXmlFilesForQuick(quickId) {
 	const quickDir = path.default.join(QUICK_DIR, quickId);
@@ -45,15 +40,10 @@ function getXmlFilesForQuick(quickId) {
 	return files;
 }
 /**
-
 * Get XML files for a full task.
-
 *
-
 * @param taskId - The task ID.
-
 * @returns Array of XML file paths, or null if task not found.
-
 */
 function getXmlFilesForTask(taskId) {
 	if (taskId.startsWith("quick/")) {

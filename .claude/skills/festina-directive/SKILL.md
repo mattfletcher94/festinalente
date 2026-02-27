@@ -14,11 +14,11 @@ Create a new directive through conversational Q&A. Captures context principles, 
 
 <context>
 <note>
-- **`.claude/skills/festina-*/`** — Installed kanban skills — READ ONLY
+- **`.claude/skills/festina-*/`** — Installed festina skills — READ ONLY
 - **`.festinalente/`** — Project data and config — READ/WRITE
 - **`.festinalente/tasks/{id}/`** — Task folder containing `task.xml`, `spec.xml`, `plan.xml`
 - **`.festinalente/quick/{id}/`** — Quick task folder containing `quick.xml` (for /festina-quick)
-- **`.festinalente/scripts/`** — Helper scripts for kanban operations
+- **`.festinalente/scripts/`** — Helper scripts for festina operations
 - **`.festinalente/templates/`** — Document templates
 - **`.festinalente/workflow.yaml`** — Workflow config (columns, labels, transitions)
 - **`.festinalente/directives/`** — User-defined directives (custom instructions for skills)
@@ -47,7 +47,7 @@ Create a new directive through conversational Q&A. Captures context principles, 
 </prohibited>
 
 <process>
-  <step name="verify_kanban_exists">
+  <step name="verify_festina_exists">
     <validate>Check that `.festinalente/directives/` directory exists</validate>
     <branch condition="directory doesn't exist">
       <output>Error: Festina Lente not initialized. Run `npx festinalente init` first.</output>

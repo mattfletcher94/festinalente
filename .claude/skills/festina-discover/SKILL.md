@@ -13,11 +13,11 @@ Investigate a problem in the codebase through structured exploration, produce co
 
 <context>
 <note>
-- **`.claude/skills/festina-*/`** — Installed kanban skills — READ ONLY
+- **`.claude/skills/festina-*/`** — Installed festina skills — READ ONLY
 - **`.festinalente/`** — Project data and config — READ/WRITE
 - **`.festinalente/tasks/{id}/`** — Task folder containing `task.xml`, `spec.xml`, `plan.xml`
 - **`.festinalente/quick/{id}/`** — Quick task folder containing `quick.xml` (for /festina-quick)
-- **`.festinalente/scripts/`** — Helper scripts for kanban operations
+- **`.festinalente/scripts/`** — Helper scripts for festina operations
 - **`.festinalente/templates/`** — Document templates
 - **`.festinalente/workflow.yaml`** — Workflow config (columns, labels, transitions)
 - **`.festinalente/directives/`** — User-defined directives (custom instructions for skills)
@@ -59,9 +59,9 @@ Investigate a problem in the codebase through structured exploration, produce co
   <step name="validate_problem">
     <note>Ensure this is a concrete problem, not a meta-question</note>
 
-    <branch condition="user asks about kanban workflow or skill selection">
+    <branch condition="user asks about festina workflow or skill selection">
       <output>
-I investigate problems in your codebase - I don't advise on kanban workflow.
+I investigate problems in your codebase - I don't advise on festina workflow.
 
 What outcome are you trying to achieve? I can investigate that and create tasks for any work needed.
       </output>
@@ -375,7 +375,7 @@ Next steps:
 User: `/festina-discover which skill should I use for documentation?`
 
 ```
-I investigate problems in your codebase - I don't advise on kanban workflow.
+I investigate problems in your codebase - I don't advise on festina workflow.
 
 What outcome are you trying to achieve? I can investigate that and create tasks for any work needed.
 

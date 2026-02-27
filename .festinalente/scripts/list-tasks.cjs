@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 const require_chunk = require('./chunk-DWy1uDak.cjs');
-const require_xml_parser = require('./xml-parser-CLD-d9qv.cjs');
+const require_xml_parser = require('./xml-parser-C8mdMRV3.cjs');
 const fs = require_chunk.__toESM(require("fs"));
 const path = require_chunk.__toESM(require("path"));
 
 //#region src/scripts/list-tasks.ts
-const TASKS_DIR = ".kanban/tasks";
+const TASKS_DIR = ".festinalente/tasks";
 function parseArgs(args) {
 	const result = { _: [] };
 	for (const arg of args) if (arg.startsWith("--")) {

@@ -6,8 +6,8 @@ const path = require_chunk.__toESM(require("path"));
 
 //#region src/scripts/validate-docs.ts
 var import_gray_matter = require_chunk.__toESM(require_gray_matter$1.require_gray_matter(), 1);
-const PRODUCT_DIR = ".kanban/product";
-const ENGINEERING_DIR = ".kanban/engineering";
+const PRODUCT_DIR = ".festinalente/product";
+const ENGINEERING_DIR = ".festinalente/engineering";
 const checks = [
 	{
 		name: "has-tldr",

@@ -7,7 +7,7 @@ const path = require_chunk.__toESM(require("path"));
 
 //#region src/scripts/search-product.ts
 var import_gray_matter = require_chunk.__toESM(require_gray_matter$1.require_gray_matter(), 1);
-const PRODUCT_DIR = ".kanban/product";
+const PRODUCT_DIR = ".festinalente/product";
 function parseArgs(args) {
 	const result = { _: [] };
 	for (const arg of args) if (arg.startsWith("--")) {

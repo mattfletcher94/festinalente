@@ -1,6 +1,6 @@
 ---
 name: festina-delete
-description: Delete a task from the kanban board. Only works for tasks in Backlog status.
+description: Delete a task from the festina board. Only works for tasks in Backlog status.
 tools:
   read: true
   bash(node *: true
@@ -17,16 +17,16 @@ disable-model-invocation: true
 # Delete Festina Lente Task
 
 <purpose>
-Permanently delete a task from the kanban board. Only tasks in Backlog status can be deleted.
+Permanently delete a task from the festina board. Only tasks in Backlog status can be deleted.
 </purpose>
 
 <context>
 <note>
-- **`.opencode/skills/festina-*/`** — Installed kanban skills — READ ONLY
+- **`.opencode/skills/festina-*/`** — Installed festina skills — READ ONLY
 - **`.festinalente/`** — Project data and config — READ/WRITE
 - **`.festinalente/tasks/{id}/`** — Task folder containing `task.xml`, `spec.xml`, `plan.xml`
 - **`.festinalente/quick/{id}/`** — Quick task folder containing `quick.xml` (for /festina-quick)
-- **`.festinalente/scripts/`** — Helper scripts for kanban operations
+- **`.festinalente/scripts/`** — Helper scripts for festina operations
 - **`.festinalente/templates/`** — Document templates
 - **`.festinalente/workflow.yaml`** — Workflow config (columns, labels, transitions)
 - **`.festinalente/directives/`** — User-defined directives (custom instructions for skills)

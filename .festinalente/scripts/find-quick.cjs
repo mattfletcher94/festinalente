@@ -1,21 +1,16 @@
 #!/usr/bin/env node
 const require_chunk = require('./chunk-DWy1uDak.cjs');
-const require_xml_parser = require('./xml-parser-CLD-d9qv.cjs');
+const require_xml_parser = require('./xml-parser-C8mdMRV3.cjs');
 const fs = require_chunk.__toESM(require("fs"));
 const path = require_chunk.__toESM(require("path"));
 
 //#region src/scripts/find-quick.ts
-const QUICK_DIR = ".kanban/quick";
+const QUICK_DIR = ".festinalente/quick";
 /**
-
 * Find a quick task file by ID.
-
 *
-
 * @param id - The quick task ID to find.
-
 * @returns The path to the quick.xml file, or null if not found.
-
 */
 function findQuickFile(id) {
 	const quickPath = path.default.join(QUICK_DIR, id, "quick.xml");
@@ -23,9 +18,7 @@ function findQuickFile(id) {
 	return null;
 }
 /**
-
 * Main entry point.
-
 */
 function main() {
 	const args = process.argv.slice(2);

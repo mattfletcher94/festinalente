@@ -4,8 +4,8 @@ const require_js_yaml = require('./js-yaml-B0muWMf8.cjs');
 const fs = require_chunk.__toESM(require("fs"));
 
 //#region src/scripts/get-skill-config.ts
-const CONFIG_FILE = ".kanban/config.yaml";
-const DIRECTIVES_DIR = ".kanban/directives";
+const CONFIG_FILE = ".festinalente/config.yaml";
+const DIRECTIVES_DIR = ".festinalente/directives";
 function main() {
 	const args = process.argv.slice(2);
 	if (args.length === 0) {

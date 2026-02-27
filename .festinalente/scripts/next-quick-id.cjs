@@ -3,11 +3,9 @@ const require_chunk = require('./chunk-DWy1uDak.cjs');
 const fs = require_chunk.__toESM(require("fs"));
 
 //#region src/scripts/next-quick-id.ts
-const QUICK_DIR = ".kanban/quick";
+const QUICK_DIR = ".festinalente/quick";
 /**
-
 * Get the next available quick task ID.
-
 */
 function main() {
 	const padding = 3;

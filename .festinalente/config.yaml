@@ -12,6 +12,7 @@ directives:
   festina-status: []
   festina-create:
     - design
+    - github
   festina-scope:
     - coding
     - design
@@ -24,7 +25,8 @@ directives:
   festina-check:
     - coding
   festina-docs: []
-  festina-merge: []
+  festina-merge:
+    - github
   festina-rework:
     - coding
   festina-quick:

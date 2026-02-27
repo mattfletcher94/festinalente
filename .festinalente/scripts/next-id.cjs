@@ -3,8 +3,8 @@ const require_chunk = require('./chunk-DWy1uDak.cjs');
 const fs = require_chunk.__toESM(require("fs"));
 
 //#region src/scripts/next-id.ts
-const TASKS_DIR = ".kanban/tasks";
-const CONFIG_FILE = ".kanban/config.yaml";
+const TASKS_DIR = ".festinalente/tasks";
+const CONFIG_FILE = ".festinalente/config.yaml";
 function parseSimpleYaml(content) {
 	const result = {};
 	const lines = content.split("\n");

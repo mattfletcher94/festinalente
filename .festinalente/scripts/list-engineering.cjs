@@ -6,7 +6,7 @@ const path = require_chunk.__toESM(require("path"));
 
 //#region src/scripts/list-engineering.ts
 var import_gray_matter = require_chunk.__toESM(require_gray_matter$1.require_gray_matter(), 1);
-const ENGINEERING_DIR = ".kanban/engineering";
+const ENGINEERING_DIR = ".festinalente/engineering";
 function parseArgs(args) {
 	const result = { _: [] };
 	for (const arg of args) if (arg.startsWith("--")) {

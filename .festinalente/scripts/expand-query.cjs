@@ -4,7 +4,7 @@ const require_js_yaml = require('./js-yaml-B0muWMf8.cjs');
 const fs = require_chunk.__toESM(require("fs"));
 
 //#region src/scripts/expand-query.ts
-const GLOSSARY_FILE = ".kanban/glossary.yaml";
+const GLOSSARY_FILE = ".festinalente/glossary.yaml";
 function loadGlossary() {
 	if (!fs.default.existsSync(GLOSSARY_FILE)) return null;
 	try {

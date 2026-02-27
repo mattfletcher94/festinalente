@@ -14,11 +14,11 @@ Create a functional specification through iterative conversational Q&A focused o
 
 <context>
 <note>
-- **`.claude/skills/festina-*/`** — Installed kanban skills — READ ONLY
+- **`.claude/skills/festina-*/`** — Installed festina skills — READ ONLY
 - **`.festinalente/`** — Project data and config — READ/WRITE
 - **`.festinalente/tasks/{id}/`** — Task folder containing `task.xml`, `spec.xml`, `plan.xml`
 - **`.festinalente/quick/{id}/`** — Quick task folder containing `quick.xml` (for /festina-quick)
-- **`.festinalente/scripts/`** — Helper scripts for kanban operations
+- **`.festinalente/scripts/`** — Helper scripts for festina operations
 - **`.festinalente/templates/`** — Document templates
 - **`.festinalente/workflow.yaml`** — Workflow config (columns, labels, transitions)
 - **`.festinalente/directives/`** — User-defined directives (custom instructions for skills)
@@ -141,7 +141,26 @@ Create a functional specification through iterative conversational Q&A focused o
       <action>Parse and apply:</action>
       <action>- `<context>` principles: Maintain as ongoing mindset</action>
       <action>- `<process>` rules where phase="scope": Follow as requirements</action>
+      <action>- `<override>` sections where phase="scope": Apply step replacements</action>
       <action>- `<verification>` commands: Note for use in task `<verify>` elements</action>
+    
+      <branch condition="directive has <override> section for phase=scope">
+        <output>
+    **DIRECTIVE OVERRIDE ACTIVE: {directive.name}**
+    
+    The following skill steps are REPLACED by this directive:
+    
+    {For each &lt;skip&gt; element:}
+    **SKIP STEP: `{step}`** - Do NOT execute this step when you reach it in the skill process.
+    
+    **REPLACEMENT:** Execute directive rules {override.instead.rules} instead.
+    
+    **Reason:** {override.reason}
+    
+    **CRITICAL:** When you encounter any skipped step in the skill's &lt;process&gt;,
+    you MUST skip it entirely and follow the directive's replacement rules instead.
+        </output>
+      </branch>
       <note>`<validation>` checks will run in directive_compliance step</note>
       <note>`<examples>` will be shown if violations are found</note>
     </branch>

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<directive name="github" version="1"
+           created="2026-02-27" updated="2026-02-27">
+
+  <description>
+    Integrate with GitHub Issues and PRs via MCP.
+    Issues provide human visibility. PRs enable team review workflow.
+    State lives in GitHub - commands are stateless and resumable.
+  </description>
+
+  <context>
+    <principle id="G1" keywords="issue,create,sync">
+      Every task syncs to a GitHub Issue. Title from task title, body is raw XML.
+    </principle>
+    <principle id="G2" keywords="pr,merge,review">
+      PRs replace local merges. Check PR approval state before merging.
+    </principle>
+    <principle id="G3" keywords="stateless,resumable">
+      Commands read GitHub state each run. User can close terminal and resume anytime.
+    </principle>
+    <principle id="G4" keywords="closes,autolink">
+      PR body includes "Closes #N" to auto-close issue when PR merges.
+    </principle>
+    <principle id="G5" keywords="mcp,github,tools">
+      Use GitHub MCP tools: mcp__GitHub__issue_write, mcp__GitHub__issue_read,
+      mcp__GitHub__create_pull_request, mcp__GitHub__pull_request_read,
+      mcp__GitHub__merge_pull_request.
+    </principle>
+  </context>
+
+  <override phase="merge">
+    <skip step="merge_branch"/>
+    <skip step="cleanup_branch"/>
+    <reason>GitHub PR workflow replaces local git merge</reason>
+    <instead rules="M-G1,M-G2,M-G3,M-G4,M-G5"/>
+  </override>
+
+  <process>
+    <!-- festina-create: ADDITIVE (runs after normal create) -->
+    <rule id="C-G1" phase="create">
+      AFTER creating task.xml, sync to GitHub:
+
+      IF $ARGUMENTS was a GitHub issue number (#N or just N):
+        1. Fetch issue via mcp__GitHub__issue_read (method: "get")
+        2. Add github-issue="#N" and github-url to task element
+        3. Output: "Linked to GitHub Issue #N"
+
+      ELSE (normal title):
+        1. Get owner/repo from: git remote get-url origin
+        2. Create issue via mcp__GitHub__issue_write:
+           - method: "create"
+           - title: task title
+           - body: raw task.xml in ```xml code fence
+        3. Add github-issue="#N" and github-url to task element
+        4. Output: "Created GitHub Issue #N"
+    </rule>
+
+    <!-- festina-merge: OVERRIDE (replaces merge_branch and cleanup_branch) -->
+    <rule id="M-G1" phase="merge">
+      STATE CHECK: Read task.xml, check for github-pr attribute.
+
+      No github-pr → Go to M-G2 (create PR)
+      Has github-pr → Go to M-G3 (check status)
+    </rule>
+
+    <rule id="M-G2" phase="merge">
+      CREATE PR:
+      1. git push -u origin task/{taskId}
+      2. Get owner/repo from git remote
+      3. mcp__GitHub__create_pull_request:
+         - title: task title
+         - body: "Closes #{github-issue}\n\n```xml\n{task XML}\n```"
+         - head: task/{taskId}, base: main
+      4. Add github-pr="#{N}" to task.xml
+      5. Commit: "docs({taskId}): pr created"
+      6. Prompt: "PR #N created. [Open in browser] [Done for now]"
+      7. EXIT skill
+    </rule>
+
+    <rule id="M-G3" phase="merge">
+      CHECK PR STATUS via mcp__GitHub__pull_request_read (method: "get"):
+
+      - state="merged" → Go to M-G4
+      - state="closed" → Prompt: "PR closed. Create new?"
+      - reviewDecision="CHANGES_REQUESTED" → Prompt with PR link, EXIT
+      - reviewDecision="APPROVED" → Go to M-G5
+      - else (pending) → Prompt: "Awaiting review", EXIT
+    </rule>
+
+    <rule id="M-G4" phase="merge">
+      PR ALREADY MERGED (cleanup):
+      1. Update task: status="done", add completed date
+      2. Commit: "docs({taskId}): done"
+      3. git checkout main && git pull
+      4. git branch -d task/{taskId}
+      5. Output: "PR was already merged! Task complete."
+      6. EXIT
+    </rule>
+
+    <rule id="M-G5" phase="merge">
+      MERGE APPROVED PR:
+      1. Prompt: "PR approved. Ready to merge? [Merge now] [Wait]"
+      2. If merge: mcp__GitHub__merge_pull_request (merge_method: "squash")
+      3. Update task: status="done", add completed date
+      4. Commit: "docs({taskId}): done"
+      5. git checkout main && git pull
+      6. Output: "Merged! Task complete."
+      7. EXIT
+    </rule>
+  </process>
+
+  <validation>
+    <check id="V-G1" type="checklist" severity="error">
+      <item>GitHub MCP server is connected (mcp__GitHub__ tools available)</item>
+      <item>Repository has remote origin (git remote -v shows origin)</item>
+    </check>
+  </validation>
+
+  <examples>
+    <example ref="C-G1" type="correct">
+      <code><![CDATA[
+<task id="021" status="backlog"
+      github-issue="#42"
+      github-url="https://github.com/owner/repo/issues/42">
+  <title>Add dark mode</title>
+</task>
+      ]]></code>
+      <explanation>Task has github-issue and github-url attributes.</explanation>
+    </example>
+
+    <example ref="M-G1" type="violation">
+      <code><![CDATA[
+# WRONG when GitHub directive is active:
+git checkout main
+git merge task/021 --no-ff
+      ]]></code>
+      <explanation>Never perform local merge. Use PR workflow instead.</explanation>
+    </example>
+  </examples>
+
+</directive>

@@ -14,11 +14,11 @@ Run automated code checks using directives, verify requirements are met, prompt 
 
 <context>
 <note>
-- **`.claude/skills/festina-*/`** — Installed kanban skills — READ ONLY
+- **`.claude/skills/festina-*/`** — Installed festina skills — READ ONLY
 - **`.festinalente/`** — Project data and config — READ/WRITE
 - **`.festinalente/tasks/{id}/`** — Task folder containing `task.xml`, `spec.xml`, `plan.xml`
 - **`.festinalente/quick/{id}/`** — Quick task folder containing `quick.xml` (for /festina-quick)
-- **`.festinalente/scripts/`** — Helper scripts for kanban operations
+- **`.festinalente/scripts/`** — Helper scripts for festina operations
 - **`.festinalente/templates/`** — Document templates
 - **`.festinalente/workflow.yaml`** — Workflow config (columns, labels, transitions)
 - **`.festinalente/directives/`** — User-defined directives (custom instructions for skills)
@@ -59,7 +59,7 @@ Run automated code checks using directives, verify requirements are met, prompt 
 - Do not skip configured checks
 - Do not mark checks as passed when they fail
 - Do not commit without QA confirmation from user
-- Do not use invented commit types like `kanban(...)` — valid types are: `feat`, `fix`, `refactor`, `docs`
+- Do not use invented commit types like `festina(...)` — valid types are: `feat`, `fix`, `refactor`, `docs`
 - Do not auto-fix without asking the user first
 - Do not commit sensitive files (.env, credentials)
 </prohibited>
@@ -343,10 +343,10 @@ Use `/festina-rework {taskId}` to document issues and return to implementation.
     <note>Format: `{commitType}({taskId}): {title}`</note>
     <warning>Valid commit types: `feat`, `fix`, `refactor`, `docs`</warning>
 
-    <action>Stage implementation files AND .kanban files together</action>
+    <action>Stage implementation files AND .festinalente files together</action>
     <command>git add {implementation files}</command>
     <command>git add .festinalente/</command>
-    <note>`.kanban` files MUST be included — they accumulate status and plan changes</note>
+    <note>`.festinalente` files MUST be included — they accumulate status and plan changes</note>
     <command>git commit -m "{commitType}({taskId}): {title}"</command>
   </step>
 

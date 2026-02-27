@@ -4,16 +4,16 @@ const fs = require_chunk.__toESM(require("fs"));
 const path = require_chunk.__toESM(require("path"));
 
 //#region src/scripts/check-engineering.ts
-const ENGINEERING_DIR = ".kanban/engineering";
+const ENGINEERING_DIR = ".festinalente/engineering";
 /**
 * Convert engineering doc ID to file path
 *
 * ID → Path mapping rules:
-* - `overview` → `.kanban/engineering/overview.md`
-* - `systems/auth` → `.kanban/engineering/systems/auth/_index.md`
-* - `systems/auth/validator` → `.kanban/engineering/systems/auth/validator.md`
-* - `patterns/acyclic-arch` → `.kanban/engineering/patterns/acyclic-arch.md`
-* - `conventions/file-naming` → `.kanban/engineering/conventions/file-naming.md`
+* - `overview` → `.festinalente/engineering/overview.md`
+* - `systems/auth` → `.festinalente/engineering/systems/auth/_index.md`
+* - `systems/auth/validator` → `.festinalente/engineering/systems/auth/validator.md`
+* - `patterns/acyclic-arch` → `.festinalente/engineering/patterns/acyclic-arch.md`
+* - `conventions/file-naming` → `.festinalente/engineering/conventions/file-naming.md`
 */
 function idToPath(id) {
 	if (id === "overview") return path.default.join(ENGINEERING_DIR, "overview.md");

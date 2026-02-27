@@ -4,7 +4,7 @@ const fs = require_chunk.__toESM(require("fs"));
 const path = require_chunk.__toESM(require("path"));
 
 //#region src/scripts/check-product.ts
-const PRODUCT_DIR = ".kanban/product";
+const PRODUCT_DIR = ".festinalente/product";
 function main() {
 	const ids = process.argv.slice(2);
 	if (ids.length === 0) {
