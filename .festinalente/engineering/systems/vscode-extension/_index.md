@@ -122,7 +122,7 @@ Each domain has its own orchestrator handling policy decisions (when/whether to 
 | quicks | Quick loading, parsing, quick commands, file watching | `orchestrators/quicks.orchestrator.ts` |
 | docs | Product/engineering docs providers, global actions, file watching | `orchestrators/docs.orchestrator.ts` |
 | config | Config existence checking, config view, file watching | `orchestrators/config.orchestrator.ts` |
-| directives | Directive-workflow mappings from config.yaml, file watching | `orchestrators/directives.orchestrator.ts` |
+| directives | Directive-workflow mappings from config.yaml, create directive command, file watching | `orchestrators/directives.orchestrator.ts` |
 
 #### Orchestrator Dependencies
 
@@ -149,6 +149,7 @@ graph TD
     TASKS --> TERM
     QUICKS --> TERM
     DOCS --> TERM
+    DIR --> TERM
 
     TERM --> FS
     TASKS --> FS
@@ -353,6 +354,12 @@ sequenceDiagram
 | Command | Behavior |
 |---------|----------|
 | `kanban.runGlobalAction` | Execute global action (docs mapping) |
+
+### Directives Orchestrator Commands
+
+| Command | Behavior |
+|---------|----------|
+| `festinalente.createDirective` | Run `/festina-directive` in terminal |
 
 ### Shared Commands (Composition Root)
 

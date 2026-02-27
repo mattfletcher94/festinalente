@@ -10,6 +10,7 @@ import * as vscode from 'vscode';
 import { createDirectivesConfigComputer } from '../computers/directives-config.computer';
 import { createDirectivesViewCapability } from '../capabilities/directives-view.capability';
 import type { createFileSystemCapability } from '../capabilities/file-system.capability';
+import type { createTerminalOrchestrator } from './terminal.orchestrator';
 import type { Workflow } from '../types/directives-types';
 
 /**
@@ -18,6 +19,7 @@ import type { Workflow } from '../types/directives-types';
 export interface DirectivesOrchestratorDeps {
   readonly fs: ReturnType<typeof createFileSystemCapability>;
   readonly festinalenteDir: string;
+  readonly terminal: ReturnType<typeof createTerminalOrchestrator>;
 }
 
 /**
@@ -41,6 +43,13 @@ export interface CreateDirectivesOrchestratorReturn {
    * @returns Disposable file watcher.
    */
   readonly createFileWatcher: (festinalenteDir: string) => vscode.Disposable;
+
+  /**
+   * Register directives-related commands.
+   *
+   * @param context - VSCode extension context.
+   */
+  readonly registerCommands: (context: vscode.ExtensionContext) => void;
 }
 
 /**
@@ -116,9 +125,24 @@ export function createDirectivesOrchestrator(
     return vscode.Disposable.from(...disposables);
   }
 
+  /**
+   * Register directives-related commands.
+   *
+   * @param context - VSCode extension context.
+   */
+  function registerCommands(context: vscode.ExtensionContext): void {
+    // Create directive command
+    context.subscriptions.push(
+      vscode.commands.registerCommand('festinalente.createDirective', () => {
+        deps.terminal.executeInTerminal('/festina-directive');
+      })
+    );
+  }
+
   return {
     treeDataProvider,
     refresh,
     createFileWatcher,
+    registerCommands,
   };
 }

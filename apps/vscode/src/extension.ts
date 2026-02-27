@@ -104,6 +104,7 @@ export function activate(context: vscode.ExtensionContext): void {
   const directivesOrch = createDirectivesOrchestrator({
     fs,
     festinalenteDir,
+    terminal: terminalOrch,
   });
 
   // --- Register TreeViews ---
@@ -180,6 +181,7 @@ export function activate(context: vscode.ExtensionContext): void {
   tasksOrch.registerCommands(context, tasksTreeView);
   quicksOrch.registerCommands(context, quicksTreeView);
   docsOrch.registerCommands(context);
+  directivesOrch.registerCommands(context);
 
   // --- Register File Watchers ---
 
