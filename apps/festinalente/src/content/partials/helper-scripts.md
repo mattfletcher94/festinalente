@@ -19,7 +19,7 @@
 {{/if}}
 
 {{#if show_next_id}}
-<command description="Get next task ID (returns JSON with nextId, currentHighest, padding)">node .festinalente/scripts/next-id.cjs</command>
+<command description="Get next task ID (returns JSON with nextId, currentHighest, padding, slug)">node .festinalente/scripts/next-id.cjs --title="{title}"</command>
 {{/if}}
 
 {{#if show_get_date_time}}

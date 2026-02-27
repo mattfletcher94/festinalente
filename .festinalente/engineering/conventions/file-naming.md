@@ -14,20 +14,28 @@ related:
 paths:
   - apps/kanban/src/scripts
   - apps/vscode/src
-updated: 2026-02-25
-verified: 2026-02-25
-code_refs: []
+updated: 2026-02-27
+verified: 2026-02-27
+code_refs:
+  - apps/festinalente/src/scripts/next-id.ts
 ---
 
 # File Naming Convention
 
 > **TL;DR:** kebab-case for files, PascalCase for types/interfaces
 
+## Overview
+
+This convention establishes consistent naming patterns across the codebase. File names use kebab-case for filesystem compatibility, type names use PascalCase for visibility, and task folders use numeric-prefix-plus-slug format for human readability.
+
+**Summary:** Predictable names enable faster navigation and searching.
+
 ## Rule
 
 1. **File names:** Use `kebab-case.ts` (lowercase with hyphens)
 2. **Type/Interface names:** Use `PascalCase`
-3. **Suffixes:** Add role suffix before extension
+3. **Task folder names:** Use `{number}-{slug}` format (e.g., `021-support-task-id-slugs`)
+4. **Suffixes:** Add role suffix before extension
    - `.orchestrator.ts` for orchestrators (domain policy)
    - `.capability.ts` for capabilities (I/O mechanism)
    - `.computer.ts` for computers (pure logic)
@@ -56,6 +64,7 @@ code_refs: []
 │  Capability          │  name.capability.ts   │  file-system │
 │  Computer            │  name.computer.ts     │  task-parser │
 │  Type definitions    │  name-types.ts        │  task-types  │
+│  Task folder         │  {num}-{slug}         │  021-add-auth│
 ├──────────────────────┼───────────────────────┼──────────────┤
 │  Interface/Type      │  PascalCase           │  TaskStatus  │
 │  Function            │  camelCase            │  parseTask   │
@@ -63,10 +72,23 @@ code_refs: []
 └──────────────────────┴───────────────────────┴──────────────┘
 ```
 
+### Task Folders
+
+```
+.festinalente/tasks/
+├── 001-initial-setup/           # slug from "Initial Setup"
+├── 021-support-task-id-slugs/   # slug from "Support task ID slugs"
+└── 022-add-dark-mode-toggle/    # slug from "Add dark mode toggle"
+```
+
+- Numeric prefix: 3 digits, zero-padded
+- Slug: auto-generated via slugify, max 50 chars, lowercase with hyphens
+- Lookup: Scripts match by numeric prefix for backwards compatibility
+
 ### Correct
 
 ```
-apps/kanban/src/scripts/
+apps/festinalente/src/scripts/
 ├── find-task.ts           # kebab-case script
 ├── list-tasks.ts          # plural when listing
 ├── validate-xml.ts        # action-object naming
