@@ -50,6 +50,9 @@
     <principle id="B1" keywords="build,compile,bundle">
       All code changes must pass build verification before completion
     </principle>
+    <principle id="F1" keywords="festina,skills,claude,source,built,dogfooding,opencode">
+      This project builds festinalente. The .claude/ and .opencode/ directories contain built output from apps/festinalente/src/content/ — never modify them directly. Edit source files in apps/festinalente/src/content/.
+    </principle>
   </context>
   <process>
     <rule id="P-A1" phase="plan">
@@ -96,6 +99,9 @@
     </rule>
     <rule id="P-B2" phase="implement">
       Verify each task step with appropriate build command
+    </rule>
+    <rule id="P-F1" phase="implement">
+      When modifying skills, templates, or partials, edit files in apps/festinalente/src/content/ (not .claude/ or .opencode/).
     </rule>
   </process>
   <validation>
