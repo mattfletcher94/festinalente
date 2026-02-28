@@ -88,3 +88,21 @@ What this system does NOT handle:
 | Setting | Description | Default |
 |---------|-------------|---------|
 | {setting} | {what it does} | {default} |
+
+## Extension Points
+
+How to extend this system with new components:
+
+### Adding a new {ComponentType}
+
+**Template:** Copy `{path/to/template.ts}` as starting point.
+
+**Checklist:**
+- [ ] Create component file following naming convention
+- [ ] Register in {orchestrator or entry point}
+- [ ] Add to {config file if needed}
+- [ ] {Additional registration steps}
+
+**Pitfalls:**
+- {Common mistake 1}
+- {Common mistake 2}

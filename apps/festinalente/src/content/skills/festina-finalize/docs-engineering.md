@@ -121,6 +121,43 @@ Then type-specific sections:
 - What this system does NOT do
 - Limitations
 - Related systems
+
+## Extension Points
+- How to add new components
+- Template files to copy
+- Registration checklists
+- Common pitfalls
+```
+
+#### Extension Points (Systems Only)
+
+When documenting systems, identify extension points - component types that can be added:
+
+**How to identify extension points:**
+1. Look for component directories (e.g., capabilities/, computers/, orchestrators/)
+2. Check for repeated patterns (multiple files with same structure)
+3. Note registration points (entry file imports, config files)
+
+**How to document each extension point:**
+1. **Template:** Find a representative existing file to use as template
+2. **Checklist:** Trace the registration flow from component to entry point
+3. **Pitfalls:** Review PRs or code comments for common issues
+
+**Example:**
+```markdown
+### Adding a new Capability
+
+**Template:** Copy `capabilities/tasks-view.capability.ts`
+
+**Checklist:**
+- [ ] Create `{name}.capability.ts` in `src/capabilities/`
+- [ ] Add factory function with dependencies parameter
+- [ ] Wire into domain orchestrator that owns this concern
+- [ ] Add TreeView contribution to package.json if TreeView capability
+
+**Pitfalls:**
+- Don't import other capabilities (lateral dependency forbidden)
+- Don't put policy logic (ensure*, getOrCreate*) in capabilities
 ```
 
 #### For Patterns

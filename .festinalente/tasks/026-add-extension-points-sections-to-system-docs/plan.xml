@@ -21,7 +21,7 @@
   <inventory></inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-02-28T14:16:34.543Z">
       <name>Add Extension Points section template to engineering-system.md</name>
       <files>apps/festinalente/src/content/templates/engineering-system.md (modify)</files>
       <requirements>FR1, FR2, FR5</requirements>
@@ -77,7 +77,7 @@
       <done>Extension Points section template exists in engineering-system.md with Template, Checklist, and Pitfalls subsections</done>
     </task>
 
-    <task id="2" type="auto" depends="1">
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-02-28T14:17:00.000Z">
       <name>Add Extension Points guidance to docs-engineering.md</name>
       <files>apps/festinalente/src/content/skills/festina-finalize/docs-engineering.md (modify)</files>
       <requirements>FR3, FR4</requirements>
@@ -156,7 +156,7 @@
       <done>docs-engineering.md explains how to identify and document extension points with examples</done>
     </task>
 
-    <task id="3" type="manual" depends="2">
+    <task id="3" type="manual" depends="2" completed="true" completed_at="2026-02-28T14:17:30.000Z">
       <name>Verify template completeness</name>
       <files>N/A</files>
       <requirements>FR1, FR2, FR3, FR4, FR5</requirements>
