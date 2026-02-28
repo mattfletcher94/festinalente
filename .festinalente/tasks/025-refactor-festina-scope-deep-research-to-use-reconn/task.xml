@@ -1,4 +1,4 @@
-<task id="025-refactor-festina-scope-deep-research-to-use-reconn" status="scoped" priority="high" created="2026-02-28" updated="2026-02-28"
+<task id="025-refactor-festina-scope-deep-research-to-use-reconn" status="planned" priority="high" created="2026-02-28" updated="2026-02-28"
       github-issue="#10"
       github-url="https://github.com/mattfletcher94/festinalente/issues/10">
   <title>Refactor festina-scope deep research to use reconnaissance-first approach</title>
