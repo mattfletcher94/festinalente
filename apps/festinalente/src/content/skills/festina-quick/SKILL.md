@@ -53,7 +53,7 @@ implementation, optional review before commit, optional doc updates.
   </step>
 
   <step name="get_next_quick_id" outputs="quickId">
-    <command>node .festinalente/scripts/next-quick-id.cjs</command>
+    <command>node .festinalente/scripts/festinalente.cjs next-quick-id</command>
     <action>Use `nextId` from JSON output</action>
   </step>
 
@@ -256,8 +256,8 @@ Or continue with Claude to make more changes.
 
   <step name="detect_docs" when="user selected Yes for docs">
     <action>Analyze the code changes to detect which docs might be affected</action>
-    <command>node .festinalente/scripts/search-product.cjs {keywords from changes}</command>
-    <command>node .festinalente/scripts/search-engineering.cjs {keywords from changes}</command>
+    <command>node .festinalente/scripts/festinalente.cjs search-product {keywords from changes}</command>
+    <command>node .festinalente/scripts/festinalente.cjs search-engineering {keywords from changes}</command>
     <branch condition="relevant docs found">
       <action>Read and update the relevant docs</action>
       <action>Update `<docs>` section in quick.xml</action>
@@ -270,7 +270,7 @@ Or continue with Claude to make more changes.
   </step>
 
   <step name="validate_xml">
-    <command description="Validate quick.xml">node .festinalente/scripts/validate-xml.cjs quick/{quickId}</command>
+    <command description="Validate quick.xml">node .festinalente/scripts/festinalente.cjs validate-xml quick/{quickId}</command>
     <branch condition="validation fails">
       <output>Warning: XML validation failed. Fix errors before completing.</output>
     </branch>

@@ -31,16 +31,16 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
 
 <note>Use these scripts to reliably find files:</note>
 
-<command description="Find task by ID (returns JSON with path and metadata)">node .festinalente/scripts/find-task.cjs {id}</command>
+<command description="Find task by ID (returns JSON with path and metadata)">node .festinalente/scripts/festinalente.cjs find-task {id}</command>
 
 
-<command description="Find plan by ID (returns JSON with path)">node .festinalente/scripts/find-plan.cjs {id}</command>
+<command description="Find plan by ID (returns JSON with path)">node .festinalente/scripts/festinalente.cjs find-plan {id}</command>
 
 
 
-<command description="Get current date/time (returns JSON with iso and date formats)">node .festinalente/scripts/get-date-time.cjs</command>
+<command description="Get current date/time (returns JSON with iso and date formats)">node .festinalente/scripts/festinalente.cjs get-date-time</command>
 
-<command description="Get skill configuration (returns JSON with directives)">node .festinalente/scripts/get-skill-config.cjs {skill}</command>
+<command description="Get skill configuration (returns JSON with directives)">node .festinalente/scripts/festinalente.cjs get-skill-config {skill}</command>
 <example_code lang="json">
 {
   "skill": "festina-check",
@@ -88,7 +88,7 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, status">
-    <command>node .festinalente/scripts/find-task.cjs {taskId}</command>
+    <command>node .festinalente/scripts/festinalente.cjs find-task {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse XML</action>
     <branch condition="status is planned">
@@ -129,7 +129,7 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
   </step>
 
   <step name="read_plan_file" outputs="planPath, planContent">
-    <command>node .festinalente/scripts/find-plan.cjs {taskId}</command>
+    <command>node .festinalente/scripts/festinalente.cjs find-plan {taskId}</command>
     <branch condition="plan found">
       <action>Read the plan at the `path` from JSON output</action>
     </branch>
@@ -147,14 +147,14 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
 
   <step name="load_smart_context">
     <note>**Smart Context Selection:** Load relevant docs at appropriate tier</note>
-    <command>node .festinalente/scripts/select-context.cjs {taskId} --tier=standard --max=5</command>
+    <command>node .festinalente/scripts/festinalente.cjs select-context {taskId} --tier=standard --max=5</command>
     <action>Parse JSON output</action>
     <action>For each doc in output, present the content field</action>
     <note>Standard tier: tldr + summary + boundary for each relevant doc</note>
 
     <branch condition="task appears complex (multiple systems involved)">
       <action>Re-run with --tier=full for most relevant 2 docs</action>
-      <command>node .festinalente/scripts/select-context.cjs {taskId} --tier=full --max=2</command>
+      <command>node .festinalente/scripts/festinalente.cjs select-context {taskId} --tier=full --max=2</command>
     </branch>
 
     <note>Context tiers:</note>
@@ -167,7 +167,7 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
 
   <step name="check_doc_freshness">
     <note>**Freshness Check:** Warn if relevant docs may be outdated</note>
-    <command>node .festinalente/scripts/check-freshness.cjs --stale-days=30</command>
+    <command>node .festinalente/scripts/festinalente.cjs check-freshness --stale-days=30</command>
     <action>Parse JSON output</action>
     <action>Check if any docs from affects or engineering field are in staleDocs list</action>
 
@@ -207,7 +207,7 @@ Warning: Some relevant docs may be outdated:
   </step>
 
   <step name="load_directives">
-    <command>node .festinalente/scripts/get-skill-config.cjs festina-implement</command>
+    <command>node .festinalente/scripts/festinalente.cjs get-skill-config festina-implement</command>
     <action>Parse the JSON output</action>
     
     <branch condition="directives.length > 0">
@@ -521,7 +521,7 @@ To save progress now:
     
     Before completing, validate all task XML:
     
-    <command description="Validate XML in task files">node .festinalente/scripts/validate-xml.cjs {taskId}</command>
+    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
     
     If validation fails, fix the reported errors before completing.
     

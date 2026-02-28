@@ -38,13 +38,13 @@ Explore a question, idea, or topic through Socratic dialogue. Research the codeb
 
 
 
-<command description="List all tasks (returns JSON with count and tasks array)">node .festinalente/scripts/list-tasks.cjs</command>
-<command description="List tasks filtered by status">node .festinalente/scripts/list-tasks.cjs --status=in-progress</command>
-<command description="List tasks excluding a status">node .festinalente/scripts/list-tasks.cjs --exclude-status=done</command>
+<command description="List all tasks (returns JSON with count and tasks array)">node .festinalente/scripts/festinalente.cjs list-tasks</command>
+<command description="List tasks filtered by status">node .festinalente/scripts/festinalente.cjs list-tasks --status=in-progress</command>
+<command description="List tasks excluding a status">node .festinalente/scripts/festinalente.cjs list-tasks --exclude-status=done</command>
 
 
 
-<command description="Get skill configuration (returns JSON with directives)">node .festinalente/scripts/get-skill-config.cjs {skill}</command>
+<command description="Get skill configuration (returns JSON with directives)">node .festinalente/scripts/festinalente.cjs get-skill-config {skill}</command>
 <example_code lang="json">
 {
   "skill": "festina-check",
@@ -59,8 +59,8 @@ Explore a question, idea, or topic through Socratic dialogue. Research the codeb
 <note>Use these scripts to work with product documentation:</note>
 
 
-<command description="Search product docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/search-product.cjs keyword1 keyword2 ...</command>
-<command description="With minimum score threshold">node .festinalente/scripts/search-product.cjs password reset --min-score=0.3</command>
+<command description="Search product docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/festinalente.cjs search-product keyword1 keyword2 ...</command>
+<command description="With minimum score threshold">node .festinalente/scripts/festinalente.cjs search-product password reset --min-score=0.3</command>
 <note>Score interpretation: ≥0.5 = strong match | 0.3-0.5 = possible match | &lt;0.3 = weak match | No results = likely new feature</note>
 
 
@@ -69,8 +69,8 @@ Explore a question, idea, or topic through Socratic dialogue. Research the codeb
 <note>Use these scripts to work with engineering documentation:</note>
 
 
-<command description="Search engineering docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/search-engineering.cjs keyword1 keyword2 ...</command>
-<command description="With minimum score threshold">node .festinalente/scripts/search-engineering.cjs middleware pattern --min-score=0.3</command>
+<command description="Search engineering docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/festinalente.cjs search-engineering keyword1 keyword2 ...</command>
+<command description="With minimum score threshold">node .festinalente/scripts/festinalente.cjs search-engineering middleware pattern --min-score=0.3</command>
 <note>Score interpretation: ≥0.5 = strong match | 0.3-0.5 = possible match | &lt;0.3 = weak match | No results = likely new pattern/system</note>
 
 
@@ -92,7 +92,7 @@ Explore a question, idea, or topic through Socratic dialogue. Research the codeb
 
 <process>
   <step name="load_directives">
-    <command>node .festinalente/scripts/get-skill-config.cjs festina-explore</command>
+    <command>node .festinalente/scripts/festinalente.cjs get-skill-config festina-explore</command>
     <action>Parse the JSON output</action>
     
     <branch condition="directives.length > 0">
@@ -158,9 +158,9 @@ Explore a question, idea, or topic through Socratic dialogue. Research the codeb
 
   <step name="check_existing_context" outputs="relatedProductDocs, relatedEngineeringDocs, relatedTasks">
     <action>Extract keywords from question</action>
-    <command>node .festinalente/scripts/search-product.cjs {keywords}</command>
-    <command>node .festinalente/scripts/search-engineering.cjs {keywords}</command>
-    <command>node .festinalente/scripts/list-tasks.cjs</command>
+    <command>node .festinalente/scripts/festinalente.cjs search-product {keywords}</command>
+    <command>node .festinalente/scripts/festinalente.cjs search-engineering {keywords}</command>
+    <command>node .festinalente/scripts/festinalente.cjs list-tasks</command>
 
     <branch condition="related docs or tasks found">
       <output>
@@ -386,7 +386,7 @@ What would you like to do?
     
     Before completing, validate all task XML:
     
-    <command description="Validate XML in task files">node .festinalente/scripts/validate-xml.cjs {taskId}</command>
+    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
     
     If validation fails, fix the reported errors before completing.
     

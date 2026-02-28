@@ -32,20 +32,20 @@ implementation, optional review before commit, optional doc updates.
 
 
 
-<command description="Get current date/time (returns JSON with iso and date formats)">node .festinalente/scripts/get-date-time.cjs</command>
+<command description="Get current date/time (returns JSON with iso and date formats)">node .festinalente/scripts/festinalente.cjs get-date-time</command>
 
 
-<command description="Get next quick ID (returns JSON with nextId, currentHighest, padding)">node .festinalente/scripts/next-quick-id.cjs</command>
+<command description="Get next quick ID (returns JSON with nextId, currentHighest, padding)">node .festinalente/scripts/festinalente.cjs next-quick-id</command>
 
-<command description="Find quick task by ID (returns JSON with path and metadata)">node .festinalente/scripts/find-quick.cjs {id}</command>
+<command description="Find quick task by ID (returns JSON with path and metadata)">node .festinalente/scripts/festinalente.cjs find-quick {id}</command>
 
 <note>Quick tasks are stored in `.festinalente/quick/{id}/` — separate from the full workflow.</note>
 
 <note>Use these scripts to work with product documentation:</note>
 
 
-<command description="Search product docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/search-product.cjs keyword1 keyword2 ...</command>
-<command description="With minimum score threshold">node .festinalente/scripts/search-product.cjs password reset --min-score=0.3</command>
+<command description="Search product docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/festinalente.cjs search-product keyword1 keyword2 ...</command>
+<command description="With minimum score threshold">node .festinalente/scripts/festinalente.cjs search-product password reset --min-score=0.3</command>
 <note>Score interpretation: ≥0.5 = strong match | 0.3-0.5 = possible match | &lt;0.3 = weak match | No results = likely new feature</note>
 
 
@@ -53,8 +53,8 @@ implementation, optional review before commit, optional doc updates.
 <note>Use these scripts to work with engineering documentation:</note>
 
 
-<command description="Search engineering docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/search-engineering.cjs keyword1 keyword2 ...</command>
-<command description="With minimum score threshold">node .festinalente/scripts/search-engineering.cjs middleware pattern --min-score=0.3</command>
+<command description="Search engineering docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/festinalente.cjs search-engineering keyword1 keyword2 ...</command>
+<command description="With minimum score threshold">node .festinalente/scripts/festinalente.cjs search-engineering middleware pattern --min-score=0.3</command>
 <note>Score interpretation: ≥0.5 = strong match | 0.3-0.5 = possible match | &lt;0.3 = weak match | No results = likely new pattern/system</note>
 
 
@@ -99,7 +99,7 @@ implementation, optional review before commit, optional doc updates.
   </step>
 
   <step name="load_directives">
-    <command>node .festinalente/scripts/get-skill-config.cjs festina-quick</command>
+    <command>node .festinalente/scripts/festinalente.cjs get-skill-config festina-quick</command>
     <action>Parse the JSON output</action>
     
     <branch condition="directives.length > 0">
@@ -144,7 +144,7 @@ implementation, optional review before commit, optional doc updates.
   </step>
 
   <step name="get_next_quick_id" outputs="quickId">
-    <command>node .festinalente/scripts/next-quick-id.cjs</command>
+    <command>node .festinalente/scripts/festinalente.cjs next-quick-id</command>
     <action>Use `nextId` from JSON output</action>
   </step>
 
@@ -383,8 +383,8 @@ Or continue with Claude to make more changes.
 
   <step name="detect_docs" when="user selected Yes for docs">
     <action>Analyze the code changes to detect which docs might be affected</action>
-    <command>node .festinalente/scripts/search-product.cjs {keywords from changes}</command>
-    <command>node .festinalente/scripts/search-engineering.cjs {keywords from changes}</command>
+    <command>node .festinalente/scripts/festinalente.cjs search-product {keywords from changes}</command>
+    <command>node .festinalente/scripts/festinalente.cjs search-engineering {keywords from changes}</command>
     <branch condition="relevant docs found">
       <action>Read and update the relevant docs</action>
       <action>Update `<docs>` section in quick.xml</action>
@@ -397,7 +397,7 @@ Or continue with Claude to make more changes.
   </step>
 
   <step name="validate_xml">
-    <command description="Validate quick.xml">node .festinalente/scripts/validate-xml.cjs quick/{quickId}</command>
+    <command description="Validate quick.xml">node .festinalente/scripts/festinalente.cjs validate-xml quick/{quickId}</command>
     <branch condition="validation fails">
       <output>Warning: XML validation failed. Fix errors before completing.</output>
     </branch>

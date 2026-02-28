@@ -57,7 +57,7 @@ Create a functional specification through iterative conversational Q&A focused o
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, acceptanceCriteria, status, affects, engineering">
-    <command>node .festinalente/scripts/find-task.cjs {taskId}</command>
+    <command>node .festinalente/scripts/festinalente.cjs find-task {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse XML</action>
     <validate>Verify status is `backlog`</validate>
@@ -105,7 +105,7 @@ Create a functional specification through iterative conversational Q&A focused o
           <action>Note: current behavior, constraints, user flows, feature interactions</action>
         </branch>
         <action>Search for additional relevant product docs</action>
-        <command>node .festinalente/scripts/search-product.cjs {keywords from title and description}</command>
+        <command>node .festinalente/scripts/festinalente.cjs search-product {keywords from title and description}</command>
         <branch condition="docs with score ≥ 0.3 found">
           <action>Read top matches not already read</action>
         </branch>
@@ -119,7 +119,7 @@ Create a functional specification through iterative conversational Q&A focused o
           <action>Note: patterns to follow, conventions, system interactions</action>
         </branch>
         <action>Search for additional relevant engineering docs</action>
-        <command>node .festinalente/scripts/search-engineering.cjs {technical keywords}</command>
+        <command>node .festinalente/scripts/festinalente.cjs search-engineering {technical keywords}</command>
         <branch condition="docs with score ≥ 0.3 found">
           <action>Read top matches not already read</action>
         </branch>

@@ -19,14 +19,14 @@ Show the current state of the board or specific tasks. Starts by asking what the
 <context>
 <note>Use these scripts to reliably find files:</note>
 
-<command description="Find task by ID (returns JSON with path and metadata)">node .festinalente/scripts/find-task.cjs {id}</command>
+<command description="Find task by ID (returns JSON with path and metadata)">node .festinalente/scripts/festinalente.cjs find-task {id}</command>
 
 
-<command description="Find plan by ID (returns JSON with path)">node .festinalente/scripts/find-plan.cjs {id}</command>
+<command description="Find plan by ID (returns JSON with path)">node .festinalente/scripts/festinalente.cjs find-plan {id}</command>
 
-<command description="List all tasks (returns JSON with count and tasks array)">node .festinalente/scripts/list-tasks.cjs</command>
-<command description="List tasks filtered by status">node .festinalente/scripts/list-tasks.cjs --status=in-progress</command>
-<command description="List tasks excluding a status">node .festinalente/scripts/list-tasks.cjs --exclude-status=done</command>
+<command description="List all tasks (returns JSON with count and tasks array)">node .festinalente/scripts/festinalente.cjs list-tasks</command>
+<command description="List tasks filtered by status">node .festinalente/scripts/festinalente.cjs list-tasks --status=in-progress</command>
+<command description="List tasks excluding a status">node .festinalente/scripts/festinalente.cjs list-tasks --exclude-status=done</command>
 
 
 
@@ -42,7 +42,7 @@ Show the current state of the board or specific tasks. Starts by asking what the
 
 <process>
   <step name="load_tasks" outputs="tasks">
-    <command>node .festinalente/scripts/list-tasks.cjs</command>
+    <command>node .festinalente/scripts/festinalente.cjs list-tasks</command>
     <action>Read each task file to get id, title, status, labels, priority</action>
     <branch condition="count is 0">
       <output>
@@ -57,7 +57,7 @@ No tasks found.
       
       Before completing, validate all task XML:
       
-      <command description="Validate XML in task files">node .festinalente/scripts/validate-xml.cjs {taskId}</command>
+      <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
       
       If validation fails, fix the reported errors before completing.
       
@@ -102,7 +102,7 @@ No tasks in progress.
       
       Before completing, validate all task XML:
       
-      <command description="Validate XML in task files">node .festinalente/scripts/validate-xml.cjs {taskId}</command>
+      <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
       
       If validation fails, fix the reported errors before completing.
       
@@ -123,7 +123,7 @@ No tasks in progress.
     
     Before completing, validate all task XML:
     
-    <command description="Validate XML in task files">node .festinalente/scripts/validate-xml.cjs {taskId}</command>
+    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
     
     If validation fails, fix the reported errors before completing.
     
@@ -171,7 +171,7 @@ No tasks in progress.
     
     Before completing, validate all task XML:
     
-    <command description="Validate XML in task files">node .festinalente/scripts/validate-xml.cjs {taskId}</command>
+    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
     
     If validation fails, fix the reported errors before completing.
     
@@ -219,7 +219,7 @@ Done ({count} tasks)
     
     Before completing, validate all task XML:
     
-    <command description="Validate XML in task files">node .festinalente/scripts/validate-xml.cjs {taskId}</command>
+    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
     
     If validation fails, fix the reported errors before completing.
     
@@ -253,7 +253,7 @@ Done ({count} tasks)
       
       Before completing, validate all task XML:
       
-      <command description="Validate XML in task files">node .festinalente/scripts/validate-xml.cjs {taskId}</command>
+      <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
       
       If validation fails, fix the reported errors before completing.
       
@@ -276,7 +276,7 @@ Done ({count} tasks)
       
       Before completing, validate all task XML:
       
-      <command description="Validate XML in task files">node .festinalente/scripts/validate-xml.cjs {taskId}</command>
+      <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
       
       If validation fails, fix the reported errors before completing.
       
@@ -296,7 +296,7 @@ Done ({count} tasks)
       
       Before completing, validate all task XML:
       
-      <command description="Validate XML in task files">node .festinalente/scripts/validate-xml.cjs {taskId}</command>
+      <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
       
       If validation fails, fix the reported errors before completing.
       
@@ -314,7 +314,7 @@ I didn't understand "{input}". You can:
       
       Before completing, validate all task XML:
       
-      <command description="Validate XML in task files">node .festinalente/scripts/validate-xml.cjs {taskId}</command>
+      <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
       
       If validation fails, fix the reported errors before completing.
       
@@ -327,7 +327,7 @@ I didn't understand "{input}". You can:
   <!-- ============================================ -->
 
   <step name="show_task_details" when="showing specific task" outputs="taskId">
-    <command>node .festinalente/scripts/find-task.cjs {taskId}</command>
+    <command>node .festinalente/scripts/festinalente.cjs find-task {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
 
     <branch condition="task not found">
@@ -336,7 +336,7 @@ I didn't understand "{input}". You can:
       
       Before completing, validate all task XML:
       
-      <command description="Validate XML in task files">node .festinalente/scripts/validate-xml.cjs {taskId}</command>
+      <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
       
       If validation fails, fix the reported errors before completing.
       
@@ -399,7 +399,7 @@ I didn't understand "{input}". You can:
     
     Before completing, validate all task XML:
     
-    <command description="Validate XML in task files">node .festinalente/scripts/validate-xml.cjs {taskId}</command>
+    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
     
     If validation fails, fix the reported errors before completing.
     

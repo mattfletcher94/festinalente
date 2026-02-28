@@ -9,7 +9,7 @@ Determine which product docs need attention:
 ```
 1. Read task's <affects> element from task.xml
 2. If affects has IDs:
-   - Run: node .festinalente/scripts/check-product.cjs {affects IDs}
+   - Run: node .festinalente/scripts/festinalente.cjs check-product {affects IDs}
    - Parse the JSON output
 3. For each doc ID in affects:
    - Read the doc file if it exists
@@ -24,7 +24,7 @@ Determine which product docs need attention:
 
 ```
 1. Read task description, spec, and implementation context
-2. Run: node .festinalente/scripts/search-product.cjs {keywords from title/description}
+2. Run: node .festinalente/scripts/festinalente.cjs search-product {keywords from title/description}
 3. Parse results
 4. If high-scoring docs NOT in affects:
    - Output: "Suggest adding to affects: {doc IDs}"
@@ -54,7 +54,7 @@ Use AskUserQuestion:
 Before writing docs, load similar docs for quality reference:
 
 ```
-1. Run: node .festinalente/scripts/select-context.cjs {taskId} --tier=standard --max=3 --type=product
+1. Run: node .festinalente/scripts/festinalente.cjs select-context {taskId} --tier=standard --max=3 --type=product
 2. Parse JSON output
 3. For each doc returned:
    - Note the structure and quality patterns
@@ -93,7 +93,7 @@ For docs that already exist and need updating:
    - multiSelect: false
 
 4. If "Yes":
-   - Run: node .festinalente/scripts/get-date-time.cjs
+   - Run: node .festinalente/scripts/festinalente.cjs get-date-time
    - Update `verified: {YYYY-MM-DD}` in frontmatter
    - Update `code_refs` with files touched by this task
 
@@ -194,7 +194,7 @@ For docs that don't exist and aren't stubs:
 
 ```
 1. Create domain folder if needed: .festinalente/product/{domain}/
-2. Run: node .festinalente/scripts/get-date-time.cjs
+2. Run: node .festinalente/scripts/festinalente.cjs get-date-time
 3. Use date field from output
 ```
 
@@ -302,7 +302,7 @@ When new terms are introduced:
 After creating or updating docs:
 
 ```
-1. Run: node .festinalente/scripts/validate-docs.cjs {changed doc paths}
+1. Run: node .festinalente/scripts/festinalente.cjs validate-docs {changed doc paths}
 
 2. If passes:
    - Output: "Quality check passed"

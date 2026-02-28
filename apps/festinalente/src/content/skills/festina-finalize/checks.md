@@ -7,7 +7,7 @@ This file contains detailed guidance for the validation phase of `/festina-final
 Before running checks, verify all implementation tasks are complete:
 
 ```
-1. Run: node .festinalente/scripts/find-plan.cjs {taskId}
+1. Run: node .festinalente/scripts/festinalente.cjs find-plan {taskId}
 2. Read the plan.xml at the returned path
 3. Parse the <tasks> section
 4. For each <task> element:

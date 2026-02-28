@@ -27,9 +27,9 @@ Run directive checks, commit implementation, update documentation, and complete 
 
 {{> diagram-guidelines}}
 
-<note>**Smart Context:** `node .festinalente/scripts/select-context.cjs {taskId} --tier=standard` - Load similar docs for reference</note>
+<note>**Smart Context:** `node .festinalente/scripts/festinalente.cjs select-context {taskId} --tier=standard` - Load similar docs for reference</note>
 
-<note>**Quality Check:** `node .festinalente/scripts/validate-docs.cjs {path}` - Validate doc meets quality standards</note>
+<note>**Quality Check:** `node .festinalente/scripts/festinalente.cjs validate-docs {path}` - Validate doc meets quality standards</note>
 
 <note>**Glossary:** `.festinalente/glossary.yaml` - Project terminology (update when introducing new terms)</note>
 
@@ -86,7 +86,7 @@ Load these as needed during each phase:
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, labels, affects, engineering">
-    <command>node .festinalente/scripts/find-task.cjs {taskId}</command>
+    <command>node .festinalente/scripts/festinalente.cjs find-task {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse XML</action>
     <validate>Verify status is `finalize`</validate>
@@ -151,7 +151,7 @@ PHASE 1: VALIDATE AND COMMIT
   </step>
 
   <step name="verify_plan_completion" when="resumeFrom is phase1">
-    <command>node .festinalente/scripts/find-plan.cjs {taskId}</command>
+    <command>node .festinalente/scripts/festinalente.cjs find-plan {taskId}</command>
     <action>Read the plan at the `path` from JSON output</action>
     <validate>Verify all implementation tasks have completed="true"</validate>
     <branch condition="any uncompleted tasks">
@@ -320,7 +320,7 @@ PHASE 2: DOCUMENTATION
 
     <branch condition="needsProductDocs is true">
       <action>Pre-load smart context for product docs:</action>
-      <command>node .festinalente/scripts/select-context.cjs {taskId} --tier=standard --max=3 --type=product</command>
+      <command>node .festinalente/scripts/festinalente.cjs select-context {taskId} --tier=standard --max=3 --type=product</command>
       <action>Store result in productContext</action>
 
       <action>Pre-fetch current doc content for each doc ID in affects:</action>
@@ -328,13 +328,13 @@ PHASE 2: DOCUMENTATION
       <action>Store in currentProductDocs</action>
 
       <action>Categorize product docs:</action>
-      <command>node .festinalente/scripts/check-product.cjs {affects IDs}</command>
+      <command>node .festinalente/scripts/festinalente.cjs check-product {affects IDs}</command>
       <action>Parse output into: stubDocs (need completing), existingDocs (need updating), missingDocs (need creating)</action>
     </branch>
 
     <branch condition="needsEngineeringDocs is true">
       <action>Pre-load smart context for engineering docs:</action>
-      <command>node .festinalente/scripts/select-context.cjs {taskId} --tier=standard --max=3 --type=engineering</command>
+      <command>node .festinalente/scripts/festinalente.cjs select-context {taskId} --tier=standard --max=3 --type=engineering</command>
       <action>Store result in engineeringContext</action>
 
       <action>Pre-fetch current doc content for each doc ID in engineering:</action>
@@ -342,7 +342,7 @@ PHASE 2: DOCUMENTATION
       <action>Store in currentEngineeringDocs</action>
 
       <action>Categorize engineering docs:</action>
-      <command>node .festinalente/scripts/check-engineering.cjs {engineering IDs}</command>
+      <command>node .festinalente/scripts/festinalente.cjs check-engineering {engineering IDs}</command>
       <action>Parse output into: engStubDocs, engExistingDocs, engMissingDocs</action>
     </branch>
 
@@ -631,7 +631,7 @@ All validations passed
     </branch>
 
     <action>Run validation on all changed docs</action>
-    <command>node .festinalente/scripts/validate-docs.cjs {all paths from allFilesChanged}</command>
+    <command>node .festinalente/scripts/festinalente.cjs validate-docs {all paths from allFilesChanged}</command>
     <branch condition="validation fails">
       <output>Warning: Documentation validation failed: {errors}</output>
       <action>Use AskUserQuestion tool with:
@@ -720,7 +720,7 @@ PHASE 3: COMPLETE
   <step name="move_to_done_and_commit">
     <note>Format: `docs({taskId}): done - {title}`</note>
     <action>Change status to `done`</action>
-    <command>node .festinalente/scripts/get-date-time.cjs</command>
+    <command>node .festinalente/scripts/festinalente.cjs get-date-time</command>
     <action>Add `updated: {YYYY-MM-DD}`</action>
     <action>Add `completed: {YYYY-MM-DD}`</action>
     <action>Write updated task file</action>

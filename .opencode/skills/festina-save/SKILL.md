@@ -25,10 +25,10 @@ Save partial implementation progress when interrupted. Task stays in In Progress
 <context>
 <note>Use these scripts to reliably find files:</note>
 
-<command description="Find task by ID (returns JSON with path and metadata)">node .festinalente/scripts/find-task.cjs {id}</command>
+<command description="Find task by ID (returns JSON with path and metadata)">node .festinalente/scripts/festinalente.cjs find-task {id}</command>
 
 
-<command description="Find plan by ID (returns JSON with path)">node .festinalente/scripts/find-plan.cjs {id}</command>
+<command description="Find plan by ID (returns JSON with path)">node .festinalente/scripts/festinalente.cjs find-plan {id}</command>
 
 
 
@@ -70,7 +70,7 @@ Save partial implementation progress when interrupted. Task stays in In Progress
   </step>
 
   <step name="read_task_file" outputs="taskPath, title">
-    <command>node .festinalente/scripts/find-task.cjs {taskId}</command>
+    <command>node .festinalente/scripts/festinalente.cjs find-task {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse XML</action>
     <validate>Verify current status is `in-progress`</validate>
@@ -106,7 +106,7 @@ Save partial implementation progress when interrupted. Task stays in In Progress
   </step>
 
   <step name="load_directives">
-    <command>node .festinalente/scripts/get-skill-config.cjs festina-save</command>
+    <command>node .festinalente/scripts/festinalente.cjs get-skill-config festina-save</command>
     <action>Parse the JSON output</action>
     
     <branch condition="directives.length > 0">
@@ -253,7 +253,7 @@ Save partial implementation progress when interrupted. Task stays in In Progress
     
     Before completing, validate all task XML:
     
-    <command description="Validate XML in task files">node .festinalente/scripts/validate-xml.cjs {taskId}</command>
+    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
     
     If validation fails, fix the reported errors before completing.
     

@@ -354,7 +354,7 @@ Create a new directive through conversational Q&A. Captures context principles, 
   </step>
 
   <step name="generate_xml" outputs="directivePath">
-    <command description="Get current date">node .festinalente/scripts/get-date-time.cjs</command>
+    <command description="Get current date">node .festinalente/scripts/festinalente.cjs get-date-time</command>
     <action>Generate directive XML from collected content</action>
     <action>Write to `.festinalente/directives/{name}.xml`</action>
 
@@ -394,7 +394,7 @@ Create a new directive through conversational Q&A. Captures context principles, 
   </step>
 
   <step name="validate">
-    <command>node .festinalente/scripts/validate-directive.cjs {name}</command>
+    <command>node .festinalente/scripts/festinalente.cjs validate-directive {name}</command>
     <branch condition="validation fails">
       <output>Validation errors: {errors}</output>
       <action>Fix errors and re-validate</action>

@@ -37,7 +37,7 @@ Analyze existing codebase and create engineering documentation through parallel 
 
   <step name="preflight_check">
     <action>Check if `.festinalente/engineering/` has files OTHER than `overview.md`</action>
-    <command>node .festinalente/scripts/list-engineering.cjs</command>
+    <command>node .festinalente/scripts/festinalente.cjs list-engineering</command>
     <branch condition="count > 1, OR if count == 1 and the doc is not `overview`">
       <action>Use AskUserQuestion tool with:
         - header: "Existing Docs"
@@ -279,7 +279,7 @@ For each issue, provide:
 
     <warning>IMMEDIATELY write the engineering doc:</warning>
     <action>Create folder if needed: `.festinalente/engineering/systems/{system}/`</action>
-    <command description="Get current date">node .festinalente/scripts/get-date-time.cjs</command>
+    <command description="Get current date">node .festinalente/scripts/festinalente.cjs get-date-time</command>
     <action>Create `.festinalente/engineering/systems/{system}/_index.md`</action>
     <action>Use template from `.festinalente/templates/engineering-system.md`</action>
     <action>Fill frontmatter: `id`, `type: system`, `title`, `tldr`, `summary`, `keywords`, `aliases`, `boundary`, `paths`, `verified`, `code_refs`</action>

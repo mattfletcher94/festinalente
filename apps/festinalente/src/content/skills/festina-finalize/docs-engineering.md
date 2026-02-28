@@ -9,7 +9,7 @@ Determine which engineering docs need attention:
 ```
 1. Read task's <engineering> element from task.xml
 2. If engineering has IDs:
-   - Run: node .festinalente/scripts/check-engineering.cjs {engineering IDs}
+   - Run: node .festinalente/scripts/festinalente.cjs check-engineering {engineering IDs}
    - Parse the JSON output
 3. For each doc ID in engineering:
    - Read the doc file if it exists
@@ -24,7 +24,7 @@ Determine which engineering docs need attention:
 
 ```
 1. Read task description, spec, and implementation context
-2. Run: node .festinalente/scripts/search-engineering.cjs {technical keywords}
+2. Run: node .festinalente/scripts/festinalente.cjs search-engineering {technical keywords}
 3. Parse results
 4. If high-scoring docs NOT in engineering:
    - Output: "Suggest adding to engineering: {doc IDs}"
@@ -54,7 +54,7 @@ Use AskUserQuestion:
 Before writing docs, load similar docs for quality reference:
 
 ```
-1. Run: node .festinalente/scripts/select-context.cjs {taskId} --tier=standard --max=3 --type=engineering
+1. Run: node .festinalente/scripts/festinalente.cjs select-context {taskId} --tier=standard --max=3 --type=engineering
 2. Parse JSON output
 3. For each doc returned:
    - Note engineering doc structure patterns
@@ -322,7 +322,7 @@ For docs that don't exist and aren't stubs:
 
 ```
 1. Create folder if needed: .festinalente/engineering/{type}s/
-2. Run: node .festinalente/scripts/get-date-time.cjs
+2. Run: node .festinalente/scripts/festinalente.cjs get-date-time
 3. Choose template based on type:
    - System: .festinalente/templates/engineering-system.md
    - Pattern: .festinalente/templates/engineering-pattern.md

@@ -402,17 +402,13 @@ async function main() {
 
   let festinalenteCopied = 0;
 
-  // Copy scripts to .festinalente/scripts/
-  const scriptsSource = path.join(sourceDir, 'scripts');
+  // Copy CLI dispatcher to .festinalente/scripts/festinalente.cjs
+  const cliSource = path.join(sourceDir, 'cli', 'dispatcher.cjs');
   const scriptsDest = path.join(festinalenteDir, 'scripts');
-  if (fs.existsSync(scriptsSource)) {
-    const scriptFiles = getAllFiles(scriptsSource);
-    for (const relativePath of scriptFiles) {
-      const srcFile = path.join(scriptsSource, relativePath);
-      const destFile = path.join(scriptsDest, relativePath);
-      copyFile(srcFile, destFile);
-      festinalenteCopied++;
-    }
+  if (fs.existsSync(cliSource)) {
+    const destFile = path.join(scriptsDest, 'festinalente.cjs');
+    copyFile(cliSource, destFile);
+    festinalenteCopied++;
   }
 
   // Copy templates to .festinalente/templates/

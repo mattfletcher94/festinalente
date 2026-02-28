@@ -37,7 +37,7 @@ Analyze existing codebase and create product documentation through parallel expl
 
   <step name="preflight_check">
     <action>Check if `.festinalente/product/` has files OTHER than `overview.md`</action>
-    <command>node .festinalente/scripts/list-product.cjs</command>
+    <command>node .festinalente/scripts/festinalente.cjs list-product</command>
     <branch condition="count > 1, OR if count == 1 and the doc is not `overview`">
       <action>Use AskUserQuestion tool with:
         - header: "Existing Docs"
@@ -374,7 +374,7 @@ For each gap, provide:
     <action>Create domain folder if needed: `.festinalente/product/{domain}/`</action>
     <action>Create domain index if first feature in domain: `.festinalente/product/{domain}/_index.md`</action>
     <action>Use template `.festinalente/templates/product-domain.md` for domain index</action>
-    <command description="Get current date">node .festinalente/scripts/get-date-time.cjs</command>
+    <command description="Get current date">node .festinalente/scripts/festinalente.cjs get-date-time</command>
     <action>Use `date` field from output</action>
     <action>Create `.festinalente/product/{domain}/{feature}.md`</action>
 

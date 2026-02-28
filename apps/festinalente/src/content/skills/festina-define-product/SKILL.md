@@ -32,7 +32,7 @@ Define a new product through Socratic Q&A and generate product documentation.
 
   <step name="preflight_check">
     <action>Check if `.festinalente/product/` has files OTHER than `overview.md`</action>
-    <command>node .festinalente/scripts/list-product.cjs</command>
+    <command>node .festinalente/scripts/festinalente.cjs list-product</command>
     <branch condition="count > 1, OR if count == 1 and the doc is not `overview`">
       <action>Use AskUserQuestion tool with:
         - header: "Existing Docs"
@@ -155,7 +155,7 @@ Define a new product through Socratic Q&A and generate product documentation.
     <warning>IMMEDIATELY write the product doc:</warning>
     <action>Determine domain folder (e.g., `auth`, `billing`, `users`)</action>
     <action>Create domain folder if needed: `.festinalente/product/{domain}/`</action>
-    <command description="Get current date">node .festinalente/scripts/get-date-time.cjs</command>
+    <command description="Get current date">node .festinalente/scripts/festinalente.cjs get-date-time</command>
     <action>Use `date` field from output</action>
     <action>Create `.festinalente/product/{domain}/{feature}.md`</action>
 

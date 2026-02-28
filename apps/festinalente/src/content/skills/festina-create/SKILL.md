@@ -71,13 +71,13 @@ Create and refine a new task through conversational Q&A, then commit to Backlog.
   </step>
 
   <step name="get_next_id" outputs="nextId">
-    <command>node .festinalente/scripts/next-id.cjs --title="{title}"</command>
+    <command>node .festinalente/scripts/festinalente.cjs next-id --title="{title}"</command>
     <action>Use `nextId` from JSON output (format: {number}-{slug}, e.g., "022-add-dark-mode-toggle")</action>
   </step>
 
   <step name="search_product_docs" when="`.festinalente/product/` directory exists and is not empty" outputs="newDocId, newDocPath">
     <action>Extract keywords from the established title (nouns, verbs, domain terms)</action>
-    <command>node .festinalente/scripts/search-product.cjs {keyword1} {keyword2} ...</command>
+    <command>node .festinalente/scripts/festinalente.cjs search-product {keyword1} {keyword2} ...</command>
 
     <branch condition="docs with score ≥ 0.5 found">
       <note>These docs describe existing features this task relates to</note>
@@ -109,7 +109,7 @@ Create and refine a new task through conversational Q&A, then commit to Backlog.
 
   <step name="search_engineering_docs" when="`.festinalente/engineering/` directory exists and is not empty" outputs="newEngDocId, newEngDocPath, engDocType">
     <action>Extract keywords from the established title (technical terms, patterns, system names)</action>
-    <command>node .festinalente/scripts/search-engineering.cjs {keyword1} {keyword2} ...</command>
+    <command>node .festinalente/scripts/festinalente.cjs search-engineering {keyword1} {keyword2} ...</command>
 
     <branch condition="docs with score ≥ 0.5 found">
       <note>These docs describe existing patterns/systems this task relates to</note>
@@ -150,7 +150,7 @@ Create and refine a new task through conversational Q&A, then commit to Backlog.
 
   <step name="create_stub_doc" when="newDocId was set (new feature detected)">
     <note>Create a minimal stub doc so the `affects` link is valid immediately</note>
-    <command description="Get current date">node .festinalente/scripts/get-date-time.cjs</command>
+    <command description="Get current date">node .festinalente/scripts/festinalente.cjs get-date-time</command>
     <action>Create domain folder if doesn't exist: `.festinalente/product/{domain}/`</action>
     <action>Create stub doc at {newDocPath} with minimal content:</action>
     <example_code lang="markdown">
@@ -192,7 +192,7 @@ This is a stub document created during task creation. It will be completed with 
 
   <step name="create_engineering_stub_doc" when="newEngDocId was set (new engineering doc detected)">
     <note>Create a minimal stub doc so the `engineering` link is valid immediately</note>
-    <command description="Get current date">node .festinalente/scripts/get-date-time.cjs</command>
+    <command description="Get current date">node .festinalente/scripts/festinalente.cjs get-date-time</command>
     <action>Create type folder if doesn't exist: `.festinalente/engineering/{engDocType}s/`</action>
     <action>Create stub doc at {newEngDocPath} with minimal content:</action>
     <example_code lang="markdown">

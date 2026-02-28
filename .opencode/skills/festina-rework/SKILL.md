@@ -35,16 +35,16 @@ Return a task to In Progress when human review finds issues. Gather structured i
 
 <note>Use these scripts to reliably find files:</note>
 
-<command description="Find task by ID (returns JSON with path and metadata)">node .festinalente/scripts/find-task.cjs {id}</command>
+<command description="Find task by ID (returns JSON with path and metadata)">node .festinalente/scripts/festinalente.cjs find-task {id}</command>
 
 
-<command description="Find plan by ID (returns JSON with path)">node .festinalente/scripts/find-plan.cjs {id}</command>
+<command description="Find plan by ID (returns JSON with path)">node .festinalente/scripts/festinalente.cjs find-plan {id}</command>
 
 
 
-<command description="Get current date/time (returns JSON with iso and date formats)">node .festinalente/scripts/get-date-time.cjs</command>
+<command description="Get current date/time (returns JSON with iso and date formats)">node .festinalente/scripts/festinalente.cjs get-date-time</command>
 
-<command description="Get skill configuration (returns JSON with directives)">node .festinalente/scripts/get-skill-config.cjs {skill}</command>
+<command description="Get skill configuration (returns JSON with directives)">node .festinalente/scripts/festinalente.cjs get-skill-config {skill}</command>
 <example_code lang="json">
 {
   "skill": "festina-check",
@@ -95,7 +95,7 @@ See `.festinalente/workflow.yaml` for column definitions and valid transitions.
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, currentStatus, acceptanceCriteria">
-    <command>node .festinalente/scripts/find-task.cjs {taskId}</command>
+    <command>node .festinalente/scripts/festinalente.cjs find-task {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse XML</action>
     <validate>Verify current status is `finalize`</validate>
@@ -136,7 +136,7 @@ See `.festinalente/workflow.yaml` for column definitions and valid transitions.
   </step>
 
   <step name="load_directives">
-    <command>node .festinalente/scripts/get-skill-config.cjs festina-rework</command>
+    <command>node .festinalente/scripts/festinalente.cjs get-skill-config festina-rework</command>
     <action>Parse the JSON output</action>
     
     <branch condition="directives.length > 0">
@@ -419,7 +419,7 @@ Then finalize:
     
     Before completing, validate all task XML:
     
-    <command description="Validate XML in task files">node .festinalente/scripts/validate-xml.cjs {taskId}</command>
+    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
     
     If validation fails, fix the reported errors before completing.
     

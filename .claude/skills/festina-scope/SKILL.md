@@ -26,15 +26,15 @@ Create a functional specification through iterative conversational Q&A focused o
 
 <note>Use these scripts to reliably find files:</note>
 
-<command description="Find task by ID (returns JSON with path and metadata)">node .festinalente/scripts/find-task.cjs {id}</command>
+<command description="Find task by ID (returns JSON with path and metadata)">node .festinalente/scripts/festinalente.cjs find-task {id}</command>
 
 
 
 
 
-<command description="Get current date/time (returns JSON with iso and date formats)">node .festinalente/scripts/get-date-time.cjs</command>
+<command description="Get current date/time (returns JSON with iso and date formats)">node .festinalente/scripts/festinalente.cjs get-date-time</command>
 
-<command description="Get skill configuration (returns JSON with directives)">node .festinalente/scripts/get-skill-config.cjs {skill}</command>
+<command description="Get skill configuration (returns JSON with directives)">node .festinalente/scripts/festinalente.cjs get-skill-config {skill}</command>
 <example_code lang="json">
 {
   "skill": "festina-check",
@@ -49,8 +49,8 @@ Create a functional specification through iterative conversational Q&A focused o
 <note>Use these scripts to work with engineering documentation:</note>
 
 
-<command description="Search engineering docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/search-engineering.cjs keyword1 keyword2 ...</command>
-<command description="With minimum score threshold">node .festinalente/scripts/search-engineering.cjs middleware pattern --min-score=0.3</command>
+<command description="Search engineering docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/festinalente.cjs search-engineering keyword1 keyword2 ...</command>
+<command description="With minimum score threshold">node .festinalente/scripts/festinalente.cjs search-engineering middleware pattern --min-score=0.3</command>
 <note>Score interpretation: ≥0.5 = strong match | 0.3-0.5 = possible match | &lt;0.3 = weak match | No results = likely new pattern/system</note>
 
 
@@ -108,7 +108,7 @@ Create a functional specification through iterative conversational Q&A focused o
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, acceptanceCriteria, status, affects, engineering">
-    <command>node .festinalente/scripts/find-task.cjs {taskId}</command>
+    <command>node .festinalente/scripts/festinalente.cjs find-task {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse XML</action>
     <validate>Verify status is `backlog`</validate>
@@ -131,7 +131,7 @@ Create a functional specification through iterative conversational Q&A focused o
   </step>
 
   <step name="load_directives">
-    <command>node .festinalente/scripts/get-skill-config.cjs festina-scope</command>
+    <command>node .festinalente/scripts/festinalente.cjs get-skill-config festina-scope</command>
     <action>Parse the JSON output</action>
     
     <branch condition="directives.length > 0">
@@ -197,7 +197,7 @@ Create a functional specification through iterative conversational Q&A focused o
           <action>Note: current behavior, constraints, user flows, feature interactions</action>
         </branch>
         <action>Search for additional relevant product docs</action>
-        <command>node .festinalente/scripts/search-product.cjs {keywords from title and description}</command>
+        <command>node .festinalente/scripts/festinalente.cjs search-product {keywords from title and description}</command>
         <branch condition="docs with score ≥ 0.3 found">
           <action>Read top matches not already read</action>
         </branch>
@@ -211,7 +211,7 @@ Create a functional specification through iterative conversational Q&A focused o
           <action>Note: patterns to follow, conventions, system interactions</action>
         </branch>
         <action>Search for additional relevant engineering docs</action>
-        <command>node .festinalente/scripts/search-engineering.cjs {technical keywords}</command>
+        <command>node .festinalente/scripts/festinalente.cjs search-engineering {technical keywords}</command>
         <branch condition="docs with score ≥ 0.3 found">
           <action>Read top matches not already read</action>
         </branch>
@@ -878,7 +878,7 @@ updated: {YYYY-MM-DD}
     
     Before completing, validate all task XML:
     
-    <command description="Validate XML in task files">node .festinalente/scripts/validate-xml.cjs {taskId}</command>
+    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
     
     If validation fails, fix the reported errors before completing.
     

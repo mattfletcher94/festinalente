@@ -1,4 +1,4 @@
-<command>node .festinalente/scripts/get-skill-config.cjs festina-{{skill}}</command>
+<command>node .festinalente/scripts/festinalente.cjs get-skill-config festina-{{skill}}</command>
 <action>Parse the JSON output</action>
 
 <branch condition="directives.length > 0">
