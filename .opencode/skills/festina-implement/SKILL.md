@@ -297,6 +297,9 @@ Warning: Some relevant docs may be outdated:
         <command>{task.verify}</command>
         <branch condition="command succeeds (exit code 0)">
           <output>✓ Verification passed</output>
+          <action>Update plan.xml: Add `completed="true" completed_at="{ISO timestamp}"` to the task element</action>
+          <action>Write updated plan file</action>
+          <note>Task marked complete immediately after verification - ensures persistence before context exhaustion</note>
         </branch>
         <branch condition="command fails">
           <output>✗ Verification failed: {error}</output>
@@ -312,19 +315,15 @@ Warning: Some relevant docs may be outdated:
       <branch condition="task.verify starts with 'Manual:' OR task.type is 'manual'">
         <note>Manual verification is DEFERRED to QA phase - do NOT ask user to verify during implementation</note>
         <output>⏭ Manual verification deferred to QA: {task.verify}</output>
-        <note>Continue with implementation - user will test during QA phase</note>
+        <action>Update plan.xml: Add `completed="true" completed_at="{ISO timestamp}"` to the task element</action>
+        <action>Write updated plan file</action>
+        <note>Task marked complete immediately - manual verification deferred but task is done from implementation perspective</note>
       </branch>
     </substep>
 
     <substep name="confirm_done_criteria">
       <action>Verify the done criteria: {task.done}</action>
       <output>Done criteria met: {task.done}</output>
-    </substep>
-
-    <substep name="mark_task_complete">
-      <action>Update plan.xml: Add `completed="true" completed_at="{ISO timestamp}"` to the task element</action>
-      <action>Write updated plan file</action>
-      <note>This enables resumability if implementation is interrupted</note>
     </substep>
   </step>
 

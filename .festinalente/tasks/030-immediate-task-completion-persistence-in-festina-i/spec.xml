@@ -1,0 +1,78 @@
+<spec task="030-immediate-task-completion-persistence-in-festina-i" created="2026-02-28" updated="2026-02-28">
+  <title>Immediate task completion persistence in festina-implement</title>
+
+  <context>
+    When implementing large plans, tasks get executed successfully but are not marked complete in plan.xml because context exhaustion occurs before the mark_task_complete substep runs. The current skill has mark_task_complete at the end of the task execution loop (after confirm_done_criteria), meaning large plans exhaust context before all marking steps complete.
+
+    Evidence: In plan 029, tasks 2-8 have identical timestamps (2026-02-28T15:45:00Z) suggesting bulk marking rather than incremental persistence. Similarly in plan 010, tasks 3-6 share timestamp 2026-02-23T15:00:22.701Z.
+
+    This causes confusion about progress and potential re-implementation of already-completed tasks when sessions are resumed.
+  </context>
+
+  <scope>
+    <in-scope>
+      <item>Reorder mark_task_complete to run immediately after verification passes</item>
+      <item>Handle both auto verification tasks and manual verification tasks</item>
+      <item>Remove the now-redundant separate mark_task_complete substep</item>
+    </in-scope>
+    <out-of-scope>
+      <item>Changes to other festina skills</item>
+      <item>Changes to plan.xml structure</item>
+      <item>Changes to timestamp format</item>
+      <item>Retroactive fixes to existing plans with identical timestamps</item>
+    </out-of-scope>
+  </scope>
+
+  <requirements>
+    <requirement id="FR1">The system shall mark auto-verification tasks as complete immediately after verification succeeds (exit code 0), before confirm_done_criteria runs</requirement>
+    <requirement id="FR2">The system shall mark manual-verification tasks as complete immediately after outputting the deferral message, before confirm_done_criteria runs</requirement>
+    <requirement id="FR3">The system shall persist completion to plan.xml after each task completion (not in bulk at end)</requirement>
+    <requirement id="FR4">Each task shall have its own unique completion timestamp reflecting when that specific task completed</requirement>
+  </requirements>
+
+  <files>
+    <file path=".claude/skills/festina-implement/SKILL.md" action="modify">Reorder task completion logic within execute_tasks step</file>
+  </files>
+
+  <patterns>
+    <pattern name="Substep structure">
+      Tasks use XML substep elements with name attributes: show_task_context, execute_action, run_verification, confirm_done_criteria
+      Reference: `.claude/skills/festina-implement/SKILL.md:269-323`
+    </pattern>
+    <pattern name="Completion marking">
+      Task completion uses attributes: completed="true" completed_at="{ISO timestamp}"
+      Reference: `.claude/skills/festina-implement/SKILL.md:320`
+    </pattern>
+  </patterns>
+
+  <research>
+    <product>No product docs directly affected</product>
+    <engineering>No engineering docs referenced</engineering>
+    <codebase>
+      <finding>festina-implement SKILL.md defines 5 substeps in execute_tasks: show_task_context, execute_action, run_verification, confirm_done_criteria, mark_task_complete</finding>
+      <finding>Evidence of bulk marking in plan 010: tasks 3-6 share timestamp 2026-02-23T15:00:22.701Z</finding>
+      <finding>Evidence of bulk marking in plan 029: tasks 2-8 share timestamp 2026-02-28T15:45:00Z</finding>
+    </codebase>
+    <pitfalls>
+      <pitfall issue="Verification may fail" mitigation="Only mark complete after successful verification (exit code 0) - current behavior preserved"/>
+      <pitfall issue="Manual verification tasks have no automated verification" mitigation="Mark complete immediately after deferral message since there's no verification to wait for"/>
+    </pitfalls>
+  </research>
+
+  <constraints>
+    <constraint>Skills directory (.claude/skills/) is typically read-only but this task requires modification</constraint>
+    <constraint>Must preserve existing behavior where failed verifications do not mark task complete</constraint>
+  </constraints>
+
+  <dependencies>
+    <external>None</external>
+    <internal>None</internal>
+  </dependencies>
+
+  <risks>
+    <risk impact="low" mitigation="Only move marking logic, no functional changes to verification">Changing substep order could affect skill execution flow</risk>
+  </risks>
+
+  <open-questions>
+  </open-questions>
+</spec>
