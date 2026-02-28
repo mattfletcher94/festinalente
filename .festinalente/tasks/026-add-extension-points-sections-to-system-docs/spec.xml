@@ -11,14 +11,14 @@ The value is faster, more consistent implementations - the doc becomes a 'how to
 
   <scope>
     <in-scope>
-      <item>Add Extension Points section template to engineering-system.md template</item>
-      <item>Add guidance for writing Extension Points to festina-finalize docs-engineering.md</item>
+      <item>Add Extension Points section template to engineering-system.md template source</item>
+      <item>Add guidance for writing Extension Points to festina-finalize docs-engineering.md source</item>
       <item>Extension Points section includes: template file, checklist, pitfalls per component type</item>
     </in-scope>
     <out-of-scope>
       <item>Pattern docs - Extension Points only for system docs</item>
       <item>Convention docs</item>
-      <item>Actually updating existing system docs with extension points (separate task)</item>
+      <item>Actually updating existing system docs in .festinalente/engineering/ with extension points (separate task)</item>
     </out-of-scope>
   </scope>
 
@@ -31,8 +31,8 @@ The value is faster, more consistent implementations - the doc becomes a 'how to
   </requirements>
 
   <files>
-    <file path=".festinalente/templates/engineering-system.md" action="modify">Add Extension Points section template after Boundaries section</file>
-    <file path=".claude/skills/festina-finalize/docs-engineering.md" action="modify">Add guidance for writing Extension Points sections in system docs</file>
+    <file path="apps/festinalente/src/content/templates/engineering-system.md" action="modify">Add Extension Points section template after Boundaries section</file>
+    <file path="apps/festinalente/src/content/skills/festina-finalize/docs-engineering.md" action="modify">Add guidance for writing Extension Points sections in system docs</file>
   </files>
 
   <patterns>
@@ -51,6 +51,8 @@ The value is faster, more consistent implementations - the doc becomes a 'how to
     <codebase>
       <finding path="apps/vscode/src/capabilities/tasks-view.capability.ts">Example capability file that could serve as template reference - shows TreeView pattern with factory DI</finding>
       <finding path="apps/vscode/src/orchestrators/tasks.orchestrator.ts">Example orchestrator file - shows domain orchestrator structure with command registration</finding>
+      <finding path="apps/festinalente/src/content/templates/engineering-system.md">Source template file to modify</finding>
+      <finding path="apps/festinalente/src/content/skills/festina-finalize/docs-engineering.md">Source skill guidance file to modify</finding>
     </codebase>
     <pitfalls>
       <pitfall issue="Missing template references" mitigation="Extension points should cite specific template files with file:line references"/>
