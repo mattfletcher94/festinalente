@@ -152,8 +152,75 @@ Create a functional specification through iterative conversational Q&A focused o
     </branch>
 
     <branch condition="researchDepth is 'Deep'">
-      <note>**CRITICAL: Spawn 4 agents in parallel using Task tool**</note>
-      <action>Use the Task tool 4 times in a SINGLE message to achieve parallelism</action>
+      <substep name="reconnaissance">
+        <note>Sequential recon phase - read referenced docs before spawning agents</note>
+        <note>Recon runs in main context (not as agent) because subagents cannot spawn subagents</note>
+
+        <action name="read_product_context">
+          <branch condition="task has `affects` field">
+            <action>For each ID in `affects`: Read `.festinalente/product/{id}.md`</action>
+            <action>Extract: current behavior, constraints, user flows, feature interactions</action>
+          </branch>
+        </action>
+
+        <action name="read_engineering_context">
+          <branch condition="task has `engineering` field">
+            <action>For each ID: Read engineering doc using ID to path rules</action>
+            <action>Extract: patterns to follow, conventions, system interactions</action>
+          </branch>
+        </action>
+
+        <action name="identify_focus_areas">
+          <action>Based on docs read, determine which areas need deeper exploration:</action>
+          <action>- If product docs exist: productFocus = {docIds, keyTerms, relatedFeatures}</action>
+          <action>- If engineering docs exist: engineeringFocus = {patterns, fileRefs, systemBoundaries}</action>
+        </action>
+
+        <branch condition="no affects AND no engineering docs were read">
+          <note>Fallback: extract focus areas from task content</note>
+          <action>Extract keywords from task title, description, acceptance criteria</action>
+          <action>Use Grep to find related files based on keywords</action>
+          <action>Build initial focusAreas from grep results</action>
+          <action>All 4 agents will be spawned but with keyword-based focus</action>
+        </branch>
+
+        <output_variable>reconFindings: {
+          productContext: {docs read, key insights},
+          engineeringContext: {patterns found, file references},
+          focusAreas: [{area, reason, grepPatterns, filePaths}]
+        }</output_variable>
+      </substep>
+
+      <substep name="determine_agents">
+        <note>Spawn only the agents needed based on recon findings</note>
+        <action>agentsToSpawn = []</action>
+
+        <branch condition="reconFindings.focusAreas includes product-related area OR no product docs were read">
+          <action>Add Product Context Researcher to agentsToSpawn</action>
+        </branch>
+
+        <branch condition="reconFindings.focusAreas includes engineering-related area OR no engineering docs were read">
+          <action>Add Pattern Finder to agentsToSpawn</action>
+        </branch>
+
+        <branch condition="reconFindings.focusAreas includes codebase-related area">
+          <action>Add Codebase Analyzer to agentsToSpawn</action>
+          <note>Always include if any implementation work needed</note>
+        </branch>
+
+        <branch condition="always">
+          <action>Add Pitfall Detector to agentsToSpawn</action>
+          <note>Pitfall detection always valuable, but with focused scope</note>
+        </branch>
+
+        <branch condition="agentsToSpawn is empty">
+          <note>Edge case: recon found everything, no agents needed</note>
+          <action>Skip to synthesize_research using recon findings only</action>
+        </branch>
+      </substep>
+
+      <note>**CRITICAL: Spawn selected agents in parallel using Task tool**</note>
+      <action>Use the Task tool for agents in agentsToSpawn in a SINGLE message to achieve parallelism</action>
 
       <parallel>
         <agent name="Product Context Researcher" subagent_type="Explore">
@@ -161,15 +228,22 @@ Create a functional specification through iterative conversational Q&A focused o
           <prompt>
 Research product context for task: "{title}"
 
+**RECON CONTEXT (start here):**
+{reconFindings.productContext.summary}
+Already read docs: {reconFindings.productContext.docs}
+
+**FOCUS on:**
+{For each focusArea related to product:}
+- {area}: Search for {grepPatterns}, check files like {filePaths}
+
 Task details:
 - Problem: {problem}
 - Value: {value}
 - Acceptance criteria: {acceptanceCriteria}
-{If affects field exists: - Affects docs: {affects}}
 
 Your job:
-1. If the task has `affects` field, read those product docs from `.festinalente/product/{id}.md`
-2. Search for additional relevant product docs using keywords from the task
+1. Search for additional product docs NOT already read in recon
+2. Focus on areas identified above
 3. Identify current behavior, constraints, user flows, and feature interactions
 
 For each relevant doc found, provide:
@@ -186,14 +260,21 @@ Output as a structured list.
           <prompt>
 Find engineering patterns for task: "{title}"
 
+**RECON CONTEXT (start here):**
+{reconFindings.engineeringContext.summary}
+Already read docs: {reconFindings.engineeringContext.docs}
+
+**FOCUS on:**
+{For each focusArea related to engineering:}
+- {area}: Check patterns in {fileRefs}, look for {patterns}
+
 Task details:
 - Problem: {problem}
 - Value: {value}
-{If engineering field exists: - Engineering docs: {engineering}}
 
 Your job:
-1. If the task has `engineering` field, read those docs from `.festinalente/engineering/`
-2. Search for additional relevant engineering docs
+1. Search for additional engineering patterns NOT already found in recon
+2. Focus on areas identified above
 3. Find established patterns and conventions to follow
 
 For each pattern found, provide:
@@ -211,16 +292,23 @@ Output as a structured list.
           <prompt>
 Analyze codebase for task: "{title}"
 
+**RECON CONTEXT (start here):**
+{reconFindings.engineeringContext.fileReferences}
+
+**FOCUS on:**
+{For each focusArea related to codebase:}
+- {area}: Examine {filePaths}, grep for {grepPatterns}
+
 Task details:
 - Problem: {problem}
 - Value: {value}
 - Acceptance criteria: {acceptanceCriteria}
 
 Your job:
-1. Use Glob to find potentially affected files based on task description
-2. Use Grep to search for similar implementations, related functions, types
-3. Read key files to understand existing patterns
-4. Identify files that will likely need modification
+1. Start from file references in recon context
+2. Use Glob to find related files based on recon focus areas
+3. Use Grep to search for similar implementations
+4. Read key files to understand existing patterns
 
 For each finding, provide:
 - component: Name of the component/feature
@@ -242,16 +330,24 @@ Output as a structured list.
           <prompt>
 Find pitfalls and constraints for task: "{title}"
 
+**RECON CONTEXT (start here):**
+Product docs read: {reconFindings.productContext.docs}
+Engineering docs read: {reconFindings.engineeringContext.docs}
+
+**FOCUS on:**
+{For each focusArea:}
+- {area}: Check for pitfalls in {filePaths}
+
 Task details:
 - Problem: {problem}
 - Value: {value}
 - Acceptance criteria: {acceptanceCriteria}
 
 Your job:
-1. Search for error handling patterns in areas related to this task
-2. Look for TODO/FIXME/HACK comments in related code
-3. Check engineering docs for documented constraints or gotchas
-4. Look for edge cases or known issues in similar implementations
+1. Focus on areas identified by recon, not the entire codebase
+2. Search for error handling patterns in focus areas
+3. Look for TODO/FIXME/HACK comments in related code
+4. Check for edge cases or known issues in similar implementations
 
 For each pitfall found, provide:
 - issue: What the issue is
@@ -269,7 +365,7 @@ Output as a structured list.
         </agent>
       </parallel>
 
-      <action>Wait for all 4 agents to complete</action>
+      <action>Wait for selected agents to complete</action>
     </branch>
   </step>
 
@@ -278,9 +374,12 @@ Output as a structured list.
     <note>Present to user for approval BEFORE proceeding to Q&A.</note>
 
     <branch condition="researchDepth is 'Deep'">
-      <action>Combine outputs from all 4 agents</action>
-      <action>Deduplicate findings (same file/pattern mentioned by multiple agents)</action>
+      <action>Include reconFindings as base context</action>
+      <action>Combine outputs from agents that were spawned (may be fewer than 4)</action>
+      <action>For areas covered by recon but no agent spawned: use recon findings directly</action>
+      <action>Deduplicate findings (same file/pattern mentioned by recon and agents)</action>
       <action>Resolve conflicts using these rules:</action>
+      <rule>If recon and agent identify same area, prefer agent's deeper findings</rule>
       <rule>If Product Context and Codebase Analyzer identify different affected areas, include both</rule>
       <rule>If Pattern Finder and Codebase Analyzer find same pattern, use Pattern Finder's description</rule>
       <rule>If Pitfall Detector contradicts other agents, flag as open question</rule>

@@ -37,7 +37,7 @@
   </inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-02-28T11:55:01.959Z">
       <name>Add reconnaissance phase before agent spawning</name>
       <files>apps/festinalente/src/content/skills/festina-scope/SKILL.md (modify)</files>
       <requirements>FR1, FR2</requirements>
@@ -99,7 +99,7 @@
       <done>Recon substep exists in Deep research branch, reads affects/engineering docs, outputs structured findings</done>
     </task>
 
-    <task id="2" type="auto" depends="1">
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-02-28T11:56:00.000Z">
       <name>Add dynamic agent selection based on recon</name>
       <files>apps/festinalente/src/content/skills/festina-scope/SKILL.md (modify)</files>
       <requirements>FR3</requirements>
@@ -144,7 +144,7 @@
       <done>Agent selection is conditional based on recon findings, not all 4 agents spawn automatically</done>
     </task>
 
-    <task id="3" type="auto" depends="2">
+    <task id="3" type="auto" depends="2" completed="true" completed_at="2026-02-28T11:58:00.000Z">
       <name>Update agent prompts with focused context from recon</name>
       <files>apps/festinalente/src/content/skills/festina-scope/SKILL.md (modify)</files>
       <requirements>FR4</requirements>
@@ -192,7 +192,7 @@ Output as a structured list with docId, keyInsight, constraints.
       <done>All agent prompts include recon context with specific files, patterns, and boundaries</done>
     </task>
 
-    <task id="4" type="auto" depends="3">
+    <task id="4" type="auto" depends="3" completed="true" completed_at="2026-02-28T11:59:00.000Z">
       <name>Update synthesize_research to handle variable agent count</name>
       <files>apps/festinalente/src/content/skills/festina-scope/SKILL.md (modify)</files>
       <requirements>FR5</requirements>
@@ -221,7 +221,7 @@ Output as a structured list with docId, keyInsight, constraints.
       <done>Synthesis handles variable agent count, includes recon findings, maintains same output format</done>
     </task>
 
-    <task id="5" type="auto" depends="4">
+    <task id="5" type="auto" depends="4" completed="true" completed_at="2026-02-28T12:00:00.000Z">
       <name>Add graceful fallback for empty affects/engineering</name>
       <files>apps/festinalente/src/content/skills/festina-scope/SKILL.md (modify)</files>
       <requirements>FR1, FR3</requirements>
@@ -246,7 +246,7 @@ Output as a structured list with docId, keyInsight, constraints.
       <done>Recon gracefully handles tasks with empty affects/engineering, extracts focus from task content</done>
     </task>
 
-    <task id="6" type="manual" depends="5">
+    <task id="6" type="manual" depends="5" completed="true" completed_at="2026-02-28T12:01:00.000Z">
       <name>Final verification</name>
       <files>N/A</files>
       <requirements>FR1, FR2, FR3, FR4, FR5</requirements>
