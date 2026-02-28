@@ -21,7 +21,7 @@
   <inventory></inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-02-28T16:45:06.351Z">
       <name>Move task completion marking inline with auto verification success</name>
       <files>.claude/skills/festina-implement/SKILL.md (modify)</files>
       <requirements>FR1, FR3, FR4</requirements>
@@ -42,7 +42,7 @@
       <done>Auto verification success branch includes task marking logic</done>
     </task>
 
-    <task id="2" type="auto" depends="1">
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-02-28T16:45:31.358Z">
       <name>Move task completion marking inline with manual verification deferral</name>
       <files>.claude/skills/festina-implement/SKILL.md (modify)</files>
       <requirements>FR2, FR3, FR4</requirements>
@@ -62,7 +62,7 @@
       <done>Manual verification branch includes task marking logic</done>
     </task>
 
-    <task id="3" type="auto" depends="2">
+    <task id="3" type="auto" depends="2" completed="true" completed_at="2026-02-28T16:45:59.325Z">
       <name>Remove the standalone mark_task_complete substep</name>
       <files>.claude/skills/festina-implement/SKILL.md (modify)</files>
       <requirements>FR1, FR2, FR3</requirements>
@@ -83,7 +83,7 @@
       <done>Standalone mark_task_complete substep removed</done>
     </task>
 
-    <task id="4" type="manual" depends="3">
+    <task id="4" type="manual" depends="3" completed="true" completed_at="2026-02-28T16:46:23.358Z">
       <name>Verify final structure</name>
       <files>.claude/skills/festina-implement/SKILL.md</files>
       <requirements>FR1, FR2, FR3, FR4</requirements>
