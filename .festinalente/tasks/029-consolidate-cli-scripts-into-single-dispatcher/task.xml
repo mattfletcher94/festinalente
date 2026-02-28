@@ -1,4 +1,4 @@
-<task id="029-consolidate-cli-scripts-into-single-dispatcher" status="backlog" priority="high" created="2026-02-28" updated="2026-02-28"
+<task id="029-consolidate-cli-scripts-into-single-dispatcher" status="scoped" priority="high" created="2026-02-28" updated="2026-02-28"
       github-issue="#16"
       github-url="https://github.com/mattfletcher94/festinalente/issues/16">
   <title>Consolidate CLI scripts into single dispatcher</title>
