@@ -10,6 +10,7 @@ name: ""
 
 directives:
   festina-status: []
+  festina-explore: []
   festina-create: []
   festina-scope: []
   festina-plan: []

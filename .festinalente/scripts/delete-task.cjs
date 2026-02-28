@@ -7,10 +7,15 @@ const path = require_chunk.__toESM(require("path"));
 //#region src/scripts/delete-task.ts
 const TASKS_DIR = ".festinalente/tasks";
 /**
+
 * Find task file path by ID.
+
 *
+
 * @param id - The task ID to find.
+
 * @returns The task file path or null if not found.
+
 */
 function findTaskFile(id) {
 	const taskPath = path.default.join(TASKS_DIR, id, "task.xml");
@@ -18,17 +23,24 @@ function findTaskFile(id) {
 	return null;
 }
 /**
+
 * Output result as JSON and exit.
+
 *
+
 * @param result - The result to output.
+
 * @param exitCode - The exit code (0 for success, 1 for error).
+
 */
 function outputResult(result, exitCode) {
 	console.log(JSON.stringify(result, null, 2));
 	process.exit(exitCode);
 }
 /**
+
 * Main function to delete a task folder.
+
 */
 function main() {
 	const args = process.argv.slice(2);
