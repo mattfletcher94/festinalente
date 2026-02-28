@@ -1,4 +1,4 @@
-<task id="024-add-parallel-agents-to-festina-finalize-for-docs-p" status="backlog" priority="high" created="2026-02-28" updated="2026-02-28"
+<task id="024-add-parallel-agents-to-festina-finalize-for-docs-p" status="scoped" priority="high" created="2026-02-28" updated="2026-02-28"
       github-issue="#8"
       github-url="https://github.com/mattfletcher94/festinalente/issues/8">
   <title>Add parallel agents to festina-finalize for docs phase</title>
