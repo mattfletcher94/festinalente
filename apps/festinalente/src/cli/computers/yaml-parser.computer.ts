@@ -4,7 +4,7 @@
  * @module cli/computers/yaml-parser
  */
 
-import * as matter from 'gray-matter';
+import matter from 'gray-matter';
 import * as yaml from 'js-yaml';
 
 /**

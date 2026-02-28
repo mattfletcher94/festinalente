@@ -4317,9 +4317,9 @@ var require_stringify = __commonJS({ "../../node_modules/.pnpm/gray-matter@4.0.3
 		data = Object.assign({}, file.data, data);
 		const open = opts.delimiters[0];
 		const close = opts.delimiters[1];
-		const matter$1 = engine.stringify(data, options).trim();
+		const matter$2 = engine.stringify(data, options).trim();
 		let buf = "";
-		if (matter$1 !== "{}") buf = newline(open) + newline(matter$1) + newline(close);
+		if (matter$2 !== "{}") buf = newline(open) + newline(matter$2) + newline(close);
 		if (typeof file.excerpt === "string" && file.excerpt !== "") {
 			if (str$1.indexOf(file.excerpt.trim()) === -1) buf += newline(file.excerpt) + newline(close);
 		}
@@ -4415,7 +4415,7 @@ var require_gray_matter = __commonJS({ "../../node_modules/.pnpm/gray-matter@4.0
 	* @return {Object}
 	* @api public
 	*/
-	function matter(input, options) {
+	function matter$1(input, options) {
 		if (input === "") return {
 			data: {},
 			content: input,
@@ -4423,14 +4423,14 @@ var require_gray_matter = __commonJS({ "../../node_modules/.pnpm/gray-matter@4.0
 			orig: input
 		};
 		let file = toFile(input);
-		const cached = matter.cache[file.content];
+		const cached = matter$1.cache[file.content];
 		if (!options) {
 			if (cached) {
 				file = Object.assign({}, cached);
 				file.orig = cached.orig;
 				return file;
 			}
-			matter.cache[file.content] = file;
+			matter$1.cache[file.content] = file;
 		}
 		return parseMatter(file, options);
 	}
@@ -4451,7 +4451,7 @@ var require_gray_matter = __commonJS({ "../../node_modules/.pnpm/gray-matter@4.0
 		if (str$1.charAt(openLen) === open.slice(-1)) return file;
 		str$1 = str$1.slice(openLen);
 		const len = str$1.length;
-		const language = matter.language(str$1, opts);
+		const language = matter$1.language(str$1, opts);
 		if (language.name) {
 			file.language = language.name;
 			str$1 = str$1.slice(language.raw.length);
@@ -4478,7 +4478,7 @@ var require_gray_matter = __commonJS({ "../../node_modules/.pnpm/gray-matter@4.0
 	/**
 	* Expose engines
 	*/
-	matter.engines = engines;
+	matter$1.engines = engines;
 	/**
 	* Stringify an object to YAML or the specified language, and
 	* append it to the given string. By default, only YAML and JSON
@@ -4499,8 +4499,8 @@ var require_gray_matter = __commonJS({ "../../node_modules/.pnpm/gray-matter@4.0
 	* @return {String} Returns a string created by wrapping stringified yaml with delimiters, and appending that to the given string.
 	* @api public
 	*/
-	matter.stringify = function(file, data, options) {
-		if (typeof file === "string") file = matter(file, options);
+	matter$1.stringify = function(file, data, options) {
+		if (typeof file === "string") file = matter$1(file, options);
 		return stringify(file, data, options);
 	};
 	/**
@@ -4515,9 +4515,9 @@ var require_gray_matter = __commonJS({ "../../node_modules/.pnpm/gray-matter@4.0
 	* @return {Object} Returns [an object](#returned-object) with `data` and `content`
 	* @api public
 	*/
-	matter.read = function(filepath, options) {
+	matter$1.read = function(filepath, options) {
 		const str$1 = fs$1.readFileSync(filepath, "utf8");
-		const file = matter(str$1, options);
+		const file = matter$1(str$1, options);
 		file.path = filepath;
 		return file;
 	};
@@ -4528,7 +4528,7 @@ var require_gray_matter = __commonJS({ "../../node_modules/.pnpm/gray-matter@4.0
 	* @return {Boolean} True if front matter exists.
 	* @api public
 	*/
-	matter.test = function(str$1, options) {
+	matter$1.test = function(str$1, options) {
 		return utils.startsWith(str$1, defaults(options).delimiters[0]);
 	};
 	/**
@@ -4538,10 +4538,10 @@ var require_gray_matter = __commonJS({ "../../node_modules/.pnpm/gray-matter@4.0
 	* @param  {Object} `options`
 	* @return {Object} Object with `raw` (actual language string), and `name`, the language with whitespace trimmed
 	*/
-	matter.language = function(str$1, options) {
+	matter$1.language = function(str$1, options) {
 		const opts = defaults(options);
 		const open = opts.delimiters[0];
-		if (matter.test(str$1)) str$1 = str$1.slice(open.length);
+		if (matter$1.test(str$1)) str$1 = str$1.slice(open.length);
 		const language = str$1.slice(0, str$1.search(/\r?\n/));
 		return {
 			raw: language,
@@ -4551,11 +4551,11 @@ var require_gray_matter = __commonJS({ "../../node_modules/.pnpm/gray-matter@4.0
 	/**
 	* Expose `matter`
 	*/
-	matter.cache = {};
-	matter.clearCache = function() {
-		matter.cache = {};
+	matter$1.cache = {};
+	matter$1.clearCache = function() {
+		matter$1.cache = {};
 	};
-	module.exports = matter;
+	module.exports = matter$1;
 } });
 
 //#endregion
@@ -6605,7 +6605,7 @@ var import_gray_matter = __toESM(require_gray_matter(), 1);
 */
 function createYamlParserComputer() {
 	function parseFrontmatter(content) {
-		const { data, content: body } = import_gray_matter(content);
+		const { data, content: body } = (0, import_gray_matter.default)(content);
 		return {
 			data,
 			content: body
