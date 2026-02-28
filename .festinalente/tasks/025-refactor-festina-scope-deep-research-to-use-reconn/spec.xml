@@ -1,0 +1,88 @@
+<spec task="025-refactor-festina-scope-deep-research-to-use-reconn" created="2026-02-28" updated="2026-02-28">
+  <title>Refactor festina-scope deep research to use reconnaissance-first approach</title>
+
+  <context>
+    Deep research mode currently spawns 4 broad agents (Product Context Researcher, Pattern Finder, Codebase Analyzer, Pitfall Detector) immediately that explore the entire codebase. This wastes context on irrelevant areas, takes too long, and lacks common sense about what actually needs researching. The agents do not leverage the affects and engineering fields already populated by festina-create - they search blindly instead of reading referenced docs first.
+
+    The value is faster, more focused research that uses context efficiently. Smarter targeting means discovering related areas that matter while skipping irrelevant ones.
+  </context>
+
+  <scope>
+    <in-scope>
+      <item>Refactor the deep research branch (lines 154-273) in festina-scope SKILL.md</item>
+      <item>Add a sequential reconnaissance phase before agent spawning</item>
+      <item>Implement dynamic agent selection based on recon findings</item>
+      <item>Update agent prompts to include focused context from recon</item>
+    </in-scope>
+    <out-of-scope>
+      <item>Quick research path - already works correctly with affects/engineering fields</item>
+      <item>Other festina skills</item>
+      <item>Changes to synthesize_research or resolve_pitfalls steps</item>
+    </out-of-scope>
+  </scope>
+
+  <requirements>
+    <requirement id="FR1">The skill shall perform a sequential reconnaissance phase that reads docs referenced in the task's affects and engineering fields before spawning any agents</requirement>
+    <requirement id="FR2">The recon phase shall output structured data indicating which areas need deeper exploration, with focus terms/files and boundaries for each area</requirement>
+    <requirement id="FR3">The skill shall dynamically spawn only the agents needed based on recon findings (e.g., skip Pattern Finder if no engineering docs exist)</requirement>
+    <requirement id="FR4">Agent prompts shall include focused context from recon: specific files to examine, grep patterns to use, and areas to skip</requirement>
+    <requirement id="FR5">The skill shall maintain the same output format (research synthesis) so downstream steps remain unchanged</requirement>
+  </requirements>
+
+  <files>
+    <file action="modify" reason="Contains the deep research branch to refactor">apps/festinalente/src/content/skills/festina-scope/SKILL.md</file>
+  </files>
+
+  <patterns>
+    <pattern reference="apps/festinalente/src/content/skills/festina-scope/SKILL.md:98-152">
+      Quick research path - uses affects/engineering fields correctly as starting point. Model for recon phase.
+    </pattern>
+    <pattern reference=".claude/skills/festina-discover/SKILL.md:84-114">
+      Problem-type-driven agent selection - spawns different agents based on problem classification rather than fixed set.
+    </pattern>
+    <pattern reference="https://code.claude.com/docs/en/sub-agents">
+      Subagent best practices: forked contexts for noisy work, clean summaries returned to orchestrator, pre-focused prompts with specific files/terms/boundaries.
+    </pattern>
+  </patterns>
+
+  <research>
+    <product>
+      <finding id="tasks/scope">Documents the scope task feature - four-area research (product docs, engineering patterns, codebase analysis, pitfall detection) followed by technical Q&A is the core flow.</finding>
+    </product>
+    <engineering>
+      <finding>No engineering docs directly referenced in task. Handlebars templating used for skill partials.</finding>
+    </engineering>
+    <codebase>
+      <finding>Source file at apps/festinalente/src/content/skills/festina-scope/SKILL.md, compiled to .claude/skills/ via build script</finding>
+      <finding>Deep research branch lines 154-273 spawns 4 broad agents with generic prompts</finding>
+      <finding>Quick research path lines 98-152 demonstrates correct pattern of reading affects/engineering first</finding>
+    </codebase>
+    <pitfalls>
+      <pitfall mitigation="Run pnpm --filter festinalente build after changes">Build step required - source files must be compiled to .claude/skills/</pitfall>
+    </pitfalls>
+  </research>
+
+  <constraints>
+    <constraint>Must maintain same output format (research synthesis) for downstream compatibility</constraint>
+    <constraint>Recon phase must be sequential (not an agent) to avoid nesting issues - subagents cannot spawn other subagents</constraint>
+    <constraint>Build step required after modifying source files</constraint>
+  </constraints>
+
+  <dependencies>
+    <internal>
+      <dependency>Handlebars partials used in skill file (directory-reference, helper-scripts, etc.)</dependency>
+    </internal>
+  </dependencies>
+
+  <risks>
+    <risk impact="medium" mitigation="Test with tasks that have empty affects/engineering fields">
+      Recon may find nothing if task has no referenced docs, need graceful fallback
+    </risk>
+    <risk impact="low" mitigation="Verify synthesis step still works correctly">
+      Dynamic agent count may require adjustment to synthesis step's deduplication logic
+    </risk>
+  </risks>
+
+  <open-questions>
+  </open-questions>
+</spec>
