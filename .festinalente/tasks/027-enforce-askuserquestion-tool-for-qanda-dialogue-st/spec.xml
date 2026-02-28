@@ -1,0 +1,102 @@
+<spec task="027-enforce-askuserquestion-tool-for-qanda-dialogue-st" created="2026-02-28" updated="2026-02-28">
+  <title>Enforce AskUserQuestion tool for Q&amp;A dialogue steps</title>
+
+  <context>
+The conduct_qa_dialogue step in festina-scope and festina-create has vague instructions that allow the LLM to output questions as text instead of using the AskUserQuestion tool, and to ask multiple questions at once instead of one at a time. This results in poor UX where the user sees a wall of technical questions dumped as text without the ability to respond interactively.
+
+Working patterns exist in festina-map-engineering (line 213) and festina-define-product (line 109) that explicitly enforce "one question at a time" using the AskUserQuestion tool.
+  </context>
+
+  <scope>
+    <in-scope>
+      <item>Refactor festina-scope conduct_qa_dialogue to use explicit AskUserQuestion blocks</item>
+      <item>Refactor festina-create conduct_qa_dialogue to use "propose first, then validate" pattern</item>
+      <item>Add "one question at a time" note to both skills</item>
+      <item>Replace output-based confirmation with proper AskUserQuestion confirmation</item>
+      <item>Include "You decide" options in festina-create for LLM inference</item>
+    </in-scope>
+    <out-of-scope>
+      <item>Changes to other skills (festina-plan, festina-implement, etc.)</item>
+      <item>Changes to the AskUserQuestion tool itself</item>
+      <item>Adding new features to the Q&amp;A dialogue beyond enforcing proper tool usage</item>
+    </out-of-scope>
+  </scope>
+
+  <requirements>
+    <requirement id="FR1">festina-scope conduct_qa_dialogue MUST include the note: "Use AskUserQuestion tool for **one question at a time**."</requirement>
+    <requirement id="FR2">festina-scope MUST use explicit &lt;action&gt;Use AskUserQuestion tool with:&lt;/action&gt; blocks for all questions</requirement>
+    <requirement id="FR3">festina-scope question categories: Approach, Files, Dependencies, Patterns, Constraints, Confirmation</requirement>
+    <requirement id="FR4">festina-create conduct_qa_dialogue MUST include the note: "Use AskUserQuestion tool for **one question at a time**."</requirement>
+    <requirement id="FR5">festina-create MUST follow "propose first, then validate" pattern - LLM proposes understanding, user validates</requirement>
+    <requirement id="FR6">festina-create validation questions MUST include "You decide" option for LLM inference</requirement>
+    <requirement id="FR7">When user selects "You decide", LLM uses judgment to fill gaps (research if helpful, infer from context)</requirement>
+    <requirement id="FR8">Both skills MUST replace &lt;output&gt; confirmation blocks with proper AskUserQuestion confirmation</requirement>
+    <requirement id="FR9">Both skills MUST preserve existing functionality (web research triggers, user volunteering info, research branches)</requirement>
+    <requirement id="FR10">Each AskUserQuestion block MUST be followed by &lt;note&gt;User can select "Other" to...&lt;/note&gt;</requirement>
+  </requirements>
+
+  <files>
+    <file action="modify" path="apps/festinalente/src/content/skills/festina-scope/SKILL.md">
+      Refactor conduct_qa_dialogue step (lines 488-566) to use explicit AskUserQuestion blocks
+    </file>
+    <file action="modify" path="apps/festinalente/src/content/skills/festina-create/SKILL.md">
+      Refactor conduct_qa_dialogue step (lines 279-329) to use "propose first, then validate" pattern
+    </file>
+  </files>
+
+  <patterns>
+    <pattern name="AskUserQuestion one-at-a-time" reference="apps/festinalente/src/content/skills/festina-map-engineering/SKILL.md:212-276">
+      Each question uses full action block with header, question, options (2-4), multiSelect.
+      Followed by note explaining "Other" option behavior.
+    </pattern>
+    <pattern name="Question grouping" reference="apps/festinalente/src/content/skills/festina-map-engineering/SKILL.md:217">
+      Related questions grouped in &lt;questions name="..."&gt; elements for organization.
+    </pattern>
+    <pattern name="Propose-validate pattern" reference="apps/festinalente/src/content/skills/festina-define-product/SKILL.md:108-173">
+      LLM proposes understanding based on analysis, user validates with Yes/Partly/No options.
+    </pattern>
+  </patterns>
+
+  <research>
+    <product>No product docs referenced - this is a refactoring task on festina skill files</product>
+    <engineering>
+      <finding doc="festina-map-engineering:213">Explicit note enforces "one question at a time" using AskUserQuestion tool</finding>
+      <finding doc="festina-define-product:109">Same pattern with explicit question blocks</finding>
+    </engineering>
+    <codebase>
+      <finding file="apps/festinalente/src/content/skills/festina-scope/SKILL.md:507">Vague action "Share initial findings and ask questions"</finding>
+      <finding file="apps/festinalente/src/content/skills/festina-scope/SKILL.md:540-549">Uses &lt;output&gt; for final confirmation instead of AskUserQuestion</finding>
+      <finding file="apps/festinalente/src/content/skills/festina-create/SKILL.md:288">Vague action "Ask questions as needed using AskUserQuestion"</finding>
+      <finding file="apps/festinalente/src/content/skills/festina-create/SKILL.md:305-312">Uses &lt;output&gt; for final confirmation instead of AskUserQuestion</finding>
+    </codebase>
+    <pitfalls>
+      <pitfall issue="Question selection approach" mitigation="Use explicit questions (user decision): Define specific questions like festina-map-engineering for consistent tool usage"/>
+      <pitfall issue="Preserve existing features" mitigation="Only change question delivery mechanism, keep research branches and user volunteering info"/>
+      <pitfall issue="Different focus areas" mitigation="festina-scope = technical decisions, festina-create = product/business - tailor questions accordingly"/>
+      <pitfall issue="festina-create user experience" mitigation="Use 'propose first, then validate' pattern with 'You decide' options so LLM does more work"/>
+    </pitfalls>
+  </research>
+
+  <constraints>
+    <constraint>Must preserve all existing functionality (web research, user volunteering, research branches)</constraint>
+    <constraint>Source files are in apps/festinalente/src/content/ - these are compiled to .claude/skills/</constraint>
+    <constraint>Questions must use full AskUserQuestion format with header, question, options (2-4), multiSelect</constraint>
+  </constraints>
+
+  <dependencies>
+    <internal>None - self-contained refactoring of skill files</internal>
+    <external>None</external>
+  </dependencies>
+
+  <risks>
+    <risk impact="medium" mitigation="Test with real task creation/scoping after implementation">
+      Over-rigid question structure may not adapt well to all task types
+    </risk>
+    <risk impact="low" mitigation="Follow existing patterns exactly from festina-map-engineering">
+      Inconsistent AskUserQuestion format could cause parsing issues
+    </risk>
+  </risks>
+
+  <open-questions>
+  </open-questions>
+</spec>
