@@ -1,4 +1,4 @@
-<task id="030-immediate-task-completion-persistence-in-festina-i" status="finalize" priority="high" created="2026-02-28" updated="2026-02-28" github-issue="#19" github-url="https://github.com/mattfletcher94/festinalente/issues/19" github-pr="#20">
+<task id="030-immediate-task-completion-persistence-in-festina-i" status="done" priority="high" created="2026-02-28" updated="2026-02-28" completed="2026-02-28" github-issue="#19" github-url="https://github.com/mattfletcher94/festinalente/issues/19" github-pr="#20">
   <title>Immediate task completion persistence in festina-implement</title>
 
   <labels>
