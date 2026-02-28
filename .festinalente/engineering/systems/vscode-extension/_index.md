@@ -17,8 +17,8 @@ related:
 paths:
   - apps/vscode/src
   - apps/vscode/bin
-updated: 2026-02-27
-verified: 2026-02-27
+updated: 2026-02-28
+verified: 2026-02-28
 code_refs:
   - apps/vscode/src/extension.ts
   - apps/vscode/src/orchestrators/terminal.orchestrator.ts
@@ -457,3 +457,72 @@ What this system does NOT handle:
 |---------|-------------|---------|
 | `kanban.runtime` | CLI runtime to use (claude/opencode) | claude |
 | `kanban.showInactiveColumns` | Show columns with no tasks | false |
+
+## Extension Points
+
+How to extend this system with new components:
+
+### Adding a new Capability
+
+**Template:** Copy `capabilities/tasks-view.capability.ts` as starting point.
+
+**Checklist:**
+- [ ] Create `{name}.capability.ts` in `src/capabilities/`
+- [ ] Add factory function `create{Name}Capability(deps: {...})` with typed dependencies
+- [ ] Wire into the domain orchestrator that owns this concern
+- [ ] If TreeView capability: add `views` contribution to `package.json`
+- [ ] Add to `code_refs` in this doc
+
+**Pitfalls:**
+- Don't import other capabilities (lateral dependency forbidden per A2)
+- Don't put policy logic (ensure*, getOrCreate*, maybe*) in capabilities - belongs in orchestrator (A1)
+- Remember to dispose subscriptions in the returned object
+
+### Adding a new Orchestrator
+
+**Template:** Copy `orchestrators/quicks.orchestrator.ts` as starting point (~180 lines, clean domain boundary).
+
+**Checklist:**
+- [ ] Create `{domain}.orchestrator.ts` in `src/orchestrators/`
+- [ ] Add factory function `create{Domain}Orchestrator(deps: {...})`
+- [ ] Wire dependencies in `extension.ts` composition root
+- [ ] Register any commands via `context.subscriptions.push()`
+- [ ] Add file watcher if watching domain files
+- [ ] Add to `code_refs` in this doc
+
+**Pitfalls:**
+- Don't import other orchestrators (use composition root to wire them)
+- Keep under 300 lines; decompose if larger (A4)
+- Inject terminal orchestrator as dependency if needs to execute commands
+
+### Adding a new Computer
+
+**Template:** Copy `computers/task-parser.computer.ts` as starting point.
+
+**Checklist:**
+- [ ] Create `{name}.computer.ts` in `src/computers/`
+- [ ] Add factory function `create{Name}Computer()` returning object with methods
+- [ ] Keep functions pure (no I/O, no side effects)
+- [ ] Add to `code_refs` in this doc
+
+**Pitfalls:**
+- Don't import capabilities or orchestrators (computers only import computers)
+- Don't perform I/O - move file reads to capability, pass data in
+- Don't use `any` - use `unknown` and narrow with type guards
+
+### Adding a new TreeView
+
+**Template:** Copy `capabilities/quicks-view.capability.ts` for simple list, or `capabilities/tasks-view.capability.ts` for grouped hierarchy.
+
+**Checklist:**
+- [ ] Create view capability in `src/capabilities/`
+- [ ] Add TreeView contribution to `package.json` under `contributes.views`
+- [ ] Add view container if new container needed (contributes.viewsContainers)
+- [ ] Wire into domain orchestrator
+- [ ] Add `welcome` view if needed for empty state
+- [ ] Add file watcher to refresh on changes
+
+**Pitfalls:**
+- VSCode caches TreeItem children - always return new arrays from getChildren
+- Use `ThemeIcon` from vscode namespace, not custom icons
+- Remember `collapsibleState` for parent items
