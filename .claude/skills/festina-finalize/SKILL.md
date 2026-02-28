@@ -1,7 +1,7 @@
 ---
 name: festina-finalize
 description: Validate, commit, document, and complete a task. Consolidates check, docs, and merge into a single command.
-allowed-tools: Read, Write, Bash(*), Grep, AskUserQuestion
+allowed-tools: Read, Write, Bash(*), Grep, AskUserQuestion, Task
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---
@@ -494,7 +494,7 @@ PHASE 2: DOCUMENTATION
     </output>
   </step>
 
-  <step name="analyze_doc_impact" when="resumeFrom is phase1 or phase2" outputs="needsProductDocs, needsEngineeringDocs">
+  <step name="analyze_doc_impact" when="resumeFrom is phase1 or phase2" outputs="needsProductDocs, needsEngineeringDocs, productContext, engineeringContext, currentProductDocs, currentEngineeringDocs, stubDocs, existingDocs, missingDocs, engStubDocs, engExistingDocs, engMissingDocs">
     <action>Check task's `affects` element for product docs</action>
     <action>Check task's `engineering` element for engineering docs</action>
     <branch condition="affects is empty AND engineering is empty AND labels include [bug, refactor, chore]">
@@ -507,82 +507,350 @@ PHASE 2: DOCUMENTATION
     <branch condition="engineering has values">
       <action>Set needsEngineeringDocs = true</action>
     </branch>
-  </step>
 
-  <step name="update_product_docs" when="needsProductDocs is true">
-    <action>Read docs-product.md for detailed guidance</action>
-    <note>This includes: analyze impact, load smart context, update/complete/create docs, update domain _index.md, update glossary, validate docs</note>
+    <note>**Pre-load context and categorize docs ONCE before spawning agents**</note>
 
-    <command>node .festinalente/scripts/check-product.cjs {affects IDs}</command>
-    <action>Categorize into: stubDocs (need completing), existingDocs (need updating), missingDocs (need creating)</action>
+    <branch condition="needsProductDocs is true">
+      <action>Pre-load smart context for product docs:</action>
+      <command>node .festinalente/scripts/select-context.cjs {taskId} --tier=standard --max=3 --type=product</command>
+      <action>Store result in productContext</action>
 
-    <output>Product Doc Analysis for Task {taskId}:</output>
-    <output>Will COMPLETE (stub exists): {list}</output>
-    <output>Will UPDATE (doc exists): {list}</output>
-    <output>Will CREATE (new doc needed): {list}</output>
+      <action>Pre-fetch current doc content for each doc ID in affects:</action>
+      <action>Read `.festinalente/product/{path}.md` for each affected doc</action>
+      <action>Store in currentProductDocs</action>
 
-    <action>Use AskUserQuestion tool with:
-      - header: "Product docs"
-      - question: "Proceed with product documentation updates?"
-      - options:
-        - label: "Yes (Recommended)", description: "Update/create product docs as analyzed"
-        - label: "No", description: "Skip product documentation updates"
-      - multiSelect: false
-    </action>
+      <action>Categorize product docs:</action>
+      <command>node .festinalente/scripts/check-product.cjs {affects IDs}</command>
+      <action>Parse output into: stubDocs (need completing), existingDocs (need updating), missingDocs (need creating)</action>
+    </branch>
 
-    <branch condition="user selects Yes">
-      <action>Load smart context: `node .festinalente/scripts/select-context.cjs {taskId} --tier=standard --max=3 --type=product`</action>
-      <action>For existing docs: Read, make minimal focused updates, verify with user, update verified date and code_refs</action>
-      <action>For stub docs: Remove stub:true, fill ALL frontmatter fields, fill ALL content sections, complete diagrams</action>
-      <action>For new docs: Create using templates, fill ALL fields, keep scope focused</action>
-      <action>Update domain _index.md if applicable</action>
-      <action>Update glossary if new terms introduced</action>
-      <action>Run validation: `node .festinalente/scripts/validate-docs.cjs {changed doc paths}`</action>
+    <branch condition="needsEngineeringDocs is true">
+      <action>Pre-load smart context for engineering docs:</action>
+      <command>node .festinalente/scripts/select-context.cjs {taskId} --tier=standard --max=3 --type=engineering</command>
+      <action>Store result in engineeringContext</action>
+
+      <action>Pre-fetch current doc content for each doc ID in engineering:</action>
+      <action>Read `.festinalente/engineering/{path}.md` for each engineering doc (using ID→path rules)</action>
+      <action>Store in currentEngineeringDocs</action>
+
+      <action>Categorize engineering docs:</action>
+      <command>node .festinalente/scripts/check-engineering.cjs {engineering IDs}</command>
+      <action>Parse output into: engStubDocs, engExistingDocs, engMissingDocs</action>
+    </branch>
+
+    <note>**Show combined analysis and single checkpoint before spawning agents**</note>
+    <branch condition="needsProductDocs OR needsEngineeringDocs">
+      <output>
+Documentation Analysis for Task {taskId}:
+      </output>
+
+      <branch condition="needsProductDocs">
+        <output>
+**Product Docs:**
+Will COMPLETE (stub exists): {stubDocs}
+Will UPDATE (doc exists): {existingDocs}
+Will CREATE (new doc needed): {missingDocs}
+        </output>
+      </branch>
+      <branch condition="NOT needsProductDocs">
+        <output>
+**Product Docs:** No updates needed
+        </output>
+      </branch>
+
+      <branch condition="needsEngineeringDocs">
+        <output>
+**Engineering Docs:**
+Will COMPLETE (stub exists): {engStubDocs}
+Will UPDATE (doc exists): {engExistingDocs}
+Will CREATE (new doc needed): {engMissingDocs}
+        </output>
+      </branch>
+      <branch condition="NOT needsEngineeringDocs">
+        <output>
+**Engineering Docs:** No updates needed
+        </output>
+      </branch>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Docs"
+        - question: "Proceed with documentation updates as analyzed?"
+        - options:
+          - label: "Yes (Recommended)", description: "Spawn agents to update/create docs as shown"
+          - label: "No", description: "Skip all documentation updates"
+        - multiSelect: false
+      </action>
+
+      <branch condition="user selects No">
+        <output>Documentation updates skipped.</output>
+        <action>Set needsProductDocs = false, needsEngineeringDocs = false</action>
+      </branch>
     </branch>
   </step>
 
-  <step name="update_engineering_docs" when="needsEngineeringDocs is true">
-    <action>Read docs-engineering.md for detailed guidance</action>
-    <note>This includes: analyze impact, load smart context, type-specific sections (system/pattern/convention), update engineering _index.md</note>
+  <step name="spawn_doc_agents" when="needsProductDocs OR needsEngineeringDocs" outputs="productAgentResult, engineeringAgentResult">
+    <note>**CRITICAL: Spawn agents in parallel using Task tool**</note>
+    <note>Use Task tool invocations in a SINGLE message to achieve parallelism</note>
+    <note>Agents return structured summaries, not full file diffs, to reduce context overhead</note>
 
-    <command>node .festinalente/scripts/check-engineering.cjs {engineering IDs}</command>
-    <action>Categorize into: engStubDocs, engExistingDocs, engMissingDocs</action>
+    <output>Spawning documentation agents...</output>
 
-    <output>Engineering Doc Analysis for Task {taskId}:</output>
-    <output>Will COMPLETE (stub exists): {list}</output>
-    <output>Will UPDATE (doc exists): {list}</output>
-    <output>Will CREATE (new doc needed): {list}</output>
+    <parallel>
+      <agent name="Product Docs Agent" subagent_type="general-purpose" when="needsProductDocs is true">
+        <description>Update product documentation based on task changes</description>
+        <prompt>
+You are a Product Documentation Agent. Your job is to update product documentation for a completed task.
 
-    <action>Use AskUserQuestion tool with:
-      - header: "Eng docs"
-      - question: "Proceed with engineering documentation updates?"
-      - options:
-        - label: "Yes (Recommended)", description: "Update/create engineering docs as analyzed"
-        - label: "No", description: "Skip engineering documentation updates"
-      - multiSelect: false
-    </action>
+**Task Context:**
+- Task ID: {taskId}
+- Title: {title}
+- Affects: {affects field}
+- Acceptance Criteria: {acceptanceCriteria}
 
-    <branch condition="user selects Yes">
-      <action>Load smart context: `node .festinalente/scripts/select-context.cjs {taskId} --tier=standard --max=3 --type=engineering`</action>
-      <action>For existing docs: Read, make minimal focused updates</action>
-      <action>For stub docs: Remove stub:true, fill ALL fields, use type-specific sections</action>
-      <action>For new docs: Determine type (system/pattern/convention), use correct template</action>
-      <action>Update engineering type _index.md if applicable</action>
+**Documentation Categories (from analysis):**
+- COMPLETE (stub exists): {stubDocs}
+- UPDATE (doc exists): {existingDocs}
+- CREATE (new doc needed): {missingDocs}
+
+**Current Doc Content:**
+{currentProductDocs - include full content of each doc being modified}
+
+**Smart Context (similar docs for reference):**
+{productContext}
+
+**Reference Guidance:**
+Read docs-product.md for detailed guidance on:
+- Doc structure and frontmatter requirements
+- Update vs complete vs create flows
+- Quality standards and validation
+
+**Your Instructions:**
+1. For stub docs: Remove stub:true, fill ALL frontmatter fields, fill ALL content sections
+2. For existing docs: Make minimal focused updates, update verified date and code_refs
+3. For new docs: Create using templates, fill ALL fields, keep scope focused
+4. Write all doc changes to disk using Write tool
+5. Do NOT update domain _index.md or glossary.yaml (orchestrator handles these)
+
+**Output Format:**
+Return a structured summary:
+```json
+{
+  "filesChanged": [
+    {"path": ".festinalente/product/domain/doc.md", "action": "updated|created|completed"}
+  ],
+  "summary": "Brief description of changes made",
+  "newTerms": ["term1", "term2"],
+  "validationErrors": []
+}
+```
+
+If you encounter errors, return:
+```json
+{
+  "filesChanged": [],
+  "summary": "",
+  "validationErrors": [{"file": "path", "error": "description"}]
+}
+```
+        </prompt>
+      </agent>
+
+      <agent name="Engineering Docs Agent" subagent_type="general-purpose" when="needsEngineeringDocs is true">
+        <description>Update engineering documentation based on task changes</description>
+        <prompt>
+You are an Engineering Documentation Agent. Your job is to update engineering documentation for a completed task.
+
+**Task Context:**
+- Task ID: {taskId}
+- Title: {title}
+- Engineering: {engineering field}
+- Acceptance Criteria: {acceptanceCriteria}
+
+**Documentation Categories (from analysis):**
+- COMPLETE (stub exists): {engStubDocs}
+- UPDATE (doc exists): {engExistingDocs}
+- CREATE (new doc needed): {engMissingDocs}
+
+**Current Doc Content:**
+{currentEngineeringDocs - include full content of each doc being modified}
+
+**Smart Context (similar docs for reference):**
+{engineeringContext}
+
+**Reference Guidance:**
+Read docs-engineering.md for detailed guidance on:
+- Type-specific sections (system/pattern/convention)
+- Engineering doc structure and requirements
+- Quality standards
+
+**Your Instructions:**
+1. For stub docs: Remove stub:true, fill ALL fields, use type-specific sections
+2. For existing docs: Make minimal focused updates
+3. For new docs: Determine type (system/pattern/convention), use correct template
+4. Write all doc changes to disk using Write tool
+5. Do NOT update engineering _index.md (orchestrator handles this)
+
+**Output Format:**
+Return a structured summary:
+```json
+{
+  "filesChanged": [
+    {"path": ".festinalente/engineering/type/doc.md", "action": "updated|created|completed"}
+  ],
+  "summary": "Brief description of changes made",
+  "validationErrors": []
+}
+```
+
+If you encounter errors, return:
+```json
+{
+  "filesChanged": [],
+  "summary": "",
+  "validationErrors": [{"file": "path", "error": "description"}]
+}
+```
+        </prompt>
+      </agent>
+    </parallel>
+
+    <output>
+Spawning documentation agents in parallel...
+- Product Docs Agent: {if needsProductDocs: "Processing {count} docs" else: "Skipped (not needed)"}
+- Engineering Docs Agent: {if needsEngineeringDocs: "Processing {count} docs" else: "Skipped (not needed)"}
+    </output>
+
+    <action>Wait for agents to complete and collect results</action>
+
+    <output>
+Waiting for agents to complete...
+    </output>
+  </step>
+
+  <step name="validate_agent_outputs" when="needsProductDocs OR needsEngineeringDocs" outputs="allFilesChanged, combinedSummary, newTermsFound">
+    <note>**Validate all agent outputs before writing anything permanent**</note>
+    <note>Follow Result Synthesis pattern from festina-scope</note>
+
+    <action>Collect results from both agents (if spawned)</action>
+
+    <branch condition="productAgentResult is not empty">
+      <output>✓ Product Docs Agent completed: {productAgentResult.filesChanged.length} files</output>
+    </branch>
+    <branch condition="engineeringAgentResult is not empty">
+      <output>✓ Engineering Docs Agent completed: {engineeringAgentResult.filesChanged.length} files</output>
+    </branch>
+
+    <action>Check each agent result for errors</action>
+
+    <branch condition="any agent returned validationErrors array with items OR agent failed to complete">
+      <output>
+Agent Error Details:
+      </output>
+
+      <branch condition="productAgentResult has errors">
+        <output>Product Docs Agent: {productAgentResult.validationErrors}</output>
+      </branch>
+      <branch condition="engineeringAgentResult has errors">
+        <output>Engineering Docs Agent: {engineeringAgentResult.validationErrors}</output>
+      </branch>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Agent Error"
+        - question: "Documentation agent encountered an error. How should I proceed?"
+        - options:
+          - label: "Retry", description: "Re-run the failed agent(s)"
+          - label: "Skip", description: "Continue without that agent's documentation"
+          - label: "Abort", description: "Cancel Phase 2 documentation"
+        - multiSelect: false
+      </action>
+
+      <branch condition="user selects Retry">
+        <note>Only re-spawn the failed agent(s), not both</note>
+        <branch condition="productAgentResult has errors AND needsProductDocs">
+          <action>Re-spawn Product Docs Agent only</action>
+        </branch>
+        <branch condition="engineeringAgentResult has errors AND needsEngineeringDocs">
+          <action>Re-spawn Engineering Docs Agent only</action>
+        </branch>
+        <action>Return to validate_agent_outputs step</action>
+      </branch>
+
+      <branch condition="user selects Skip">
+        <output>Skipping failed agent's documentation.</output>
+        <action>Remove failed agent's results from processing</action>
+        <action>Continue with successful agent results only</action>
+      </branch>
+
+      <branch condition="user selects Abort">
+        <output>Phase 2 documentation aborted.</output>
+        <action>Set needsProductDocs = false, needsEngineeringDocs = false</action>
+        <action>Skip to Phase 3</action>
+      </branch>
+    </branch>
+
+    <branch condition="all agents completed successfully">
+      <output>
+Validating outputs...
+All validations passed
+      </output>
+
+      <action>Combine filesChanged lists from both agents</action>
+      <action>Store combined list in allFilesChanged</action>
+
+      <action>Combine summaries from both agents</action>
+      <action>Store in combinedSummary</action>
+
+      <branch condition="productAgentResult.newTerms has items">
+        <action>Store new terms in newTermsFound</action>
+      </branch>
     </branch>
   </step>
 
-  <step name="commit_docs" when="docs were created or updated">
+  <step name="commit_docs" when="allFilesChanged has items">
+    <note>**Orchestrator handles glossary and _index.md updates after agents complete**</note>
+
+    <branch condition="newTermsFound has items">
+      <output>Updating glossary... Adding terms: {newTermsFound}</output>
+      <action>Read .festinalente/glossary.yaml</action>
+      <action>Add each new term with definition</action>
+      <action>Write updated glossary.yaml</action>
+    </branch>
+
+    <branch condition="allFilesChanged includes new docs (action='created')">
+      <output>Updating domain indexes...</output>
+      <action>For each new product doc: Update domain _index.md in .festinalente/product/{domain}/</action>
+      <action>For each new engineering doc: Update type _index.md in .festinalente/engineering/{type}/</action>
+    </branch>
+
+    <action>Run validation on all changed docs</action>
+    <command>node .festinalente/scripts/validate-docs.cjs {all paths from allFilesChanged}</command>
+    <branch condition="validation fails">
+      <output>Warning: Documentation validation failed: {errors}</output>
+      <action>Use AskUserQuestion tool with:
+        - header: "Validation"
+        - question: "Doc validation failed. How should I proceed?"
+        - options:
+          - label: "Continue anyway", description: "Commit despite validation warnings"
+          - label: "Abort", description: "Cancel commit, fix manually"
+        - multiSelect: false
+      </action>
+    </branch>
+
+    <output>Running final validation... Quality check passed</output>
+
+    <note>**Atomic commit: Stage all changes together**</note>
     <command>git add .festinalente/product/</command>
     <command>git add .festinalente/engineering/</command>
     <command>git add .festinalente/glossary.yaml</command>
-    <branch condition="both product and engineering">
-      <command>git commit -m "docs({taskId}): product+engineering - {description}"</command>
+
+    <branch condition="both needsProductDocs AND needsEngineeringDocs">
+      <command>git commit -m "docs({taskId}): product+engineering - {combinedSummary}"</command>
     </branch>
-    <branch condition="only product">
-      <command>git commit -m "docs({taskId}): product - {description}"</command>
+    <branch condition="only needsProductDocs">
+      <command>git commit -m "docs({taskId}): product - {combinedSummary}"</command>
     </branch>
-    <branch condition="only engineering">
-      <command>git commit -m "docs({taskId}): engineering - {description}"</command>
+    <branch condition="only needsEngineeringDocs">
+      <command>git commit -m "docs({taskId}): engineering - {combinedSummary}"</command>
     </branch>
     <output>Documentation committed</output>
   </step>
@@ -778,21 +1046,27 @@ Commit: e5f6g7h feat(001): Add user authentication
 PHASE 2: DOCUMENTATION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Product Doc Analysis for Task 001:
-Will COMPLETE (stub exists): auth/login - stub created during /festina-create
+Documentation Analysis for Task 001:
+
+**Product Docs:**
+Will COMPLETE (stub exists): auth/login
+
+**Engineering Docs:** No updates needed
 
 [User selects "Yes (Recommended)"]
 
-Loading context from similar docs...
-Found: auth/oauth.md, gui/settings.md (using as reference)
+Spawning documentation agents in parallel...
+- Product Docs Agent: Processing 1 doc
+- Engineering Docs Agent: Skipped (not needed)
 
-Completing stub doc: .festinalente/product/auth/login.md
-- tldr: "User login flow with email/password authentication"
-- keywords: [login, authentication, password, session]
-- verified: 2026-02-27
+Waiting for agents to complete...
+✓ Product Docs Agent completed: 1 file updated
 
-Updating glossary: Added term "JWT"
-Running validation... Quality check passed
+Validating outputs...
+All validations passed
+
+Updating glossary... Added term "JWT"
+Running final validation... Quality check passed
 
 Commit: h8i9j0k docs(001): product - complete login documentation
 
