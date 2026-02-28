@@ -55,7 +55,7 @@ See `.festinalente/workflow.yaml` for column definitions and valid transitions.
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, currentStatus, acceptanceCriteria">
-    <command>node .festinalente/scripts/find-task.cjs {taskId}</command>
+    <command>node .festinalente/scripts/festinalente.cjs find-task {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse XML</action>
     <validate>Verify current status is `finalize`</validate>

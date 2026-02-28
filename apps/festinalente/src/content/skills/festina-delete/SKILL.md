@@ -41,7 +41,7 @@ Permanently delete a task from the festina board. Only tasks in Backlog status c
       <action>Use $ARGUMENTS as taskId</action>
     </branch>
     <branch condition="$ARGUMENTS not provided">
-      <command>node .festinalente/scripts/list-tasks.cjs --status=backlog</command>
+      <command>node .festinalente/scripts/festinalente.cjs list-tasks --status=backlog</command>
       <branch condition="no eligible tasks">
         <output>No tasks in Backlog status to delete.</output>
         <action>Exit</action>
@@ -59,7 +59,7 @@ Permanently delete a task from the festina board. Only tasks in Backlog status c
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, status">
-    <command>node .festinalente/scripts/find-task.cjs {taskId}</command>
+    <command>node .festinalente/scripts/festinalente.cjs find-task {taskId}</command>
     <branch condition="task found">
       <action>Read the file at the `path` from JSON output</action>
       <action>Parse XML</action>
@@ -107,7 +107,7 @@ Permanently delete a task from the festina board. Only tasks in Backlog status c
   </step>
 
   <step name="delete_task">
-    <command>node .festinalente/scripts/delete-task.cjs {taskId}</command>
+    <command>node .festinalente/scripts/festinalente.cjs delete-task {taskId}</command>
     <branch condition="error in output">
       <output>Error: {error message from script}</output>
       <action>Exit</action>

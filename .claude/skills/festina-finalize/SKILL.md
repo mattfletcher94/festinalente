@@ -26,16 +26,16 @@ Run directive checks, commit implementation, update documentation, and complete 
 
 <note>Use these scripts to reliably find files:</note>
 
-<command description="Find task by ID (returns JSON with path and metadata)">node .festinalente/scripts/find-task.cjs {id}</command>
+<command description="Find task by ID (returns JSON with path and metadata)">node .festinalente/scripts/festinalente.cjs find-task {id}</command>
 
 
-<command description="Find plan by ID (returns JSON with path)">node .festinalente/scripts/find-plan.cjs {id}</command>
+<command description="Find plan by ID (returns JSON with path)">node .festinalente/scripts/festinalente.cjs find-plan {id}</command>
 
 
 
-<command description="Get current date/time (returns JSON with iso and date formats)">node .festinalente/scripts/get-date-time.cjs</command>
+<command description="Get current date/time (returns JSON with iso and date formats)">node .festinalente/scripts/festinalente.cjs get-date-time</command>
 
-<command description="Get skill configuration (returns JSON with directives)">node .festinalente/scripts/get-skill-config.cjs {skill}</command>
+<command description="Get skill configuration (returns JSON with directives)">node .festinalente/scripts/festinalente.cjs get-skill-config {skill}</command>
 <example_code lang="json">
 {
   "skill": "festina-check",
@@ -50,22 +50,22 @@ Run directive checks, commit implementation, update documentation, and complete 
 <note>Use these scripts to work with product documentation:</note>
 
 
-<command description="Search product docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/search-product.cjs keyword1 keyword2 ...</command>
-<command description="With minimum score threshold">node .festinalente/scripts/search-product.cjs password reset --min-score=0.3</command>
+<command description="Search product docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/festinalente.cjs search-product keyword1 keyword2 ...</command>
+<command description="With minimum score threshold">node .festinalente/scripts/festinalente.cjs search-product password reset --min-score=0.3</command>
 <note>Score interpretation: ≥0.5 = strong match | 0.3-0.5 = possible match | &lt;0.3 = weak match | No results = likely new feature</note>
 
-<command description="Check if product docs exist by ID">node .festinalente/scripts/check-product.cjs auth/login auth/mfa billing/invoices</command>
+<command description="Check if product docs exist by ID">node .festinalente/scripts/festinalente.cjs check-product auth/login auth/mfa billing/invoices</command>
 
 <note>Path rule: ID `auth/login` → Path `.festinalente/product/auth/login.md`</note>
 
 <note>Use these scripts to work with engineering documentation:</note>
 
 
-<command description="Search engineering docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/search-engineering.cjs keyword1 keyword2 ...</command>
-<command description="With minimum score threshold">node .festinalente/scripts/search-engineering.cjs middleware pattern --min-score=0.3</command>
+<command description="Search engineering docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/festinalente.cjs search-engineering keyword1 keyword2 ...</command>
+<command description="With minimum score threshold">node .festinalente/scripts/festinalente.cjs search-engineering middleware pattern --min-score=0.3</command>
 <note>Score interpretation: ≥0.5 = strong match | 0.3-0.5 = possible match | &lt;0.3 = weak match | No results = likely new pattern/system</note>
 
-<command description="Check if engineering docs exist by ID">node .festinalente/scripts/check-engineering.cjs systems/auth patterns/middleware</command>
+<command description="Check if engineering docs exist by ID">node .festinalente/scripts/festinalente.cjs check-engineering systems/auth patterns/middleware</command>
 
 <note>Path rules:
 - `overview` → `.festinalente/engineering/overview.md`
@@ -170,9 +170,9 @@ HEADER                    [+] [↻]
 └── ▶ Collapsed (3)
 </example_code>
 
-<note>**Smart Context:** `node .festinalente/scripts/select-context.cjs {taskId} --tier=standard` - Load similar docs for reference</note>
+<note>**Smart Context:** `node .festinalente/scripts/festinalente.cjs select-context {taskId} --tier=standard` - Load similar docs for reference</note>
 
-<note>**Quality Check:** `node .festinalente/scripts/validate-docs.cjs {path}` - Validate doc meets quality standards</note>
+<note>**Quality Check:** `node .festinalente/scripts/festinalente.cjs validate-docs {path}` - Validate doc meets quality standards</note>
 
 <note>**Glossary:** `.festinalente/glossary.yaml` - Project terminology (update when introducing new terms)</note>
 
@@ -231,7 +231,7 @@ Load these as needed during each phase:
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, labels, affects, engineering">
-    <command>node .festinalente/scripts/find-task.cjs {taskId}</command>
+    <command>node .festinalente/scripts/festinalente.cjs find-task {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse XML</action>
     <validate>Verify status is `finalize`</validate>
@@ -263,7 +263,7 @@ Load these as needed during each phase:
   </step>
 
   <step name="load_directives">
-    <command>node .festinalente/scripts/get-skill-config.cjs festina-finalize</command>
+    <command>node .festinalente/scripts/festinalente.cjs get-skill-config festina-finalize</command>
     <action>Parse the JSON output</action>
     
     <branch condition="directives.length > 0">
@@ -343,7 +343,7 @@ PHASE 1: VALIDATE AND COMMIT
   </step>
 
   <step name="verify_plan_completion" when="resumeFrom is phase1">
-    <command>node .festinalente/scripts/find-plan.cjs {taskId}</command>
+    <command>node .festinalente/scripts/festinalente.cjs find-plan {taskId}</command>
     <action>Read the plan at the `path` from JSON output</action>
     <validate>Verify all implementation tasks have completed="true"</validate>
     <branch condition="any uncompleted tasks">
@@ -512,7 +512,7 @@ PHASE 2: DOCUMENTATION
 
     <branch condition="needsProductDocs is true">
       <action>Pre-load smart context for product docs:</action>
-      <command>node .festinalente/scripts/select-context.cjs {taskId} --tier=standard --max=3 --type=product</command>
+      <command>node .festinalente/scripts/festinalente.cjs select-context {taskId} --tier=standard --max=3 --type=product</command>
       <action>Store result in productContext</action>
 
       <action>Pre-fetch current doc content for each doc ID in affects:</action>
@@ -520,13 +520,13 @@ PHASE 2: DOCUMENTATION
       <action>Store in currentProductDocs</action>
 
       <action>Categorize product docs:</action>
-      <command>node .festinalente/scripts/check-product.cjs {affects IDs}</command>
+      <command>node .festinalente/scripts/festinalente.cjs check-product {affects IDs}</command>
       <action>Parse output into: stubDocs (need completing), existingDocs (need updating), missingDocs (need creating)</action>
     </branch>
 
     <branch condition="needsEngineeringDocs is true">
       <action>Pre-load smart context for engineering docs:</action>
-      <command>node .festinalente/scripts/select-context.cjs {taskId} --tier=standard --max=3 --type=engineering</command>
+      <command>node .festinalente/scripts/festinalente.cjs select-context {taskId} --tier=standard --max=3 --type=engineering</command>
       <action>Store result in engineeringContext</action>
 
       <action>Pre-fetch current doc content for each doc ID in engineering:</action>
@@ -534,7 +534,7 @@ PHASE 2: DOCUMENTATION
       <action>Store in currentEngineeringDocs</action>
 
       <action>Categorize engineering docs:</action>
-      <command>node .festinalente/scripts/check-engineering.cjs {engineering IDs}</command>
+      <command>node .festinalente/scripts/festinalente.cjs check-engineering {engineering IDs}</command>
       <action>Parse output into: engStubDocs, engExistingDocs, engMissingDocs</action>
     </branch>
 
@@ -823,7 +823,7 @@ All validations passed
     </branch>
 
     <action>Run validation on all changed docs</action>
-    <command>node .festinalente/scripts/validate-docs.cjs {all paths from allFilesChanged}</command>
+    <command>node .festinalente/scripts/festinalente.cjs validate-docs {all paths from allFilesChanged}</command>
     <branch condition="validation fails">
       <output>Warning: Documentation validation failed: {errors}</output>
       <action>Use AskUserQuestion tool with:
@@ -912,7 +912,7 @@ PHASE 3: COMPLETE
   <step name="move_to_done_and_commit">
     <note>Format: `docs({taskId}): done - {title}`</note>
     <action>Change status to `done`</action>
-    <command>node .festinalente/scripts/get-date-time.cjs</command>
+    <command>node .festinalente/scripts/festinalente.cjs get-date-time</command>
     <action>Add `updated: {YYYY-MM-DD}`</action>
     <action>Add `completed: {YYYY-MM-DD}`</action>
     <action>Write updated task file</action>
@@ -990,7 +990,7 @@ Congratulations! Task complete.
     
     Before completing, validate all task XML:
     
-    <command description="Validate XML in task files">node .festinalente/scripts/validate-xml.cjs {taskId}</command>
+    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
     
     If validation fails, fix the reported errors before completing.
     

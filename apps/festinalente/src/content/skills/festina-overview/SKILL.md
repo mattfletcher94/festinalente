@@ -23,7 +23,7 @@ Show the current state of the board or specific tasks. Starts by asking what the
 
 <process>
   <step name="load_tasks" outputs="tasks">
-    <command>node .festinalente/scripts/list-tasks.cjs</command>
+    <command>node .festinalente/scripts/festinalente.cjs list-tasks</command>
     <action>Read each task file to get id, title, status, labels, priority</action>
     <branch condition="count is 0">
       <output>
@@ -236,7 +236,7 @@ I didn't understand "{input}". You can:
   <!-- ============================================ -->
 
   <step name="show_task_details" when="showing specific task" outputs="taskId">
-    <command>node .festinalente/scripts/find-task.cjs {taskId}</command>
+    <command>node .festinalente/scripts/festinalente.cjs find-task {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
 
     <branch condition="task not found">

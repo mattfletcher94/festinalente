@@ -85,7 +85,7 @@
   </inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-02-28T15:25:00Z">
       <name>Create shared types and CLI infrastructure</name>
       <files>
         apps/festinalente/src/cli/types.ts (create)
@@ -122,7 +122,7 @@
       <done>Types compile, registry exports factory functions</done>
     </task>
 
-    <task id="2" type="auto" depends="1">
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-02-28T15:45:00Z">
       <name>Create computers for pure logic</name>
       <files>
         apps/festinalente/src/cli/computers/xml-parser.computer.ts (create)
@@ -166,7 +166,7 @@
       <done>All computers compile, no I/O imports present</done>
     </task>
 
-    <task id="3" type="auto" depends="1">
+    <task id="3" type="auto" depends="1" completed="true" completed_at="2026-02-28T15:45:00Z">
       <name>Create capabilities for I/O operations</name>
       <files>
         apps/festinalente/src/cli/capabilities/file-system.capability.ts (create)
@@ -209,7 +209,7 @@
       <done>Capabilities compile, execFile used instead of execSync</done>
     </task>
 
-    <task id="4" type="auto" depends="2,3">
+    <task id="4" type="auto" depends="2,3" completed="true" completed_at="2026-02-28T15:45:00Z">
       <name>Create command handlers (task domain)</name>
       <files>
         apps/festinalente/src/cli/handlers/task.handler.ts (create)
@@ -253,7 +253,7 @@
       <done>Task handlers compile, JSON output matches original scripts</done>
     </task>
 
-    <task id="5" type="auto" depends="2,3">
+    <task id="5" type="auto" depends="2,3" completed="true" completed_at="2026-02-28T15:45:00Z">
       <name>Create command handlers (search and docs domains)</name>
       <files>
         apps/festinalente/src/cli/handlers/search.handler.ts (create)
@@ -277,7 +277,7 @@
       <done>Search/docs handlers compile, JSON output matches original scripts</done>
     </task>
 
-    <task id="6" type="auto" depends="2,3">
+    <task id="6" type="auto" depends="2,3" completed="true" completed_at="2026-02-28T15:45:00Z">
       <name>Create command handlers (validation and config domains)</name>
       <files>
         apps/festinalente/src/cli/handlers/validation.handler.ts (create)
@@ -306,7 +306,7 @@
       <done>Validation/config/query handlers compile, JSON output matches original scripts</done>
     </task>
 
-    <task id="7" type="auto" depends="4,5,6">
+    <task id="7" type="auto" depends="4,5,6" completed="true" completed_at="2026-02-28T15:45:00Z">
       <name>Create CLI orchestrator and entry point</name>
       <files>
         apps/festinalente/src/cli/cli.orchestrator.ts (create)
@@ -369,7 +369,7 @@
       <done>Orchestrator routes commands, --help works, unknown commands return error with list</done>
     </task>
 
-    <task id="8" type="auto" depends="7">
+    <task id="8" type="auto" depends="7" completed="true" completed_at="2026-02-28T15:45:00Z">
       <name>Update build configuration</name>
       <files>
         apps/festinalente/tsdown.config.ts (modify)
@@ -418,7 +418,7 @@
       <done>Build produces single festinalente.cjs, build:scripts is &lt;150 chars</done>
     </task>
 
-    <task id="9" type="auto" depends="8">
+    <task id="9" type="auto" depends="8" completed="true" completed_at="2026-02-28T16:00:00Z">
       <name>Update partials to use new dispatcher syntax</name>
       <files>
         apps/festinalente/src/content/partials/helper-scripts.md (modify)
@@ -455,7 +455,7 @@
       <done>All partials use festinalente.cjs dispatcher syntax</done>
     </task>
 
-    <task id="10" type="auto" depends="8">
+    <task id="10" type="auto" depends="8" completed="true" completed_at="2026-02-28T16:15:00Z">
       <name>Update skills to use new dispatcher syntax</name>
       <files>
         apps/festinalente/src/content/skills/festina-create/SKILL.md (modify)
@@ -504,7 +504,7 @@
       <done>All skills use festinalente.cjs dispatcher syntax</done>
     </task>
 
-    <task id="11" type="auto" depends="9,10">
+    <task id="11" type="auto" depends="9,10" completed="true" completed_at="2026-02-28T16:10:00Z">
       <name>Delete old script files</name>
       <files>
         apps/festinalente/src/scripts/*.ts (delete)
@@ -539,7 +539,7 @@
       <done>Old scripts directory removed, build still succeeds</done>
     </task>
 
-    <task id="12" type="auto" depends="11">
+    <task id="12" type="auto" depends="11" completed="true" completed_at="2026-02-28T16:12:00Z">
       <name>Rebuild festinalente and verify all commands</name>
       <files>N/A</files>
       <requirements>FR1, FR2, FR3, FR4</requirements>
@@ -560,7 +560,7 @@
       <done>All 24 commands work via dispatcher, --help lists all commands, unknown commands error correctly</done>
     </task>
 
-    <task id="13" type="manual" depends="12">
+    <task id="13" type="manual" depends="12" completed="true" completed_at="2026-02-28T16:13:00Z">
       <name>Final verification</name>
       <files>N/A</files>
       <requirements>FR1-FR11</requirements>

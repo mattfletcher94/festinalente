@@ -19,16 +19,16 @@ Define a new product through Socratic Q&A and generate product documentation.
 
 
 
-<command description="Get current date/time (returns JSON with iso and date formats)">node .festinalente/scripts/get-date-time.cjs</command>
+<command description="Get current date/time (returns JSON with iso and date formats)">node .festinalente/scripts/festinalente.cjs get-date-time</command>
 
 
 
 
 <note>Use these scripts to work with product documentation:</note>
 
-<command description="List all product docs (returns JSON with count and docs array)">node .festinalente/scripts/list-product.cjs</command>
-<command description="Filter by type">node .festinalente/scripts/list-product.cjs --type=feature</command>
-<command description="Filter by domain">node .festinalente/scripts/list-product.cjs --domain=auth</command>
+<command description="List all product docs (returns JSON with count and docs array)">node .festinalente/scripts/festinalente.cjs list-product</command>
+<command description="Filter by type">node .festinalente/scripts/festinalente.cjs list-product --type=feature</command>
+<command description="Filter by domain">node .festinalente/scripts/festinalente.cjs list-product --domain=auth</command>
 
 
 
@@ -51,7 +51,7 @@ Define a new product through Socratic Q&A and generate product documentation.
 
   <step name="preflight_check">
     <action>Check if `.festinalente/product/` has files OTHER than `overview.md`</action>
-    <command>node .festinalente/scripts/list-product.cjs</command>
+    <command>node .festinalente/scripts/festinalente.cjs list-product</command>
     <branch condition="count > 1, OR if count == 1 and the doc is not `overview`">
       <action>Use AskUserQuestion tool with:
         - header: "Existing Docs"
@@ -174,7 +174,7 @@ Define a new product through Socratic Q&A and generate product documentation.
     <warning>IMMEDIATELY write the product doc:</warning>
     <action>Determine domain folder (e.g., `auth`, `billing`, `users`)</action>
     <action>Create domain folder if needed: `.festinalente/product/{domain}/`</action>
-    <command description="Get current date">node .festinalente/scripts/get-date-time.cjs</command>
+    <command description="Get current date">node .festinalente/scripts/festinalente.cjs get-date-time</command>
     <action>Use `date` field from output</action>
     <action>Create `.festinalente/product/{domain}/{feature}.md`</action>
 
@@ -313,7 +313,7 @@ Ready to start creating tasks:
     
     Before completing, validate all task XML:
     
-    <command description="Validate XML in task files">node .festinalente/scripts/validate-xml.cjs {taskId}</command>
+    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
     
     If validation fails, fix the reported errors before completing.
     

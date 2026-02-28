@@ -1,29 +1,18 @@
 import { defineConfig } from 'tsdown';
 
 export default defineConfig([
-  // Runtime scripts (for Claude to run)
-  // These must be self-contained with all dependencies bundled
+  // CLI dispatcher (for Claude to run)
+  // Must be self-contained with all dependencies bundled
   {
-    entry: [
-      'src/scripts/find-task.ts',
-      'src/scripts/find-spec.ts',
-      'src/scripts/find-plan.ts',
-      'src/scripts/list-tasks.ts',
-      'src/scripts/next-id.ts',
-      'src/scripts/get-date-time.ts',
-      'src/scripts/list-product.ts',
-      'src/scripts/search-product.ts',
-      'src/scripts/check-product.ts',
-      'src/scripts/get-user-skills.ts',
-    ],
+    entry: ['src/cli/dispatcher.ts'],
     format: ['cjs'],
-    outDir: 'dist/scripts',
+    outDir: 'dist/cli',
     clean: false,
     dts: false,
     sourcemap: false,
     // Bundle all dependencies so scripts are self-contained
     // These packages must be inlined since scripts run in user projects without node_modules
-    noExternal: ['gray-matter', 'fuse.js', 'js-yaml'],
+    noExternal: ['gray-matter', 'fuse.js', 'js-yaml', 'fast-xml-parser', 'zod', 'slugify'],
   },
   // Build tools
   {

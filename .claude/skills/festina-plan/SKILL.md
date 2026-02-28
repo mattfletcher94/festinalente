@@ -26,16 +26,16 @@ Create a plan file in `.festinalente/tasks/{id}/` and move task from Scoped to P
 
 <note>Use these scripts to reliably find files:</note>
 
-<command description="Find task by ID (returns JSON with path and metadata)">node .festinalente/scripts/find-task.cjs {id}</command>
+<command description="Find task by ID (returns JSON with path and metadata)">node .festinalente/scripts/festinalente.cjs find-task {id}</command>
 
-<command description="Find spec by ID (returns JSON with path)">node .festinalente/scripts/find-spec.cjs {id}</command>
-
-
+<command description="Find spec by ID (returns JSON with path)">node .festinalente/scripts/festinalente.cjs find-spec {id}</command>
 
 
-<command description="Get current date/time (returns JSON with iso and date formats)">node .festinalente/scripts/get-date-time.cjs</command>
 
-<command description="Get skill configuration (returns JSON with directives)">node .festinalente/scripts/get-skill-config.cjs {skill}</command>
+
+<command description="Get current date/time (returns JSON with iso and date formats)">node .festinalente/scripts/festinalente.cjs get-date-time</command>
+
+<command description="Get skill configuration (returns JSON with directives)">node .festinalente/scripts/festinalente.cjs get-skill-config {skill}</command>
 <example_code lang="json">
 {
   "skill": "festina-check",
@@ -49,12 +49,12 @@ Create a plan file in `.festinalente/tasks/{id}/` and move task from Scoped to P
 
 <note>Use these scripts to work with product documentation:</note>
 
-<command description="List all product docs (returns JSON with count and docs array)">node .festinalente/scripts/list-product.cjs</command>
-<command description="Filter by type">node .festinalente/scripts/list-product.cjs --type=feature</command>
-<command description="Filter by domain">node .festinalente/scripts/list-product.cjs --domain=auth</command>
+<command description="List all product docs (returns JSON with count and docs array)">node .festinalente/scripts/festinalente.cjs list-product</command>
+<command description="Filter by type">node .festinalente/scripts/festinalente.cjs list-product --type=feature</command>
+<command description="Filter by domain">node .festinalente/scripts/festinalente.cjs list-product --domain=auth</command>
 
-<command description="Search product docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/search-product.cjs keyword1 keyword2 ...</command>
-<command description="With minimum score threshold">node .festinalente/scripts/search-product.cjs password reset --min-score=0.3</command>
+<command description="Search product docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/festinalente.cjs search-product keyword1 keyword2 ...</command>
+<command description="With minimum score threshold">node .festinalente/scripts/festinalente.cjs search-product password reset --min-score=0.3</command>
 <note>Score interpretation: ≥0.5 = strong match | 0.3-0.5 = possible match | &lt;0.3 = weak match | No results = likely new feature</note>
 
 
@@ -62,12 +62,12 @@ Create a plan file in `.festinalente/tasks/{id}/` and move task from Scoped to P
 
 <note>Use these scripts to work with engineering documentation:</note>
 
-<command description="List all engineering docs (returns JSON with count and docs array)">node .festinalente/scripts/list-engineering.cjs</command>
-<command description="Filter by type">node .festinalente/scripts/list-engineering.cjs --type=pattern</command>
-<command description="Filter components by system">node .festinalente/scripts/list-engineering.cjs --system=auth</command>
+<command description="List all engineering docs (returns JSON with count and docs array)">node .festinalente/scripts/festinalente.cjs list-engineering</command>
+<command description="Filter by type">node .festinalente/scripts/festinalente.cjs list-engineering --type=pattern</command>
+<command description="Filter components by system">node .festinalente/scripts/festinalente.cjs list-engineering --system=auth</command>
 
-<command description="Search engineering docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/search-engineering.cjs keyword1 keyword2 ...</command>
-<command description="With minimum score threshold">node .festinalente/scripts/search-engineering.cjs middleware pattern --min-score=0.3</command>
+<command description="Search engineering docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/festinalente.cjs search-engineering keyword1 keyword2 ...</command>
+<command description="With minimum score threshold">node .festinalente/scripts/festinalente.cjs search-engineering middleware pattern --min-score=0.3</command>
 <note>Score interpretation: ≥0.5 = strong match | 0.3-0.5 = possible match | &lt;0.3 = weak match | No results = likely new pattern/system</note>
 
 
@@ -117,7 +117,7 @@ Create a plan file in `.festinalente/tasks/{id}/` and move task from Scoped to P
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, specPath">
-    <command>node .festinalente/scripts/find-task.cjs {taskId}</command>
+    <command>node .festinalente/scripts/festinalente.cjs find-task {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse XML</action>
     <validate>Verify current status is `scoped`</validate>
@@ -149,7 +149,7 @@ Create a plan file in `.festinalente/tasks/{id}/` and move task from Scoped to P
   </step>
 
   <step name="read_spec" outputs="functionalRequirements, affectedFiles, existingPatterns, risks, technicalConstraints, dependencies">
-    <command>node .festinalente/scripts/find-spec.cjs {taskId}</command>
+    <command>node .festinalente/scripts/festinalente.cjs find-spec {taskId}</command>
     <branch condition="spec found">
       <action>Read the spec file at the `path` from JSON output</action>
     </branch>
@@ -195,11 +195,11 @@ Run: /festina-scope {taskId}
 
     <action>Search for related product docs</action>
     <action>Extract key terms from spec (feature names, component names, domains)</action>
-    <command>node .festinalente/scripts/search-product.cjs {keywords}</command>
+    <command>node .festinalente/scripts/festinalente.cjs search-product {keywords}</command>
     <action>Read any docs with score ≥ 0.3 that weren't already read</action>
 
     <action>List product docs if unsure</action>
-    <command>node .festinalente/scripts/list-product.cjs</command>
+    <command>node .festinalente/scripts/festinalente.cjs list-product</command>
     <action>Identify any obviously relevant docs by domain/name</action>
 
     <note>Use this context to:
@@ -219,11 +219,11 @@ Run: /festina-scope {taskId}
 
     <action>Search for related engineering docs</action>
     <action>Extract technical terms from spec (systems, patterns, components)</action>
-    <command>node .festinalente/scripts/search-engineering.cjs {keywords}</command>
+    <command>node .festinalente/scripts/festinalente.cjs search-engineering {keywords}</command>
     <action>Read any docs with score ≥ 0.3 that weren't already read</action>
 
     <action>List engineering docs if unsure</action>
-    <command>node .festinalente/scripts/list-engineering.cjs</command>
+    <command>node .festinalente/scripts/festinalente.cjs list-engineering</command>
     <action>Identify any obviously relevant docs by type/name</action>
 
     <note>Use this context to:
@@ -248,7 +248,7 @@ Run: /festina-scope {taskId}
   </step>
 
   <step name="load_directives">
-    <command>node .festinalente/scripts/get-skill-config.cjs festina-plan</command>
+    <command>node .festinalente/scripts/festinalente.cjs get-skill-config festina-plan</command>
     <action>Parse the JSON output</action>
     
     <branch condition="directives.length > 0">
@@ -665,7 +665,7 @@ Next:
     
     Before completing, validate all task XML:
     
-    <command description="Validate XML in task files">node .festinalente/scripts/validate-xml.cjs {taskId}</command>
+    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
     
     If validation fails, fix the reported errors before completing.
     

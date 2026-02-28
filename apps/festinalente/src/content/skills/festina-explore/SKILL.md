@@ -56,9 +56,9 @@ Explore a question, idea, or topic through Socratic dialogue. Research the codeb
 
   <step name="check_existing_context" outputs="relatedProductDocs, relatedEngineeringDocs, relatedTasks">
     <action>Extract keywords from question</action>
-    <command>node .festinalente/scripts/search-product.cjs {keywords}</command>
-    <command>node .festinalente/scripts/search-engineering.cjs {keywords}</command>
-    <command>node .festinalente/scripts/list-tasks.cjs</command>
+    <command>node .festinalente/scripts/festinalente.cjs search-product {keywords}</command>
+    <command>node .festinalente/scripts/festinalente.cjs search-engineering {keywords}</command>
+    <command>node .festinalente/scripts/festinalente.cjs list-tasks</command>
 
     <branch condition="related docs or tasks found">
       <output>

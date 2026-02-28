@@ -57,7 +57,7 @@ Create a plan file in `.festinalente/tasks/{id}/` and move task from Scoped to P
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, specPath">
-    <command>node .festinalente/scripts/find-task.cjs {taskId}</command>
+    <command>node .festinalente/scripts/festinalente.cjs find-task {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse XML</action>
     <validate>Verify current status is `scoped`</validate>
@@ -83,7 +83,7 @@ Create a plan file in `.festinalente/tasks/{id}/` and move task from Scoped to P
   </step>
 
   <step name="read_spec" outputs="functionalRequirements, affectedFiles, existingPatterns, risks, technicalConstraints, dependencies">
-    <command>node .festinalente/scripts/find-spec.cjs {taskId}</command>
+    <command>node .festinalente/scripts/festinalente.cjs find-spec {taskId}</command>
     <branch condition="spec found">
       <action>Read the spec file at the `path` from JSON output</action>
     </branch>
@@ -129,11 +129,11 @@ Run: /festina-scope {taskId}
 
     <action>Search for related product docs</action>
     <action>Extract key terms from spec (feature names, component names, domains)</action>
-    <command>node .festinalente/scripts/search-product.cjs {keywords}</command>
+    <command>node .festinalente/scripts/festinalente.cjs search-product {keywords}</command>
     <action>Read any docs with score ≥ 0.3 that weren't already read</action>
 
     <action>List product docs if unsure</action>
-    <command>node .festinalente/scripts/list-product.cjs</command>
+    <command>node .festinalente/scripts/festinalente.cjs list-product</command>
     <action>Identify any obviously relevant docs by domain/name</action>
 
     <note>Use this context to:
@@ -153,11 +153,11 @@ Run: /festina-scope {taskId}
 
     <action>Search for related engineering docs</action>
     <action>Extract technical terms from spec (systems, patterns, components)</action>
-    <command>node .festinalente/scripts/search-engineering.cjs {keywords}</command>
+    <command>node .festinalente/scripts/festinalente.cjs search-engineering {keywords}</command>
     <action>Read any docs with score ≥ 0.3 that weren't already read</action>
 
     <action>List engineering docs if unsure</action>
-    <command>node .festinalente/scripts/list-engineering.cjs</command>
+    <command>node .festinalente/scripts/festinalente.cjs list-engineering</command>
     <action>Identify any obviously relevant docs by type/name</action>
 
     <note>Use this context to:

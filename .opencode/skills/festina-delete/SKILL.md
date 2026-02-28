@@ -34,13 +34,13 @@ Permanently delete a task from the festina board. Only tasks in Backlog status c
 
 <note>Use these scripts to reliably find files:</note>
 
-<command description="Find task by ID (returns JSON with path and metadata)">node .festinalente/scripts/find-task.cjs {id}</command>
+<command description="Find task by ID (returns JSON with path and metadata)">node .festinalente/scripts/festinalente.cjs find-task {id}</command>
 
 
 
-<command description="List all tasks (returns JSON with count and tasks array)">node .festinalente/scripts/list-tasks.cjs</command>
-<command description="List tasks filtered by status">node .festinalente/scripts/list-tasks.cjs --status=in-progress</command>
-<command description="List tasks excluding a status">node .festinalente/scripts/list-tasks.cjs --exclude-status=done</command>
+<command description="List all tasks (returns JSON with count and tasks array)">node .festinalente/scripts/festinalente.cjs list-tasks</command>
+<command description="List tasks filtered by status">node .festinalente/scripts/festinalente.cjs list-tasks --status=in-progress</command>
+<command description="List tasks excluding a status">node .festinalente/scripts/festinalente.cjs list-tasks --exclude-status=done</command>
 
 
 
@@ -79,7 +79,7 @@ Permanently delete a task from the festina board. Only tasks in Backlog status c
       <action>Use $ARGUMENTS as taskId</action>
     </branch>
     <branch condition="$ARGUMENTS not provided">
-      <command>node .festinalente/scripts/list-tasks.cjs --status=backlog</command>
+      <command>node .festinalente/scripts/festinalente.cjs list-tasks --status=backlog</command>
       <branch condition="no eligible tasks">
         <output>No tasks in Backlog status to delete.</output>
         <action>Exit</action>
@@ -97,7 +97,7 @@ Permanently delete a task from the festina board. Only tasks in Backlog status c
   </step>
 
   <step name="read_task_file" outputs="taskPath, title, status">
-    <command>node .festinalente/scripts/find-task.cjs {taskId}</command>
+    <command>node .festinalente/scripts/festinalente.cjs find-task {taskId}</command>
     <branch condition="task found">
       <action>Read the file at the `path` from JSON output</action>
       <action>Parse XML</action>
@@ -145,7 +145,7 @@ Permanently delete a task from the festina board. Only tasks in Backlog status c
   </step>
 
   <step name="delete_task">
-    <command>node .festinalente/scripts/delete-task.cjs {taskId}</command>
+    <command>node .festinalente/scripts/festinalente.cjs delete-task {taskId}</command>
     <branch condition="error in output">
       <output>Error: {error message from script}</output>
       <action>Exit</action>
@@ -167,7 +167,7 @@ Permanently delete a task from the festina board. Only tasks in Backlog status c
     
     Before completing, validate all task XML:
     
-    <command description="Validate XML in task files">node .festinalente/scripts/validate-xml.cjs {taskId}</command>
+    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
     
     If validation fails, fix the reported errors before completing.
     
