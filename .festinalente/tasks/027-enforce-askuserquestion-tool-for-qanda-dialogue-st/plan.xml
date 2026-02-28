@@ -31,7 +31,7 @@
   <inventory></inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-02-28T14:50:00Z">
       <name>Refactor festina-scope conduct_qa_dialogue to use explicit AskUserQuestion blocks</name>
       <files>apps/festinalente/src/content/skills/festina-scope/SKILL.md (modify)</files>
       <requirements>FR1, FR2, FR3, FR8, FR9, FR10</requirements>
@@ -102,7 +102,7 @@
       <done>festina-scope conduct_qa_dialogue uses explicit AskUserQuestion blocks with "one question at a time" note, question categories (Approach, Files, Dependencies, Patterns, Constraints), and proper AskUserQuestion confirmation</done>
     </task>
 
-    <task id="2" type="auto">
+    <task id="2" type="auto" completed="true" completed_at="2026-02-28T14:55:00Z">
       <name>Refactor festina-create conduct_qa_dialogue to use "propose first, then validate" pattern</name>
       <files>apps/festinalente/src/content/skills/festina-create/SKILL.md (modify)</files>
       <requirements>FR4, FR5, FR6, FR7, FR8, FR9, FR10</requirements>
@@ -180,7 +180,7 @@
       <done>festina-create conduct_qa_dialogue uses "propose first, then validate" pattern with "one question at a time" note, "You decide" options for LLM inference, and proper AskUserQuestion confirmation</done>
     </task>
 
-    <task id="3" type="manual" depends="1,2">
+    <task id="3" type="manual" depends="1,2" completed="true" completed_at="2026-02-28T14:56:00Z">
       <name>Final verification of both skills</name>
       <files>N/A</files>
       <requirements>FR1-FR10</requirements>
