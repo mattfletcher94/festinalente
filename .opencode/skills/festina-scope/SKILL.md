@@ -592,6 +592,8 @@ Proceeding to technical Q&A. You can raise any concerns about the standard mitig
   </step>
 
   <step name="conduct_qa_dialogue">
+    <note>Use AskUserQuestion tool for **one question at a time**.</note>
+
     <note>This is a **conversational session** focused on **technical decisions**:
 - Architecture and approach
 - Existing patterns to follow
@@ -609,16 +611,68 @@ The Q&A phase is the natural place to challenge any assumption made during synth
 - Only ASK when there's genuine ambiguity the context doesn't resolve</note>
 
     <note>How the dialogue works:</note>
-
-    <action>Share initial findings and ask questions</action>
-    <note>Present what you found in the codebase</note>
-    <note>Ask about technical approach, preferences, constraints</note>
-    <note>Don't follow a rigid script - adapt to the conversation</note>
+    <action>Present what you found in the codebase analysis</action>
 
     <note>User can volunteer information at any time:
 - User may provide technology directives (e.g., "use Zustand", "use React Query")
 - User may request research (e.g., "research reactive localStorage packages for React")
 - User may share architectural preferences or constraints</note>
+
+    <note>**Technical Decision Questions:** Ask as relevant to the task (not all will apply).</note>
+    <questions name="technical_decisions">
+      <action>Use AskUserQuestion tool with:
+        - header: "Approach"
+        - question: "I found {existing pattern}. Should we follow this approach or do you have a different preference?"
+        - options:
+          - label: "Follow existing", description: "Use the pattern I found"
+          - label: "Different approach", description: "I have a different idea"
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe their preferred approach</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Files"
+        - question: "Based on the task, I'd modify/create these files: {list}. Does this look right?"
+        - options:
+          - label: "Yes", description: "File list is correct"
+          - label: "Add files", description: "Include additional files"
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to specify different files</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Dependencies"
+        - question: "Are there any libraries or dependencies we should use (or avoid)?"
+        - options:
+          - label: "None", description: "No special requirements"
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to specify dependencies</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Patterns"
+        - question: "I found these patterns in the codebase: {patterns}. Should we follow them?"
+        - options:
+          - label: "Yes", description: "Follow existing patterns"
+          - label: "Modify", description: "Adjust the pattern for this task"
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to explain pattern preferences</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Constraints"
+        - question: "Are there any technical constraints I should know about?"
+        - options:
+          - label: "None", description: "No constraints"
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe constraints</note>
+    </questions>
 
     <note>Perform research when requested or beneficial:</note>
 
@@ -643,24 +697,24 @@ The Q&A phase is the natural place to challenge any assumption made during synth
 
     <action>Continue until you have enough information to write a complete functional spec</action>
 
-    <output>
-**"I think I have enough information to write the functional spec. Here's what I understand:**
+    <action>Use AskUserQuestion tool with:
+      - header: "Confirm"
+      - question: "I have enough information for the spec. Does this summary look correct? Approach: {summary}, Key files: {list}, Dependencies: {list}, Patterns: {summary}"
+      - options:
+        - label: "Yes, proceed", description: "Create the functional spec"
+        - label: "Add more", description: "I have additional context"
+        - label: "Corrections", description: "Some details need fixing"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to provide corrections or additions</note>
 
-- **Approach:** {summary}
-- **Key files:** {list}
-- **Dependencies:** {list}
-- **Patterns to follow:** {summary}
-
-**Is there anything else you'd like to discuss before I write the spec?"**
-    </output>
-
-    <branch condition="user says 'that's good' / 'go ahead' / similar">
+    <branch condition="user says 'Yes, proceed'">
       <action>Proceed to writing spec</action>
     </branch>
-    <branch condition="user adds more context">
-      <action>Incorporate and ask if anything else</action>
+    <branch condition="user says 'Add more'">
+      <action>Incorporate additional context and confirm again</action>
     </branch>
-    <branch condition="user has corrections">
+    <branch condition="user says 'Corrections'">
       <action>Update understanding and confirm again</action>
     </branch>
 

@@ -368,47 +368,111 @@ This is a stub document created during task creation. It will be completed with 
   </step>
 
   <step name="conduct_qa_dialogue">
+    <note>Use AskUserQuestion tool for **one question at a time**.</note>
+
     <note>This is a **conversational session** focused on **product/business concerns**:
 - What problem are we solving?
 - What value does it provide?
 - What does "done" look like?
 - User context, constraints, preferences</note>
 
-    <note>How the dialogue works:</note>
-
-    <action>Ask questions as needed using AskUserQuestion</action>
-    <note>Start with the most important gaps (problem, value, acceptance criteria)</note>
-    <note>Ask follow-up questions based on answers</note>
-    <note>Don't follow a rigid script - adapt to the conversation</note>
+    <note>How the dialogue works: **Propose first, then validate.**
+- Analyze the user's initial input to form an understanding
+- Propose your understanding and ask user to validate
+- User confirms, corrects, or says "You decide" for LLM inference</note>
 
     <note>User can volunteer information at any time:
 - User may provide context you didn't ask for
 - User may request research (e.g., "research how other apps handle password reset")
 - User may skip questions ("skip" or "you fill it in")</note>
 
+    <note>**Product Validation Questions:** Propose understanding, user validates.</note>
+    <questions name="product_validation">
+      <action>Use AskUserQuestion tool with:
+        - header: "Problem"
+        - question: "I understand the problem as: {proposed problem based on user input}. Is this accurate?"
+        - options:
+          - label: "Yes", description: "Understanding is correct"
+          - label: "Partly", description: "Needs some adjustment"
+          - label: "No", description: "This is incorrect"
+          - label: "You decide", description: "Use your judgment"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to provide corrections</note>
+
+      <branch condition="user selects 'You decide'">
+        <action>Use judgment to fill gaps - research if helpful, infer from context</action>
+        <note>Document what was inferred vs confirmed</note>
+      </branch>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Value"
+        - question: "The value I see is: {proposed value}. Does this capture it?"
+        - options:
+          - label: "Yes", description: "Value is correct"
+          - label: "Partly", description: "Needs adjustment"
+          - label: "No", description: "This is incorrect"
+          - label: "You decide", description: "Use your judgment"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe the value</note>
+
+      <branch condition="user selects 'You decide'">
+        <action>Use judgment to fill gaps - research if helpful, infer from context</action>
+        <note>Document what was inferred vs confirmed</note>
+      </branch>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Criteria"
+        - question: "For acceptance criteria, I'd propose: {proposed criteria}. Does this define 'done'?"
+        - options:
+          - label: "Yes", description: "Criteria are correct"
+          - label: "Partly", description: "Needs adjustment"
+          - label: "No", description: "This is incorrect"
+          - label: "You decide", description: "Use your judgment"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe acceptance criteria</note>
+
+      <branch condition="user selects 'You decide'">
+        <action>Use judgment to fill gaps - research if helpful, infer from context</action>
+        <note>Document what was inferred vs confirmed</note>
+      </branch>
+    </questions>
+
     <branch condition="user requests research">
       <action>Use WebSearch/WebFetch to research domain topics, best practices, how other products solve similar problems</action>
-      <output>Share findings and ask if they influence requirements</output>
+      <action>Use AskUserQuestion tool with:
+        - header: "Findings"
+        - question: "I found: {findings summary}. Does this influence the requirements?"
+        - options:
+          - label: "Yes", description: "Adjust based on findings"
+          - label: "No", description: "Keep original approach"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to explain how findings affect requirements</note>
     </branch>
 
     <action>Continue until you have enough information to write: problem statement, value statement, acceptance criteria</action>
 
-    <output>
-**"I think I have enough information to create this task. Here's what I understand:**
-- **Problem:** {summary}
-- **Value:** {summary}
-- **Acceptance criteria:** {summary}
+    <action>Use AskUserQuestion tool with:
+      - header: "Confirm"
+      - question: "Ready to create the task. Does this look correct? Problem: {summary}, Value: {summary}, Acceptance criteria: {summary}"
+      - options:
+        - label: "Yes, create it", description: "Create the task file"
+        - label: "Add more", description: "I have additional context"
+        - label: "Corrections", description: "Some details need fixing"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to provide corrections or additions</note>
 
-**Is there anything else you'd like to discuss before I create the task?"**
-    </output>
-
-    <branch condition="user says 'that's good' / 'go ahead' / similar">
+    <branch condition="user says 'Yes, create it'">
       <action>Proceed to creating task file</action>
     </branch>
-    <branch condition="user adds more context">
-      <action>Incorporate and ask if anything else</action>
+    <branch condition="user says 'Add more'">
+      <action>Incorporate additional context and confirm again</action>
     </branch>
-    <branch condition="user has corrections">
+    <branch condition="user says 'Corrections'">
       <action>Update understanding and confirm again</action>
     </branch>
 
