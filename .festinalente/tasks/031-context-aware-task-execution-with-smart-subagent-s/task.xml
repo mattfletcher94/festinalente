@@ -1,4 +1,4 @@
-<task id="031-context-aware-task-execution-with-smart-subagent-s" status="backlog" priority="high" created="2026-03-01" updated="2026-03-01"
+<task id="031-context-aware-task-execution-with-smart-subagent-s" status="scoped" priority="high" created="2026-03-01" updated="2026-03-01"
       github-issue="#22"
       github-url="https://github.com/mattfletcher94/festinalente/issues/22">
   <title>Context-Aware Task Execution with Smart Subagent Spawning</title>
