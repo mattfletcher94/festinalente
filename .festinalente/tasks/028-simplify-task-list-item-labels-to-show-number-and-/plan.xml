@@ -24,7 +24,7 @@
   <inventory></inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-03-01T09:12:38.265Z">
       <name>Update TaskItem label to show number and title</name>
       <files>apps/vscode/src/capabilities/tasks-view.capability.ts (modify)</files>
       <requirements>FR1, FR2, FR3</requirements>
@@ -49,7 +49,7 @@
       <done>TaskItem displays "028: Simplify task list item labels..." instead of full slug</done>
     </task>
 
-    <task id="2" type="manual" depends="1">
+    <task id="2" type="manual" depends="1" completed="true" completed_at="2026-03-01T09:12:38.265Z">
       <name>Verify display in VSCode</name>
       <files>N/A</files>
       <requirements>FR1, FR2, FR3</requirements>

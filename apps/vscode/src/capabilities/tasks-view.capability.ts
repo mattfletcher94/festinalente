@@ -59,7 +59,8 @@ export class TaskItem extends vscode.TreeItem {
     public readonly files: { hasSpec: boolean; hasPlan: boolean },
     public readonly actions: readonly TaskAction[]
   ) {
-    super(`${task.id}: ${task.title}`, vscode.TreeItemCollapsibleState.Collapsed);
+    const taskNumber = task.id.split('-')[0];
+    super(`${taskNumber}: ${task.title}`, vscode.TreeItemCollapsibleState.Collapsed);
 
     this.description = this.buildDescription();
     this.contextValue = 'task';
