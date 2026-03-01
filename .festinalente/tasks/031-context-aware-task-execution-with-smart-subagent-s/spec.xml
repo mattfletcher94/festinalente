@@ -1,120 +1,129 @@
----
-task: "031-context-aware-task-execution-with-smart-subagent-s"
-created: 2026-03-01
-updated: 2026-03-01
----
+<spec task="031-context-aware-task-execution-with-smart-subagent-s" created="2026-03-01" updated="2026-03-01">
+  <title>Context-Aware Task Execution with Smart Subagent Spawning</title>
 
-# Functional Specification: Context-Aware Task Execution with Smart Subagent Spawning
+  <context>
+    Large plans exhaust context before completion, requiring manual /clear calls between implementation waves. Task 029 (13 tasks, 630 lines) required several waves due to context exhaustion. Even with Claude Code's auto-compaction, task-specific details (line numbers, code snippets in action blocks) get lost during summarization.
 
-## Context
+    Value:
+    - Seamless execution of large plans without user intervention
+    - Each task gets fresh subagent context with exactly what it needs
+    - Main conversation stays lean for orchestration (~15% context)
+    - No reliance on auto-compaction as a feature
+    - Foundation for future parallel task execution
+  </context>
 
-**Problem:** Large plans exhaust context before completion, requiring manual /clear calls between implementation waves. Task 029 (13 tasks, 630 lines) required several waves due to context exhaustion. Even with Claude Code's auto-compaction, task-specific details (line numbers, code snippets in action blocks) get lost during summarization.
+  <scope>
+    <in-scope>
+      <item>Modify festina-implement to spawn subagents for task execution</item>
+      <item>Modify festina-plan to generate explicit context blocks per task</item>
+      <item>Add CLI commands for extracting individual task context from plans</item>
+      <item>Update plan.xml template schema with context element</item>
+    </in-scope>
+    <out-of-scope>
+      <item>Parallel task execution (sequential only in this iteration)</item>
+      <item>Dynamic context estimation/token counting</item>
+      <item>Changes to task.xml or spec.xml formats</item>
+      <item>Complexity-based routing (simple inline vs complex subagent) - all tasks use subagents</item>
+    </out-of-scope>
+  </scope>
 
-**Value:**
-- Seamless execution of large plans without user intervention
-- Each task gets fresh subagent context with exactly what it needs
-- Main conversation stays lean for orchestration (~15% context)
-- No reliance on auto-compaction as a feature
-- Foundation for future parallel task execution
+  <requirements>
+    <requirement id="FR1">festina-implement SHALL spawn a separate subagent (general-purpose type) for each plan task</requirement>
+    <requirement id="FR2">Each subagent SHALL receive explicit file references to read, not embedded code snippets</requirement>
+    <requirement id="FR3">Each subagent SHALL execute the task action, run verification, and report success/failure</requirement>
+    <requirement id="FR4">The orchestrator SHALL persist task completion to plan.xml after each subagent finishes</requirement>
+    <requirement id="FR5">The orchestrator SHALL stay under 30% context usage throughout execution</requirement>
+    <requirement id="FR6">festina-plan SHALL generate context blocks for each task containing files to read</requirement>
+    <requirement id="FR7">The context block SHALL include: existing files to read, pattern reference files, dependent file imports</requirement>
+    <requirement id="FR8">CLI SHALL provide commands to extract individual task context from plan.xml</requirement>
+    <requirement id="FR9">If subagent fails verification after fix attempts, orchestrator SHALL ask user how to proceed</requirement>
+    <requirement id="FR10">Quality verification (TODO scan, requirement trace, wiring check) SHALL run in orchestrator after all tasks complete</requirement>
+    <requirement id="FR11">Directive loading and compliance checking SHALL remain in the orchestrator (not delegated to subagents)</requirement>
+  </requirements>
 
-## Scope
+  <files>
+    <file action="modify" path="apps/festinalente/src/content/skills/festina-implement/SKILL.md" reason="Add subagent spawning in execute_tasks step"/>
+    <file action="modify" path="apps/festinalente/src/content/skills/festina-plan/SKILL.md" reason="Add context block generation logic"/>
+    <file action="modify" path=".festinalente/templates/plan.xml" reason="Add context element schema to task"/>
+    <file action="modify" path="apps/festinalente/src/cli/handlers/task.handler.ts" reason="Add get-plan-task, get-plan-task-context commands"/>
+  </files>
 
-### In Scope
-- Modify festina-implement to spawn subagents for task execution
-- Modify festina-plan to generate explicit `<context>` blocks per task
-- Add CLI commands for extracting individual task context from plans
-- Update plan.xml template schema with `<context>` element
+  <patterns>
+    <pattern id="subagent-spawning" ref="apps/festinalente/src/content/skills/festina-scope/SKILL.md:222-328">
+      Task tool with subagent_type="Explore" for parallel agents. Spawn agents with prompts containing specific instructions and context.
+    </pattern>
+    <pattern id="orchestrator" ref=".festinalente/engineering/patterns/orchestrator.md">
+      Thin orchestrators route to handlers, ~100 lines. festina-implement becomes an orchestrator that delegates to subagents.
+    </pattern>
+    <pattern id="task-xml-structure" ref=".festinalente/tasks/029-consolidate-cli-scripts-into-single-dispatcher/plan.xml:88-123">
+      Tasks contain files, pattern, action, verify, done elements. Existing structure already has file refs; add context for explicit read list.
+    </pattern>
+  </patterns>
 
-### Out of Scope
-- Parallel task execution (sequential only in this iteration)
-- Dynamic context estimation/token counting
-- Changes to task.xml or spec.xml formats
-- Complexity-based routing (simple inline vs complex subagent) — all tasks use subagents
+  <research>
+    <product>
+      <finding id="context-selection">docs/context-selection: Tiered loading (minimal/standard/full) ~50-200-1000 tokens per tier</finding>
+      <finding id="tasks-implement">tasks/implement: Current execution is sequential, marks completion per task, code uncommitted</finding>
+    </product>
+    <engineering>
+      <finding id="orchestrator-pattern">patterns/orchestrator: Decompose large orchestrators, composition root wires components</finding>
+      <finding id="subagent-pattern">patterns/subagent-orchestration: Stub doc to be completed after implementation</finding>
+    </engineering>
+    <codebase>
+      <finding>festina-scope already uses Task tool with parallel subagents</finding>
+      <finding>festina-implement currently executes all tasks in main context</finding>
+      <finding>Plan.xml tasks have self-contained info but no explicit "read these files first" block</finding>
+    </codebase>
+    <pitfalls>
+      <pitfall id="complexity-threshold">Task complexity threshold: Decision - Always spawn subagent (every task gets fresh context)</pitfall>
+      <pitfall id="prompt-construction">Subagent prompt construction: Decision - Explicit file refs only (subagent reads fresh, lean prompts)</pitfall>
+      <pitfall id="no-nested-subagents">Subagents cannot spawn subagents: Standard mitigation - subagent must complete all work without delegation</pitfall>
+      <pitfall id="context-estimation">Context estimation is approximate: Standard mitigation - orchestrator uses conservative buffer</pitfall>
+    </pitfalls>
+  </research>
 
-## Functional Requirements
+  <constraints>
+    <constraint>Task tool subagent_type must be "general-purpose" for Edit/Write/Bash access</constraint>
+    <constraint>Subagents cannot spawn subagents (Claude Code limitation)</constraint>
+    <constraint>Sequential execution respects task dependencies (depends attribute)</constraint>
+    <constraint>Plan.xml must remain valid XML after context block addition</constraint>
+    <constraint>Directive loading and compliance checking stays in orchestrator (not passed to subagents)</constraint>
+  </constraints>
 
-- FR1: festina-implement SHALL spawn a separate subagent (general-purpose type) for each plan task
-- FR2: Each subagent SHALL receive explicit file references to read, not embedded code snippets
-- FR3: Each subagent SHALL execute the task action, run verification, and report success/failure
-- FR4: The orchestrator SHALL persist task completion to plan.xml after each subagent finishes
-- FR5: The orchestrator SHALL stay under 30% context usage throughout execution
-- FR6: festina-plan SHALL generate `<context>` blocks for each task containing files to read
-- FR7: The `<context>` block SHALL include: existing files to read, pattern reference files, dependent file imports
-- FR8: CLI SHALL provide commands to extract individual task context from plan.xml
-- FR9: If subagent fails verification after fix attempts, orchestrator SHALL ask user how to proceed
-- FR10: Quality verification (TODO scan, requirement trace, wiring check) SHALL run in orchestrator after all tasks complete
-- FR11: Directive loading and compliance checking SHALL remain in the orchestrator (not delegated to subagents)
+  <dependencies>
+    <external>None (uses existing Claude Code Task tool)</external>
+    <internal>
+      <dependency>festina-plan changes must precede festina-implement changes (plan format must support context blocks)</dependency>
+      <dependency>CLI changes can be done in parallel with skill changes</dependency>
+    </internal>
+  </dependencies>
 
-## Affected Files
+  <risks>
+    <risk impact="high" mitigation="Ask user for resolution options (fix manually, skip, stop)">Subagent fails to complete task - blocks implementation</risk>
+    <risk impact="medium" mitigation="File refs only, no embedded content">Context blocks too large - defeats purpose of lean orchestrator</risk>
+    <risk impact="medium" mitigation="Include spec file ref in context for subagent to read">Subagent doesn't follow action instructions - wrong implementation</risk>
+    <risk impact="low" mitigation="Add context element to existing task schema additively">Plan.xml parsing breaks with new schema - CLI commands fail</risk>
+  </risks>
 
-### Skills
-- `apps/festinalente/src/content/skills/festina-implement/SKILL.md` (modify) — add subagent spawning in execute_tasks step
-- `apps/festinalente/src/content/skills/festina-plan/SKILL.md` (modify) — add context block generation logic
+  <open-questions>
+  </open-questions>
 
-### Templates
-- `.festinalente/templates/plan.xml` (modify) — add `<context>` element schema to task
-
-### CLI
-- `apps/festinalente/src/cli/handlers/task.handler.ts` (modify) — add get-plan-task, get-plan-task-context commands
-
-## Existing Patterns
-
-### Subagent Spawning in festina-scope
-- **Pattern:** Task tool with subagent_type="Explore" for parallel agents
-- Reference: `apps/festinalente/src/content/skills/festina-scope/SKILL.md:222-328`
-- Usage: Spawn agents with prompts containing specific instructions and context
-
-### Orchestrator Pattern
-- **Pattern:** Thin orchestrators route to handlers, ~100 lines
-- Reference: `.festinalente/engineering/patterns/orchestrator.md`
-- Usage: festina-implement becomes an orchestrator that delegates to subagents
-
-### Task XML Structure
-- **Pattern:** Tasks contain `<files>`, `<pattern>`, `<action>`, `<verify>`, `<done>`
-- Reference: `.festinalente/tasks/029-consolidate-cli-scripts-into-single-dispatcher/plan.xml:88-123`
-- Usage: Existing structure already has file refs; add `<context>` for explicit read list
-
-## Research Findings
-
-### Product Context
-- **docs/context-selection**: Tiered loading (minimal/standard/full) ~50-200-1000 tokens per tier
-- **tasks/implement**: Current execution is sequential, marks completion per task, code uncommitted
-
-### Engineering Patterns
-- **patterns/orchestrator**: Decompose large orchestrators, composition root wires components
-- **patterns/subagent-orchestration**: Stub doc to be completed after implementation
-
-### Codebase Analysis
-- festina-scope already uses Task tool with parallel subagents
-- festina-implement currently executes all tasks in main context
-- Plan.xml tasks have self-contained info but no explicit "read these files first" block
-
-### Pitfalls Identified
-- **Task complexity threshold**: Decision: Always spawn subagent (every task gets fresh context)
-- **Subagent prompt construction**: Decision: Explicit file refs only (subagent reads fresh, lean prompts)
-- **Subagents cannot spawn subagents**: Standard mitigation — subagent must complete all work without delegation
-- **Context estimation is approximate**: Standard mitigation — orchestrator uses conservative buffer
-
-## Subagent Prompt Template
-
-The orchestrator constructs a prompt for each subagent following this structure:
-
-```
+  <subagent-prompt-template>
 Execute task {id}: "{name}"
 
 **Read these files first:**
-{For each file in <context>:}
+{For each file in context:}
 - {file path}
 
 **Pattern to follow:**
-{pattern file path from <pattern> element, if present}
+{pattern file path from pattern element, if present}
 
 **Action:**
-{content of <action> element}
+{content of action element}
 
-**Verify:** {content of <verify> element}
+**Verify:** {content of verify element}
 
-**Done criteria:** {content of <done> element}
+**Done criteria:** {content of done element}
 
 **Spec reference:** .festinalente/tasks/{taskId}/spec.xml
 (Read if you need functional requirements or additional context)
@@ -122,34 +131,5 @@ Execute task {id}: "{name}"
 When complete, report:
 - SUCCESS: {summary of what was done}
 - FAILURE: {what failed and why}
-```
-
-## Technical Constraints
-
-- Task tool subagent_type must be "general-purpose" for Edit/Write/Bash access
-- Subagents cannot spawn subagents (Claude Code limitation)
-- Sequential execution respects task dependencies (depends attribute)
-- Plan.xml must remain valid XML after context block addition
-- Directive loading and compliance checking stays in orchestrator (not passed to subagents)
-
-## Dependencies
-
-### External
-- None (uses existing Claude Code Task tool)
-
-### Internal
-- festina-plan changes must precede festina-implement changes (plan format must support context blocks)
-- CLI changes can be done in parallel with skill changes
-
-## Risks & Mitigations
-
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Subagent fails to complete task | Blocks implementation | Ask user for resolution options (fix manually, skip, stop) |
-| Context blocks too large | Defeats purpose of lean orchestrator | File refs only, no embedded content |
-| Subagent doesn't follow action instructions | Wrong implementation | Include spec file ref in context for subagent to read |
-| Plan.xml parsing breaks with new schema | CLI commands fail | Add context element to existing task schema additively |
-
-## Open Questions
-
-(None - all resolved during Q&A)
+  </subagent-prompt-template>
+</spec>
