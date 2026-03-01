@@ -282,6 +282,10 @@ Run: /festina-scope {taskId}
       <files>path/to/file.ts (create|modify|delete)</files>
       <requirements>FR1, FR2</requirements>
       <pattern>Pattern name at file:line</pattern>
+      <context>
+        <file>path/to/pattern/reference.ts</file>
+        <file>path/to/related/types.ts</file>
+      </context>
       <action>
         - Step 1
         - Step 2
@@ -306,6 +310,10 @@ Run: /festina-scope {taskId}
       <files>path/to/other.ts (modify)</files>
       <requirements>FR3</requirements>
       <pattern>N/A</pattern>
+      <context>
+        <file>path/to/other.ts</file>
+        <file>path/to/consumer.ts</file>
+      </context>
       <action>
         - Implementation details
       </action>
@@ -366,10 +374,19 @@ Run: /festina-scope {taskId}
       | `<files>` | Yes | Affected files with (create), (modify), or (delete) |
       | `<requirements>` | Yes | Which FRs from spec this satisfies |
       | `<pattern>` | No | Existing pattern to follow with file:line reference |
+      | `<context>` | No | Files the subagent should read before implementing (contains `<file>` children) |
       | `<action>` | Yes | Specific steps to take (can be multi-line with - bullets) |
       | `<verify>` | Yes | Command to run OR "Manual: {description}" |
       | `<done>` | Yes | Acceptance criteria for this specific task |
     </table>
+
+    <note>Context element guidance:</note>
+    <note>The `<context>` element lists files the subagent should read BEFORE implementing the task. Include:</note>
+    <note>- Files listed in `<files>` that are being modified (not created) - to understand current structure</note>
+    <note>- Pattern reference file (from `<pattern>` element) - to see implementation examples</note>
+    <note>- Files that import the target file - to understand usage and integration points</note>
+    <note>- Related files containing types, interfaces, or constants needed for the task</note>
+    <note>Context should include files the subagent needs to read for understanding, NOT files being created (they don't exist yet).</note>
 
     <note>Verification types:</note>
     <note>- **Command verification:** `<verify>{command}</verify>` - Executed automatically. Derive from directive `<validation type="command">` when available.</note>

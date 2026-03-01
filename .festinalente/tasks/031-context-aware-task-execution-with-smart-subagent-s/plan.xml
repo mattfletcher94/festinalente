@@ -50,7 +50,7 @@
   </inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-03-01T10:01:22.326Z">
       <name>Add context element to plan.xml template</name>
       <files>.festinalente/templates/plan.xml (modify)</files>
       <requirements>FR6, FR7</requirements>
@@ -100,7 +100,7 @@
       <done>Template has context element with file children inside task element</done>
     </task>
 
-    <task id="2" type="auto" depends="1">
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-03-01T10:03:00Z">
       <name>Update festina-plan to generate context blocks</name>
       <files>apps/festinalente/src/content/skills/festina-plan/SKILL.md (modify)</files>
       <requirements>FR6, FR7</requirements>
@@ -128,7 +128,7 @@
       <done>festina-plan skill documents and generates context blocks for each task</done>
     </task>
 
-    <task id="3" type="auto" depends="2">
+    <task id="3" type="auto" depends="2" completed="true" completed_at="2026-03-01T10:06:00Z">
       <name>Add get-plan-task and get-plan-task-context CLI commands</name>
       <files>apps/festinalente/src/cli/handlers/task.handler.ts (modify)</files>
       <requirements>FR8</requirements>
@@ -174,7 +174,7 @@
       <done>CLI can extract individual task and context from plan.xml</done>
     </task>
 
-    <task id="4" type="auto" depends="3">
+    <task id="4" type="auto" depends="3" completed="true" completed_at="2026-03-01T10:10:00Z">
       <name>Transform festina-implement to subagent orchestration model</name>
       <files>apps/festinalente/src/content/skills/festina-implement/SKILL.md (modify)</files>
       <requirements>FR1, FR2, FR3, FR4, FR5, FR9</requirements>
@@ -228,7 +228,7 @@
       <done>festina-implement spawns subagent for each task with explicit file context</done>
     </task>
 
-    <task id="5" type="auto" depends="4">
+    <task id="5" type="auto" depends="4" completed="true" completed_at="2026-03-01T10:15:00Z">
       <name>Move quality verification to post-all-tasks step</name>
       <files>apps/festinalente/src/content/skills/festina-implement/SKILL.md (modify)</files>
       <requirements>FR10</requirements>
@@ -249,7 +249,7 @@
       <done>Quality verification confirmed to run in orchestrator after all tasks</done>
     </task>
 
-    <task id="6" type="auto" depends="5">
+    <task id="6" type="auto" depends="5" completed="true" completed_at="2026-03-01T10:17:00Z">
       <name>Ensure directive compliance stays in orchestrator</name>
       <files>apps/festinalente/src/content/skills/festina-implement/SKILL.md (modify)</files>
       <requirements>FR11</requirements>
@@ -269,7 +269,7 @@
       <done>Directive handling confirmed to stay in orchestrator, not delegated to subagents</done>
     </task>
 
-    <task id="7" type="auto" depends="6">
+    <task id="7" type="auto" depends="6" completed="true" completed_at="2026-03-01T10:18:00Z">
       <name>Build festinalente and validate changes</name>
       <files>N/A</files>
       <requirements>FR1-FR11</requirements>
@@ -286,7 +286,7 @@
       <done>festinalente builds successfully with all changes</done>
     </task>
 
-    <task id="8" type="manual" depends="7">
+    <task id="8" type="manual" depends="7" completed="true" completed_at="2026-03-01T10:19:00Z">
       <name>Final verification</name>
       <files>N/A</files>
       <requirements>FR1-FR11</requirements>

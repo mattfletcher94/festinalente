@@ -57,6 +57,30 @@ export interface DeleteTaskResult {
 }
 
 /**
+ * Plan task result.
+ */
+export interface PlanTaskResult {
+  readonly taskId: string;
+  readonly name: string;
+  readonly files: string;
+  readonly requirements: string;
+  readonly pattern: string;
+  readonly context: readonly string[];
+  readonly action: string;
+  readonly verify: string;
+  readonly done: string;
+  readonly completed: boolean;
+}
+
+/**
+ * Plan task context result.
+ */
+export interface PlanTaskContextResult {
+  readonly taskId: string;
+  readonly files: readonly string[];
+}
+
+/**
  * Dependencies for task handler.
  */
 export interface TaskHandlerDeps {
@@ -72,6 +96,8 @@ export interface TaskHandler {
   readonly listTasks: (args: string[]) => CliResult<ListTasksResult>;
   readonly deleteTask: (args: string[]) => CliResult<DeleteTaskResult>;
   readonly nextId: (args: string[]) => CliResult<NextIdResult>;
+  readonly getPlanTask: (args: string[]) => CliResult<PlanTaskResult>;
+  readonly getPlanTaskContext: (args: string[]) => CliResult<PlanTaskContextResult>;
   readonly getCommands: () => readonly CliCommand[];
 }
 
@@ -351,6 +377,106 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
   }
 
   /**
+   * Get a single task from plan.xml by task ID.
+   *
+   * @param args - Command arguments: [festina-task-id, plan-task-id].
+   * @returns The plan task details or an error.
+   */
+  function getPlanTask(args: string[]): CliResult<PlanTaskResult> {
+    if (args.length < 2) {
+      return error('Usage: get-plan-task <festina-task-id> <plan-task-id>');
+    }
+
+    const festinaTaskId = args[0];
+    const planTaskId = args[1];
+
+    if (!fs.exists(TASKS_DIR)) {
+      return error(`${TASKS_DIR}/ directory not found. Run npx festinalente first.`);
+    }
+
+    const found = findTaskFile(festinaTaskId);
+    if (!found) {
+      return error(`Task ${festinaTaskId} not found in ${TASKS_DIR}/`);
+    }
+
+    const planPath = fs.joinPath(TASKS_DIR, found.folderId, 'plan.xml').replace(/\\/g, '/');
+
+    if (!fs.exists(planPath)) {
+      return error(`Plan file not found at ${planPath}`);
+    }
+
+    const readResult = fs.readFile(planPath);
+    if (!readResult.ok) {
+      return error(`Failed to read plan file: ${readResult.error.message}`);
+    }
+
+    const parsed = xmlParser.parsePlanTask(readResult.value, planTaskId);
+
+    if (!parsed) {
+      return error(`Task ${planTaskId} not found in plan.xml`);
+    }
+
+    return success({
+      taskId: parsed.taskId,
+      name: parsed.name,
+      files: parsed.files,
+      requirements: parsed.requirements,
+      pattern: parsed.pattern,
+      context: parsed.context,
+      action: parsed.action,
+      verify: parsed.verify,
+      done: parsed.done,
+      completed: parsed.completed,
+    });
+  }
+
+  /**
+   * Get the context files for a task from plan.xml.
+   *
+   * @param args - Command arguments: [festina-task-id, plan-task-id].
+   * @returns The context file paths or an error.
+   */
+  function getPlanTaskContext(args: string[]): CliResult<PlanTaskContextResult> {
+    if (args.length < 2) {
+      return error('Usage: get-plan-task-context <festina-task-id> <plan-task-id>');
+    }
+
+    const festinaTaskId = args[0];
+    const planTaskId = args[1];
+
+    if (!fs.exists(TASKS_DIR)) {
+      return error(`${TASKS_DIR}/ directory not found. Run npx festinalente first.`);
+    }
+
+    const found = findTaskFile(festinaTaskId);
+    if (!found) {
+      return error(`Task ${festinaTaskId} not found in ${TASKS_DIR}/`);
+    }
+
+    const planPath = fs.joinPath(TASKS_DIR, found.folderId, 'plan.xml').replace(/\\/g, '/');
+
+    if (!fs.exists(planPath)) {
+      return error(`Plan file not found at ${planPath}`);
+    }
+
+    const readResult = fs.readFile(planPath);
+    if (!readResult.ok) {
+      return error(`Failed to read plan file: ${readResult.error.message}`);
+    }
+
+    const parsed = xmlParser.parsePlanTaskContext(readResult.value, planTaskId);
+
+    if (!parsed) {
+      return error(`Task ${planTaskId} not found in plan.xml`);
+    }
+
+    return success({
+      taskId: parsed.taskId,
+      files: parsed.files,
+    });
+  }
+
+  /**
    * Get command definitions.
    */
   function getCommands(): readonly CliCommand[] {
@@ -379,6 +505,18 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
         'next-id --title="Task title"',
         nextId
       ),
+      defineCommand(
+        'get-plan-task',
+        'Get a single task from plan.xml by task ID',
+        'get-plan-task <festina-task-id> <plan-task-id>',
+        getPlanTask
+      ),
+      defineCommand(
+        'get-plan-task-context',
+        'Get context files for a task from plan.xml',
+        'get-plan-task-context <festina-task-id> <plan-task-id>',
+        getPlanTaskContext
+      ),
     ];
   }
 
@@ -387,6 +525,8 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
     listTasks,
     deleteTask,
     nextId,
+    getPlanTask,
+    getPlanTaskContext,
     getCommands,
   };
 }

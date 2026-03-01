@@ -1,7 +1,7 @@
 ---
 name: festina-implement
 description: Implement a planned task. Moves task to In Progress, executes the plan, then moves to Finalize. No commit - code stays uncommitted.
-allowed-tools: Read, Write, Edit, Bash(*), AskUserQuestion
+allowed-tools: Read, Write, Edit, Bash(*), AskUserQuestion, Task
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---
@@ -202,6 +202,8 @@ Warning: Some relevant docs may be outdated:
   </step>
 
   <step name="load_directives">
+    <note>**Orchestrator-only step:** Directive loading and compliance checking runs in orchestrator only.
+    Subagents do not receive directive context - they focus purely on task execution.</note>
     <command>node .festinalente/scripts/festinalente.cjs get-skill-config festina-implement</command>
     <action>Parse the JSON output</action>
     
@@ -262,67 +264,140 @@ Warning: Some relevant docs may be outdated:
   </step>
 
   <step name="execute_tasks">
-    <note>Execute each task in dependency order, verifying after each.</note>
+    <note>**Subagent Orchestration:** Spawn a subagent for each task to keep orchestrator lean.</note>
+    <note>Each subagent gets fresh context with explicit file references - no embedded snippets.</note>
+    <note>Orchestrator persists completion immediately after each subagent finishes.</note>
 
     <action>For each task in executionOrder where completed != "true":</action>
 
-    <substep name="show_task_context">
+    <substep name="show_task_header">
       <output>
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 [{currentIndex}/{totalTasks}] {task.name}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-**Files:** {task.files}
-**Requirements:** {task.requirements}
-**Pattern:** {task.pattern}
+Spawning subagent...
       </output>
     </substep>
 
-    <substep name="execute_action">
-      <note>**Snippets are approximate:** Code snippets in the plan are for context only.
-      Always read the actual file before making changes - line numbers and code may have
-      shifted since planning. Use snippets to understand intent, not as copy-paste source.</note>
-      <action>Read and understand the action items in {task.action}</action>
-      <action>Make the code changes described</action>
-      <note>Follow the pattern reference if provided</note>
+    <substep name="build_subagent_prompt" outputs="subagentPrompt">
+      <note>Build prompt from task elements - file refs only, no embedded content.</note>
+      <action>Extract task elements: id, name, context, pattern, action, verify, done, type</action>
+      <action>Build prompt using template:</action>
+
+      <prompt_template>
+Execute task {task.id}: "{task.name}"
+
+**Read these files first:**
+{For each file in task.context:}
+- {file path}
+
+**Pattern to follow:**
+{task.pattern file path, if present; otherwise "None specified"}
+
+**Action:**
+{content of task.action element}
+
+**Verify:** {content of task.verify element}
+
+**Done criteria:** {content of task.done element}
+
+**Spec reference:** .festinalente/tasks/{taskId}/spec.xml
+(Read if you need functional requirements or additional context)
+
+When complete, report:
+- SUCCESS: {summary of what was done}
+- FAILURE: {what failed and why}
+      </prompt_template>
+
+      <branch condition="task.type is 'manual'">
+        <action>Append to prompt: "\n**Note:** This task has manual verification - implementation is complete when action is done, verification deferred to QA."</action>
+      </branch>
     </substep>
 
-    <substep name="run_verification">
-      <branch condition="task.verify is an automated command (not 'Manual:')">
-        <output>Running verification: {task.verify}</output>
-        <command>{task.verify}</command>
-        <branch condition="command succeeds (exit code 0)">
-          <output>✓ Verification passed</output>
-          <action>Update plan.xml: Add `completed="true" completed_at="{ISO timestamp}"` to the task element</action>
-          <action>Write updated plan file</action>
-          <note>Task marked complete immediately after verification - ensures persistence before context exhaustion</note>
-        </branch>
-        <branch condition="command fails">
-          <output>✗ Verification failed: {error}</output>
-          <action>Analyze the error</action>
-          <action>Attempt to fix the issue</action>
-          <action>Re-run verification command</action>
-          <branch condition="still fails after fix attempt">
-            <output>Verification still failing. Manual intervention may be needed.</output>
-            <action>Use AskUserQuestion to ask: "Verification failed. Options: 1) I'll fix manually and continue, 2) Skip this task, 3) Stop implementation"</action>
-          </branch>
-        </branch>
-      </branch>
-      <branch condition="task.verify starts with 'Manual:' OR task.type is 'manual'">
-        <note>Manual verification is DEFERRED to QA phase - do NOT ask user to verify during implementation</note>
-        <output>⏭ Manual verification deferred to QA: {task.verify}</output>
+    <substep name="spawn_subagent">
+      <note>**CRITICAL:** Use Task tool with subagent_type for execution.</note>
+      <note>Subagent gets Edit/Write/Bash access to make changes and run verification.</note>
+
+      <action>Use Task tool with:
+        - description: "Execute task {task.id}: {task.name}"
+        - prompt: {subagentPrompt built above}
+        - subagent_type: "general-purpose"
+      </action>
+
+      <action>Wait for subagent to complete</action>
+      <action>Parse subagent response for SUCCESS or FAILURE prefix</action>
+    </substep>
+
+    <substep name="handle_subagent_result">
+      <branch condition="subagent reports SUCCESS">
+        <output>✓ Task {task.id} completed: {subagent summary}</output>
         <action>Update plan.xml: Add `completed="true" completed_at="{ISO timestamp}"` to the task element</action>
         <action>Write updated plan file</action>
-        <note>Task marked complete immediately - manual verification deferred but task is done from implementation perspective</note>
+        <note>Persist immediately - ensures progress saved before potential context issues</note>
       </branch>
-    </substep>
 
-    <substep name="confirm_done_criteria">
-      <action>Verify the done criteria: {task.done}</action>
-      <output>Done criteria met: {task.done}</output>
+      <branch condition="subagent reports FAILURE">
+        <output>✗ Task {task.id} failed: {subagent failure reason}</output>
+
+        <action>Use AskUserQuestion tool with:
+          - header: "Task Failed"
+          - question: "Task '{task.name}' failed: {failure reason}. How should I proceed?"
+          - options:
+            - label: "Fix manually and continue", description: "I'll fix this myself, then continue with remaining tasks"
+            - label: "Skip this task", description: "Mark as incomplete and move to next task"
+            - label: "Stop implementation", description: "Halt implementation to investigate"
+          - multiSelect: false
+        </action>
+
+        <branch condition="user selects 'Fix manually and continue'">
+          <output>Pausing for manual fix. Run /festina-implement {taskId} when ready to continue.</output>
+          <action>Exit - do not mark task complete</action>
+        </branch>
+
+        <branch condition="user selects 'Skip this task'">
+          <output>Skipping task {task.id}. Continuing with remaining tasks.</output>
+          <note>Do NOT mark as completed - remains incomplete for later attention</note>
+          <action>Continue to next task in executionOrder</action>
+        </branch>
+
+        <branch condition="user selects 'Stop implementation'">
+          <output>
+Implementation stopped at task {task.id}.
+{completed}/{total} tasks complete.
+
+To resume later:
+/clear
+/festina-implement {taskId}
+          </output>
+          <action>Exit</action>
+        </branch>
+      </branch>
+
+      <branch condition="subagent response unclear (no SUCCESS/FAILURE prefix)">
+        <output>Warning: Subagent response unclear. Checking verification manually.</output>
+        <branch condition="task.verify is automated command">
+          <command>{task.verify}</command>
+          <branch condition="command succeeds">
+            <output>✓ Verification passed (manual check)</output>
+            <action>Update plan.xml: Add `completed="true" completed_at="{ISO timestamp}"` to the task element</action>
+            <action>Write updated plan file</action>
+          </branch>
+          <branch condition="command fails">
+            <action>Treat as FAILURE - trigger user question above</action>
+          </branch>
+        </branch>
+        <branch condition="task.type is 'manual' OR task.verify starts with 'Manual:'">
+          <output>⏭ Manual verification deferred to QA</output>
+          <action>Update plan.xml: Add `completed="true" completed_at="{ISO timestamp}"` to the task element</action>
+          <action>Write updated plan file</action>
+        </branch>
+      </branch>
     </substep>
   </step>
 
   <step name="verify_implementation_quality">
+    <note>**Quality verification runs in orchestrator after all tasks complete.**</note>
+    <note>These checks (TODO scan, requirement trace, wiring check) examine the full codebase and must run in orchestrator context, not subagents.</note>
     <note>Verify implementation achieved spec goals, not just task completion (GSD verifier pattern)</note>
     <note>Work backward from requirements to confirm implementation exists</note>
 

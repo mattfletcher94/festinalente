@@ -110,8 +110,8 @@
       <expect>VSCode extension builds successfully (exit code 0)</expect>
     </check>
     <check id="V-B2" type="command" severity="error">
-      <run>pnpm kanban:build</run>
-      <expect>Kanban package builds successfully (exit code 0)</expect>
+      <run>pnpm festinalente:build</run>
+      <expect>Festina Lente package builds successfully (exit code 0)</expect>
     </check>
     <check id="V-A1" type="command" severity="error">
       <run>pnpm check:dpdm</run>

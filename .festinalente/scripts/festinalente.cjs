@@ -1650,12 +1650,76 @@ function createXmlParserComputer() {
 		parser.parse(content);
 		return true;
 	}
+	/**
+	
+	* Parse context file elements from a task.
+	
+	*/
+	function parseContextFiles(context) {
+		if (!context) return [];
+		const contextObj = context;
+		const file = contextObj.file;
+		if (Array.isArray(file)) return file.map((f) => {
+			if (typeof f === "string") return f.trim();
+			if (typeof f === "object" && f && "_text" in f) return String(f._text).trim();
+			return "";
+		}).filter(Boolean);
+		if (typeof file === "string") return [file.trim()];
+		if (typeof file === "object" && file && "_text" in file) return [String(file._text).trim()];
+		return [];
+	}
+	/**
+	
+	* Extract text content from an element.
+	
+	*/
+	function extractText(element) {
+		if (typeof element === "string") return element.trim();
+		if (typeof element === "object" && element && "_text" in element) return String(element._text).trim();
+		return "";
+	}
+	function parsePlanTask(content, taskId) {
+		const result = parser.parse(content);
+		const plan = result.plan;
+		const tasks = plan.tasks?.task;
+		if (!tasks) return null;
+		const taskList = Array.isArray(tasks) ? tasks : [tasks];
+		const found = taskList.find((t) => String(t.id) === taskId);
+		if (!found) return null;
+		return {
+			taskId: String(found.id || ""),
+			name: extractText(found.name),
+			files: extractText(found.files),
+			requirements: extractText(found.requirements),
+			pattern: extractText(found.pattern),
+			context: parseContextFiles(found.context),
+			action: extractText(found.action),
+			verify: extractText(found.verify),
+			done: extractText(found.done),
+			completed: found.completed === "true" || found.completed === true
+		};
+	}
+	function parsePlanTaskContext(content, taskId) {
+		const result = parser.parse(content);
+		const plan = result.plan;
+		const tasks = plan.tasks?.task;
+		if (!tasks) return null;
+		const taskList = Array.isArray(tasks) ? tasks : [tasks];
+		const found = taskList.find((t) => String(t.id) === taskId);
+		if (!found) return null;
+		return {
+			taskId: String(found.id || ""),
+			files: parseContextFiles(found.context)
+		};
+	}
 	return {
 		parseTaskXml,
 		parseSpecXml,
 		parsePlanXml,
 		parseQuickXml,
-		validateXml
+		validateXml,
+		parsePlanTask,
+		parsePlanTaskContext
 	};
 }
 
@@ -12191,6 +12255,72 @@ function createTaskHandler(deps) {
 	}
 	/**
 	
+	* Get a single task from plan.xml by task ID.
+	
+	*
+	
+	* @param args - Command arguments: [festina-task-id, plan-task-id].
+	
+	* @returns The plan task details or an error.
+	
+	*/
+	function getPlanTask(args) {
+		if (args.length < 2) return error("Usage: get-plan-task <festina-task-id> <plan-task-id>");
+		const festinaTaskId = args[0];
+		const planTaskId = args[1];
+		if (!fs$3.exists(TASKS_DIR$3)) return error(`${TASKS_DIR$3}/ directory not found. Run npx festinalente first.`);
+		const found = findTaskFile(festinaTaskId);
+		if (!found) return error(`Task ${festinaTaskId} not found in ${TASKS_DIR$3}/`);
+		const planPath = fs$3.joinPath(TASKS_DIR$3, found.folderId, "plan.xml").replace(/\\/g, "/");
+		if (!fs$3.exists(planPath)) return error(`Plan file not found at ${planPath}`);
+		const readResult = fs$3.readFile(planPath);
+		if (!readResult.ok) return error(`Failed to read plan file: ${readResult.error.message}`);
+		const parsed = xmlParser.parsePlanTask(readResult.value, planTaskId);
+		if (!parsed) return error(`Task ${planTaskId} not found in plan.xml`);
+		return success({
+			taskId: parsed.taskId,
+			name: parsed.name,
+			files: parsed.files,
+			requirements: parsed.requirements,
+			pattern: parsed.pattern,
+			context: parsed.context,
+			action: parsed.action,
+			verify: parsed.verify,
+			done: parsed.done,
+			completed: parsed.completed
+		});
+	}
+	/**
+	
+	* Get the context files for a task from plan.xml.
+	
+	*
+	
+	* @param args - Command arguments: [festina-task-id, plan-task-id].
+	
+	* @returns The context file paths or an error.
+	
+	*/
+	function getPlanTaskContext(args) {
+		if (args.length < 2) return error("Usage: get-plan-task-context <festina-task-id> <plan-task-id>");
+		const festinaTaskId = args[0];
+		const planTaskId = args[1];
+		if (!fs$3.exists(TASKS_DIR$3)) return error(`${TASKS_DIR$3}/ directory not found. Run npx festinalente first.`);
+		const found = findTaskFile(festinaTaskId);
+		if (!found) return error(`Task ${festinaTaskId} not found in ${TASKS_DIR$3}/`);
+		const planPath = fs$3.joinPath(TASKS_DIR$3, found.folderId, "plan.xml").replace(/\\/g, "/");
+		if (!fs$3.exists(planPath)) return error(`Plan file not found at ${planPath}`);
+		const readResult = fs$3.readFile(planPath);
+		if (!readResult.ok) return error(`Failed to read plan file: ${readResult.error.message}`);
+		const parsed = xmlParser.parsePlanTaskContext(readResult.value, planTaskId);
+		if (!parsed) return error(`Task ${planTaskId} not found in plan.xml`);
+		return success({
+			taskId: parsed.taskId,
+			files: parsed.files
+		});
+	}
+	/**
+	
 	* Get command definitions.
 	
 	*/
@@ -12199,7 +12329,9 @@ function createTaskHandler(deps) {
 			defineCommand("find-task", "Find a task by ID", "find-task <id>", findTask),
 			defineCommand("list-tasks", "List all tasks with optional filtering", "list-tasks [--status=X] [--exclude-status=X] [--label=X] [--priority=X]", listTasks),
 			defineCommand("delete-task", "Delete a task (backlog status only)", "delete-task <id>", deleteTask),
-			defineCommand("next-id", "Get the next available task ID", "next-id --title=\"Task title\"", nextId)
+			defineCommand("next-id", "Get the next available task ID", "next-id --title=\"Task title\"", nextId),
+			defineCommand("get-plan-task", "Get a single task from plan.xml by task ID", "get-plan-task <festina-task-id> <plan-task-id>", getPlanTask),
+			defineCommand("get-plan-task-context", "Get context files for a task from plan.xml", "get-plan-task-context <festina-task-id> <plan-task-id>", getPlanTaskContext)
 		];
 	}
 	return {
@@ -12207,6 +12339,8 @@ function createTaskHandler(deps) {
 		listTasks,
 		deleteTask,
 		nextId,
+		getPlanTask,
+		getPlanTaskContext,
 		getCommands
 	};
 }

@@ -54,6 +54,30 @@ export interface ParsedQuick {
 }
 
 /**
+ * Parsed plan task item.
+ */
+export interface ParsedPlanTask {
+  readonly taskId: string;
+  readonly name: string;
+  readonly files: string;
+  readonly requirements: string;
+  readonly pattern: string;
+  readonly context: readonly string[];
+  readonly action: string;
+  readonly verify: string;
+  readonly done: string;
+  readonly completed: boolean;
+}
+
+/**
+ * Parsed plan task context.
+ */
+export interface ParsedPlanTaskContext {
+  readonly taskId: string;
+  readonly files: readonly string[];
+}
+
+/**
  * XML parser computer interface.
  */
 export interface XmlParserComputer {
@@ -96,6 +120,24 @@ export interface XmlParserComputer {
    * @returns True if valid, throws on error.
    */
   readonly validateXml: (content: string) => boolean;
+
+  /**
+   * Parse a single task from a plan.xml file by task ID.
+   *
+   * @param content - The XML content to parse.
+   * @param taskId - The task ID to extract.
+   * @returns Parsed plan task or null if not found.
+   */
+  readonly parsePlanTask: (content: string, taskId: string) => ParsedPlanTask | null;
+
+  /**
+   * Parse context files for a task from a plan.xml file.
+   *
+   * @param content - The XML content to parse.
+   * @param taskId - The task ID to extract context for.
+   * @returns Parsed plan task context or null if not found.
+   */
+  readonly parsePlanTaskContext: (content: string, taskId: string) => ParsedPlanTaskContext | null;
 }
 
 /**
@@ -198,11 +240,95 @@ export function createXmlParserComputer(): XmlParserComputer {
     return true;
   }
 
+  /**
+   * Parse context file elements from a task.
+   */
+  function parseContextFiles(context: unknown): readonly string[] {
+    if (!context) return [];
+    const contextObj = context as Record<string, unknown>;
+    const file = contextObj.file;
+
+    if (Array.isArray(file)) {
+      return file.map((f) => {
+        if (typeof f === 'string') return f.trim();
+        if (typeof f === 'object' && f && '_text' in f) return String(f._text).trim();
+        return '';
+      }).filter(Boolean);
+    }
+
+    if (typeof file === 'string') {
+      return [file.trim()];
+    }
+
+    if (typeof file === 'object' && file && '_text' in file) {
+      return [String((file as Record<string, unknown>)._text).trim()];
+    }
+
+    return [];
+  }
+
+  /**
+   * Extract text content from an element.
+   */
+  function extractText(element: unknown): string {
+    if (typeof element === 'string') return element.trim();
+    if (typeof element === 'object' && element && '_text' in element) {
+      return String((element as Record<string, unknown>)._text).trim();
+    }
+    return '';
+  }
+
+  function parsePlanTask(content: string, taskId: string): ParsedPlanTask | null {
+    const result = parser.parse(content);
+    const plan = result.plan;
+    const tasks = plan.tasks?.task;
+
+    if (!tasks) return null;
+
+    const taskList = Array.isArray(tasks) ? tasks : [tasks];
+    const found = taskList.find((t: Record<string, unknown>) => String(t.id) === taskId);
+
+    if (!found) return null;
+
+    return {
+      taskId: String(found.id || ''),
+      name: extractText(found.name),
+      files: extractText(found.files),
+      requirements: extractText(found.requirements),
+      pattern: extractText(found.pattern),
+      context: parseContextFiles(found.context),
+      action: extractText(found.action),
+      verify: extractText(found.verify),
+      done: extractText(found.done),
+      completed: found.completed === 'true' || found.completed === true,
+    };
+  }
+
+  function parsePlanTaskContext(content: string, taskId: string): ParsedPlanTaskContext | null {
+    const result = parser.parse(content);
+    const plan = result.plan;
+    const tasks = plan.tasks?.task;
+
+    if (!tasks) return null;
+
+    const taskList = Array.isArray(tasks) ? tasks : [tasks];
+    const found = taskList.find((t: Record<string, unknown>) => String(t.id) === taskId);
+
+    if (!found) return null;
+
+    return {
+      taskId: String(found.id || ''),
+      files: parseContextFiles(found.context),
+    };
+  }
+
   return {
     parseTaskXml,
     parseSpecXml,
     parsePlanXml,
     parseQuickXml,
     validateXml,
+    parsePlanTask,
+    parsePlanTaskContext,
   };
 }
