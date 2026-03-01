@@ -4,11 +4,12 @@ title: "Context Selection"
 type: feature
 tldr: "Tiered loading of relevant docs for task implementation"
 summary: "Smart context selection loads relevant product and engineering docs at appropriate detail levels (minimal/standard/full) based on task needs, with token estimation."
-keywords: [context, selection, tiers, minimal, standard, full]
+keywords: [context, selection, tiers, minimal, standard, full, subagent]
 aliases: [select-context, smart-context, context-loading]
 boundary: "Does NOT load full doc content by default; uses tiered approach for token efficiency"
 related: [docs/search, tasks/implement]
-updated: 2026-02-25
+updated: 2026-03-01
+verified: 2026-03-01
 ---
 
 # Context Selection
@@ -50,7 +51,7 @@ flowchart TD
 
 **Implementation context:**
 ```bash
-node .kanban/scripts/select-context.cjs 001 --tier=standard --max=5
+node .festinalente/scripts/select-context.cjs 001 --tier=standard --max=5
 ```
 - Loads up to 5 docs at standard tier
 - Returns JSON with doc content and token estimates
@@ -61,13 +62,37 @@ node .kanban/scripts/select-context.cjs 001 --tier=standard --max=5
 
 **Summary:** Tiered loading with configurable limits.
 
+## Task-Level Context Blocks
+
+Plan.xml tasks can include explicit `<context>` blocks that specify files needed for that task:
+
+```xml
+<task id="1">
+  <name>Add validation to auth routes</name>
+  <context>
+    <file path="src/routes/auth.ts" />
+    <file path="src/utils/validation.ts" />
+  </context>
+  <action>Add input validation</action>
+</task>
+```
+
+When subagents execute tasks, the `<context>` block provides:
+- **Explicit file paths** the subagent should read
+- **Focused scope** so subagent loads only relevant code
+- **Token efficiency** by avoiding broad codebase scanning
+
+The orchestrator parses these context blocks and passes them to subagents, ensuring each subagent starts with exactly the files it needs rather than searching the codebase.
+
+**Summary:** Task-level context enables precise file loading for subagent execution.
+
 ## Examples
 
 ### Typical Usage
 
 ```bash
 # Standard context for task 001
-node .kanban/scripts/select-context.cjs 001 --tier=standard --max=5
+node .festinalente/scripts/select-context.cjs 001 --tier=standard --max=5
 
 # Output:
 # {
@@ -106,6 +131,7 @@ What this feature does NOT do:
 
 - **Tasks**: Reads `affects` and `engineering` fields
 - **Implementation**: Provides context during coding
+- **Subagents**: Context blocks passed to spawned subagents
 - **Freshness**: Can be combined with freshness check
 
 ## Limitations

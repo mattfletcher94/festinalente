@@ -241,6 +241,11 @@ terms:
     definition: "extension.ts that coordinates capabilities and computers"
     auto_generated: true
 
+  - term: "subagent"
+    aliases: ["child-agent", "spawned-agent", "task-agent"]
+    domain: engineering
+    definition: "Fresh Claude instance spawned via Task tool for isolated task execution"
+
   - term: "factory-di"
     aliases: ["factory-pattern", "dependency-injection", "di"]
     domain: engineering
