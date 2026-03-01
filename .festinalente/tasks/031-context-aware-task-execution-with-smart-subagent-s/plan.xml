@@ -1,0 +1,345 @@
+<plan task="031-context-aware-task-execution-with-smart-subagent-s" spec="tasks/031-context-aware-task-execution-with-smart-subagent-s/spec.xml" status="approved"
+      complexity="complex" created="2026-03-01" updated="2026-03-01"
+      generated-by="claude" model="claude-opus-4-5-20251101" version="1" iteration="1">
+  <title>Context-Aware Task Execution with Smart Subagent Spawning</title>
+
+  <overview>
+    Transform festina-implement from inline task execution to a subagent orchestration model.
+    Each plan task spawns a fresh general-purpose subagent with explicit file references to read,
+    ensuring clean context. The orchestrator persists task completion after each subagent finishes
+    and runs quality verification only after all tasks complete. This follows the orchestrator
+    pattern (thin orchestrator, delegates to subagents) already established in festina-scope.
+  </overview>
+
+  <approach>
+    <rationale>
+      Following two existing patterns:
+      - Subagent spawning: Task tool with subagent_type in festina-scope at apps/festinalente/src/content/skills/festina-scope/SKILL.md:222-328
+      - Orchestrator pattern: Thin coordination layer that delegates work, documented at .festinalente/engineering/patterns/orchestrator.md
+
+      Key design decisions from scoping:
+      1. All tasks use subagents (no complexity threshold) — ensures fresh context for every task
+      2. File references only in prompts (no embedded code) — keeps prompts lean
+      3. Sequential execution — respects task dependencies via depends attribute
+      4. Quality checks (TODO scan, requirement trace, wiring) stay in orchestrator — run once after all tasks
+      5. Directive loading stays in orchestrator — not passed to subagents
+
+      Trade-off: Slightly higher latency per task (subagent spawn overhead) in exchange for
+      unlimited plan size and guaranteed fresh context.
+    </rationale>
+    <breaking-changes>
+      <change type="schema">
+        <old>Task element has: name, files, requirements, pattern, action, verify, done</old>
+        <new>Task element adds: context element with file children</new>
+        <affects>plan.xml template, festina-plan skill, plan handler (if exists)</affects>
+      </change>
+    </breaking-changes>
+  </approach>
+
+  <inventory>
+    <set name="skills-to-modify" count="2">
+      <item>apps/festinalente/src/content/skills/festina-implement/SKILL.md</item>
+      <item>apps/festinalente/src/content/skills/festina-plan/SKILL.md</item>
+    </set>
+    <set name="cli-handlers-to-modify" count="1">
+      <item>apps/festinalente/src/cli/handlers/task.handler.ts</item>
+    </set>
+    <set name="templates-to-modify" count="1">
+      <item>.festinalente/templates/plan.xml</item>
+    </set>
+  </inventory>
+
+  <tasks>
+    <task id="1" type="auto">
+      <name>Add context element to plan.xml template</name>
+      <files>.festinalente/templates/plan.xml (modify)</files>
+      <requirements>FR6, FR7</requirements>
+      <pattern>Existing task element structure in template</pattern>
+      <context>
+        <file>.festinalente/templates/plan.xml</file>
+      </context>
+      <action>
+        - Add `context` element inside task element after pattern
+        - Context contains `file` children with path attribute
+        - Include comments explaining what goes in context:
+          - Existing files that need to be read before implementation
+          - Pattern reference files
+          - Files that contain imports/types needed
+
+        Current structure (approximate):
+        ```xml
+        &lt;task id="1" type="auto"&gt;
+          &lt;name&gt;...&lt;/name&gt;
+          &lt;files&gt;...&lt;/files&gt;
+          &lt;requirements&gt;...&lt;/requirements&gt;
+          &lt;pattern&gt;...&lt;/pattern&gt;
+          &lt;action&gt;...&lt;/action&gt;
+          &lt;verify&gt;...&lt;/verify&gt;
+          &lt;done&gt;...&lt;/done&gt;
+        &lt;/task&gt;
+        ```
+
+        Change to:
+        ```xml
+        &lt;task id="1" type="auto"&gt;
+          &lt;name&gt;...&lt;/name&gt;
+          &lt;files&gt;...&lt;/files&gt;
+          &lt;requirements&gt;...&lt;/requirements&gt;
+          &lt;pattern&gt;...&lt;/pattern&gt;
+          &lt;context&gt;
+            &lt;file&gt;path/to/existing/file.ts&lt;/file&gt;
+            &lt;file&gt;path/to/pattern/reference.ts&lt;/file&gt;
+          &lt;/context&gt;
+          &lt;action&gt;...&lt;/action&gt;
+          &lt;verify&gt;...&lt;/verify&gt;
+          &lt;done&gt;...&lt;/done&gt;
+        &lt;/task&gt;
+        ```
+      </action>
+      <verify>ls -la .festinalente/templates/plan.xml</verify>
+      <done>Template has context element with file children inside task element</done>
+    </task>
+
+    <task id="2" type="auto" depends="1">
+      <name>Update festina-plan to generate context blocks</name>
+      <files>apps/festinalente/src/content/skills/festina-plan/SKILL.md (modify)</files>
+      <requirements>FR6, FR7</requirements>
+      <pattern>Existing task element documentation at lines 279-386</pattern>
+      <context>
+        <file>apps/festinalente/src/content/skills/festina-plan/SKILL.md</file>
+        <file>.festinalente/templates/plan.xml</file>
+      </context>
+      <action>
+        - Add context element to task template in create_plan_file step
+        - Add note explaining what files to include in context:
+          - Files listed in `files` element that are being modified (not created)
+          - Pattern reference file (from pattern element)
+          - Files that import the target file (to understand usage)
+        - Update task element attributes table to include context
+        - Update task child elements table to include context element
+        - Add example showing context with multiple files
+
+        Key additions to the skill:
+        1. In the task template example, add context element
+        2. Add a table row for context element (Optional, list of files subagent should read)
+        3. Add guidance note: "Context should include files the subagent needs to read for understanding, NOT files being created"
+      </action>
+      <verify>grep -c "context" apps/festinalente/src/content/skills/festina-plan/SKILL.md</verify>
+      <done>festina-plan skill documents and generates context blocks for each task</done>
+    </task>
+
+    <task id="3" type="auto" depends="2">
+      <name>Add get-plan-task and get-plan-task-context CLI commands</name>
+      <files>apps/festinalente/src/cli/handlers/task.handler.ts (modify)</files>
+      <requirements>FR8</requirements>
+      <pattern>Existing findTask function pattern at task.handler.ts:122-154</pattern>
+      <context>
+        <file>apps/festinalente/src/cli/handlers/task.handler.ts</file>
+        <file>apps/festinalente/src/cli/computers/xml-parser.computer.ts</file>
+      </context>
+      <action>
+        - Add `getPlanTask` function to extract a single task from plan.xml by task ID
+        - Add `getPlanTaskContext` function to extract the context files list for a task
+        - Register both commands in getCommands()
+
+        getPlanTask output structure:
+        ```typescript
+        interface PlanTaskResult {
+          taskId: string;
+          name: string;
+          files: string;
+          requirements: string;
+          pattern: string;
+          context: string[];  // Array of file paths
+          action: string;
+          verify: string;
+          done: string;
+          completed: boolean;
+        }
+        ```
+
+        getPlanTaskContext output structure:
+        ```typescript
+        interface PlanTaskContextResult {
+          taskId: string;
+          files: string[];  // Just the context file paths
+        }
+        ```
+
+        Usage:
+        - get-plan-task &lt;festina-task-id&gt; &lt;plan-task-id&gt;
+        - get-plan-task-context &lt;festina-task-id&gt; &lt;plan-task-id&gt;
+      </action>
+      <verify>pnpm --filter festinalente build</verify>
+      <done>CLI can extract individual task and context from plan.xml</done>
+    </task>
+
+    <task id="4" type="auto" depends="3">
+      <name>Transform festina-implement to subagent orchestration model</name>
+      <files>apps/festinalente/src/content/skills/festina-implement/SKILL.md (modify)</files>
+      <requirements>FR1, FR2, FR3, FR4, FR5, FR9</requirements>
+      <pattern>Subagent spawning in festina-scope at SKILL.md:222-328</pattern>
+      <context>
+        <file>apps/festinalente/src/content/skills/festina-implement/SKILL.md</file>
+        <file>apps/festinalente/src/content/skills/festina-scope/SKILL.md</file>
+      </context>
+      <action>
+        - Replace execute_tasks step with subagent orchestration
+        - For each task in executionOrder:
+          1. Extract task context using CLI command
+          2. Build subagent prompt from spec template
+          3. Spawn general-purpose subagent using Task tool
+          4. Wait for subagent result (success/failure)
+          5. Persist completion to plan.xml immediately
+
+        Subagent prompt template (from spec):
+        ```
+        Execute task {id}: "{name}"
+
+        **Read these files first:**
+        {For each file in context:}
+        - {file path}
+
+        **Pattern to follow:**
+        {pattern file path from pattern element, if present}
+
+        **Action:**
+        {content of action element}
+
+        **Verify:** {content of verify element}
+
+        **Done criteria:** {content of done element}
+
+        **Spec reference:** .festinalente/tasks/{taskId}/spec.xml
+        (Read if you need functional requirements or additional context)
+
+        When complete, report:
+        - SUCCESS: {summary of what was done}
+        - FAILURE: {what failed and why}
+        ```
+
+        - Add failure handling: if subagent reports FAILURE after attempts, use AskUserQuestion
+          with options: "Fix manually and continue", "Skip this task", "Stop implementation"
+        - Keep load_smart_context and check_doc_freshness steps (run in orchestrator before tasks)
+        - Keep load_directives step (orchestrator loads, not passed to subagents)
+        - Remove manual verification deferral messages (subagent handles everything)
+      </action>
+      <verify>grep -c "Task tool" apps/festinalente/src/content/skills/festina-implement/SKILL.md</verify>
+      <done>festina-implement spawns subagent for each task with explicit file context</done>
+    </task>
+
+    <task id="5" type="auto" depends="4">
+      <name>Move quality verification to post-all-tasks step</name>
+      <files>apps/festinalente/src/content/skills/festina-implement/SKILL.md (modify)</files>
+      <requirements>FR10</requirements>
+      <pattern>Existing verify_implementation_quality step at lines 246-348</pattern>
+      <context>
+        <file>apps/festinalente/src/content/skills/festina-implement/SKILL.md</file>
+      </context>
+      <action>
+        - Ensure verify_implementation_quality runs AFTER all subagents complete
+        - Keep TODO scan, requirement trace, and wiring check in orchestrator
+        - These checks examine the full codebase, so they must run in orchestrator context
+        - Add a note: "Quality verification runs in orchestrator after all tasks complete"
+
+        Current location: After execute_tasks step (correct)
+        Verify: Step order is execute_tasks → verify_implementation_quality → check_completion
+      </action>
+      <verify>grep -A5 "verify_implementation_quality" apps/festinalente/src/content/skills/festina-implement/SKILL.md | head -10</verify>
+      <done>Quality verification confirmed to run in orchestrator after all tasks</done>
+    </task>
+
+    <task id="6" type="auto" depends="5">
+      <name>Ensure directive compliance stays in orchestrator</name>
+      <files>apps/festinalente/src/content/skills/festina-implement/SKILL.md (modify)</files>
+      <requirements>FR11</requirements>
+      <pattern>Existing load_directives step and directive_compliance step</pattern>
+      <context>
+        <file>apps/festinalente/src/content/skills/festina-implement/SKILL.md</file>
+        <file>apps/festinalente/src/content/partials/directive-compliance.hbs</file>
+      </context>
+      <action>
+        - Verify load_directives step remains at orchestrator level (before execute_tasks)
+        - Verify directive_compliance step remains after check_completion
+        - Add explicit note: "Directive loading and compliance checking runs in orchestrator only.
+          Subagents do not receive directive context — they focus purely on task execution."
+        - No changes needed if these steps are already at orchestrator level (they should be)
+      </action>
+      <verify>grep -c "load_directives" apps/festinalente/src/content/skills/festina-implement/SKILL.md</verify>
+      <done>Directive handling confirmed to stay in orchestrator, not delegated to subagents</done>
+    </task>
+
+    <task id="7" type="auto" depends="6">
+      <name>Build festinalente and validate changes</name>
+      <files>N/A</files>
+      <requirements>FR1-FR11</requirements>
+      <pattern>N/A</pattern>
+      <context>
+        <file>apps/festinalente/package.json</file>
+      </context>
+      <action>
+        - Run festinalente build to ensure all changes compile
+        - Build outputs to .claude/skills/ and .opencode/skills/
+        - Verify the built output reflects all skill modifications
+      </action>
+      <verify>pnpm --filter festinalente build</verify>
+      <done>festinalente builds successfully with all changes</done>
+    </task>
+
+    <task id="8" type="manual" depends="7">
+      <name>Final verification</name>
+      <files>N/A</files>
+      <requirements>FR1-FR11</requirements>
+      <pattern>N/A</pattern>
+      <context></context>
+      <action>
+        - Verify all acceptance criteria from task.xml:
+          1. Complex tasks execute in fresh subagent
+          2. Simple tasks can execute inline (Note: spec says ALL use subagents)
+          3. Orchestrator stays under 30% context usage throughout
+          4. No manual /clear required between tasks
+          5. plan.xml task completion is persisted after each task
+        - Review the generated subagent prompt format
+        - Verify context blocks are documented in festina-plan
+      </action>
+      <verify>Manual: Test all acceptance criteria</verify>
+      <done>All acceptance criteria pass</done>
+    </task>
+  </tasks>
+
+  <testing>
+    <automated>
+      - pnpm --filter festinalente build — validates skill markdown compiles
+      - No unit tests for skills (they're markdown templates)
+    </automated>
+    <manual>
+      - Run /festina-plan on a task and verify context blocks are generated
+      - Run /festina-implement on a multi-task plan and verify subagent spawning
+      - Observe context usage during implementation (should stay under 30%)
+      - Interrupt mid-implementation and resume to verify persistence works
+    </manual>
+    <regression>
+      - Existing festina-plan output format remains compatible
+      - Existing CLI commands (find-task, list-tasks, etc.) still work
+      - Task completion tracking in plan.xml still works
+    </regression>
+  </testing>
+
+  <edge-cases>
+    <case scenario="Subagent fails verification repeatedly">Ask user for resolution options (fix manually, skip, stop)</case>
+    <case scenario="Task has no context files (new file creation)">Empty context block is valid — subagent reads spec if needed</case>
+    <case scenario="Plan has circular dependencies">Detected in parse_plan_tasks step, blocks implementation</case>
+    <case scenario="Subagent reports FAILURE">Orchestrator persists failure state and prompts user</case>
+  </edge-cases>
+
+  <pitfalls>
+    <pitfall issue="Subagents cannot spawn subagents">Task prompt must be complete enough for single-agent execution</pitfall>
+    <pitfall issue="Context blocks too large">Only include file paths, never embed content — subagent reads fresh</pitfall>
+    <pitfall issue="Forgetting spec reference in prompt">Always include spec file path so subagent can read full requirements</pitfall>
+    <pitfall issue="Not persisting completion immediately">Must write plan.xml after each task completes to survive context exhaustion</pitfall>
+  </pitfalls>
+
+  <iterations></iterations>
+  <wip></wip>
+  <completeness></completeness>
+</plan>
