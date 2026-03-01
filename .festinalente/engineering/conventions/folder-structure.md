@@ -176,7 +176,7 @@ Edit .kanban/scripts/next-id.cjs
 # Edit source, then rebuild
 Edit apps/kanban/src/content/skills/kanban-plan/SKILL.md
 Edit apps/kanban/src/scripts/next-id.ts
-pnpm kanban:build
+pnpm festinalente:build
 ```
 
 ## Enforcement

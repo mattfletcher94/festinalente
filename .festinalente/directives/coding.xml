@@ -411,7 +411,7 @@ export function createTasksOrchestrator(deps) {
   </examples>
   <verification>
     <command id="vscode-build" description="Build the VSCode extension">pnpm --filter @mattfletcher94/claudeban-vscode build</command>
-    <command id="kanban-build" description="Build the kanban package">pnpm kanban:build</command>
+    <command id="festinalente-build" description="Build the Festina Lente package">pnpm festinalente:build</command>
     <command id="typecheck" description="Check TypeScript types across all packages">pnpm typecheck</command>
     <command id="dpdm" description="Check for circular dependencies">pnpm check:dpdm</command>
     <manual id="manual-test" description="Manually test the affected functionality"/>

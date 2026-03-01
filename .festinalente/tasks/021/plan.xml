@@ -142,7 +142,7 @@
         const nextId = `${paddedNumber}-${slug}`;
         ```
       </action>
-      <verify>pnpm kanban:build</verify>
+      <verify>pnpm festinalente:build</verify>
       <done>next-id.ts generates slug-based IDs in format {number}-{slug}</done>
     </task>
 
@@ -206,7 +206,7 @@
         }
         ```
       </action>
-      <verify>pnpm kanban:build</verify>
+      <verify>pnpm festinalente:build</verify>
       <done>find-task.ts can locate tasks by numeric prefix (021) or full slug ID (021-support-task-id-slugs)</done>
     </task>
 
@@ -237,7 +237,7 @@
         we may need to update. Check if task.xml has id="021" or id="021-slug".
         Based on spec: folder uses full slug-based ID, so XML id attribute will also use full ID.
       </action>
-      <verify>pnpm kanban:build</verify>
+      <verify>pnpm festinalente:build</verify>
       <done>list-tasks.ts correctly lists tasks with both numeric and slug folder names</done>
     </task>
 
@@ -306,7 +306,7 @@
       <requirements>FR1, FR2, FR3, FR4, FR5, FR6</requirements>
       <pattern>N/A</pattern>
       <action>
-        - Run pnpm kanban:build to verify all scripts compile
+        - Run pnpm festinalente:build to verify all scripts compile
         - Test next-id with title: node .festinalente/scripts/next-id.cjs --title="Test task with long title"
         - Verify output has nextId in format {number}-{slug}
         - Verify slug is truncated to 50 chars max
@@ -322,7 +322,7 @@
 
   <testing>
     <automated>
-      - pnpm kanban:build verifies TypeScript compilation
+      - pnpm festinalente:build verifies TypeScript compilation
       - No unit tests required for this change (CLI scripts, manual verification sufficient)
     </automated>
     <manual>

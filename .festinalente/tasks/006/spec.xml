@@ -53,7 +53,7 @@
   <patterns>
     <pattern name="pnpm workspace filtering">
       Root scripts use pnpm --filter to target specific packages.
-      Reference: package.json:12-15 (kanban:build, vscode:watch, etc.)
+      Reference: package.json:12-15 (festinalente:build, vscode:watch, etc.)
     </pattern>
   </patterns>
 

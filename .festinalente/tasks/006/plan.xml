@@ -135,12 +135,12 @@
       <requirements>FR5</requirements>
       <pattern>pnpm workspace filtering at package.json:12-15</pattern>
       <action>
-        - Add "kanban:publish" script using pnpm --filter pattern (consistent with kanban:build at line 12)
+        - Add "kanban:publish" script using pnpm --filter pattern (consistent with festinalente:build at line 12)
         - Place after existing vscode:install script (line 15)
 
         Current code (lines 12-16):
         ```json
-        "kanban:build": "pnpm --filter claude-kanban build",
+        "festinalente:build": "pnpm --filter claude-kanban build",
         "vscode:watch": "pnpm --filter claude-kanban-vscode watch",
         "vscode:package": "pnpm --filter claude-kanban-vscode package",
         "vscode:install": "pnpm vscode:package && code --install-extension apps/vscode/claude-kanban-vscode-0.1.0.vsix"
@@ -148,7 +148,7 @@
 
         Change to:
         ```json
-        "kanban:build": "pnpm --filter @mattfletcher94/claudeban build",
+        "festinalente:build": "pnpm --filter @mattfletcher94/claudeban build",
         "kanban:publish": "pnpm --filter @mattfletcher94/claudeban publish --no-git-checks",
         "vscode:watch": "pnpm --filter claude-kanban-vscode watch",
         "vscode:package": "pnpm --filter claude-kanban-vscode package",
@@ -156,7 +156,7 @@
         ```
 
         Note: --no-git-checks allows publishing from any branch/state (pnpm default requires clean git state).
-        Also update kanban:build filter to use new package name.
+        Also update festinalente:build filter to use new package name.
       </action>
       <verify>node -e "const p=require('./package.json'); console.log(p.scripts['kanban:publish'])" | grep "pnpm --filter @mattfletcher94/claudeban publish"</verify>
       <done>Root package.json has kanban:publish script using pnpm workspace filter pattern</done>
@@ -207,7 +207,7 @@
         - Run the build to ensure package name changes don't break anything
         - Verify pnpm can resolve the new package name in workspace
       </action>
-      <verify>pnpm kanban:build</verify>
+      <verify>pnpm festinalente:build</verify>
       <done>Build completes successfully with new package name</done>
     </task>
 
@@ -244,7 +244,7 @@
 
   <testing>
     <automated>
-      - pnpm kanban:build (verifies build works with new package name)
+      - pnpm festinalente:build (verifies build works with new package name)
       - TypeScript compilation implicit in build
     </automated>
     <manual>
@@ -275,7 +275,7 @@
       Using @mattfletcher94/claudeban which matches GitHub username. Verified during scoping.
     </pitfall>
     <pitfall issue="pnpm workspace name change requires updating filters">
-      Task 3 updates both kanban:build and adds kanban:publish with new name. Both use consistent filter.
+      Task 3 updates both festinalente:build and adds kanban:publish with new name. Both use consistent filter.
     </pitfall>
     <pitfall issue="Publishing without build creates empty package">
       prepublishOnly script ensures build runs automatically before every publish.
