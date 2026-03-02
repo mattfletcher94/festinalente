@@ -9,7 +9,6 @@
 name: ""
 
 directives:
-  festina-status: []
   festina-create:
     - design
     - github
@@ -27,13 +26,16 @@ directives:
     - github
   festina-rework:
     - coding
+  festina-delete: []
   festina-quick:
     - design
     - coding
-  festina-map-product: []
-  festina-define-product: []
-  festina-map-engineering: []
+  festina-explore: []
   festina-overview: []
+  festina-directive: []
+  festina-map-product: []
+  festina-map-engineering: []
+  festina-define-product: []
 
 settings:
   version: "2.0"

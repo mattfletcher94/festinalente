@@ -14,8 +14,23 @@ Festina Lente captures requirements, specifications, and plans in **persistent X
 
 ## Installation
 
+This package is hosted on GitHub Packages. First, authenticate with GitHub:
+
+```bash
+npm login --registry=https://npm.pkg.github.com --scope=@mattfletcher94
+```
+
+Then install:
+
 ```bash
 npx @mattfletcher94/festinalente
+```
+
+Or add to your `.npmrc`:
+
+```
+@mattfletcher94:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
 ```
 
 ---
