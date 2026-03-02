@@ -1,0 +1,223 @@
+{
+  "name": "@mattfletcher94/festinalente-vscode",
+  "displayName": "Festina Lente",
+  "description": "Make haste slowly. Spec-driven development for AI coding agents.",
+  "version": "0.1.1",
+  "publisher": "festinalente",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mattfletcher94/festinalente"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Festina Lente",
+      "properties": {
+        "festinalente.runtime": {
+          "type": "string",
+          "enum": [
+            "claude",
+            "opencode"
+          ],
+          "default": "claude",
+          "description": "Which AI CLI runtime to use for running skills"
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "festinalente",
+          "title": "Festina Lente",
+          "icon": "resources/kanban-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "festinalente": [
+        {
+          "id": "festinalenteTasks",
+          "name": "Tasks"
+        },
+        {
+          "id": "festinalenteQuicks",
+          "name": "Quicks"
+        },
+        {
+          "id": "festinalenteConfig",
+          "name": "Config"
+        },
+        {
+          "id": "festinalenteDirectives",
+          "name": "Directives"
+        },
+        {
+          "id": "festinalenteProductDocs",
+          "name": "Product Docs"
+        },
+        {
+          "id": "festinalenteEngineeringDocs",
+          "name": "Engineering Docs"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "festinalenteTasks",
+        "contents": "No .festinalente folder found in this workspace.\n\nOpen a folder containing a .festinalente directory to see tasks.",
+        "when": "!festinalente.hasFestinalenteFolder"
+      },
+      {
+        "view": "festinalenteConfig",
+        "contents": "No config.yaml found.\n\nCreate .festinalente/config.yaml to get started.",
+        "when": "festinalente.hasFestinalenteFolder && !festinalente.hasConfigFile"
+      }
+    ],
+    "commands": [
+      {
+        "command": "festinalente.refresh",
+        "title": "Festina Lente: Refresh Tasks",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "festinalente.createTask",
+        "title": "Festina Lente: Create Task - Capture problem, value, and acceptance criteria",
+        "icon": "$(add)"
+      },
+      {
+        "command": "festinalente.findTask",
+        "title": "Festina Lente: Find Task - Search by ID or title",
+        "icon": "$(search)"
+      },
+      {
+        "command": "festinalente.runAction",
+        "title": "Festina Lente: Run Action"
+      },
+      {
+        "command": "festinalente.runNextAction",
+        "title": "Run Next Action",
+        "icon": "$(play)"
+      },
+      {
+        "command": "festinalente.openTaskFolder",
+        "title": "Open Task Folder",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "festinalente.openFile",
+        "title": "Festina Lente: Open File"
+      },
+      {
+        "command": "festinalente.runGlobalAction",
+        "title": "Festina Lente: Run Global Action"
+      },
+      {
+        "command": "festinalente.createQuick",
+        "title": "Festina Lente: Create Quick - Fast implementation for simple fixes",
+        "icon": "$(add)"
+      },
+      {
+        "command": "festinalente.findQuick",
+        "title": "Festina Lente: Find Quick - Search by ID or title",
+        "icon": "$(search)"
+      },
+      {
+        "command": "festinalente.refreshQuicks",
+        "title": "Festina Lente: Refresh Quicks",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "festinalente.createDirective",
+        "title": "Festina Lente: Create Directive",
+        "icon": "$(add)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "festinalente.createTask",
+          "when": "view == festinalenteTasks && festinalente.hasFestinalenteFolder",
+          "group": "navigation@1"
+        },
+        {
+          "command": "festinalente.refresh",
+          "when": "view == festinalenteTasks",
+          "group": "navigation@2"
+        },
+        {
+          "command": "festinalente.findTask",
+          "when": "view == festinalenteTasks && festinalente.hasFestinalenteFolder",
+          "group": "navigation@3"
+        },
+        {
+          "command": "festinalente.createQuick",
+          "when": "view == festinalenteQuicks && festinalente.hasFestinalenteFolder",
+          "group": "navigation@1"
+        },
+        {
+          "command": "festinalente.refreshQuicks",
+          "when": "view == festinalenteQuicks",
+          "group": "navigation@2"
+        },
+        {
+          "command": "festinalente.findQuick",
+          "when": "view == festinalenteQuicks && festinalente.hasFestinalenteFolder",
+          "group": "navigation@3"
+        },
+        {
+          "command": "festinalente.createDirective",
+          "when": "view == festinalenteDirectives && festinalente.hasFestinalenteFolder",
+          "group": "navigation@1"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "festinalente.openTaskFolder",
+          "when": "view == festinalenteTasks && viewItem == task",
+          "group": "inline@1"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
+    "compile": "npm run build",
+    "watch": "npm run build -- --watch",
+    "lint": "eslint src --ext ts",
+    "package": "npm run build && node scripts/package.cjs",
+    "local": "node scripts/local-install.cjs",
+    "prepublishOnly": "npm run package"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^4.5.1",
+    "js-yaml": "^4.1.1"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20.17.12",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.2.1",
+    "esbuild": "^0.27.3",
+    "typescript": "^5.7.0"
+  },
+  "files": [
+    "bin",
+    "festinalente-vscode.vsix"
+  ],
+  "bin": {
+    "festinalente-vscode": "bin/install.cjs"
+  }
+}

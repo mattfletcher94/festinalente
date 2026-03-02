@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<directive name="design" version="2"
+           created="2026-02-20" updated="2026-02-20">
+
+  <description>
+    Enforce minimal, intentional design standards for VSCode extension UI.
+    Prioritizes native VSCode patterns and conventions over custom solutions.
+  </description>
+
+  <context>
+    <principle id="C1" keywords="native,vscode,pattern,convention">
+      Use native VSCode UI patterns. TreeViews, CodeLens, QuickPick, and built-in
+      icons are preferred over custom implementations. Users expect VSCode conventions.
+    </principle>
+
+    <principle id="C2" keywords="minimal,simple,clean,noise">
+      Reduce visual noise ruthlessly. Every UI element must earn its place.
+      VSCode extensions should feel like natural extensions of the editor,
+      not separate applications.
+    </principle>
+
+    <principle id="C3" keywords="intentional,deliberate,purpose,why">
+      Every design decision must have a reason. Before adding any UI element, ask:
+      "What user problem does this solve?" If you cannot articulate the answer,
+      the element should not exist.
+    </principle>
+
+    <principle id="C4" keywords="theme,icon,color">
+      Use VSCode ThemeIcons and ThemeColors exclusively. Never hardcode colors
+      or use custom icons. This ensures the extension works with all VSCode themes.
+    </principle>
+
+    <principle id="C5" keywords="keyboard,shortcut,command">
+      Keyboard-first design. All actions should be accessible via commands
+      that can be bound to keyboard shortcuts. Power users expect this.
+    </principle>
+
+    <principle id="C6" keywords="senior,designer,expert,professional">
+      Think like a senior designer, not a hobby engineer. Senior designers:
+      - Question requirements before implementing
+      - Consider edge cases and error states upfront
+      - Propose alternatives when requirements are unclear
+      - Validate assumptions with user workflows
+      - Reject feature creep that harms UX
+    </principle>
+  </context>
+
+  <process>
+    <rule id="P1" phase="plan">
+      RESEARCH BEFORE DESIGNING. For any new UI feature:
+      1. Check VSCode API for native solutions (TreeView, Webview, QuickPick)
+      2. Study how similar extensions solve the problem
+      3. Document patterns that align with VSCode conventions
+      4. Propose options with tradeoffs, not single solutions
+    </rule>
+
+    <rule id="P2" phase="plan">
+      MAP USER WORKFLOWS. Before designing any interface:
+      1. List the jobs-to-be-done this feature enables
+      2. Identify the primary action (what do users do 80% of the time?)
+      3. Plan command palette integration for keyboard users
+      4. Plan error states and edge cases explicitly
+    </rule>
+
+    <rule id="P3" phase="plan">
+      PROPOSE THREE OPTIONS when UX choices are non-trivial:
+      - Option A: Minimal change (use existing VSCode API)
+      - Option B: Moderate enhancement (custom TreeView or CodeLens)
+      - Option C: Rich solution (Webview panel if truly necessary)
+      Document tradeoffs and recommend one with justification.
+    </rule>
+
+    <rule id="P4" phase="implement">
+      USE VSCODE THEME INTEGRATION:
+      - Icons: new vscode.ThemeIcon('name') or ThemeIcon with ThemeColor
+      - Colors: new vscode.ThemeColor('colorId') for colored icons
+      - Never: Hardcoded hex colors, custom SVGs for standard actions
+    </rule>
+
+    <rule id="P5" phase="implement">
+      COMMAND REGISTRATION:
+      - All user actions should be registered as commands
+      - Commands should have clear titles ("Kanban: Create Task")
+      - Consider adding keybindings for frequent actions
+      - Use context menus sparingly - prefer command palette
+    </rule>
+
+    <rule id="P6" phase="check">
+      VALIDATE DESIGN DECISIONS during review:
+      - Does every element serve a clear purpose?
+      - Are VSCode native patterns used where possible?
+      - Do error states exist and inform the user clearly?
+      - Is the feature accessible via command palette?
+      - Does it work with all VSCode themes?
+    </rule>
+  </process>
+
+  <validation>
+    <check id="V1" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>['"]#[0-9a-fA-F]{3,8}['"]</forbidden>
+      <reason>Hardcoded hex colors break theme compatibility. Use vscode.ThemeColor instead.</reason>
+    </check>
+
+    <check id="V2" type="checklist" severity="error">
+      <item>All interactive elements have clear visual feedback</item>
+      <item>Error states inform the user what went wrong</item>
+      <item>Loading states are handled (don't leave UI frozen)</item>
+      <item>Empty states provide guidance</item>
+    </check>
+
+    <check id="V3" type="checklist" severity="warning">
+      <item>Primary actions accessible via command palette</item>
+      <item>ThemeIcons used instead of custom icons</item>
+      <item>Works correctly in light and dark themes</item>
+      <item>No unnecessary notifications or dialogs</item>
+    </check>
+
+    <check id="V4" type="checklist" severity="info">
+      <item>Design decision documented if non-obvious</item>
+      <item>VSCode API capabilities researched before custom solutions</item>
+      <item>User workflow considered before implementation</item>
+    </check>
+  </validation>
+
+  <examples>
+    <example ref="V1" type="violation">
+      <code><![CDATA[
+// WRONG: Hardcoded color
+const item = new vscode.TreeItem('Task');
+item.iconPath = {
+  light: Uri.file('icons/task-light.svg'),
+  dark: Uri.file('icons/task-dark.svg')
+};
+      ]]></code>
+      <explanation>Custom icon files require maintenance and may not match user's theme.</explanation>
+    </example>
+
+    <example ref="V1" type="correct">
+      <code><![CDATA[
+// CORRECT: ThemeIcon with ThemeColor
+const item = new vscode.TreeItem('Task');
+item.iconPath = new vscode.ThemeIcon(
+  'tasklist',
+  new vscode.ThemeColor('charts.green')
+);
+      ]]></code>
+      <explanation>ThemeIcon with ThemeColor adapts to any VSCode theme automatically.</explanation>
+    </example>
+
+    <example ref="P3" type="violation">
+      <code><![CDATA[
+User: "Add a settings panel"
+
+LLM: "I'll create a Webview panel with React to show settings..."
+
+[Immediately starts implementing complex solution]
+      ]]></code>
+      <explanation>Jumps to complex implementation without considering simpler VSCode-native options.</explanation>
+    </example>
+
+    <example ref="P3" type="correct">
+      <code><![CDATA[
+User: "Add a settings panel"
+
+LLM: "Before implementing, let me understand the requirements:
+
+**Research:** VSCode has built-in Settings UI that extensions can contribute to.
+Many extensions use configuration in package.json contributes.configuration.
+
+**Questions:**
+- How many settings need to be configurable?
+- Are they simple key-value settings or complex structures?
+- Should they be workspace-specific or global?
+
+**Options:**
+A) VSCode Settings contribution (native, searchable, no custom UI)
+B) QuickPick menu for changing settings (familiar pattern, quick access)
+C) Custom Webview panel (full control, but breaks VSCode conventions)
+
+**Recommendation:** Option A - VSCode Settings contribution. Users expect
+settings in File > Preferences > Settings. It's searchable and requires
+no custom UI code.
+
+Should I proceed with Option A, or do you need something more custom?"
+      ]]></code>
+      <explanation>Researches native options first, asks questions, proposes options with tradeoffs.</explanation>
+    </example>
+
+    <example ref="C2" type="correct">
+      <code><![CDATA[
+// CORRECT: Minimal TreeView item
+class TaskItem extends vscode.TreeItem {
+  constructor(task: Task) {
+    super(task.title, vscode.TreeItemCollapsibleState.None);
+    this.description = task.status;
+    this.iconPath = new vscode.ThemeIcon('circle-outline');
+    this.contextValue = 'task';
+  }
+}
+      ]]></code>
+      <explanation>Simple TreeItem using VSCode conventions. Title, description, icon - nothing extra.</explanation>
+    </example>
+  </examples>
+
+</directive>

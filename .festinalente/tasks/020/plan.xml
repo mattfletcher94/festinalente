@@ -1,0 +1,483 @@
+<plan task="020" spec="tasks/020/spec.xml" status="approved"
+      complexity="medium" created="2026-02-26" updated="2026-02-26"
+      generated-by="claude" model="claude-opus-4-5-20251101" version="1" iteration="1">
+  <title>Add Document Symbol Provider for plan.xml files to enable Outline view navigation</title>
+
+  <overview>
+    Implement a DocumentSymbolProvider for plan.xml files that enables VSCode's Outline panel,
+    breadcrumb navigation, and Ctrl+Shift+O quick symbol search. The implementation follows
+    the Capability/Computer separation pattern: plan-parser.computer.ts handles pure XML parsing
+    with line position tracking, plan-symbol.capability.ts wraps the VSCode DocumentSymbolProvider
+    API with EventEmitter for refresh, and tasks.orchestrator.ts coordinates wiring with the
+    existing file watcher.
+  </overview>
+
+  <approach>
+    <rationale>
+      Following three established patterns from the codebase:
+
+      1. **Capability/Computer Separation**: Pure parsing logic in plan-parser.computer.ts
+         (no VSCode imports), DocumentSymbolProvider API wrapping in plan-symbol.capability.ts.
+         Reference: task-parser.computer.ts:1-61 and codelens.capability.ts:18-66
+
+      2. **Factory-DI Pattern**: Both computer and capability use factory functions with typed
+         dependencies. The capability receives parser functions as deps for testability.
+         Reference: codelens.capability.ts:18-66
+
+      3. **EventEmitter Refresh**: Use EventEmitter for onDidChangeDocumentSymbols event,
+         returning a refresh callback that the orchestrator wires to the existing file watcher.
+         Reference: codelens.capability.ts:21-22, 58-60
+
+      Key architectural decisions:
+      - Line position tracking via hybrid approach: parse XML structure with fast-xml-parser,
+        then line-scan the raw text to map element start positions (fast-xml-parser doesn't
+        expose line numbers in parsed output)
+      - Hierarchical symbols: plan root > sections (tasks, testing, edge-cases, pitfalls, notes)
+        > individual items within sections
+      - Status indicators: Unicode prefix (checkmark U+2713 for completed, circle U+25CB for pending)
+      - Symbol kinds mapped semantically: Class for plan root, Module for sections, Method for tasks
+      - Label truncation at 60 characters to keep Outline readable
+    </rationale>
+    <breaking-changes>None</breaking-changes>
+  </approach>
+
+  <inventory>
+    <set name="new-files" count="2">
+      <item>apps/vscode/src/computers/plan-parser.computer.ts</item>
+      <item>apps/vscode/src/capabilities/plan-symbol.capability.ts</item>
+    </set>
+    <set name="modified-files" count="2">
+      <item>apps/vscode/src/orchestrators/tasks.orchestrator.ts</item>
+      <item>apps/vscode/src/extension.ts</item>
+    </set>
+  </inventory>
+
+  <tasks>
+    <task id="1" type="auto" completed="true" completed_at="2026-02-26T10:41:00Z">
+      <name>Create plan-parser computer for XML parsing with line positions</name>
+      <files>apps/vscode/src/computers/plan-parser.computer.ts (create)</files>
+      <requirements>FR2, FR3, FR4, FR5, FR6, FR7, FR8, FR9</requirements>
+      <pattern>XMLParser configuration at apps/vscode/src/computers/task-parser.computer.ts:8-12</pattern>
+      <action>
+        - Create new file apps/vscode/src/computers/plan-parser.computer.ts
+        - Import XMLParser from fast-xml-parser
+        - Define PlanSymbol interface for parsed symbol data:
+          - name: string (label to display)
+          - kind: 'plan' | 'section' | 'task' | 'item'
+          - startLine: number (0-indexed)
+          - endLine: number (0-indexed)
+          - children: PlanSymbol[]
+          - detail?: string (optional detail text)
+          - completed?: boolean (for task status)
+        - Define CreatePlanParserComputerReturn interface with parsePlanSymbols function
+        - Implement createPlanParserComputer factory function:
+          - Initialize XMLParser with ignoreAttributes: false, attributeNamePrefix: '', textNodeName: '_text'
+          - parsePlanSymbols(content: string): PlanSymbol[] - main entry point
+          - buildPositionMap(content: string): Map&lt;string, number&gt; - maps element tags to line numbers
+          - truncateLabel(label: string, maxLength: number): string - truncates with "..."
+          - getTaskStatusPrefix(completed: boolean): string - returns checkmark or circle
+        - Hybrid position tracking approach:
+          - Parse XML to get structure
+          - Scan raw content line-by-line to find element start positions using regex
+          - Match tags like &lt;plan, &lt;tasks&gt;, &lt;task id="1", &lt;testing&gt;, etc.
+        - Return hierarchical PlanSymbol array with plan root containing section children
+
+        Target structure:
+        ```typescript
+        /**
+         * Plan parser computer - pure functions for parsing plan.xml structure.
+         */
+
+        import { XMLParser } from 'fast-xml-parser';
+
+        /**
+         * Parsed symbol data for plan.xml elements.
+         */
+        export interface PlanSymbol {
+          readonly name: string;
+          readonly kind: 'plan' | 'section' | 'task' | 'item';
+          readonly startLine: number;
+          readonly endLine: number;
+          readonly children: PlanSymbol[];
+          readonly detail?: string;
+          readonly completed?: boolean;
+        }
+
+        /**
+         * Return type for the plan parser computer.
+         */
+        export interface CreatePlanParserComputerReturn {
+          /**
+           * Parse plan.xml content and return hierarchical symbols.
+           *
+           * @param content - Raw XML content of plan.xml file.
+           * @returns Array of plan symbols (typically one root plan element).
+           */
+          parsePlanSymbols(content: string): PlanSymbol[];
+        }
+
+        /**
+         * Create a plan parser computer for parsing plan.xml files.
+         *
+         * @returns Plan parser computer with parsing functions.
+         */
+        export function createPlanParserComputer(): CreatePlanParserComputerReturn {
+          const parser = new XMLParser({
+            ignoreAttributes: false,
+            attributeNamePrefix: '',
+            textNodeName: '_text',
+          });
+
+          function buildLineMap(content: string): Map&lt;string, number&gt; {
+            // Line-scan to find element positions
+          }
+
+          function truncateLabel(label: string, maxLength = 60): string {
+            if (label.length &lt;= maxLength) return label;
+            return label.slice(0, maxLength - 3) + '...';
+          }
+
+          function getStatusPrefix(completed: boolean): string {
+            return completed ? '\u2713 ' : '\u25CB ';
+          }
+
+          function parsePlanSymbols(content: string): PlanSymbol[] {
+            try {
+              const lineMap = buildLineMap(content);
+              const parsed = parser.parse(content);
+              // Build symbol hierarchy from parsed XML
+              // Return array with plan root
+            } catch (err) {
+              console.warn('Failed to parse plan.xml:', err);
+              return [];
+            }
+          }
+
+          return { parsePlanSymbols };
+        }
+        ```
+      </action>
+      <verify>pnpm --filter @mattfletcher94/claudeban-vscode build</verify>
+      <done>plan-parser.computer.ts exports createPlanParserComputer, TypeScript compiles, no circular deps</done>
+    </task>
+
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-02-26T10:42:00Z">
+      <name>Create plan-symbol capability wrapping DocumentSymbolProvider</name>
+      <files>apps/vscode/src/capabilities/plan-symbol.capability.ts (create)</files>
+      <requirements>FR1, FR6, FR10</requirements>
+      <pattern>EventEmitter refresh at apps/vscode/src/capabilities/codelens.capability.ts:18-66</pattern>
+      <action>
+        - Create new file apps/vscode/src/capabilities/plan-symbol.capability.ts
+        - Import vscode and PlanSymbol type from plan-parser.computer
+        - Define PlanSymbolCapabilityDeps interface:
+          - parsePlanSymbols: (content: string) =&gt; PlanSymbol[]
+        - Define CreatePlanSymbolCapabilityReturn interface:
+          - createDocumentSymbolProvider: () =&gt; vscode.DocumentSymbolProvider
+          - createRefreshCallback: () =&gt; () =&gt; void
+        - Implement createPlanSymbolCapability factory:
+          - Create EventEmitter&lt;void&gt; for onDidChangeDocumentSymbols
+          - Implement provideDocumentSymbols method:
+            - Get document text via document.getText()
+            - Call deps.parsePlanSymbols(text)
+            - Convert PlanSymbol[] to vscode.DocumentSymbol[]
+            - Map kind to vscode.SymbolKind (plan=Class, section=Module, task=Method, item=Property)
+            - Create Range from startLine/endLine
+          - Return provider and refresh callback
+
+        Target structure:
+        ```typescript
+        /**
+         * Plan symbol capability - mechanism for VSCode DocumentSymbolProvider.
+         */
+
+        import * as vscode from 'vscode';
+        import type { PlanSymbol } from '../computers/plan-parser.computer';
+
+        /**
+         * Dependencies for the plan symbol capability.
+         */
+        export interface PlanSymbolCapabilityDeps {
+          readonly parsePlanSymbols: (content: string) =&gt; PlanSymbol[];
+        }
+
+        /**
+         * Return type for the plan symbol capability.
+         */
+        export interface CreatePlanSymbolCapabilityReturn {
+          /**
+           * Create a DocumentSymbolProvider for plan.xml files.
+           */
+          createDocumentSymbolProvider(): vscode.DocumentSymbolProvider;
+
+          /**
+           * Create a refresh callback to trigger symbol update.
+           */
+          createRefreshCallback(): () =&gt; void;
+        }
+
+        /**
+         * Create a plan symbol capability for Outline navigation.
+         *
+         * @param deps - Dependencies for the capability.
+         * @returns Plan symbol capability with provider factory.
+         */
+        export function createPlanSymbolCapability(
+          deps: PlanSymbolCapabilityDeps
+        ): CreatePlanSymbolCapabilityReturn {
+          const onDidChangeSymbols = new vscode.EventEmitter&lt;void&gt;();
+
+          function mapKindToSymbolKind(kind: PlanSymbol['kind']): vscode.SymbolKind {
+            switch (kind) {
+              case 'plan': return vscode.SymbolKind.Class;
+              case 'section': return vscode.SymbolKind.Module;
+              case 'task': return vscode.SymbolKind.Method;
+              case 'item': return vscode.SymbolKind.Property;
+            }
+          }
+
+          function convertToDocumentSymbol(
+            symbol: PlanSymbol,
+            document: vscode.TextDocument
+          ): vscode.DocumentSymbol {
+            const range = new vscode.Range(
+              symbol.startLine, 0,
+              symbol.endLine, document.lineAt(symbol.endLine).text.length
+            );
+            const selectionRange = new vscode.Range(symbol.startLine, 0, symbol.startLine, 0);
+
+            const docSymbol = new vscode.DocumentSymbol(
+              symbol.name,
+              symbol.detail || '',
+              mapKindToSymbolKind(symbol.kind),
+              range,
+              selectionRange
+            );
+
+            docSymbol.children = symbol.children.map(child =&gt;
+              convertToDocumentSymbol(child, document)
+            );
+
+            return docSymbol;
+          }
+
+          function createDocumentSymbolProvider(): vscode.DocumentSymbolProvider {
+            return {
+              provideDocumentSymbols(
+                document: vscode.TextDocument,
+                _token: vscode.CancellationToken
+              ): vscode.DocumentSymbol[] {
+                const content = document.getText();
+                const symbols = deps.parsePlanSymbols(content);
+                return symbols.map(s =&gt; convertToDocumentSymbol(s, document));
+              },
+            };
+          }
+
+          function createRefreshCallback(): () =&gt; void {
+            return () =&gt; onDidChangeSymbols.fire();
+          }
+
+          return {
+            createDocumentSymbolProvider,
+            createRefreshCallback,
+          };
+        }
+        ```
+      </action>
+      <verify>pnpm --filter @mattfletcher94/claudeban-vscode build</verify>
+      <done>plan-symbol.capability.ts exports createPlanSymbolCapability, TypeScript compiles</done>
+    </task>
+
+    <task id="3" type="auto" depends="2" completed="true" completed_at="2026-02-26T10:43:00Z">
+      <name>Add plan symbol provider to tasks orchestrator</name>
+      <files>apps/vscode/src/orchestrators/tasks.orchestrator.ts (modify)</files>
+      <requirements>FR1, FR10</requirements>
+      <pattern>CodeLens provider pattern at apps/vscode/src/orchestrators/tasks.orchestrator.ts:197-208</pattern>
+      <action>
+        - Import createPlanParserComputer from computers/plan-parser.computer
+        - Import createPlanSymbolCapability from capabilities/plan-symbol.capability
+        - Initialize plan parser computer alongside existing taskParser (line ~93)
+        - Initialize plan symbol capability with parser dependency (after codelens at ~198)
+        - Create planSymbolProvider via createDocumentSymbolProvider()
+        - Create refreshPlanSymbols via createRefreshCallback()
+        - Add planSymbolProvider to CreateTasksOrchestratorReturn interface
+        - Include refreshPlanSymbols in the combined refresh() function
+        - Return planSymbolProvider in the orchestrator return object
+
+        Current code (lines 91-95):
+        ```typescript
+        // Initialize computers
+        const taskParser = createTaskParserComputer();
+        const taskActions = createTaskActionsComputer();
+        const taskGrouping = createTaskGroupingComputer();
+        ```
+
+        Add after line 95:
+        ```typescript
+        const planParser = createPlanParserComputer();
+        ```
+
+        Current code (lines 197-208):
+        ```typescript
+        // Initialize codelens capability with dependencies
+        const codelens = createCodeLensCapability({
+          parseTaskFromUri,
+          getActions: taskActions.getActions,
+        });
+
+        // Create providers
+        const treeDataProvider = tasksView.createTreeDataProvider();
+        const codeLensProvider = codelens.createCodeLensProvider();
+        ```
+
+        Add after codeLensProvider creation:
+        ```typescript
+        // Initialize plan symbol capability
+        const planSymbol = createPlanSymbolCapability({
+          parsePlanSymbols: planParser.parsePlanSymbols,
+        });
+
+        const planSymbolProvider = planSymbol.createDocumentSymbolProvider();
+        const refreshPlanSymbols = planSymbol.createRefreshCallback();
+        ```
+
+        Update interface (add to CreateTasksOrchestratorReturn around line 32-43):
+        ```typescript
+        /**
+         * DocumentSymbolProvider for plan.xml files.
+         */
+        readonly planSymbolProvider: vscode.DocumentSymbolProvider;
+        ```
+
+        Update refresh function (lines 213-216):
+        ```typescript
+        function refresh(): void {
+          refreshTree();
+          refreshCodeLens();
+          refreshPlanSymbols();
+        }
+        ```
+
+        Update return object (add to line ~338):
+        ```typescript
+        planSymbolProvider,
+        ```
+      </action>
+      <verify>pnpm --filter @mattfletcher94/claudeban-vscode build</verify>
+      <done>tasks.orchestrator.ts exposes planSymbolProvider, refresh includes symbol refresh</done>
+    </task>
+
+    <task id="4" type="auto" depends="3" completed="true" completed_at="2026-02-26T10:44:00Z">
+      <name>Register DocumentSymbolProvider in extension.ts</name>
+      <files>apps/vscode/src/extension.ts (modify)</files>
+      <requirements>FR1</requirements>
+      <pattern>CodeLens registration at apps/vscode/src/extension.ts:138-143</pattern>
+      <action>
+        - Add DocumentSymbolProvider registration after CodeLens registration
+        - Use glob pattern '**/.kanban/tasks/*/plan.xml' to match plan files
+        - Register using vscode.languages.registerDocumentSymbolProvider
+
+        Current code (lines 136-143):
+        ```typescript
+        // --- Register CodeLens ---
+
+        context.subscriptions.push(
+          vscode.languages.registerCodeLensProvider(
+            { pattern: '**/.kanban/tasks/*/task.xml' },
+            tasksOrch.codeLensProvider
+          )
+        );
+        ```
+
+        Add after CodeLens registration:
+        ```typescript
+        // --- Register DocumentSymbolProvider ---
+
+        context.subscriptions.push(
+          vscode.languages.registerDocumentSymbolProvider(
+            { pattern: '**/.kanban/tasks/*/plan.xml' },
+            tasksOrch.planSymbolProvider
+          )
+        );
+        ```
+      </action>
+      <verify>pnpm --filter @mattfletcher94/claudeban-vscode build</verify>
+      <done>DocumentSymbolProvider registered for plan.xml pattern, extension builds</done>
+    </task>
+
+    <task id="5" type="manual" depends="4" completed="true" completed_at="2026-02-26T10:45:00Z">
+      <name>Final verification of all acceptance criteria</name>
+      <files>N/A</files>
+      <requirements>FR1, FR2, FR3, FR4, FR5, FR6, FR7, FR8, FR9, FR10</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Build extension: pnpm --filter @mattfletcher94/claudeban-vscode build
+        - Run circular dependency check: pnpm check:dpdm
+        - Open VSCode with extension loaded
+        - Open a plan.xml file
+        - Verify Outline panel (View > Open View > Outline):
+          - Root shows plan element with task ID and title
+          - Sections visible: tasks, testing, edge-cases, pitfalls
+          - Task items show with status indicators (checkmark/circle)
+        - Verify click navigation:
+          - Click task item in Outline, editor jumps to that line
+        - Verify breadcrumb navigation:
+          - Breadcrumb at top shows current section hierarchy
+        - Verify Ctrl+Shift+O:
+          - Quick symbol picker appears
+          - Can search and filter plan sections
+        - Verify label truncation:
+          - Long labels show "..." after 60 characters
+        - Verify error handling:
+          - Malformed XML returns empty Outline (no crash)
+        - Verify architecture compliance:
+          - plan-parser.computer.ts has no VSCode imports
+          - plan-symbol.capability.ts has no lateral imports
+          - No policy logic in capabilities
+      </action>
+      <verify>Manual: All acceptance criteria verified in VSCode</verify>
+      <done>All acceptance criteria pass, architecture compliant</done>
+    </task>
+  </tasks>
+
+  <testing>
+    <automated>
+      - TypeScript compilation: pnpm --filter @mattfletcher94/claudeban-vscode build
+      - Circular dependency check: pnpm check:dpdm
+    </automated>
+    <manual>
+      - Open plan.xml in editor, verify Outline shows hierarchical structure
+      - Click Outline items, verify editor jumps to correct lines
+      - Verify breadcrumb shows current position in hierarchy
+      - Press Ctrl+Shift+O, verify quick picker shows all symbols
+      - Open malformed XML, verify graceful fallback (empty Outline)
+      - Verify completed tasks show checkmark, pending show circle
+    </manual>
+    <regression>
+      - Existing CodeLens on task.xml still works
+      - File watcher still refreshes tasks tree view
+      - Tasks tree view navigation still works
+    </regression>
+  </testing>
+
+  <edge-cases>
+    <case scenario="Malformed XML content">Try-catch in parser returns empty array, Outline shows nothing (no crash), warning logged to console</case>
+    <case scenario="Empty plan.xml file">Return empty symbol array, Outline shows nothing</case>
+    <case scenario="Plan without tasks section">Show plan root and any other sections present</case>
+    <case scenario="Very long task names">Truncate at 60 characters with "..." suffix</case>
+    <case scenario="Task without completed attribute">Treat as pending (show circle prefix)</case>
+    <case scenario="Plan file changes while open">File watcher triggers refresh callback, symbols update</case>
+  </edge-cases>
+
+  <pitfalls>
+    <pitfall issue="fast-xml-parser line positions">Parser doesn't expose line numbers - use hybrid line-scan approach: parse for structure, regex scan for positions</pitfall>
+    <pitfall issue="Line indexing">VSCode uses 0-based line numbers, ensure consistent indexing throughout</pitfall>
+    <pitfall issue="Symbol range calculation">endLine must be within document bounds - clamp to document.lineCount - 1</pitfall>
+    <pitfall issue="Event coordination">DocumentSymbolProvider doesn't have native onDidChangeDocumentSymbols - the refresh callback fires EventEmitter but VSCode re-queries automatically on document change</pitfall>
+    <pitfall issue="Glob pattern specificity">Use **/.kanban/tasks/*/plan.xml not **/plan.xml to avoid matching non-kanban files</pitfall>
+  </pitfalls>
+
+  <iterations></iterations>
+  <wip></wip>
+  <completeness></completeness>
+</plan>

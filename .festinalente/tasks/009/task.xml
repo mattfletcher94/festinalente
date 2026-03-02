@@ -1,0 +1,47 @@
+<task id="009" status="done" priority="medium" created="2026-02-22" updated="2026-02-22" completed="2026-02-22">
+  <title>Add discovery session button to Tasks view</title>
+
+  <labels>
+    <label>feature</label>
+  </labels>
+
+  <refs spec="tasks/009/spec.xml" plan="tasks/009/plan.xml"/>
+
+  <affects>
+    <doc id="vscode/kanban-view"/>
+  </affects>
+
+  <engineering>
+    <doc id="systems/vscode-extension"/>
+  </engineering>
+
+  <description>Add a comment-discussion icon button next to the existing + button in the KANBAN TASKS header to launch kanban-discover sessions directly from the sidebar.</description>
+
+  <problem>The current + button only creates tasks, but users may want to start a discovery session instead. There is no way to access kanban-discover from the Tasks view, making the discovery workflow less discoverable.</problem>
+
+  <value>Users can choose between creating a task directly or exploring questions first, right from the sidebar. This makes the discovery workflow more accessible and discoverable without requiring knowledge of slash commands.</value>
+
+  <acceptance-criteria>
+Given the KANBAN TASKS view is visible in the sidebar
+When the user looks at the view header
+Then they see a comment-discussion icon button next to the existing + button
+
+Given the user hovers over the discovery button
+When the tooltip appears
+Then it shows a rich markdown tooltip: "**Discovery Session**\nExplore questions and analyze the codebase through Socratic Q&A before creating tasks."
+
+Given the user hovers over the create task button
+When the tooltip appears
+Then it shows a rich markdown tooltip: "**Create Task**\nCreate a new task through conversational Q&A. Captures problem, value, and acceptance criteria."
+
+Given the user clicks the discovery button
+When the action executes
+Then a terminal opens and runs the /kanban-discover command
+
+Given VSCode uses a light or dark theme
+When the discovery button is displayed
+Then the icon uses ThemeIcon and adapts to the current theme
+  </acceptance-criteria>
+
+  <notes></notes>
+</task>

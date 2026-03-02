@@ -1,0 +1,59 @@
+<task id="007" status="done" priority="high" created="2026-02-21" updated="2026-02-21" completed="2026-02-21">
+  <title>Publish VSCode Extension to GitHub Packages</title>
+
+  <labels>
+    <label>feature</label>
+  </labels>
+
+  <refs spec="tasks/007/spec.xml" plan="tasks/007/plan.xml"/>
+
+  <affects>
+    <doc id="distribution/github-packages"/>
+  </affects>
+
+  <engineering>
+    <doc id="systems/distribution"/>
+    <doc id="systems/vscode-extension"/>
+  </engineering>
+
+  <description>
+    Enable installing the VSCode extension from any repo with:
+    npx @mattfletcher94/claudeban-vscode
+  </description>
+
+  <problem>
+    Users cannot easily install the Claude Kanban VSCode extension from any repository.
+    Currently there is no npx-based distribution mechanism for the VSCode extension
+    like there is for the kanban CLI package. Users must manually download and install
+    the .vsix file.
+  </problem>
+
+  <value>
+    Enables quick, single-command installation of the VSCode extension from any repository
+    using npx @mattfletcher94/claudeban-vscode. Matches the existing distribution pattern
+    for the kanban CLI package, providing a consistent installation experience across
+    all Claude Kanban tools.
+  </value>
+
+  <acceptance-criteria>
+    Given a user has npm/npx available
+    And they have access to the GitHub Packages registry
+    When they run npx @mattfletcher94/claudeban-vscode
+    Then the installer finds the .vsix file in the package
+    And runs code --install-extension to install it
+    And shows ANSI-colored output following kanban patterns
+    And displays next steps after successful installation
+
+    Given a user runs npx @mattfletcher94/claudeban-vscode --help
+    Then they see usage information and available flags
+
+    Given a user runs npx @mattfletcher94/claudeban-vscode --version
+    Then they see the package version number
+
+    Given the code CLI is not available or fails
+    When the user runs the installer
+    Then the error from the code command is shown naturally
+  </acceptance-criteria>
+
+  <notes></notes>
+</task>

@@ -1,0 +1,81 @@
+<spec task="026-add-extension-points-sections-to-system-docs" created="2026-02-28" updated="2026-02-28">
+  <title>Add 'Extension Points' sections to system docs</title>
+
+  <context>
+System docs describe architecture well but don't guide how to extend the system. LLMs (and humans) must reverse-engineer extension patterns from existing code.
+
+Evidence: Task 015 had to discover global-actions-view.capability.ts as a template via exploration. This knowledge could be baked into the doc instead.
+
+The value is faster, more consistent implementations - the doc becomes a 'how to add new X' guide, not just 'what X is'.
+  </context>
+
+  <scope>
+    <in-scope>
+      <item>Add Extension Points section template to engineering-system.md template source</item>
+      <item>Add guidance for writing Extension Points to festina-finalize docs-engineering.md source</item>
+      <item>Extension Points section includes: template file, checklist, pitfalls per component type</item>
+    </in-scope>
+    <out-of-scope>
+      <item>Pattern docs - Extension Points only for system docs</item>
+      <item>Convention docs</item>
+      <item>Actually updating existing system docs in .festinalente/engineering/ with extension points (separate task)</item>
+    </out-of-scope>
+  </scope>
+
+  <requirements>
+    <requirement id="FR1">The engineering-system.md template SHALL include an "Extension Points" section placeholder</requirement>
+    <requirement id="FR2">Each extension point subsection SHALL include: template file to copy, checklist of files to modify, common pitfalls</requirement>
+    <requirement id="FR3">The docs-engineering.md skill guidance SHALL explain how to identify and document extension points</requirement>
+    <requirement id="FR4">The docs-engineering.md skill guidance SHALL provide examples of well-written extension point documentation</requirement>
+    <requirement id="FR5">Extension points SHALL be organized by component type (e.g., "Adding a new Capability", "Adding a new Orchestrator")</requirement>
+  </requirements>
+
+  <files>
+    <file path="apps/festinalente/src/content/templates/engineering-system.md" action="modify">Add Extension Points section template after Boundaries section</file>
+    <file path="apps/festinalente/src/content/skills/festina-finalize/docs-engineering.md" action="modify">Add guidance for writing Extension Points sections in system docs</file>
+  </files>
+
+  <patterns>
+    <pattern name="template-structure">Follow existing section structure in engineering-system.md with header, description, and example content</pattern>
+    <pattern name="skill-guidance">Follow existing guidance format in docs-engineering.md with clear steps, examples, and edge cases</pattern>
+  </patterns>
+
+  <research>
+    <product>
+      <finding id="docs/engineering">Engineering docs describe patterns, systems, and conventions. Tasks link via engineering field. Claude reads during scoping/implementation.</finding>
+    </product>
+    <engineering>
+      <finding id="systems/vscode-extension" ref="systems/vscode-extension/_index.md">Current VSCode extension doc has architecture, directory structure, data flow, but no extension guidance</finding>
+      <finding id="patterns/orchestrator" ref="patterns/orchestrator.md:146-164">Validation Checklist pattern shows checklist format that could be used for extension checklists</finding>
+    </engineering>
+    <codebase>
+      <finding path="apps/vscode/src/capabilities/tasks-view.capability.ts">Example capability file that could serve as template reference - shows TreeView pattern with factory DI</finding>
+      <finding path="apps/vscode/src/orchestrators/tasks.orchestrator.ts">Example orchestrator file - shows domain orchestrator structure with command registration</finding>
+      <finding path="apps/festinalente/src/content/templates/engineering-system.md">Source template file to modify</finding>
+      <finding path="apps/festinalente/src/content/skills/festina-finalize/docs-engineering.md">Source skill guidance file to modify</finding>
+    </codebase>
+    <pitfalls>
+      <pitfall issue="Missing template references" mitigation="Extension points should cite specific template files with file:line references"/>
+      <pitfall issue="Component registration omitted" mitigation="Extension points should include full registration checklist (extension.ts, package.json contributes if needed)"/>
+    </pitfalls>
+  </research>
+
+  <constraints>
+    <constraint>Extension Points section must fit naturally in existing template structure</constraint>
+    <constraint>Guidance must be actionable for both LLMs and human developers</constraint>
+  </constraints>
+
+  <dependencies>
+    <external>None</external>
+    <internal>None</internal>
+  </dependencies>
+
+  <risks>
+    <risk impact="low" mitigation="Keep format flexible with placeholders that adapt to system complexity">
+      Extension points format may not fit all system types equally well
+    </risk>
+  </risks>
+
+  <open-questions>
+  </open-questions>
+</spec>

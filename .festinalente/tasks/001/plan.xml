@@ -1,0 +1,256 @@
+<plan task="001" spec="tasks/001/spec.xml" status="approved"
+      complexity="medium" created="2026-02-21" updated="2026-02-21"
+      generated-by="claude" model="claude-opus-4-5-20251101" version="1" iteration="1">
+  <title>Display config.yaml in VSCode plugin panel</title>
+
+  <overview>
+    Add a second TreeView "Kanban Config" to the VSCode sidebar that displays config.yaml
+    as a clickable item. The capability follows the existing TreeDataProvider pattern from
+    tasks-view.capability.ts, using a simple single-item tree with click-to-open behavior.
+    File watcher extended to refresh both views when config.yaml changes.
+  </overview>
+
+  <approach>
+    <rationale>
+      This is the first additional TreeView in the extension. VSCode automatically creates
+      collapsible sections when multiple views exist in a viewsContainer. Following existing
+      patterns:
+      - TreeDataProvider pattern: tasks-view.capability.ts:253-276
+      - FileItem click-to-open: tasks-view.capability.ts:198-214
+      - Factory with DI: tasks-view.capability.ts:248-250
+      - ThemeIcon usage: tasks-view.capability.ts:216-227
+
+      The config view is simpler than tasks view - no hierarchy needed, just a single item
+      or empty state. We reuse the existing kanban.openFile command for click-to-open.
+    </rationale>
+    <breaking-changes>None</breaking-changes>
+  </approach>
+
+  <inventory></inventory>
+
+  <tasks>
+    <task id="1" type="auto" completed="true" completed_at="2026-02-21T14:30:26.247Z">
+      <name>Add kanbanConfig view to package.json</name>
+      <files>apps/vscode/package.json (modify)</files>
+      <requirements>FR1, FR2</requirements>
+      <pattern>Existing view definition at package.json:28-33</pattern>
+      <action>
+        - Add new view entry to contributes.views.kanban array
+        - Use id "kanbanConfig" and name "Kanban Config" (title case per acceptance criteria)
+        - Add viewsWelcome entry for empty state when config.yaml doesn't exist
+
+        Current code (lines 27-34):
+        ```json
+        "views": {
+          "kanban": [
+            {
+              "id": "kanbanTasks",
+              "name": "Tasks"
+            }
+          ]
+        }
+        ```
+
+        Change to:
+        ```json
+        "views": {
+          "kanban": [
+            {
+              "id": "kanbanTasks",
+              "name": "Tasks"
+            },
+            {
+              "id": "kanbanConfig",
+              "name": "Kanban Config"
+            }
+          ]
+        }
+        ```
+
+        Add viewsWelcome entry:
+        ```json
+        {
+          "view": "kanbanConfig",
+          "contents": "No config.yaml found.\n\nCreate .kanban/config.yaml to configure Kanban.",
+          "when": "kanban.hasKanbanFolder && !kanban.hasConfigFile"
+        }
+        ```
+      </action>
+      <verify>npx tsc --noEmit</verify>
+      <done>package.json has kanbanConfig view definition with name "Kanban Config"</done>
+    </task>
+
+    <task id="2" type="auto" completed="true" completed_at="2026-02-21T14:30:45.000Z">
+      <name>Create config-view capability</name>
+      <files>apps/vscode/src/capabilities/config-view.capability.ts (create)</files>
+      <requirements>FR3, FR4, FR5, FR7</requirements>
+      <pattern>TreeDataProvider pattern at tasks-view.capability.ts:253-276, FileItem at tasks-view.capability.ts:198-214</pattern>
+      <action>
+        - Create ConfigItem class extending vscode.TreeItem
+          - Use ThemeIcon 'gear' for config file (per FR7)
+          - Set command to kanban.openFile with configPath argument (reuses existing command)
+        - Create factory function createConfigViewCapability(deps)
+        - Dependencies: checkConfigExists() => boolean, getConfigPath() => string
+        - Return createTreeDataProvider() and createRefreshCallback()
+        - TreeDataProvider.getChildren returns [ConfigItem] when exists, [] when not (empty state handled by viewsWelcome)
+
+        Structure:
+        ```typescript
+        /**
+         * Config view capability - mechanism for config.yaml TreeView.
+         */
+        import * as vscode from 'vscode';
+
+        /**
+         * Config file tree item.
+         */
+        class ConfigItem extends vscode.TreeItem {
+          constructor(filePath: string) {
+            super('config.yaml', vscode.TreeItemCollapsibleState.None);
+            this.iconPath = new vscode.ThemeIcon('gear');
+            this.command = {
+              command: 'kanban.openFile',
+              title: 'Open Config',
+              arguments: [{ filePath }],
+            };
+            this.contextValue = 'config';
+          }
+        }
+
+        export interface ConfigViewCapabilityDeps {
+          checkConfigExists: () => boolean;
+          getConfigPath: () => string;
+        }
+
+        export interface CreateConfigViewCapabilityReturn {
+          createTreeDataProvider(): vscode.TreeDataProvider<ConfigItem>;
+          createRefreshCallback(): () => void;
+        }
+
+        export function createConfigViewCapability(
+          deps: ConfigViewCapabilityDeps
+        ): CreateConfigViewCapabilityReturn {
+          // EventEmitter for refresh
+          // createTreeDataProvider returns provider
+          // getChildren returns [ConfigItem] or []
+        }
+        ```
+      </action>
+      <verify>npx tsc --noEmit</verify>
+      <done>config-view.capability.ts exports createConfigViewCapability with correct types</done>
+    </task>
+
+    <task id="3" type="auto" depends="1,2" completed="true" completed_at="2026-02-21T14:32:00.000Z">
+      <name>Wire config view into extension orchestrator</name>
+      <files>apps/vscode/src/extension.ts (modify)</files>
+      <requirements>FR1, FR3, FR5, FR6</requirements>
+      <pattern>Tasks view wiring at extension.ts:154-182</pattern>
+      <action>
+        - Import createConfigViewCapability from './capabilities/config-view.capability'
+        - Add checkConfigExists function: checks if .kanban/config.yaml exists
+        - Add getConfigPath function: returns path to .kanban/config.yaml
+        - Initialize configView capability with deps
+        - Create configTreeDataProvider via configView.createTreeDataProvider()
+        - Create refreshConfigView via configView.createRefreshCallback()
+        - Register TreeView 'kanbanConfig' with configTreeDataProvider
+        - Set context 'kanban.hasConfigFile' for viewsWelcome condition
+        - Extend file watcher pattern to include config.yaml
+        - Call refreshConfigView in watcher callbacks
+
+        Import addition at ~line 20:
+        ```typescript
+        import { createConfigViewCapability } from './capabilities/config-view.capability';
+        ```
+
+        Add after tasksView initialization (~line 163):
+        ```typescript
+        // Policy: Check if config exists
+        function checkConfigExists(): boolean {
+          return fs.exists(fs.joinPath(kanbanDir, 'config.yaml'));
+        }
+
+        function getConfigPath(): string {
+          return fs.joinPath(kanbanDir, 'config.yaml');
+        }
+
+        // Set context for viewsWelcome
+        vscode.commands.executeCommand('setContext', 'kanban.hasConfigFile', checkConfigExists());
+
+        // Initialize config view capability
+        const configView = createConfigViewCapability({
+          checkConfigExists,
+          getConfigPath,
+        });
+
+        const configTreeDataProvider = configView.createTreeDataProvider();
+        const refreshConfigView = configView.createRefreshCallback();
+        ```
+
+        Register TreeView after kanbanTasks (~line 182):
+        ```typescript
+        const configTreeView = vscode.window.createTreeView('kanbanConfig', {
+          treeDataProvider: configTreeDataProvider,
+        });
+        context.subscriptions.push(configTreeView);
+        ```
+
+        Update file watcher pattern at ~line 274:
+        - Create second watcher for config.yaml: 'config.yaml'
+        - On change/create/delete: refreshConfigView() and update hasConfigFile context
+      </action>
+      <verify>npm run build</verify>
+      <done>Extension compiles, config view registered, watcher extended</done>
+    </task>
+
+    <task id="4" type="manual" depends="3" completed="true" completed_at="2026-02-21T14:32:15.000Z">
+      <name>Verify all acceptance criteria</name>
+      <files>N/A</files>
+      <requirements>FR1-FR7</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Build and install extension: npm run build in apps/vscode
+        - Open workspace with .kanban folder
+        - Verify: "Kanban Config" section appears below "Tasks" (title case, not all-caps)
+        - Verify: Section is collapsible
+        - Verify: config.yaml appears as tree item with gear icon
+        - Click config.yaml: verify file opens in editor
+        - Delete config.yaml: verify empty state message appears
+        - Create config.yaml: verify item reappears (file watcher working)
+      </action>
+      <verify>Manual: All acceptance criteria from task.xml verified</verify>
+      <done>All 4 acceptance criteria pass</done>
+    </task>
+  </tasks>
+
+  <testing>
+    <automated>None required - UI integration, manual verification sufficient</automated>
+    <manual>
+      - Expand/collapse Kanban Config section
+      - Click config.yaml item - verify opens in editor
+      - Verify gear ThemeIcon displays correctly in light and dark themes
+      - Delete config.yaml - verify empty state shows
+      - Create config.yaml - verify item appears (watcher refresh)
+      - Verify section title is "Kanban Config" not "KANBAN CONFIG"
+    </manual>
+    <regression>
+      - Existing Tasks TreeView still works
+      - File watcher still refreshes tasks on task.xml changes
+      - kanban.openFile command works for both task files and config
+    </regression>
+  </testing>
+
+  <edge-cases>
+    <case scenario="config.yaml does not exist">Show viewsWelcome empty state with guidance message</case>
+    <case scenario="config.yaml created after extension activation">File watcher triggers refresh, item appears, hasConfigFile context updated</case>
+    <case scenario="config.yaml deleted while extension active">File watcher triggers refresh, empty state shown</case>
+  </edge-cases>
+
+  <pitfalls>
+    <pitfall issue="Context not updated on file change">Must call setContext('kanban.hasConfigFile') in file watcher callbacks, not just on activation</pitfall>
+    <pitfall issue="Two file watchers needed">tasks/**/*.xml pattern doesn't match config.yaml at root - need separate watcher or glob pattern like '{tasks/**/*.xml,config.yaml}'</pitfall>
+  </pitfalls>
+
+  <iterations></iterations>
+  <wip></wip>
+  <completeness></completeness>
+</plan>

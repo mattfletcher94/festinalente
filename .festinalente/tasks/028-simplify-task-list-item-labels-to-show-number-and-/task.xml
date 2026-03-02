@@ -1,0 +1,36 @@
+<task id="028-simplify-task-list-item-labels-to-show-number-and-" status="done" priority="high" created="2026-02-28" updated="2026-03-01" completed="2026-03-01"
+      github-issue="#14"
+      github-url="https://github.com/mattfletcher94/festinalente/issues/14"
+      github-pr="#21">
+  <title>Simplify task list item labels to show number and title only</title>
+
+  <labels>
+    <label>refactor</label>
+  </labels>
+
+  <refs spec="tasks/028-simplify-task-list-item-labels-to-show-number-and-/spec.xml" plan="tasks/028-simplify-task-list-item-labels-to-show-number-and-/plan.xml"/>
+
+  <affects>
+    <doc id="vscode/kanban-view"/>
+  </affects>
+
+  <engineering>
+    <doc id="systems/vscode-extension"/>
+  </engineering>
+
+  <description>Change task item display in VSCode extension TreeView from full slug to "{number}: {title}" format for cleaner, more scannable task list.</description>
+
+  <problem>The full task slug in the VSCode extension task list creates visual clutter and displays redundant information. The slug contains the title in slugified form, which duplicates what's already shown as the task title. This makes the list harder to scan and wastes horizontal space.</problem>
+
+  <value>A cleaner, more scannable task list that shows just the essential information: the task number for quick reference and the readable title. Users can identify tasks at a glance without parsing long slugified strings.</value>
+
+  <acceptance-criteria>
+Given a task with id "028-simplify-task-list-item-labels-to-show-number-and-"
+And title "Simplify task list item labels to show number and title only"
+When the task is displayed in the VSCode extension TreeView
+Then the label shows "028: Simplify task list item labels to show number and title only"
+And the number is zero-padded to match the task ID format
+  </acceptance-criteria>
+
+  <notes></notes>
+</task>

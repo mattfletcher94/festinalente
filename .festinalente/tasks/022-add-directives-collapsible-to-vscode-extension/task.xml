@@ -1,0 +1,47 @@
+<task id="022-add-directives-collapsible-to-vscode-extension" status="done" priority="medium" created="2026-02-27" updated="2026-02-27" completed="2026-02-27" github-issue="#4" github-url="https://github.com/mattfletcher94/festinalente/issues/4" github-pr="#5">
+  <title>Add directives collapsible to VSCode extension</title>
+
+  <labels>
+    <label>feature</label>
+  </labels>
+
+  <refs spec="tasks/022-add-directives-collapsible-to-vscode-extension/spec.xml" plan="tasks/022-add-directives-collapsible-to-vscode-extension/plan.xml"/>
+
+  <affects>
+    <doc id="vscode/kanban-view"/>
+  </affects>
+
+  <engineering>
+    <doc id="systems/vscode-extension"/>
+  </engineering>
+
+  <description>Add a collapsible DIRECTIVES section to the VSCode kanban view that displays workflows with their assigned directives. Each workflow expands via chevron to reveal its directives.</description>
+
+  <problem>Users cannot see which directives are assigned to which workflow/skill from the VSCode kanban view. They must manually check config files to understand what custom instructions apply to each phase.</problem>
+
+  <value>Quick visibility into directive assignments directly from the sidebar. Users can see at a glance what custom instructions apply to each workflow phase and click to open directive files for editing.</value>
+
+  <acceptance-criteria>
+Given the user opens the VSCode kanban view
+When the view loads
+Then a collapsible "DIRECTIVES" section appears after task columns and before Product Docs
+
+Given the DIRECTIVES section is expanded
+When the user views the section
+Then each workflow (festina-create, festina-scope, etc.) shows as a row with a chevron
+
+Given a workflow has assigned directives
+When the user clicks the workflow chevron to expand
+Then the assigned directives appear as children underneath the workflow
+
+Given a directive exists in the directives folder
+When the user clicks on the directive item
+Then the directive XML file opens in the editor
+
+Given a directive is referenced but the file does not exist
+When the user views the directive item
+Then the directive displays with a warning icon and is non-clickable
+  </acceptance-criteria>
+
+  <notes></notes>
+</task>

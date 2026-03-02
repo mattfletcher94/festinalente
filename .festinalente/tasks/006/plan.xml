@@ -1,0 +1,288 @@
+<plan task="006" spec="tasks/006/spec.xml" status="approved"
+      complexity="medium" created="2026-02-21" updated="2026-02-21"
+      generated-by="claude" model="claude-opus-4-5-20251101" version="1" iteration="1">
+  <title>Publish apps/kanban to GitHub Packages</title>
+
+  <overview>
+    Configure the apps/kanban package for GitHub Packages publishing by updating package.json
+    with the scoped name @mattfletcher94/claudeban, adding publishConfig pointing to npm.pkg.github.com,
+    and creating a kanban:publish script using pnpm workspace filtering. This follows the existing
+    pnpm workspace patterns at package.json:12-15 for consistency.
+  </overview>
+
+  <approach>
+    <rationale>
+      GitHub Packages requires scoped package names matching the GitHub username/org. The package
+      will be renamed from "claude-kanban" to "@mattfletcher94/claudeban" to match the repository
+      owner. Using publishConfig.registry ensures npm publish targets GitHub Packages without
+      requiring a global .npmrc override.
+
+      The prepublishOnly script ensures the build runs before every publish, preventing accidental
+      publishing of stale artifacts. This is standard npm practice.
+
+      The kanban:publish script uses pnpm --filter pattern (established at package.json:12-15)
+      for workspace consistency. Publishing requires running from package directory, so the
+      script uses pnpm --filter to target the package correctly.
+    </rationale>
+    <breaking-changes>
+      <change type="rename">
+        <old>claude-kanban</old>
+        <new>@mattfletcher94/claudeban</new>
+        <affects>
+          apps/kanban/package.json (name field),
+          apps/kanban/bin/install.cjs (PACKAGE_NAME constant, help text)
+        </affects>
+      </change>
+      <change type="config">
+        <old>repository.url: https://github.com/mattfletcher94/claude-kanban</old>
+        <new>repository.url: https://github.com/mattfletcher94/claudeban</new>
+        <affects>apps/kanban/package.json</affects>
+      </change>
+    </breaking-changes>
+  </approach>
+
+  <inventory></inventory>
+
+  <tasks>
+    <task id="1" type="auto" completed="true" completed_at="2026-02-21T15:37:40.341Z">
+      <name>Update apps/kanban/package.json for GitHub Packages</name>
+      <files>apps/kanban/package.json (modify)</files>
+      <requirements>FR1, FR2, FR3, FR4</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Change "name" from "claude-kanban" to "@mattfletcher94/claudeban" (line 2)
+        - Change repository.url from "https://github.com/mattfletcher94/claude-kanban" to "https://github.com/mattfletcher94/claudeban" (line 32)
+        - Add publishConfig object after repository block:
+          ```json
+          "publishConfig": {
+            "registry": "https://npm.pkg.github.com",
+            "access": "restricted"
+          },
+          ```
+        - Add prepublishOnly script to scripts block:
+          ```json
+          "prepublishOnly": "pnpm build"
+          ```
+
+        Current code (apps/kanban/package.json lines 1-5):
+        ```json
+        {
+          "name": "claude-kanban",
+          "version": "1.0.0",
+          "description": "A kanban-style task management system..."
+        ```
+
+        Change to:
+        ```json
+        {
+          "name": "@mattfletcher94/claudeban",
+          "version": "1.0.0",
+          "description": "A kanban-style task management system..."
+        ```
+
+        Current code (lines 30-33):
+        ```json
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/mattfletcher94/claude-kanban"
+        },
+        ```
+
+        Change to:
+        ```json
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/mattfletcher94/claudeban"
+        },
+        "publishConfig": {
+          "registry": "https://npm.pkg.github.com",
+          "access": "restricted"
+        },
+        ```
+      </action>
+      <verify>node -e "const p=require('./apps/kanban/package.json'); console.log(p.name, p.publishConfig?.registry, p.scripts?.prepublishOnly)" | grep "@mattfletcher94/claudeban https://npm.pkg.github.com pnpm build"</verify>
+      <done>package.json has scoped name, correct repository URL, publishConfig with GitHub registry, and prepublishOnly script</done>
+    </task>
+
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-02-21T15:38:00.000Z">
+      <name>Update PACKAGE_NAME in install.cjs</name>
+      <files>apps/kanban/bin/install.cjs (modify)</files>
+      <requirements>FR6, FR7</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Change PACKAGE_NAME constant from 'claude-kanban' to '@mattfletcher94/claudeban' (line 13)
+
+        Current code (line 13):
+        ```javascript
+        const PACKAGE_NAME = 'claude-kanban';
+        ```
+
+        Change to:
+        ```javascript
+        const PACKAGE_NAME = '@mattfletcher94/claudeban';
+        ```
+
+        The help text (line 116) and other references use PACKAGE_NAME constant, so they will
+        automatically reflect the new name.
+      </action>
+      <verify>grep "PACKAGE_NAME = '@mattfletcher94/claudeban'" apps/kanban/bin/install.cjs</verify>
+      <done>PACKAGE_NAME constant updated, help text shows correct npx command</done>
+    </task>
+
+    <task id="3" type="auto" completed="true" completed_at="2026-02-21T15:38:30.000Z">
+      <name>Add kanban:publish script to root package.json</name>
+      <files>package.json (modify)</files>
+      <requirements>FR5</requirements>
+      <pattern>pnpm workspace filtering at package.json:12-15</pattern>
+      <action>
+        - Add "kanban:publish" script using pnpm --filter pattern (consistent with festinalente:build at line 12)
+        - Place after existing vscode:install script (line 15)
+
+        Current code (lines 12-16):
+        ```json
+        "festinalente:build": "pnpm --filter claude-kanban build",
+        "vscode:watch": "pnpm --filter claude-kanban-vscode watch",
+        "vscode:package": "pnpm --filter claude-kanban-vscode package",
+        "vscode:install": "pnpm vscode:package && code --install-extension apps/vscode/claude-kanban-vscode-0.1.0.vsix"
+        ```
+
+        Change to:
+        ```json
+        "festinalente:build": "pnpm --filter @mattfletcher94/claudeban build",
+        "kanban:publish": "pnpm --filter @mattfletcher94/claudeban publish --no-git-checks",
+        "vscode:watch": "pnpm --filter claude-kanban-vscode watch",
+        "vscode:package": "pnpm --filter claude-kanban-vscode package",
+        "vscode:install": "pnpm vscode:package && code --install-extension apps/vscode/claude-kanban-vscode-0.1.0.vsix"
+        ```
+
+        Note: --no-git-checks allows publishing from any branch/state (pnpm default requires clean git state).
+        Also update festinalente:build filter to use new package name.
+      </action>
+      <verify>node -e "const p=require('./package.json'); console.log(p.scripts['kanban:publish'])" | grep "pnpm --filter @mattfletcher94/claudeban publish"</verify>
+      <done>Root package.json has kanban:publish script using pnpm workspace filter pattern</done>
+    </task>
+
+    <task id="4" type="auto" completed="true" completed_at="2026-02-21T15:39:00.000Z">
+      <name>Create .npmrc.template for authentication documentation</name>
+      <files>apps/kanban/.npmrc.template (create)</files>
+      <requirements>FR8</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Create template file documenting GitHub Packages authentication setup
+        - Include instructions for creating PAT with read:packages scope
+        - Show exact .npmrc configuration format
+
+        Create apps/kanban/.npmrc.template:
+        ```
+        # GitHub Packages Authentication
+        #
+        # To install @mattfletcher94/claudeban from GitHub Packages:
+        #
+        # 1. Create a Personal Access Token (PAT) at https://github.com/settings/tokens
+        #    - Select "read:packages" scope for installation
+        #    - Select "write:packages" scope if you need to publish
+        #
+        # 2. Add these lines to your ~/.npmrc (NOT project .npmrc):
+        #
+        //npm.pkg.github.com/:_authToken=YOUR_GITHUB_PAT
+        @mattfletcher94:registry=https://npm.pkg.github.com
+        #
+        # 3. Now you can install:
+        #    npx @mattfletcher94/claudeban
+        #
+        # Note: The package is private. Only users with read access to the
+        # mattfletcher94/claudeban repository can install it.
+        ```
+      </action>
+      <verify>test -f apps/kanban/.npmrc.template &amp;&amp; grep "npm.pkg.github.com" apps/kanban/.npmrc.template</verify>
+      <done>.npmrc.template exists with GitHub Packages authentication instructions</done>
+    </task>
+
+    <task id="5" type="auto" depends="1,2,3,4" completed="true" completed_at="2026-02-21T15:40:00.000Z">
+      <name>Verify build still works with new package name</name>
+      <files>N/A</files>
+      <requirements>FR1-FR8 (integration)</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Run the build to ensure package name changes don't break anything
+        - Verify pnpm can resolve the new package name in workspace
+      </action>
+      <verify>pnpm festinalente:build</verify>
+      <done>Build completes successfully with new package name</done>
+    </task>
+
+    <task id="6" type="manual" depends="5" completed="true" completed_at="2026-02-21T15:40:30.000Z">
+      <name>Verify all acceptance criteria</name>
+      <files>N/A</files>
+      <requirements>FR1-FR8</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        Manual verification of all acceptance criteria:
+
+        - Check apps/kanban/package.json:
+          - name is "@mattfletcher94/claudeban"
+          - publishConfig.registry is "https://npm.pkg.github.com"
+          - repository.url is "https://github.com/mattfletcher94/claudeban"
+          - prepublishOnly script exists and runs build
+
+        - Check apps/kanban/bin/install.cjs:
+          - PACKAGE_NAME is "@mattfletcher94/claudeban"
+          - Run `node apps/kanban/bin/install.cjs --help` and verify npx command shows correct package name
+
+        - Check root package.json:
+          - kanban:publish script exists
+          - Uses pnpm --filter @mattfletcher94/claudeban
+
+        - Check apps/kanban/.npmrc.template:
+          - Contains GitHub Packages auth instructions
+          - References @mattfletcher94 scope
+      </action>
+      <verify>Manual: Run through all acceptance criteria from task.xml</verify>
+      <done>All 5 acceptance criteria from task pass verification</done>
+    </task>
+  </tasks>
+
+  <testing>
+    <automated>
+      - pnpm festinalente:build (verifies build works with new package name)
+      - TypeScript compilation implicit in build
+    </automated>
+    <manual>
+      - Verify help text shows correct npx command: node apps/kanban/bin/install.cjs --help
+      - Actual publish to GitHub Packages (requires GitHub PAT with write:packages)
+      - Installation via npx @mattfletcher94/claudeban (requires GitHub auth setup)
+    </manual>
+    <regression>
+      - Existing build scripts continue to work
+      - VSCode extension builds unaffected (different package)
+    </regression>
+  </testing>
+
+  <edge-cases>
+    <case scenario="User has existing claude-kanban installation">
+      No migration needed - this is first publish. Package name change only affects new installations.
+    </case>
+    <case scenario="User without GitHub auth tries npx">
+      Will receive npm 401/403 error. Error message guides to authentication. .npmrc.template documents fix.
+    </case>
+    <case scenario="pnpm publish from wrong directory">
+      Script uses --filter, so works from repo root. No directory change needed.
+    </case>
+  </edge-cases>
+
+  <pitfalls>
+    <pitfall issue="GitHub Packages requires scoped name matching repo owner">
+      Using @mattfletcher94/claudeban which matches GitHub username. Verified during scoping.
+    </pitfall>
+    <pitfall issue="pnpm workspace name change requires updating filters">
+      Task 3 updates both festinalente:build and adds kanban:publish with new name. Both use consistent filter.
+    </pitfall>
+    <pitfall issue="Publishing without build creates empty package">
+      prepublishOnly script ensures build runs automatically before every publish.
+    </pitfall>
+  </pitfalls>
+
+  <iterations></iterations>
+  <wip></wip>
+  <completeness></completeness>
+</plan>

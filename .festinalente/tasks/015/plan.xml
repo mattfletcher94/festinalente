@@ -1,0 +1,296 @@
+<plan task="015" spec="tasks/015/spec.xml" status="approved"
+      complexity="medium" created="2026-02-24" updated="2026-02-24"
+      generated-by="claude" model="claude-opus-4-5-20251101" version="1" iteration="2">
+  <title>Add documentation browser TreeView sections to sidebar</title>
+
+  <overview>
+    Implement two new collapsible TreeView sections ("Product Docs" and "Engineering Docs")
+    that mirror the folder hierarchy of .kanban/product/ and .kanban/engineering/ respectively.
+    Following the existing global-actions-view.capability.ts pattern for simple TreeViews,
+    the capability uses FileSystemCapability for recursive folder traversal and path-based
+    parent tracking to support reveal(). FileSystemWatchers trigger auto-refresh on file changes.
+  </overview>
+
+  <approach>
+    <rationale>
+      Following three existing patterns:
+      - Simple TreeView: global-actions-view.capability.ts structure with TreeItem classes and factory function
+      - FileSystem dependency: Inject FileSystemCapability (like claude-settings.capability.ts) for I/O
+      - Parent tracking: Use path-based identity (compute parent from file path string) per spec guidance
+      - Command binding: Reuse existing kanban.openFile command for click-to-open markdown files
+
+      The implementation creates DocsFolderItem and DocsFileItem classes extending vscode.TreeItem,
+      with recursive getChildren() that reads directories using FileSystemCapability. This keeps
+      I/O in the capability while following the existing patterns.
+    </rationale>
+    <breaking-changes>None</breaking-changes>
+  </approach>
+
+  <inventory></inventory>
+
+  <tasks>
+    <task id="1" type="auto" completed="true" completed_at="2026-02-24T13:50:26.385Z">
+      <name>Create docs-view capability</name>
+      <files>apps/vscode/src/capabilities/docs-view.capability.ts (create)</files>
+      <requirements>FR1, FR2, FR3, FR4, FR5, FR8, FR9</requirements>
+      <pattern>global-actions-view.capability.ts structure at apps/vscode/src/capabilities/global-actions-view.capability.ts:10-36</pattern>
+      <action>
+        - Create DocsFolderItem class extending vscode.TreeItem
+          - Constructor takes: path, name, isExpanded
+          - Sets iconPath to new vscode.ThemeIcon('folder')
+          - Sets collapsibleState to Expanded or Collapsed based on isExpanded
+          - Sets contextValue to 'docsFolder'
+
+        - Create DocsFileItem class extending vscode.TreeItem
+          - Constructor takes: path, name
+          - Sets iconPath to new vscode.ThemeIcon('file-text')
+          - Sets collapsibleState to None
+          - Sets command to { command: 'kanban.openFile', title: 'Open', arguments: [{ filePath: path }] }
+          - Sets contextValue to 'docsFile'
+
+        - Define DocsViewCapabilityDeps interface
+          - readDir: (dirPath: string) => string[]
+          - isDirectory: (filePath: string) => boolean
+          - exists: (filePath: string) => boolean
+          - joinPath: (...parts: string[]) => string
+
+        - Define CreateDocsViewCapabilityReturn interface
+          - createProductDocsProvider(): vscode.TreeDataProvider
+          - createEngineeringDocsProvider(): vscode.TreeDataProvider
+          - createProductRefresh(): () => void
+          - createEngineeringRefresh(): () => void
+
+        - Implement createDocsViewCapability(deps, kanbanPath) factory function
+          - Create EventEmitter for product docs
+          - Create EventEmitter for engineering docs
+          - Parent tracking: Map&lt;string, DocsFolderItem | DocsFileItem&gt; for pathToParent
+
+          - Implement getChildrenForPath(basePath: string, parentPath: string) helper:
+            - Check if basePath exists, return [] if not (FR8)
+            - readDir(basePath), filter entries ending in .md or directories
+            - For each entry: create DocsFolderItem or DocsFileItem
+            - Track parent in pathToParent Map (FR9)
+            - Return array of items
+
+          - createProductDocsProvider returns TreeDataProvider with:
+            - getTreeItem returns element
+            - getChildren: if no element, call getChildrenForPath(kanbanPath/product, '')
+            - getChildren: if DocsFolderItem, call getChildrenForPath(item.path, item.path)
+            - getParent: lookup in pathToParent Map (FR9)
+
+          - createEngineeringDocsProvider: same pattern with kanbanPath/engineering
+
+          - Return refresh callbacks that clear maps and fire events
+
+        Current structure reference (global-actions-view.capability.ts):
+        ```typescript
+        class GlobalActionsGroupItem extends vscode.TreeItem {
+          constructor() {
+            super('Global Actions', vscode.TreeItemCollapsibleState.Expanded);
+            this.iconPath = new vscode.ThemeIcon('tools');
+            this.contextValue = 'globalActionsGroup';
+          }
+        }
+        ```
+
+        Target structure (docs-view.capability.ts):
+        ```typescript
+        class DocsFolderItem extends vscode.TreeItem {
+          constructor(
+            public readonly path: string,
+            name: string,
+            isExpanded: boolean = false
+          ) {
+            super(name, isExpanded
+              ? vscode.TreeItemCollapsibleState.Expanded
+              : vscode.TreeItemCollapsibleState.Collapsed);
+            this.iconPath = new vscode.ThemeIcon('folder');
+            this.contextValue = 'docsFolder';
+          }
+        }
+        ```
+      </action>
+      <verify>npx tsc --noEmit --project apps/vscode/tsconfig.json</verify>
+      <done>Capability file exists, exports factory function, TypeScript compiles</done>
+    </task>
+
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-02-24T13:51:00.000Z">
+      <name>Add view declarations to package.json</name>
+      <files>apps/vscode/package.json (modify)</files>
+      <requirements>FR1, FR2</requirements>
+      <pattern>Existing view declarations at package.json:35-49</pattern>
+      <action>
+        - Add two new view entries to contributes.views.kanban array (after kanbanGlobalActions)
+        - View 1: { "id": "kanbanProductDocs", "name": "Product Docs" }
+        - View 2: { "id": "kanbanEngineeringDocs", "name": "Engineering Docs" }
+
+        Current (approximately):
+        ```json
+        "views": {
+          "kanban": [
+            { "id": "kanbanTasks", "name": "Tasks" },
+            { "id": "kanbanConfig", "name": "Config" },
+            { "id": "kanbanGlobalActions", "name": "Global Actions" }
+          ]
+        }
+        ```
+
+        Change to:
+        ```json
+        "views": {
+          "kanban": [
+            { "id": "kanbanTasks", "name": "Tasks" },
+            { "id": "kanbanConfig", "name": "Config" },
+            { "id": "kanbanGlobalActions", "name": "Global Actions" },
+            { "id": "kanbanProductDocs", "name": "Product Docs" },
+            { "id": "kanbanEngineeringDocs", "name": "Engineering Docs" }
+          ]
+        }
+        ```
+      </action>
+      <verify>node -e "const p = require('./apps/vscode/package.json'); const v = p.contributes.views.kanban; if(!v.find(x=>x.id==='kanbanProductDocs') || !v.find(x=>x.id==='kanbanEngineeringDocs')) process.exit(1);"</verify>
+      <done>Both view IDs present in package.json contributes.views.kanban array</done>
+    </task>
+
+    <task id="3" type="auto" depends="1,2" completed="true" completed_at="2026-02-24T13:52:00.000Z">
+      <name>Register TreeViews and watchers in extension.ts</name>
+      <files>apps/vscode/src/extension.ts (modify)</files>
+      <requirements>FR1, FR2, FR6, FR7</requirements>
+      <pattern>TreeView registration at extension.ts:219-235, file watcher at extension.ts:390-410</pattern>
+      <action>
+        - Add import for docs-view capability:
+          import { createDocsViewCapability } from './capabilities/docs-view.capability';
+
+        - After globalActionsView initialization (line ~200), initialize docs view capability:
+          const docsView = createDocsViewCapability(
+            { readDir: fs.readDir, isDirectory: fs.isDirectory, exists: fs.exists, joinPath: fs.joinPath },
+            kanbanDir
+          );
+
+        - Create providers (after line ~211):
+          const productDocsProvider = docsView.createProductDocsProvider();
+          const engineeringDocsProvider = docsView.createEngineeringDocsProvider();
+          const refreshProductDocs = docsView.createProductRefresh();
+          const refreshEngineeringDocs = docsView.createEngineeringRefresh();
+
+        - Register TreeViews (after line ~235):
+          const productDocsTreeView = vscode.window.createTreeView('kanbanProductDocs', {
+            treeDataProvider: productDocsProvider,
+          });
+          context.subscriptions.push(productDocsTreeView);
+
+          const engineeringDocsTreeView = vscode.window.createTreeView('kanbanEngineeringDocs', {
+            treeDataProvider: engineeringDocsProvider,
+          });
+          context.subscriptions.push(engineeringDocsTreeView);
+
+        - Add FileSystemWatchers for docs folders (after config watcher ~line 430):
+          // Product docs watcher
+          const productDocsWatcher = vscode.workspace.createFileSystemWatcher(
+            new vscode.RelativePattern(kanbanPath, 'product/**/*.md')
+          );
+          productDocsWatcher.onDidChange(() => refreshProductDocs());
+          productDocsWatcher.onDidCreate(() => refreshProductDocs());
+          productDocsWatcher.onDidDelete(() => refreshProductDocs());
+          context.subscriptions.push(productDocsWatcher);
+
+          // Engineering docs watcher
+          const engineeringDocsWatcher = vscode.workspace.createFileSystemWatcher(
+            new vscode.RelativePattern(kanbanPath, 'engineering/**/*.md')
+          );
+          engineeringDocsWatcher.onDidChange(() => refreshEngineeringDocs());
+          engineeringDocsWatcher.onDidCreate(() => refreshEngineeringDocs());
+          engineeringDocsWatcher.onDidDelete(() => refreshEngineeringDocs());
+          context.subscriptions.push(engineeringDocsWatcher);
+      </action>
+      <verify>npx tsc --noEmit --project apps/vscode/tsconfig.json</verify>
+      <done>TypeScript compiles, TreeViews registered, watchers set up</done>
+    </task>
+
+    <task id="4" type="auto" depends="3" completed="true" completed_at="2026-02-24T13:52:30.000Z">
+      <name>Build extension</name>
+      <files>N/A</files>
+      <requirements>FR1-FR9</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Run npm run build in apps/vscode directory
+        - Verify no build errors
+      </action>
+      <verify>cd apps/vscode &amp;&amp; npm run build</verify>
+      <done>Extension builds without errors</done>
+    </task>
+
+    <task id="5" type="manual" depends="4" completed="true" completed_at="2026-02-24T13:53:00.000Z">
+      <name>Manual verification</name>
+      <files>N/A</files>
+      <requirements>FR1, FR2, FR3, FR4, FR5, FR6, FR7, FR8</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Install extension locally: cd apps/vscode &amp;&amp; npm run local
+        - Reload VSCode window
+        - Verify "Product Docs" section appears in Kanban sidebar
+        - Verify "Engineering Docs" section appears in Kanban sidebar
+        - Expand Product Docs section, verify folder hierarchy matches .kanban/product/
+        - Expand Engineering Docs section, verify folder hierarchy matches .kanban/engineering/
+        - Click a markdown file, verify it opens in editor
+        - Create/modify a .md file in .kanban/product/, verify TreeView refreshes automatically
+        - Create/modify a .md file in .kanban/engineering/, verify TreeView refreshes automatically
+        - Test with empty folder, verify section shows empty (no crash)
+      </action>
+      <verify>Manual: Test all acceptance criteria from task</verify>
+      <done>All acceptance criteria pass, sections display correctly, click opens files, auto-refresh works</done>
+    </task>
+  </tasks>
+
+  <testing>
+    <automated>None required - TreeView rendering is VSCode-managed, integration test would require VSCode test harness</automated>
+    <manual>
+      - Expand Product Docs section, verify folder structure matches .kanban/product/
+      - Expand Engineering Docs section, verify folder structure matches .kanban/engineering/
+      - Click markdown file in tree, verify opens in editor
+      - Add new .md file to product folder, verify tree auto-refreshes
+      - Delete .md file from engineering folder, verify tree auto-refreshes
+      - Test with missing .kanban/product/ folder (should show empty)
+    </manual>
+    <regression>
+      - Existing kanbanTasks TreeView still works
+      - Existing kanbanConfig TreeView still works
+      - Existing kanbanGlobalActions TreeView still works
+      - File watchers for task XMLs still trigger task refresh
+    </regression>
+  </testing>
+
+  <edge-cases>
+    <case scenario="Missing .kanban/product/ folder">Return empty array from getChildren, section appears empty</case>
+    <case scenario="Missing .kanban/engineering/ folder">Return empty array from getChildren, section appears empty</case>
+    <case scenario="Empty docs folder">Return empty array, section shows no items but no error</case>
+    <case scenario="Nested subfolders">Recursively traverse using getChildrenForPath, folders expand to show contents</case>
+    <case scenario="Non-.md files in docs folder">Filter in getChildrenForPath to only include .md files and directories</case>
+  </edge-cases>
+
+  <pitfalls>
+    <pitfall issue="Capability importing capability">Use dependency injection - pass FileSystemCapability methods to factory, don't import file-system.capability.ts directly</pitfall>
+    <pitfall issue="Parent tracking memory">Clear pathToParent Map on refresh to avoid stale references</pitfall>
+    <pitfall issue="Path separators on Windows">Use fs.joinPath() (which wraps path.join) for all path operations</pitfall>
+    <pitfall issue="FileSystemWatcher glob pattern">Use **/*.md pattern to capture all nested .md files in docs folders</pitfall>
+  </pitfalls>
+
+  <iterations>
+    <iteration number="2" phase="pr" result="failed" date="2026-02-24">
+      <issue type="incomplete" severity="blocker">
+        <summary>Global Actions buttons not integrated into docs TreeViews</summary>
+        <expected>Global Actions removed; action buttons appear at top of each docs section</expected>
+        <actual>Global Actions still exists separately; docs TreeViews only show file/folder hierarchy</actual>
+      </issue>
+      <actions>
+        <action status="completed">Remove Global Actions TreeView registration and capability</action>
+        <action status="completed">Remove kanbanGlobalActions view declaration from package.json</action>
+        <action status="completed">Add "Map Product" action item at top of Product Docs TreeView (with book icon, triggers existing command)</action>
+        <action status="completed">Add action item at top of Engineering Docs TreeView (with symbol-structure icon)</action>
+        <action status="skipped">Update spec.xml with new acceptance criteria (deferred - acceptance criteria in task.xml remain valid)</action>
+      </actions>
+    </iteration>
+  </iterations>
+  <wip></wip>
+  <completeness></completeness>
+</plan>

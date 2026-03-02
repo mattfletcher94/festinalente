@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quick id="004" status="completed" created="2026-02-28" updated="2026-02-28">
+  <title>Fix gray-matter import error in festinalente.cjs</title>
+
+  <problem>gray-matter import failing in bundled script - TypeError: import_gray_matter is not a function</problem>
+  <done>search-engineering command works correctly</done>
+
+  <context>
+    <finding file="apps/festinalente/src/cli/computers/yaml-parser.computer.ts" reason="Contains gray-matter import that causes bundling issue"/>
+  </context>
+
+  <approach>Change gray-matter import from namespace import to default import. The namespace import creates a module object but gray-matter exports a function as default.</approach>
+
+  <constraints>
+    <constraint>Only change the import style, no other refactoring</constraint>
+    <constraint>Must rebuild CLI and copy to .festinalente/scripts/</constraint>
+  </constraints>
+
+  <files>
+    <file action="modified">apps/festinalente/src/cli/computers/yaml-parser.computer.ts</file>
+    <file action="modified">.festinalente/scripts/festinalente.cjs</file>
+  </files>
+
+  <verify>
+    <step>Run: node .festinalente/scripts/festinalente.cjs search-engineering task completion persistence</step>
+    <step>Expect: JSON output with search results (no TypeError)</step>
+  </verify>
+
+  <commit hash="993a50d" message="quick(004): Fix gray-matter import error in festinalente.cjs" date="2026-02-28"/>
+
+  <summary>Changed gray-matter import from namespace import (import * as matter) to default import (import matter) in yaml-parser.computer.ts. The bundler was wrapping the namespace import as a module object, but the code expected a callable function.</summary>
+
+  <docs>
+  </docs>
+</quick>

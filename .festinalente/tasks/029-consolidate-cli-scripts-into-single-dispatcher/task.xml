@@ -1,0 +1,61 @@
+<task id="029-consolidate-cli-scripts-into-single-dispatcher" status="done" priority="high" created="2026-02-28" updated="2026-02-28" completed="2026-02-28"
+      github-issue="#16"
+      github-url="https://github.com/mattfletcher94/festinalente/issues/16"
+      github-pr="#18">
+  <title>Consolidate CLI scripts into single dispatcher</title>
+
+  <labels>
+    <label>refactor</label>
+  </labels>
+
+  <refs spec="tasks/029-consolidate-cli-scripts-into-single-dispatcher/spec.xml" plan="tasks/029-consolidate-cli-scripts-into-single-dispatcher/plan.xml"/>
+
+  <affects>
+  </affects>
+
+  <engineering>
+    <doc id="systems/cli"/>
+  </engineering>
+
+  <description>Refactor 25+ individual TypeScript CLI scripts into a single dispatcher architecture with unified entry point.</description>
+
+  <problem>
+The CLI scripts system has grown to 25+ individual TypeScript files, each compiled separately. This creates:
+- A 500+ character build:scripts command in package.json
+- Duplicate entry definitions (package.json overrides tsdown.config.ts)
+- 39 output files in .festinalente/scripts/ (scripts + chunks)
+- Maintenance burden when adding new commands (must update config files)
+  </problem>
+
+  <value>
+- Single entry point simplifies build configuration dramatically
+- Adding new commands requires only adding a function and registering it (no config file changes)
+- Cleaner CLI interface matching common patterns (git, npm, docker)
+- Removes configuration duplication between package.json and tsdown.config.ts
+- Reduced build complexity and output file count
+  </value>
+
+  <acceptance-criteria>
+Given the festinalente package is built
+When a user runs `node .festinalente/scripts/festinalente.cjs &lt;command&gt; [args]`
+Then the command executes and returns JSON output identical to the previous separate scripts
+
+Given the build is run
+When tsdown completes
+Then dist/scripts/ contains festinalente.cjs (plus any chunk files for dependencies)
+And the 500+ character build:scripts command is removed from package.json
+
+Given a developer wants to add a new command
+When they create a function in src/scripts/commands/ and register it in index.ts
+Then no changes to package.json or tsdown.config.ts are required
+
+Given a user runs `node .festinalente/scripts/festinalente.cjs --help`
+Then they see a list of available commands
+
+Given a user runs an unknown command
+When they execute `node .festinalente/scripts/festinalente.cjs unknown-cmd`
+Then they receive a JSON error response with available commands listed
+  </acceptance-criteria>
+
+  <notes></notes>
+</task>

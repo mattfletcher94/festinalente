@@ -1,0 +1,33 @@
+<quick id="003" status="completed" created="2026-02-25" updated="2026-02-25">
+  <title>In VSCode extension, the icon next to each quick item should update based on status</title>
+
+  <problem>Can't tell status at a glance from the icon - missing visual feedback</problem>
+  <done>Both the icon shape and color reflect status</done>
+
+  <context>
+    <finding file="apps/vscode/src/capabilities/quicks-view.capability.ts" reason="Contains QuickItem class with getStatusIcon() method - main file to modify"/>
+    <finding file="apps/vscode/src/types/quick-types.ts" reason="Defines QuickStatus type as 'in-progress' | 'complete'"/>
+  </context>
+
+  <approach>Update getStatusIcon() in QuickItem class to return different ThemeIcon with ThemeColor based on status: in-progress gets play-circle with blue, complete gets check with green</approach>
+
+  <constraints>
+    <constraint>Use VSCode ThemeIcons and ThemeColors only (directive C4)</constraint>
+    <constraint>Keep pattern consistent with tasks-view.capability.ts</constraint>
+  </constraints>
+
+  <files>
+    <file action="modify">apps/vscode/src/capabilities/quicks-view.capability.ts</file>
+  </files>
+
+  <verify>
+    <step>pnpm --filter @mattfletcher94/claudeban-vscode build</step>
+  </verify>
+
+  <commit hash="b0e9ef3" message="quick(003): In VSCode extension, the icon next to each quick item should update based on status" date="2026-02-25"/>
+
+  <summary>Updated getStatusIcon() in QuickItem class to use switch statement with distinct icons: pass-filled (green) for complete, play-circle (blue) for in-progress</summary>
+
+  <docs>
+  </docs>
+</quick>

@@ -1,0 +1,37 @@
+<task id="003" status="done" priority="medium" created="2026-02-21" updated="2026-02-21" completed="2026-02-21">
+  <title>Show action description in Run next action button</title>
+
+  <labels>
+    <label>refactor</label>
+  </labels>
+
+  <refs spec="tasks/003/spec.xml" plan="tasks/003/plan.xml"/>
+
+  <affects>
+    <doc id="vscode/kanban-view"/>
+  </affects>
+
+  <engineering>
+    <doc id="systems/vscode-extension"/>
+  </engineering>
+
+  <description>The 'Run next action' button in the VSCode extension task list doesn't state what the action is actually going to do. Users have to guess or remember what the next workflow step is.</description>
+
+  <problem>The "Run next action" button in the VSCode task list view provides no indication of what action will be performed when clicked. Users must either remember the workflow sequence or click blindly to discover what happens next. This creates uncertainty and reduces confidence in the workflow.</problem>
+
+  <value>Better UX - users can see exactly what will happen before clicking, reducing uncertainty and making the kanban workflow more transparent. This improves user confidence and reduces accidental actions.</value>
+
+  <acceptance-criteria>
+Given a task is displayed in the VSCode task list
+And the task has a valid next action in the workflow
+When the user views the "Run next action" button
+Then the button text shows the action description (e.g., "Scope task 003")
+And the button text is always visible (not hidden behind an icon)
+
+Given a task has no valid next action
+When the user views the task in the list
+Then no "Run next action" button is displayed
+  </acceptance-criteria>
+
+  <notes></notes>
+</task>

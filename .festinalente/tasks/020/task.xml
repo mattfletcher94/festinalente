@@ -1,0 +1,58 @@
+<task id="020" status="done" priority="medium" created="2026-02-26" updated="2026-02-26" completed="2026-02-26">
+  <title>Add Document Symbol Provider for plan.xml files to enable Outline view navigation</title>
+
+  <labels>
+    <label>feature</label>
+    <label>vscode</label>
+  </labels>
+
+  <refs spec="tasks/020/spec.xml" plan="tasks/020/plan.xml"/>
+
+  <affects>
+    <doc id="vscode/plan-outline"/>
+  </affects>
+
+  <engineering>
+    <doc id="patterns/document-symbol-provider"/>
+  </engineering>
+
+  <description>Implement a VSCode DocumentSymbolProvider for plan.xml files that enables hierarchical navigation through the Outline panel, breadcrumb navigation, and quick symbol search (Ctrl+Shift+O).</description>
+
+  <problem>
+When viewing plan.xml files in VSCode, users must scroll through raw XML to find sections like tasks, testing, or edge cases. The XML structure is verbose and hard to navigate. There's no way to quickly jump to a specific implementation task or see at a glance which tasks are completed vs pending. Users waste time scrolling and searching instead of navigating directly to the section they need.
+  </problem>
+
+  <value>
+Enables instant navigation within plan.xml files using VSCode's built-in Outline panel. Users can see the full plan structure at a glance, see task completion status (checkmark vs circle), and click any item to jump directly to that line. Also enables breadcrumb navigation at the top of the editor and Ctrl+Shift+O quick symbol search. No new UI needed - leverages existing VSCode infrastructure.
+  </value>
+
+  <acceptance-criteria>
+Given a plan.xml file is open in the editor
+When the user views the Outline panel (View -> Open View -> Outline)
+Then the Outline displays a hierarchical structure of the plan
+
+Given the Outline is displayed for a plan.xml file
+Then the root item shows the plan reference (task ID and title)
+And implementation tasks are shown as children with status indicators
+And completed tasks display a checkmark symbol
+And pending tasks display a circle symbol
+
+Given the Outline shows implementation tasks
+When the user clicks on a task item
+Then the editor scrolls to and highlights that task's line in the XML
+
+Given a plan.xml file is open
+Then breadcrumb navigation at the top of the editor shows the current section hierarchy
+
+Given a plan.xml file is open
+When the user presses Ctrl+Shift+O
+Then the quick symbol picker appears with all plan sections searchable
+
+Given the Outline is displayed
+Then the testing section is visible with nested test items
+And the edge-cases section is visible with nested items
+And the notes section is visible if present
+  </acceptance-criteria>
+
+  <notes></notes>
+</task>

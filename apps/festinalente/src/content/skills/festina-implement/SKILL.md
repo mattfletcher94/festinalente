@@ -1,0 +1,620 @@
+---
+name: festina-implement
+description: Implement a planned task. Moves task to In Progress, executes the plan, then moves to Finalize. No commit - code stays uncommitted.
+allowed-tools: Read, Write, Edit, Bash(*), AskUserQuestion, Task
+argument-hint: "[task-id]"
+disable-model-invocation: true
+---
+
+# Implement Festina Lente Task
+
+<purpose>
+Move task from Planned to In Progress and execute the plan. Code remains uncommitted until verification passes.
+</purpose>
+
+<context>
+{{> directory-reference}}
+
+{{> helper-scripts show_find_task=true show_find_plan=true show_get_date_time=true show_get_skill_config=true}}
+
+{{> column-transition from="planned" to="in-progress"}}
+</context>
+
+<prohibited>
+- Do not commit code during implementation (code stays uncommitted until verify passes)
+- Do not skip plan steps or mark them complete without executing them
+- Do not implement tasks that haven't been planned
+- Do not ask the user to manually verify or test during implementation - manual testing happens in QA phase only
+</prohibited>
+
+<process>
+  <step name="load_workflow">
+    {{> workflow-load}}
+  </step>
+
+  <step name="get_task_id" outputs="taskId">
+    <branch condition="$ARGUMENTS provided">
+      <action>Use $ARGUMENTS as taskId</action>
+    </branch>
+    <branch condition="$ARGUMENTS not provided">
+      <action>List tasks in `planned` or `in-progress` status from `.festinalente/tasks/`</action>
+      <action>Use AskUserQuestion tool with:
+        - header: "Task"
+        - question: "Which task would you like to implement?"
+        - options: Build from task list (up to 4 tasks in planned or in-progress status), each with:
+          - label: "{taskId}: {short title}" (truncate title if needed)
+          - description: "Status: {status} | Ready to implement"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to type a task ID directly</note>
+    </branch>
+  </step>
+
+  <step name="read_task_file" outputs="taskPath, title, status">
+    <command>node .festinalente/scripts/festinalente.cjs find-task {taskId}</command>
+    <action>Read the file at the `path` from JSON output</action>
+    <action>Parse XML</action>
+    <branch condition="status is planned">
+      <action>Move to `in-progress` first (step move_to_in_progress)</action>
+    </branch>
+    <branch condition="status is in-progress">
+      <action>Resume implementation (skip step move_to_in_progress)</action>
+    </branch>
+    <branch condition="status is backlog">
+      <output>Task needs scoping first.</output>
+      <output>Run `/festina-scope {taskId}` first.</output>
+      <action>Exit</action>
+    </branch>
+    <branch condition="status is finalize or later">
+      <output>Warning: Task is past implementation phase.</output>
+    </branch>
+    <branch condition="task not found">
+      <output>Error: Task not found</output>
+      <action>Exit</action>
+    </branch>
+  </step>
+
+  <step name="verify_branch">
+    {{> branch-verify-task}}
+  </step>
+
+  <step name="move_to_in_progress" when="status was `planned`">
+    <action>Change `status: planned` to `status: in-progress`</action>
+    <action>Add `updated: {YYYY-MM-DD}`</action>
+    <action>Write updated task file</action>
+    <output>Task {taskId} moved to In Progress</output>
+  </step>
+
+  <step name="read_plan_file" outputs="planPath, planContent">
+    <command>node .festinalente/scripts/festinalente.cjs find-plan {taskId}</command>
+    <branch condition="plan found">
+      <action>Read the plan at the `path` from JSON output</action>
+    </branch>
+    <branch condition="plan NOT found">
+      <output>Warning: No plan found for task {taskId}</output>
+      <output>Suggest: Create plan with /festina-plan first</output>
+      <action>Exit</action>
+    </branch>
+  </step>
+
+  <step name="read_spec">
+    <action>Get `spec` path from plan XML</action>
+    <action>Read spec file for full context on requirements and patterns</action>
+  </step>
+
+  <step name="load_smart_context">
+    <note>**Smart Context Selection:** Load relevant docs at appropriate tier</note>
+    <command>node .festinalente/scripts/festinalente.cjs select-context {taskId} --tier=standard --max=5</command>
+    <action>Parse JSON output</action>
+    <action>For each doc in output, present the content field</action>
+    <note>Standard tier: tldr + summary + boundary for each relevant doc</note>
+
+    <branch condition="task appears complex (multiple systems involved)">
+      <action>Re-run with --tier=full for most relevant 2 docs</action>
+      <command>node .festinalente/scripts/festinalente.cjs select-context {taskId} --tier=full --max=2</command>
+    </branch>
+
+    <note>Context tiers:</note>
+    <note>- minimal: Only tldr (~50 tokens per doc)</note>
+    <note>- standard: tldr + summary + boundary (~200 tokens per doc)</note>
+    <note>- full: Entire doc content (~500-1000 tokens per doc)</note>
+
+    <note>Implementation should maintain or extend documented behavior</note>
+  </step>
+
+  <step name="check_doc_freshness">
+    <note>**Freshness Check:** Warn if relevant docs may be outdated</note>
+    <command>node .festinalente/scripts/festinalente.cjs check-freshness --stale-days=30</command>
+    <action>Parse JSON output</action>
+    <action>Check if any docs from affects or engineering field are in staleDocs list</action>
+
+    <branch condition="any affected docs are stale">
+      <output>
+Warning: Some relevant docs may be outdated:
+      </output>
+      <action>For each stale doc related to this task:</action>
+      <output>- {doc.id}: verified {doc.verifiedDate} ({doc.daysSinceVerified} days ago)</output>
+      <output>  Code changed: {doc.modifiedCodeRefs}</output>
+
+      <action>Use AskUserQuestion with:
+        - header: "Stale docs"
+        - question: "Some docs may be outdated. How should I proceed?"
+        - options:
+          - label: "Continue anyway (Recommended)", description: "Proceed with implementation, update docs later"
+          - label: "Review docs first", description: "Read the stale docs before implementing"
+        - multiSelect: false
+      </action>
+
+      <branch condition="user selects review first">
+        <action>For each stale doc, read and present content</action>
+        <action>Use AskUserQuestion tool with:
+          - header: "Accurate?"
+          - question: "Is this doc still accurate enough to guide implementation?"
+          - options:
+            - label: "Yes", description: "Doc is accurate, proceed"
+            - label: "No", description: "Doc is outdated, note discrepancies"
+          - multiSelect: false
+        </action>
+      </branch>
+    </branch>
+
+    <branch condition="no stale docs">
+      <note>All relevant docs are fresh</note>
+    </branch>
+  </step>
+
+  <step name="load_directives">
+    <note>**Orchestrator-only step:** Directive loading and compliance checking runs in orchestrator only.
+    Subagents do not receive directive context - they focus purely on task execution.</note>
+    {{> load-directives skill="implement"}}
+  </step>
+
+  <step name="parse_plan_tasks" outputs="tasks, executionOrder">
+    <action>Parse the `<tasks>` section from plan.xml</action>
+    <action>Extract all `<task>` elements with their attributes and children</action>
+    <action>Build dependency graph from `depends` attributes</action>
+    <action>Calculate execution order using topological sort</action>
+    <action>Identify any already-completed tasks (have `completed="true"` attribute)</action>
+
+    <output>Found {n} tasks total, {m} remaining, execution order: {ids}</output>
+
+    <branch condition="circular dependency detected">
+      <output>Error: Circular dependency in tasks: {cycle}</output>
+      <action>Exit - plan needs manual fix</action>
+    </branch>
+  </step>
+
+  <step name="execute_tasks">
+    <note>**Subagent Orchestration:** Spawn a subagent for each task to keep orchestrator lean.</note>
+    <note>Each subagent gets fresh context with explicit file references - no embedded snippets.</note>
+    <note>Orchestrator persists completion immediately after each subagent finishes.</note>
+
+    <action>For each task in executionOrder where completed != "true":</action>
+
+    <substep name="show_task_header">
+      <output>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[{currentIndex}/{totalTasks}] {task.name}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Spawning subagent...
+      </output>
+    </substep>
+
+    <substep name="build_subagent_prompt" outputs="subagentPrompt">
+      <note>Build prompt from task elements - file refs only, no embedded content.</note>
+      <action>Extract task elements: id, name, context, pattern, action, verify, done, type</action>
+      <action>Build prompt using template:</action>
+
+      <prompt_template>
+Execute task {task.id}: "{task.name}"
+
+**Read these files first:**
+{For each file in task.context:}
+- {file path}
+
+**Pattern to follow:**
+{task.pattern file path, if present; otherwise "None specified"}
+
+**Action:**
+{content of task.action element}
+
+**Verify:** {content of task.verify element}
+
+**Done criteria:** {content of task.done element}
+
+**Spec reference:** .festinalente/tasks/{taskId}/spec.xml
+(Read if you need functional requirements or additional context)
+
+When complete, report:
+- SUCCESS: {summary of what was done}
+- FAILURE: {what failed and why}
+      </prompt_template>
+
+      <branch condition="task.type is 'manual'">
+        <action>Append to prompt: "\n**Note:** This task has manual verification - implementation is complete when action is done, verification deferred to QA."</action>
+      </branch>
+    </substep>
+
+    <substep name="spawn_subagent">
+      <note>**CRITICAL:** Use Task tool with subagent_type for execution.</note>
+      <note>Subagent gets Edit/Write/Bash access to make changes and run verification.</note>
+
+      <action>Use Task tool with:
+        - description: "Execute task {task.id}: {task.name}"
+        - prompt: {subagentPrompt built above}
+        - subagent_type: "general-purpose"
+      </action>
+
+      <action>Wait for subagent to complete</action>
+      <action>Parse subagent response for SUCCESS or FAILURE prefix</action>
+    </substep>
+
+    <substep name="handle_subagent_result">
+      <branch condition="subagent reports SUCCESS">
+        <output>✓ Task {task.id} completed: {subagent summary}</output>
+        <action>Update plan.xml: Add `completed="true" completed_at="{ISO timestamp}"` to the task element</action>
+        <action>Write updated plan file</action>
+        <note>Persist immediately - ensures progress saved before potential context issues</note>
+      </branch>
+
+      <branch condition="subagent reports FAILURE">
+        <output>✗ Task {task.id} failed: {subagent failure reason}</output>
+
+        <action>Use AskUserQuestion tool with:
+          - header: "Task Failed"
+          - question: "Task '{task.name}' failed: {failure reason}. How should I proceed?"
+          - options:
+            - label: "Fix manually and continue", description: "I'll fix this myself, then continue with remaining tasks"
+            - label: "Skip this task", description: "Mark as incomplete and move to next task"
+            - label: "Stop implementation", description: "Halt implementation to investigate"
+          - multiSelect: false
+        </action>
+
+        <branch condition="user selects 'Fix manually and continue'">
+          <output>Pausing for manual fix. Run /festina-implement {taskId} when ready to continue.</output>
+          <action>Exit - do not mark task complete</action>
+        </branch>
+
+        <branch condition="user selects 'Skip this task'">
+          <output>Skipping task {task.id}. Continuing with remaining tasks.</output>
+          <note>Do NOT mark as completed - remains incomplete for later attention</note>
+          <action>Continue to next task in executionOrder</action>
+        </branch>
+
+        <branch condition="user selects 'Stop implementation'">
+          <output>
+Implementation stopped at task {task.id}.
+{completed}/{total} tasks complete.
+
+To resume later:
+/clear
+/festina-implement {taskId}
+          </output>
+          <action>Exit</action>
+        </branch>
+      </branch>
+
+      <branch condition="subagent response unclear (no SUCCESS/FAILURE prefix)">
+        <output>Warning: Subagent response unclear. Checking verification manually.</output>
+        <branch condition="task.verify is automated command">
+          <command>{task.verify}</command>
+          <branch condition="command succeeds">
+            <output>✓ Verification passed (manual check)</output>
+            <action>Update plan.xml: Add `completed="true" completed_at="{ISO timestamp}"` to the task element</action>
+            <action>Write updated plan file</action>
+          </branch>
+          <branch condition="command fails">
+            <action>Treat as FAILURE - trigger user question above</action>
+          </branch>
+        </branch>
+        <branch condition="task.type is 'manual' OR task.verify starts with 'Manual:'">
+          <output>⏭ Manual verification deferred to QA</output>
+          <action>Update plan.xml: Add `completed="true" completed_at="{ISO timestamp}"` to the task element</action>
+          <action>Write updated plan file</action>
+        </branch>
+      </branch>
+    </substep>
+  </step>
+
+  <step name="verify_implementation_quality">
+    <note>**Quality verification runs in orchestrator after all tasks complete.**</note>
+    <note>These checks (TODO scan, requirement trace, wiring check) examine the full codebase and must run in orchestrator context, not subagents.</note>
+    <note>Verify implementation achieved spec goals, not just task completion (GSD verifier pattern)</note>
+    <note>Work backward from requirements to confirm implementation exists</note>
+
+    <action name="get_modified_files">
+      <note>Use the plan's files list to identify what was modified</note>
+      <action>Read plan.xml's tasks elements</action>
+      <action>Extract all file paths from each task's files element</action>
+      <action>These are the files that should have been modified during implementation</action>
+    </action>
+
+    <action name="anti_pattern_scan">
+      <note>Search modified files for incomplete work markers</note>
+      <action>Grep modified files for patterns indicating incomplete work:</action>
+      <patterns>
+        - TODO
+        - FIXME
+        - HACK
+        - XXX
+        - "not implemented"
+        - "placeholder"
+        - throw new Error("Not implemented")
+        - console.log without actual logic
+      </patterns>
+
+      <branch condition="anti-patterns found">
+        <output>
+WARNING: Found incomplete work markers:
+        </output>
+        <action>List each finding with file:line reference</action>
+        <action>Use AskUserQuestion with:
+          - header: "Incomplete code"
+          - question: "Found {n} incomplete markers (TODO, FIXME, etc). How to proceed?"
+          - options:
+            - label: "Fix now", description: "Address these before moving to finalize"
+            - label: "Proceed anyway", description: "These are intentional or will be addressed later"
+          - multiSelect: false
+        </action>
+        <branch condition="user says fix now">
+          <action>Create remediation tasks for each anti-pattern</action>
+          <action>Return to execute_tasks step</action>
+        </branch>
+      </branch>
+    </action>
+
+    <action name="requirement_trace">
+      <note>Verify each functional requirement has implementation evidence</note>
+      <action>Read spec's functional requirements (FR1, FR2, etc.)</action>
+      <action>For each FR:</action>
+      <action>- Identify which files/code implements it</action>
+      <action>- Verify the code is substantive (not a stub)</action>
+      <action>- Verify the code is wired (imported/called somewhere)</action>
+
+      <branch condition="any FR lacks clear implementation">
+        <output>
+WARNING: These requirements may not be fully implemented:
+        </output>
+        <action>List each FR with concern</action>
+        <action>Use AskUserQuestion with:
+          - header: "Requirements"
+          - question: "Some requirements may not be fully implemented. How to proceed?"
+          - options:
+            - label: "Review and fix", description: "Examine each and address gaps"
+            - label: "Proceed to finalize", description: "Implementation is complete, will verify in finalize"
+          - multiSelect: false
+        </action>
+      </branch>
+    </action>
+
+    <action name="wiring_verification">
+      <note>Verify new code is actually connected (80% of stubs hide in unwired code)</note>
+      <action>For each new file created during implementation:</action>
+      <action>- Check if it's imported somewhere</action>
+      <action>- Check if its exports are used</action>
+
+      <branch condition="orphan files detected">
+        <output>
+WARNING: New files created but not imported anywhere:
+        </output>
+        <action>List orphan files</action>
+        <action>Use AskUserQuestion with:
+          - header: "Unwired files"
+          - question: "Some new files aren't imported anywhere. How to proceed?"
+          - options:
+            - label: "Fix wiring", description: "Add imports/usage for these files"
+            - label: "Proceed anyway", description: "Files are intentionally standalone (e.g., config)"
+          - multiSelect: false
+        </action>
+        <branch condition="user says fix wiring">
+          <action>Add necessary imports/wiring</action>
+          <action>Return to execute_tasks if code changes needed</action>
+        </branch>
+      </branch>
+    </action>
+
+    <output>
+**Implementation Quality Check Complete**
+- Files modified: {count}
+- Anti-patterns found: {count}
+- Requirements traced: {count}/{total}
+- Wiring verified: {status}
+    </output>
+  </step>
+
+  <step name="check_completion">
+    <branch condition="all tasks have completed='true' AND verification passed">
+      <action>Update task status to `finalize`</action>
+      <output>All implementation tasks complete. Moving to finalize.</output>
+      <output>
+Next:
+/clear
+/festina-finalize {taskId}
+      </output>
+    </branch>
+    <branch condition="some tasks remain incomplete">
+      <action>Keep status as `in-progress`</action>
+      <output>
+{completed}/{total} tasks complete. To continue later:
+/clear
+/festina-implement {taskId}
+
+To save progress now:
+/clear
+/festina-save {taskId}
+      </output>
+    </branch>
+  </step>
+
+  {{> directive-compliance}}
+
+  <step name="output_result">
+    <output>Display implementation summary</output>
+    <output>Show files modified (uncommitted)</output>
+    <output>Show status</output>
+    <branch condition="ALL checkboxes complete">
+      <output>**Next: Finalize the task**</output>
+      <output>Finalize runs your configured checks from directives, updates documentation, and completes the task.</output>
+      <output>
+```
+/clear
+/festina-finalize {taskId}
+```
+      </output>
+    </branch>
+    <branch condition="some checkboxes remain">
+      <output>**Next: Save progress or continue later**</output>
+      <output>
+```
+/clear
+/festina-save {taskId}
+```
+      </output>
+    </branch>
+    {{> skill-complete}}
+  </step>
+</process>
+
+<success_criteria>
+- Task file exists at `.festinalente/tasks/{taskId}/task.xml`
+- If all tasks complete: `status: finalize`
+- If partial progress: `status: in-progress`
+- Plan file exists at `.festinalente/tasks/{taskId}/plan.xml`
+- Completed tasks have `completed="true"` attribute
+- Verification was run for each auto task
+- Next steps shown to user
+</success_criteria>
+
+<example>
+**Full Implementation:**
+
+User: `/festina-implement 001`
+
+```
+Implementing task 001 "Add user auth"...
+
+Task 001 moved to In Progress
+
+Reading spec: .festinalente/tasks/001/spec.xml
+Reading plan: .festinalente/tasks/001/plan.xml
+Found 3 tasks, 0 completed, execution order: 1, 2, 3
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[1/3] Create auth routes file
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+**Files:** src/routes/auth.ts (create)
+**Requirements:** FR1
+**Pattern:** Route pattern at src/routes/users.ts:15
+
+Creating src/routes/auth.ts...
+Running verification: npx tsc --noEmit
+✓ Verification passed
+Done criteria met: File exists and compiles
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2/3] Add login endpoint
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+**Files:** src/routes/auth.ts (modify)
+**Requirements:** FR1
+**Pattern:** POST handler at src/routes/users.ts:42
+
+Adding POST /login handler...
+Running verification: npm run build
+✓ Verification passed
+Done criteria met: Login endpoint responds to POST
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[3/3] Test login flow manually
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+**Files:** N/A
+**Requirements:** FR1
+**Pattern:** N/A
+
+⏭ Manual verification deferred: Test login with valid and invalid credentials
+Done criteria met: Implementation complete
+
+All implementation tasks complete. Moving to finalize.
+- Status: finalize
+- Files modified: 2 (uncommitted)
+
+Next:
+/clear
+/festina-finalize 001
+```
+
+**Resume Partial Implementation:**
+
+User: `/festina-implement 002`
+
+```
+Implementing task 002 "Setup database"...
+
+Column: in-progress (resuming)
+
+Reading spec: .festinalente/tasks/002/spec.xml
+Reading plan: .festinalente/tasks/002/plan.xml
+Found 5 tasks, 2 completed, execution order: 3, 4, 5
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[3/5] Create migration script
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+**Files:** db/migrations/001_initial.sql (create)
+**Requirements:** FR2
+**Pattern:** Migration format at db/migrations/000_setup.sql:1
+
+Creating db/migrations/001_initial.sql...
+Running verification: npm run db:migrate:dry
+✓ Verification passed
+Done criteria met: Migration applies cleanly
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[4/5] Add seed data
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+**Files:** db/seeds/dev.sql (create)
+**Requirements:** FR3
+**Pattern:** Seed format at db/seeds/test.sql:1
+
+Creating db/seeds/dev.sql...
+Running verification: npm run db:seed:dry
+✓ Verification passed
+Done criteria met: Seed data inserts without errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[5/5] Update README with DB setup
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+**Files:** README.md (modify)
+**Requirements:** FR4
+**Pattern:** N/A
+
+Adding database section to README.md...
+Running verification: npx markdownlint README.md
+✓ Verification passed
+Done criteria met: README has complete DB setup instructions
+
+All implementation tasks complete. Moving to finalize.
+- Status: finalize
+- Files modified: 5 (uncommitted)
+
+Next:
+/clear
+/festina-finalize 002
+```
+</example>
+
+<next_steps>
+If interrupted mid-implementation:
+```
+/clear
+/festina-save {id}
+```
+This commits your work-in-progress so you don't lose it.
+
+When implementation complete:
+```
+/clear
+/festina-finalize {id}
+```
+Finalize runs directive checks, updates documentation, and completes the task.
+
+Code stays uncommitted until you run /festina-finalize.
+</next_steps>

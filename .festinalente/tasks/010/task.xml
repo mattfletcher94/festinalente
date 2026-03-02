@@ -1,0 +1,43 @@
+<task id="010" status="done" priority="medium" created="2026-02-23" updated="2026-02-23" completed="2026-02-23">
+  <title>Task View Filtering &amp; Search</title>
+
+  <labels>
+    <label>feature</label>
+  </labels>
+
+  <refs spec="tasks/010/spec.xml" plan="tasks/010/plan.xml"/>
+
+  <affects>
+    <doc id="vscode/kanban-view"/>
+  </affects>
+
+  <engineering>
+  </engineering>
+
+  <description>Add quick filter functionality to the Kanban Tasks TreeView, allowing users to filter visible tasks by typing. Implements VSCode's native tree filter pattern for fast task navigation in large backlogs.</description>
+
+  <problem>No way to filter or search tasks in the kanban view. Users with many tasks must scroll through columns to find specific items. This becomes increasingly painful as task count grows, slowing down navigation and task discovery.</problem>
+
+  <value>Power users can quickly locate tasks by ID or title. Improves navigation speed for large backlogs. Reduces friction when switching between tasks or finding specific work items.</value>
+
+  <acceptance-criteria>
+Given a user is viewing the Kanban Tasks tree
+And there are multiple tasks across columns
+When the user activates the quick filter (Ctrl+F or native VSCode filter)
+Then a filter input appears
+
+Given the filter input is active
+When the user types a task ID (e.g., "005")
+Then only tasks with matching IDs are shown
+
+Given the filter input is active
+When the user types text matching a task title
+Then only tasks with matching titles are shown
+
+Given the filter is active with matching results
+When the user clears the filter
+Then all tasks are visible again
+  </acceptance-criteria>
+
+  <notes></notes>
+</task>

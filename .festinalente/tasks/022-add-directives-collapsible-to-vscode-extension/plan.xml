@@ -1,0 +1,432 @@
+<plan task="022-add-directives-collapsible-to-vscode-extension" spec="tasks/022-add-directives-collapsible-to-vscode-extension/spec.xml" status="approved"
+      complexity="complex" created="2026-02-27" updated="2026-02-27"
+      generated-by="claude" model="claude-opus-4-5-20251101" version="1" iteration="1">
+  <title>Add directives collapsible to VSCode extension</title>
+
+  <overview>
+    Implement a new DIRECTIVES section in the VSCode sidebar that displays workflow/skill-to-directive mappings from config.yaml.
+    Following the existing architecture, create a new domain orchestrator (directives.orchestrator.ts) that composes a view
+    capability and config computer. Each workflow appears as a collapsible row that expands to show its assigned directives
+    as clickable children that open the XML files.
+  </overview>
+
+  <approach>
+    <rationale>
+      Following three existing patterns from the codebase:
+
+      1. **Collapsible TreeItem Pattern** (tasks-view.capability.ts:16-51): StatusGroupItem shows how to create
+         collapsible parent items with ThemeIcons and child counts. WorkflowItem will follow this exact pattern.
+
+      2. **Domain Orchestrator Pattern** (config.orchestrator.ts:55-118): The config orchestrator demonstrates
+         a minimal orchestrator with TreeDataProvider, refresh, and file watcher. The directives orchestrator
+         will follow this structure but add config parsing via a computer.
+
+      3. **Factory DI Pattern** (tasks-view.capability.ts:251-253): Capabilities use factory functions with
+         explicit Deps interfaces. DirectivesViewCapability will follow this injection pattern.
+
+      The directives section is a distinct domain (separate data source: config.yaml directives section,
+      separate concerns: directive visibility and file navigation) so it warrants its own orchestrator
+      per coding directive principle A4.
+    </rationale>
+    <breaking-changes>None</breaking-changes>
+  </approach>
+
+  <inventory>
+    <set name="workflows-in-config" count="12">
+      <item>festina-status</item>
+      <item>festina-create</item>
+      <item>festina-scope</item>
+      <item>festina-plan</item>
+      <item>festina-implement</item>
+      <item>festina-save</item>
+      <item>festina-finalize</item>
+      <item>festina-rework</item>
+      <item>festina-quick</item>
+      <item>festina-map-product</item>
+      <item>festina-define-product</item>
+      <item>festina-map-engineering</item>
+    </set>
+    <set name="new-files" count="4">
+      <item>apps/vscode/src/types/directives-types.ts</item>
+      <item>apps/vscode/src/computers/directives-config.computer.ts</item>
+      <item>apps/vscode/src/capabilities/directives-view.capability.ts</item>
+      <item>apps/vscode/src/orchestrators/directives.orchestrator.ts</item>
+    </set>
+    <set name="modified-files" count="2">
+      <item>apps/vscode/package.json</item>
+      <item>apps/vscode/src/extension.ts</item>
+    </set>
+  </inventory>
+
+  <tasks>
+    <task id="1" type="auto" completed="true" completed_at="2026-02-27T14:14:44.911Z">
+      <name>Create directives domain types</name>
+      <files>apps/vscode/src/types/directives-types.ts (create)</files>
+      <requirements>FR2, FR3, FR4, FR5, FR7</requirements>
+      <pattern>Type pattern from apps/vscode/src/types/task-types.ts</pattern>
+      <action>
+        - Create DirectiveId branded type for type safety
+        - Create WorkflowId branded type for workflow names
+        - Create Directive interface with: id, name, path, exists
+        - Create Workflow interface with: id, displayName, directives
+        - displayName computed by stripping "festina-" prefix and capitalizing (FR3)
+
+        Target code:
+        ```typescript
+        /**
+         * Directives domain types for the VSCode extension.
+         */
+
+        /**
+         * Branded type for directive identifiers.
+         */
+        export type DirectiveId = string &amp; { readonly __brand: 'DirectiveId' };
+
+        /**
+         * Branded type for workflow/skill identifiers.
+         */
+        export type WorkflowId = string &amp; { readonly __brand: 'WorkflowId' };
+
+        /**
+         * A directive assignment from config.yaml.
+         */
+        export interface Directive {
+          readonly id: DirectiveId;
+          readonly name: string;
+          readonly path: string;
+          readonly exists: boolean;
+        }
+
+        /**
+         * A workflow/skill with its assigned directives.
+         */
+        export interface Workflow {
+          readonly id: WorkflowId;
+          readonly displayName: string;
+          readonly directives: readonly Directive[];
+        }
+        ```
+      </action>
+      <verify>pnpm --filter @mattfletcher94/claudeban-vscode build</verify>
+      <done>Types compile successfully, branded types prevent ID mixing</done>
+    </task>
+
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-02-27T14:17:00.000Z">
+      <name>Create directives config computer</name>
+      <files>apps/vscode/src/computers/directives-config.computer.ts (create)</files>
+      <requirements>FR2, FR3, FR4, FR5, FR7</requirements>
+      <pattern>Computer pattern from apps/vscode/src/computers/task-parser.computer.ts</pattern>
+      <action>
+        - Create factory function createDirectivesConfigComputer()
+        - parseConfig(content: string, directivesDir: string): Workflow[]
+          - Parse YAML to extract directives section
+          - For each skill key, create Workflow with:
+            - id: skill name as WorkflowId
+            - displayName: strip "festina-" prefix, capitalize first letter
+            - directives: array of Directive objects
+          - For each directive name, create Directive with:
+            - id: directive name as DirectiveId
+            - name: directive name (human-readable)
+            - path: directivesDir/{name}.xml
+            - exists: check if file exists (passed in or computed)
+        - formatWorkflowName(skillId: string): string
+          - Strip "festina-" prefix
+          - Capitalize first letter
+          - "festina-scope" -> "Scope"
+
+        Target code structure:
+        ```typescript
+        import * as yaml from '...'; // Use existing yaml parsing if available
+        import type { Workflow, WorkflowId, Directive, DirectiveId } from '../types/directives-types';
+
+        export interface DirectivesConfigComputerReturn {
+          parseConfig(content: string, directivesDir: string, checkExists: (path: string) => boolean): Workflow[];
+          formatWorkflowName(skillId: string): string;
+        }
+
+        export function createDirectivesConfigComputer(): DirectivesConfigComputerReturn {
+          function formatWorkflowName(skillId: string): string {
+            const name = skillId.replace(/^festina-/, '');
+            return name.charAt(0).toUpperCase() + name.slice(1);
+          }
+
+          function parseConfig(
+            content: string,
+            directivesDir: string,
+            checkExists: (path: string) => boolean
+          ): Workflow[] {
+            // Parse YAML, extract directives section
+            // Map each key to Workflow with directive children
+          }
+
+          return { parseConfig, formatWorkflowName };
+        }
+        ```
+      </action>
+      <verify>pnpm --filter @mattfletcher94/claudeban-vscode build</verify>
+      <done>Computer parses config.yaml and returns structured Workflow[] data</done>
+    </task>
+
+    <task id="3" type="auto" depends="2" completed="true" completed_at="2026-02-27T14:18:00.000Z">
+      <name>Create directives view capability</name>
+      <files>apps/vscode/src/capabilities/directives-view.capability.ts (create)</files>
+      <requirements>FR1, FR2, FR3, FR4, FR5, FR6, FR7</requirements>
+      <pattern>TreeItem pattern from apps/vscode/src/capabilities/tasks-view.capability.ts:16-51</pattern>
+      <action>
+        - Create WorkflowItem class extending vscode.TreeItem
+          - Collapsible state: Collapsed (has directives) or None (empty)
+          - Icon: new vscode.ThemeIcon('symbol-method') for workflow
+          - Label: displayName from Workflow
+          - Description: directive count or "No directives" for empty
+          - contextValue: 'workflow'
+
+        - Create DirectiveItem class extending vscode.TreeItem
+          - Collapsible state: None (leaf node)
+          - Icon: exists ? ThemeIcon('symbol-ruler') : ThemeIcon('warning')
+          - Label: directive name
+          - Tooltip: exists ? undefined : "Directive file not found: {path}"
+          - command: exists ? openFile command : undefined (FR6, FR7)
+          - contextValue: 'directive' or 'directive-missing'
+
+        - Create factory function createDirectivesViewCapability(deps)
+          - deps.loadWorkflows: () => Workflow[]
+          - Returns TreeDataProvider with:
+            - getChildren(element?): WorkflowItem[] at root, DirectiveItem[] for workflow
+            - getParent(element): for reveal support
+            - onDidChangeTreeData: EventEmitter for refresh
+          - Cache workflows to avoid reloading
+          - Parent tracking Map for getParent()
+
+        Target WorkflowItem:
+        ```typescript
+        export class WorkflowItem extends vscode.TreeItem {
+          constructor(public readonly workflow: Workflow) {
+            const hasDirectives = workflow.directives.length > 0;
+            super(
+              workflow.displayName,
+              hasDirectives
+                ? vscode.TreeItemCollapsibleState.Collapsed
+                : vscode.TreeItemCollapsibleState.None
+            );
+            this.iconPath = new vscode.ThemeIcon('symbol-method');
+            this.description = hasDirectives
+              ? `${workflow.directives.length} directive${workflow.directives.length > 1 ? 's' : ''}`
+              : 'No directives';
+            this.contextValue = 'workflow';
+          }
+        }
+        ```
+      </action>
+      <verify>pnpm --filter @mattfletcher94/claudeban-vscode build</verify>
+      <done>Capability provides TreeDataProvider with WorkflowItem and DirectiveItem classes</done>
+    </task>
+
+    <task id="4" type="auto" depends="3" completed="true" completed_at="2026-02-27T14:19:00.000Z">
+      <name>Create directives orchestrator</name>
+      <files>apps/vscode/src/orchestrators/directives.orchestrator.ts (create)</files>
+      <requirements>FR1, FR4, FR8</requirements>
+      <pattern>Orchestrator pattern from apps/vscode/src/orchestrators/config.orchestrator.ts:55-118</pattern>
+      <action>
+        - Create DirectivesOrchestratorDeps interface
+          - fs: FileSystemCapability
+          - festinalenteDir: string
+
+        - Create CreateDirectivesOrchestratorReturn interface
+          - treeDataProvider: TreeDataProvider
+          - refresh(): void
+          - createFileWatcher(path): Disposable
+
+        - Create factory function createDirectivesOrchestrator(deps)
+          - Initialize directives config computer
+          - Initialize directives view capability with deps
+          - Policy: loadWorkflows() reads config.yaml, parses with computer
+          - Policy: checkDirectiveExists(path) uses fs.exists
+          - Create file watcher for directives/**/*.xml AND config.yaml (FR8)
+          - Wire refresh to fire on file changes
+
+        Target structure:
+        ```typescript
+        import { createDirectivesConfigComputer } from '../computers/directives-config.computer';
+        import { createDirectivesViewCapability } from '../capabilities/directives-view.capability';
+        import type { createFileSystemCapability } from '../capabilities/file-system.capability';
+        import type { Workflow } from '../types/directives-types';
+
+        export interface DirectivesOrchestratorDeps {
+          readonly fs: ReturnType&lt;typeof createFileSystemCapability&gt;;
+          readonly festinalenteDir: string;
+        }
+
+        export function createDirectivesOrchestrator(deps: DirectivesOrchestratorDeps) {
+          const configComputer = createDirectivesConfigComputer();
+
+          function loadWorkflows(): Workflow[] {
+            const configPath = deps.fs.joinPath(deps.festinalenteDir, 'config.yaml');
+            if (!deps.fs.exists(configPath)) return [];
+            const content = deps.fs.readFile(configPath);
+            const directivesDir = deps.fs.joinPath(deps.festinalenteDir, 'directives');
+            return configComputer.parseConfig(content, directivesDir, deps.fs.exists);
+          }
+
+          const directivesView = createDirectivesViewCapability({ loadWorkflows });
+          // ... wiring
+        }
+        ```
+      </action>
+      <verify>pnpm --filter @mattfletcher94/claudeban-vscode build</verify>
+      <done>Orchestrator coordinates computer and capability, provides TreeDataProvider</done>
+    </task>
+
+    <task id="5" type="auto" depends="4" completed="true" completed_at="2026-02-27T14:20:00.000Z">
+      <name>Add directives view to package.json</name>
+      <files>apps/vscode/package.json (modify)</files>
+      <requirements>FR1</requirements>
+      <pattern>View declaration at apps/vscode/package.json:49-71</pattern>
+      <action>
+        - Add festinalenteDirectives view to contributes.views.festinalente array
+        - Position: after Config (id 62-64), before Product Docs (id 65-67)
+        - View configuration:
+          - id: "festinalenteDirectives"
+          - name: "Directives"
+
+        Current views array (lines 49-71):
+        ```json
+        "views": {
+          "festinalente": [
+            { "id": "festinalenteTasks", "name": "Tasks" },
+            { "id": "festinalenteQuicks", "name": "Quicks" },
+            { "id": "festinalenteConfig", "name": "Config" },
+            { "id": "festinalenteProductDocs", "name": "Product Docs" },
+            { "id": "festinalenteEngineeringDocs", "name": "Engineering Docs" }
+          ]
+        }
+        ```
+
+        Change to:
+        ```json
+        "views": {
+          "festinalente": [
+            { "id": "festinalenteTasks", "name": "Tasks" },
+            { "id": "festinalenteQuicks", "name": "Quicks" },
+            { "id": "festinalenteConfig", "name": "Config" },
+            { "id": "festinalenteDirectives", "name": "Directives" },
+            { "id": "festinalenteProductDocs", "name": "Product Docs" },
+            { "id": "festinalenteEngineeringDocs", "name": "Engineering Docs" }
+          ]
+        }
+        ```
+      </action>
+      <verify>pnpm --filter @mattfletcher94/claudeban-vscode build</verify>
+      <done>Directives view declared in package.json between Config and Product Docs</done>
+    </task>
+
+    <task id="6" type="auto" depends="5" completed="true" completed_at="2026-02-27T14:22:00.000Z">
+      <name>Wire directives orchestrator in extension.ts</name>
+      <files>apps/vscode/src/extension.ts (modify)</files>
+      <requirements>FR1, FR8</requirements>
+      <pattern>Orchestrator wiring at apps/vscode/src/extension.ts:89-100</pattern>
+      <action>
+        - Import createDirectivesOrchestrator from './orchestrators/directives.orchestrator'
+        - Create directivesOrch after configOrch (around line 100):
+          ```typescript
+          const directivesOrch = createDirectivesOrchestrator({
+            fs,
+            festinalenteDir,
+          });
+          ```
+
+        - Register TreeView after configTreeView (around line 134):
+          ```typescript
+          const directivesTreeView = vscode.window.createTreeView('festinalenteDirectives', {
+            treeDataProvider: directivesOrch.treeDataProvider,
+          });
+          context.subscriptions.push(directivesTreeView);
+          ```
+
+        - Register file watcher (around line 177):
+          ```typescript
+          context.subscriptions.push(directivesOrch.createFileWatcher(festinalenteDir));
+          ```
+      </action>
+      <verify>pnpm --filter @mattfletcher94/claudeban-vscode build</verify>
+      <done>Extension wires directives orchestrator, TreeView appears in sidebar</done>
+    </task>
+
+    <task id="7" type="auto" depends="6" completed="true" completed_at="2026-02-27T14:23:00.000Z">
+      <name>Verify circular dependency check</name>
+      <files>N/A</files>
+      <requirements>Coding directive V-A1</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Run circular dependency check to ensure DAG is maintained
+        - Verify no orchestrator imports another orchestrator
+        - Verify no capability imports another capability
+        - Verify computer has no external dependencies except types
+      </action>
+      <verify>pnpm check:dpdm</verify>
+      <done>No circular dependencies detected (exit code 0)</done>
+    </task>
+
+    <task id="8" type="manual" depends="7" completed="true" completed_at="2026-02-27T14:24:00.000Z">
+      <name>Manual verification of all acceptance criteria</name>
+      <files>N/A</files>
+      <requirements>FR1, FR2, FR3, FR4, FR5, FR6, FR7, FR8</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Open VSCode with a workspace containing .festinalente folder
+        - Verify DIRECTIVES section appears after Config and before Product Docs (FR1)
+        - Verify each workflow shows with chevron and symbol-method icon (FR2)
+        - Verify workflow names are formatted: festina-scope -> "Scope" (FR3)
+        - Verify workflows with no directives show "No directives" (FR4)
+        - Expand a workflow with directives:
+          - Verify directives appear as children with symbol-ruler icon (FR5)
+          - Click a directive, verify XML file opens (FR6)
+        - Create a config entry pointing to non-existent directive:
+          - Verify warning icon appears (FR7)
+          - Verify click does nothing / tooltip shows missing message (FR7)
+        - Modify config.yaml or a directive XML file:
+          - Verify tree refreshes automatically (FR8)
+      </action>
+      <verify>Manual: All 8 FRs verified in VSCode</verify>
+      <done>All acceptance criteria from task pass manual verification</done>
+    </task>
+  </tasks>
+
+  <testing>
+    <automated>None required - TreeView integration is VSCode UI, best verified manually. The computer could have unit tests but not strictly required for this scope.</automated>
+    <manual>
+      - FR1: DIRECTIVES section visible in correct position
+      - FR2: Workflows show as collapsible rows with chevron
+      - FR3: Names formatted correctly (festina-scope -> Scope)
+      - FR4: Empty workflows show "No directives"
+      - FR5: Expanded workflow shows directives with symbol-ruler icon
+      - FR6: Clicking directive opens XML file
+      - FR7: Missing directive shows warning icon, click disabled
+      - FR8: Modifying config.yaml or directive files triggers refresh
+    </manual>
+    <regression>
+      - Existing Config section still works
+      - Product Docs and Engineering Docs still work
+      - Tasks view still works
+      - No impact on other domain orchestrators
+    </regression>
+  </testing>
+
+  <edge-cases>
+    <case scenario="config.yaml missing or malformed">Return empty workflows array, log warning, show empty section</case>
+    <case scenario="directives section missing from config.yaml">Return empty workflows array (no workflows to display)</case>
+    <case scenario="directive file referenced but doesn't exist">Show directive with warning ThemeIcon, disable click, add tooltip (FR7)</case>
+    <case scenario="workflow with empty directives array">Show workflow with "No directives" description, non-collapsible (FR4)</case>
+    <case scenario="directives folder doesn't exist">All directives show as missing with warning icons</case>
+  </edge-cases>
+
+  <pitfalls>
+    <pitfall issue="YAML parsing dependency">Use existing fast-xml-parser for XML, but config is YAML - use simple regex/line parsing or add js-yaml dependency. Check if YAML parsing exists elsewhere in codebase first.</pitfall>
+    <pitfall issue="File watcher scope">Watch both directives/**/*.xml AND config.yaml to catch all changes that affect the view (FR8)</pitfall>
+    <pitfall issue="ThemeIcon selection">Use 'symbol-method' for workflows (skill/function), 'symbol-ruler' for directives (rules/guidelines), 'warning' for missing files - maintain consistency with VSCode conventions</pitfall>
+    <pitfall issue="Orchestrator line count">Keep under 300 lines per coding directive - the directives orchestrator is simple enough to stay well under this limit</pitfall>
+  </pitfalls>
+
+  <iterations></iterations>
+  <wip></wip>
+  <completeness></completeness>
+</plan>

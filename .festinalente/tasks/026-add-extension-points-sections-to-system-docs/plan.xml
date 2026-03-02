@@ -1,0 +1,200 @@
+<plan task="026-add-extension-points-sections-to-system-docs" spec="tasks/026-add-extension-points-sections-to-system-docs/spec.xml" status="approved"
+      complexity="medium" created="2026-02-28" updated="2026-02-28"
+      generated-by="claude" model="claude-opus-4-5-20251101" version="1" iteration="1">
+  <title>Add 'Extension Points' sections to system docs</title>
+
+  <overview>
+    Add an Extension Points section template to engineering-system.md that guides developers on how to extend systems with new components. Each extension point subsection documents: template file to copy, checklist of files to modify, and common pitfalls. Update docs-engineering.md skill guidance to explain how to identify and document extension points.
+  </overview>
+
+  <approach>
+    <rationale>
+      The existing engineering-system.md template (lines 79-91) ends with Configuration section. The Extension Points section fits naturally after Boundaries (line 83) to follow the pattern of "what it does NOT do" followed by "how to extend it".
+
+      Following the existing section structure pattern: header with brief intro, then structured content (tables, code blocks, or subsections). Extension points will use subsections per component type with standardized content.
+
+      The docs-engineering.md skill guidance (lines 99-124) already has "For Systems" section showing required sections. Extension Points guidance will be added there to explain when and how to document extension points.
+    </rationale>
+    <breaking-changes>None</breaking-changes>
+  </approach>
+
+  <inventory></inventory>
+
+  <tasks>
+    <task id="1" type="auto" completed="true" completed_at="2026-02-28T14:16:34.543Z">
+      <name>Add Extension Points section template to engineering-system.md</name>
+      <files>apps/festinalente/src/content/templates/engineering-system.md (modify)</files>
+      <requirements>FR1, FR2, FR5</requirements>
+      <pattern>Existing section structure in engineering-system.md:79-91</pattern>
+      <action>
+        - Add new "## Extension Points" section after Configuration (line 91)
+        - Add introductory text explaining what this section covers
+        - Add subsection template "### Adding a new {ComponentType}" with placeholders
+        - Include three subsection elements:
+          1. **Template file:** with placeholder for file path
+          2. **Checklist:** with bulleted list of files to modify
+          3. **Pitfalls:** with bulleted list of common mistakes
+        - Include example showing the pattern (e.g., "### Adding a new Capability")
+
+        Current structure (line 79-91):
+        ```markdown
+        ## Boundaries
+
+        What this system does NOT handle:
+
+        - **Does NOT:** {thing} → See [{system}](../{system}/_index.md)
+        - **Does NOT:** {thing}
+
+        ## Configuration
+
+        | Setting | Description | Default |
+        |---------|-------------|---------|
+        | {setting} | {what it does} | {default} |
+        ```
+
+        Add after Configuration:
+        ```markdown
+        ## Extension Points
+
+        How to extend this system with new components:
+
+        ### Adding a new {ComponentType}
+
+        **Template:** Copy `{path/to/template.ts}` as starting point.
+
+        **Checklist:**
+        - [ ] Create component file following naming convention
+        - [ ] Register in {orchestrator or entry point}
+        - [ ] Add to {config file if needed}
+        - [ ] {Additional registration steps}
+
+        **Pitfalls:**
+        - {Common mistake 1}
+        - {Common mistake 2}
+        ```
+      </action>
+      <verify>File exists and contains "## Extension Points" section</verify>
+      <done>Extension Points section template exists in engineering-system.md with Template, Checklist, and Pitfalls subsections</done>
+    </task>
+
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-02-28T14:17:00.000Z">
+      <name>Add Extension Points guidance to docs-engineering.md</name>
+      <files>apps/festinalente/src/content/skills/festina-finalize/docs-engineering.md (modify)</files>
+      <requirements>FR3, FR4</requirements>
+      <pattern>Existing "For Systems" guidance in docs-engineering.md:99-124</pattern>
+      <action>
+        - Locate the "#### For Systems" section (lines 99-124)
+        - Add "## Extension Points" to the required sections list (after Boundaries)
+        - Add a new subsection explaining how to identify and document extension points
+        - Include guidance on:
+          1. How to identify extension points (component types that can be added)
+          2. How to find template files
+          3. How to determine the registration checklist
+          4. How to identify common pitfalls
+        - Include example of well-written extension point documentation
+
+        Current "For Systems" section (lines 99-124):
+        ```markdown
+        #### For Systems
+
+        ```markdown
+        ## Architecture
+        - High-level design
+        ...
+
+        ## Boundaries
+        - What this system does NOT do
+        - Limitations
+        - Related systems
+        ```
+        ```
+
+        Add to the list after Boundaries:
+        ```markdown
+        ## Extension Points
+        - How to add new components
+        - Template files to copy
+        - Registration checklists
+        - Common pitfalls
+        ```
+
+        Add new guidance section after "For Systems":
+        ```markdown
+        #### Extension Points (Systems Only)
+
+        When documenting systems, identify extension points - component types that can be added:
+
+        **How to identify extension points:**
+        1. Look for component directories (e.g., capabilities/, computers/, orchestrators/)
+        2. Check for repeated patterns (multiple files with same structure)
+        3. Note registration points (entry file imports, config files)
+
+        **How to document each extension point:**
+        1. **Template:** Find a representative existing file to use as template
+        2. **Checklist:** Trace the registration flow from component to entry point
+        3. **Pitfalls:** Review PRs or code comments for common issues
+
+        **Example:**
+        ```markdown
+        ### Adding a new Capability
+
+        **Template:** Copy `capabilities/tasks-view.capability.ts`
+
+        **Checklist:**
+        - [ ] Create `{name}.capability.ts` in `src/capabilities/`
+        - [ ] Add factory function with dependencies parameter
+        - [ ] Wire into domain orchestrator that owns this concern
+        - [ ] Add TreeView contribution to package.json if TreeView capability
+
+        **Pitfalls:**
+        - Don't import other capabilities (lateral dependency forbidden)
+        - Don't put policy logic (ensure*, getOrCreate*) in capabilities
+        ```
+        ```
+      </action>
+      <verify>File contains "Extension Points" guidance section</verify>
+      <done>docs-engineering.md explains how to identify and document extension points with examples</done>
+    </task>
+
+    <task id="3" type="manual" depends="2" completed="true" completed_at="2026-02-28T14:17:30.000Z">
+      <name>Verify template completeness</name>
+      <files>N/A</files>
+      <requirements>FR1, FR2, FR3, FR4, FR5</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Read the updated engineering-system.md template
+        - Verify Extension Points section has: Template, Checklist, Pitfalls
+        - Read the updated docs-engineering.md guidance
+        - Verify guidance covers: identification, documentation process, example
+        - Verify the example in docs-engineering.md demonstrates FR2 structure
+      </action>
+      <verify>Manual: Review both files for completeness per acceptance criteria</verify>
+      <done>Extension Points template and guidance are complete and consistent</done>
+    </task>
+  </tasks>
+
+  <testing>
+    <automated>None - documentation changes only</automated>
+    <manual>
+      - Read engineering-system.md and verify Extension Points section is well-structured
+      - Read docs-engineering.md and verify guidance is actionable
+      - Mentally walk through using the template to document VSCode extension extension points
+    </manual>
+    <regression>Verify existing template sections (Overview, Components, Architecture, etc.) are unchanged</regression>
+  </testing>
+
+  <edge-cases>
+    <case scenario="System has no extension points">Template should allow section to be omitted or marked as N/A</case>
+    <case scenario="System has many component types">Each type gets its own subsection under Extension Points</case>
+    <case scenario="Component registration is complex">Checklist can have nested steps or refer to other docs</case>
+  </edge-cases>
+
+  <pitfalls>
+    <pitfall issue="Template too rigid">Keep placeholders flexible - not all systems have same extension patterns</pitfall>
+    <pitfall issue="Guidance too abstract">Include concrete example from VSCode extension (capabilities, orchestrators)</pitfall>
+  </pitfalls>
+
+  <iterations></iterations>
+  <wip></wip>
+  <completeness></completeness>
+</plan>

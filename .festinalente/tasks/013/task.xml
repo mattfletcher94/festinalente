@@ -1,0 +1,41 @@
+<task id="013" status="done" priority="high" created="2026-02-24" updated="2026-02-24" completed="2026-02-24">
+  <title>validate-xml script seems to validate all XML files, not just the one(s) in question</title>
+
+  <labels>
+    <label>bug</label>
+  </labels>
+
+  <refs spec="tasks/013/spec.xml" plan="tasks/013/plan.xml"/>
+
+  <affects>
+    <doc id="validation/xml"/>
+  </affects>
+
+  <engineering>
+    <doc id="systems/cli"/>
+  </engineering>
+
+  <description>The validate-xml script ignores file arguments and always validates all XML files in the .kanban/ directory.</description>
+
+  <problem>
+    When specific file paths are passed as arguments to the validate-xml script, the script ignores them and validates all XML files in the .kanban/ directory. This prevents targeted validation during development and makes the script less efficient for pre-commit hooks or iterative workflows where only specific files need checking.
+  </problem>
+
+  <value>
+    Targeted validation enables faster feedback during development. When working on a specific task, only the relevant XML files should be validated, not the entire project. This improves developer experience and reduces validation time in pre-commit hooks.
+  </value>
+
+  <acceptance-criteria>
+Given the validate-xml script is invoked with file path arguments
+When the script runs
+Then only the specified files are validated
+And other XML files in .kanban/ are not validated
+
+Given the validate-xml script is invoked without any arguments
+When the script runs
+Then all XML files in .kanban/tasks/ are validated
+And this matches the current fallback behavior
+  </acceptance-criteria>
+
+  <notes></notes>
+</task>

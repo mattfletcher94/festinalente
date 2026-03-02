@@ -1,0 +1,60 @@
+<task id="026-add-extension-points-sections-to-system-docs" status="done" priority="high" created="2026-02-28" updated="2026-02-28" completed="2026-02-28"
+      github-issue="#12"
+      github-url="https://github.com/mattfletcher94/festinalente/issues/12"
+      github-pr="#15">
+  <title>Add 'Extension Points' sections to system docs</title>
+
+  <labels>
+    <label>docs</label>
+  </labels>
+
+  <refs spec="tasks/026-add-extension-points-sections-to-system-docs/spec.xml" plan="tasks/026-add-extension-points-sections-to-system-docs/plan.xml"/>
+
+  <affects>
+    <doc id="docs/engineering"/>
+  </affects>
+
+  <engineering>
+    <doc id="systems/vscode-extension"/>
+  </engineering>
+
+  <description>Add 'Extension Points' sections to system documentation that guide developers (human and LLM) on how to extend the system with new components.</description>
+
+  <problem>
+System docs describe architecture well but don't guide how to extend the system. LLMs (and humans) must reverse-engineer extension patterns from existing code.
+
+Evidence: Task 015 had to discover global-actions-view.capability.ts as a template via exploration. This knowledge could be baked into the doc instead.
+
+Pattern docs already have 'When to Use' and checklists (good), but system docs like systems/vscode-extension describe layers without explaining 'add a new capability by...'.
+  </problem>
+
+  <value>
+Faster, more consistent implementations. The doc becomes a 'how to add new X' guide, not just 'what X is'.
+
+Benefits:
+- LLMs can implement new features faster with explicit guidance
+- Humans get onboarding documentation for extending the system
+- Reduces errors from reverse-engineering patterns incorrectly
+- Codifies tribal knowledge that would otherwise be lost
+  </value>
+
+  <acceptance-criteria>
+Given a system doc like systems/vscode-extension
+And it describes a component type (capability, orchestrator, etc.)
+When the doc is read by a developer or LLM
+Then it includes an 'Adding a new X' section with:
+  - Template file to copy (e.g., "Copy global-actions-view.capability.ts")
+  - Checklist of files to modify (e.g., "Register in extension.ts, add to package.json contributes")
+  - Common pitfalls specific to that extension (e.g., "Don't forget to dispose subscriptions")
+
+Given multiple component types in a system doc
+When extension points are documented
+Then each component type has its own 'Adding a new X' subsection
+
+Given the systems/vscode-extension doc
+When extension points are added
+Then it covers at minimum: capabilities, orchestrators, and tree providers
+  </acceptance-criteria>
+
+  <notes></notes>
+</task>

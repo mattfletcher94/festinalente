@@ -1,0 +1,121 @@
+<spec task="019" created="2026-02-25" updated="2026-02-25">
+  <title>Add QUICKS collapsible section to VSCode extension sidebar</title>
+
+  <context>
+Users cannot see or manage quick tasks from the VSCode sidebar. Quick tasks (created via /kanban-quick) are stored in .kanban/quick/{id}/ folders but have no UI representation, requiring manual file navigation.
+
+The QUICKS section provides visual access to quick tasks directly from the sidebar, matching the experience users have with regular tasks in the TASKS section.
+  </context>
+
+  <scope>
+    <in-scope>
+      <item>New TreeView section "QUICKS" positioned beneath TASKS</item>
+      <item>Header buttons matching TASKS pattern: +, Refresh, Find, Collapse All</item>
+      <item>Flat list of quick tasks showing ID + title with status description</item>
+      <item>Click to open quick.xml file</item>
+      <item>File watcher auto-refresh when .kanban/quick/ changes</item>
+      <item>QuickPick search for finding quicks by ID or title</item>
+      <item>New Quick and QuickParser types following existing patterns</item>
+    </in-scope>
+    <out-of-scope>
+      <item>Grouping quicks by status (kept as flat list unlike TASKS)</item>
+      <item>Editing quick content directly in TreeView</item>
+      <item>Action items like TASKS (quicks are simpler, single-commit workflow)</item>
+      <item>Drag-and-drop functionality</item>
+    </out-of-scope>
+  </scope>
+
+  <requirements>
+    <requirement id="FR1">The extension shall register a new TreeView "kanbanQuicks" with display name "Quicks" in the kanban view container, positioned after "Tasks"</requirement>
+    <requirement id="FR2">The QUICKS header shall display four action buttons matching TASKS: Create (+), Refresh, Find, Collapse All, using same icons and navigation group positions</requirement>
+    <requirement id="FR3">Each QuickItem shall display "{id}: {title}" as label with status as description (e.g., "in-progress" or "complete")</requirement>
+    <requirement id="FR4">Clicking a QuickItem shall open the corresponding quick.xml file in the editor using kanban.openFile command</requirement>
+    <requirement id="FR5">The Create button (+) shall prompt for title via showInputBox, then execute /kanban-quick {title} in terminal</requirement>
+    <requirement id="FR6">The Find button shall open QuickPick showing all quicks searchable by ID or title, selecting reveals in tree</requirement>
+    <requirement id="FR7">The Refresh button shall trigger tree refresh by firing onDidChangeTreeData event</requirement>
+    <requirement id="FR8">The FileSystemWatcher shall monitor .kanban/quick/**/*.xml and trigger refresh on create/change/delete</requirement>
+    <requirement id="FR9">When .kanban/quick/ folder doesn't exist, the TreeView shall display an empty state (no error)</requirement>
+    <requirement id="FR10">The Quick type shall include: id, status, title, problem, done, created, updated, quickPath</requirement>
+    <requirement id="FR11">The quick-parser computer shall parse quick.xml using fast-xml-parser, returning Quick object</requirement>
+  </requirements>
+
+  <files>
+    <file path="apps/vscode/src/types/quick-types.ts" action="create">Quick interface and QuickStatus type definitions</file>
+    <file path="apps/vscode/src/computers/quick-parser.computer.ts" action="create">Pure function to parse quick.xml content into Quick object</file>
+    <file path="apps/vscode/src/capabilities/quicks-view.capability.ts" action="create">TreeView capability with QuickItem, parent tracking, find/reveal support</file>
+    <file path="apps/vscode/src/extension.ts" action="modify">Wire quicks-view capability, register TreeView, commands, file watcher</file>
+    <file path="apps/vscode/package.json" action="modify">Add kanbanQuicks view, commands (createQuick, findQuick, refreshQuicks), menu items</file>
+  </files>
+
+  <patterns>
+    <pattern name="capability-computer">
+      <description>Strict separation of I/O (capability) from pure functions (computer). quicks-view.capability.ts handles VSCode TreeView API, quick-parser.computer.ts handles XML parsing.</description>
+      <reference file="apps/vscode/src/capabilities/tasks-view.capability.ts" line="255"/>
+    </pattern>
+    <pattern name="docs-view-structure">
+      <description>Simple TreeView pattern with flat list, used as template for QUICKS. Shows graceful handling of missing folders.</description>
+      <reference file="apps/vscode/src/capabilities/docs-view.capability.ts" line="101"/>
+    </pattern>
+    <pattern name="header-action-registration">
+      <description>View/title menu items in package.json with navigation groups, commands registered in extension.ts.</description>
+      <reference file="apps/vscode/package.json" line="126"/>
+    </pattern>
+    <pattern name="file-watcher">
+      <description>FileSystemWatcher triggers refresh callbacks on create/change/delete events.</description>
+      <reference file="apps/vscode/src/extension.ts" line="418"/>
+    </pattern>
+    <pattern name="parent-tracking">
+      <description>Map-based parent tracking enables TreeView.reveal() API for Find functionality.</description>
+      <reference file="apps/vscode/src/capabilities/tasks-view.capability.ts" line="264"/>
+    </pattern>
+  </patterns>
+
+  <research>
+    <product>
+      <doc id="vscode/kanban-view">Existing sidebar TreeView showing tasks by status. Header actions pattern (Discovery, Create, Find, Refresh). TreeItem types and Find Task QuickPick workflow to replicate.</doc>
+      <doc id="tasks/quick">Quick tasks stored in .kanban/quick/{id}/quick.xml. Simpler than full tasks - single commit workflow, no spec/plan files. Status can be "in-progress" or "complete".</doc>
+    </product>
+    <engineering>
+      <doc id="systems/vscode-extension">Three-layer architecture: Orchestrator (extension.ts) for policy, Capabilities for I/O, Computers for pure functions. TreeItem types documented. YOLO mode detection pattern.</doc>
+    </engineering>
+    <codebase>
+      <finding component="tasks-view.capability.ts" relevance="Complex TreeView with status grouping, ActionItem/FileItem children. QUICKS will be simpler - flat list, no child items."/>
+      <finding component="docs-view.capability.ts" relevance="Simpler TreeView for folder browsing. DocsActionItem pattern for header buttons. Closest template for QUICKS structure."/>
+      <finding component="task-parser.computer.ts" relevance="XML parsing with fast-xml-parser. Same approach needed for quick-parser."/>
+      <finding component="package.json" relevance="View declarations, command definitions, menu registrations. Will add parallel entries for QUICKS."/>
+    </codebase>
+    <pitfalls>
+      <pitfall issue="No quick tasks exist yet" mitigation="Graceful empty state - check if .kanban/quick/ exists before reading, return empty array if not"/>
+      <pitfall issue="Parsing quick.xml" mitigation="Create quick-parser.computer.ts using fast-xml-parser (already a dependency)"/>
+      <pitfall issue="Architecture compliance" mitigation="Follow directive: files use correct suffix (.capability.ts, .computer.ts), no lateral capability imports, policy in orchestrator only"/>
+    </pitfalls>
+  </research>
+
+  <constraints>
+    <constraint>Must use .capability.ts and .computer.ts suffixes per architecture directive</constraint>
+    <constraint>Capabilities cannot import other capabilities (no lateral dependencies)</constraint>
+    <constraint>Policy decisions (when/whether) belong in extension.ts orchestrator</constraint>
+    <constraint>Use ThemeIcon with ThemeColor for icons (no hardcoded colors per design directive)</constraint>
+    <constraint>All exported functions must have explicit return types per TypeScript directive</constraint>
+    <constraint>No any type - use unknown and narrow with type guards</constraint>
+  </constraints>
+
+  <dependencies>
+    <external>
+      <dep name="fast-xml-parser" version="^4.5.1" reason="XML parsing for quick.xml, already in package.json"/>
+    </external>
+    <internal>
+      <dep name="file-system.capability.ts" reason="File I/O operations (read, exists, readDir)"/>
+      <dep name="terminal.capability.ts" reason="Execute /kanban-quick command"/>
+    </internal>
+  </dependencies>
+
+  <risks>
+    <risk impact="low">
+      <issue>Large number of quick tasks may slow TreeView refresh</issue>
+      <mitigation>Same risk as TASKS view - acceptable for typical usage patterns</mitigation>
+    </risk>
+  </risks>
+
+  <open-questions></open-questions>
+</spec>
