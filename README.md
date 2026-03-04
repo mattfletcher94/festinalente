@@ -28,23 +28,16 @@ Each phase produces a document. Each document is self-contained. Each command re
 
 ## Installation
 
-This package is hosted on GitHub Packages. First, authenticate with GitHub:
-
-```bash
-npm login --registry=https://npm.pkg.github.com --scope=@mattfletcher94
-```
-
-Then install:
-
-```bash
-npx @mattfletcher94/festinalente
-```
-
-Or add to your `.npmrc`:
+This package is hosted on [GitHub Packages](https://github.com/mattfletcher94/festinalente/packages). Create a `.npmrc` file in your project root:
 
 ```
 @mattfletcher94:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+```
+
+Then run:
+
+```bash
+npx @mattfletcher94/festinalente
 ```
 
 ---
