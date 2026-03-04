@@ -2,7 +2,7 @@
   "name": "@mattfletcher94/festinalente-vscode",
   "displayName": "Festina Lente",
   "description": "Make haste slowly. Spec-driven development for AI coding agents.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "festinalente",
   "engines": {
     "vscode": "^1.85.0"
