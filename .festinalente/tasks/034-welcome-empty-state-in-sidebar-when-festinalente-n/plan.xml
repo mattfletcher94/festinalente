@@ -1,0 +1,198 @@
+<plan task="034-welcome-empty-state-in-sidebar-when-festinalente-n" spec="tasks/034-welcome-empty-state-in-sidebar-when-festinalente-n/spec.xml" status="approved"
+      complexity="medium" created="2026-03-05" updated="2026-03-05"
+      generated-by="claude" model="claude-opus-4-6" version="1" iteration="1">
+  <title>Welcome empty state in sidebar when festinalente not initialized</title>
+
+  <overview>
+    Add a welcome/empty state to the VSCode sidebar when .festinalente/ does not exist. The Tasks view
+    shows a welcome message with guidance to run "npx festinalente init". All other views (Quicks, Config,
+    Directives, Product Docs, Engineering Docs) are hidden via "when" clauses on the festinalente.hasFestinalenteFolder
+    context key. A file system watcher on the workspace root detects .festinalente/ creation and dynamically
+    initializes all orchestrators without requiring a window reload.
+  </overview>
+
+  <approach>
+    <rationale>
+      Two changes work together:
+
+      1. **package.json declarative config**: Add "when": "festinalente.hasFestinalenteFolder" to all non-Tasks
+         views so they hide when not initialized. Update the existing viewsWelcome text for Tasks to show
+         the "npx festinalente init" guidance. The existing setContext call at extension.ts:56 already sets
+         this context to false when no folder is found.
+
+      2. **extension.ts restructure**: Extract the orchestrator setup (lines 60-213) into a reusable function.
+         The activate() function always sets up a workspace-root file watcher for .festinalente/ creation.
+         When the watcher fires, it calls the setup function, updates the context key, and disposes itself.
+         This follows the existing file watcher pattern at tasks.orchestrator.ts:348-356 using RelativePattern.
+
+      This approach keeps extension.ts as a thin composition root (directive A5) while enabling dynamic
+      re-initialization. No new modules are needed since this is purely a restructuring of the existing
+      activate() function.
+    </rationale>
+    <breaking-changes>None</breaking-changes>
+  </approach>
+
+  <inventory></inventory>
+
+  <tasks>
+    <task id="1" type="auto">
+      <name>Add "when" clauses to hide non-Tasks views and update welcome text</name>
+      <files>apps/vscode/package.json (modify)</files>
+      <requirements>FR1, FR2, FR5</requirements>
+      <pattern>Existing viewsWelcome at apps/vscode/package.json:91-101</pattern>
+      <context>
+        <file>apps/vscode/package.json</file>
+      </context>
+      <action>
+        - Add "when": "festinalente.hasFestinalenteFolder" to 5 view definitions in contributes.views.festinalente:
+          - festinalenteQuicks
+          - festinalenteConfig
+          - festinalenteDirectives
+          - festinalenteProductDocs
+          - festinalenteEngineeringDocs
+        - Do NOT add a "when" clause to festinalenteTasks (it must always be visible)
+        - Update the existing viewsWelcome entry for festinalenteTasks (line 91-96) to show:
+          "Get started by initializing Festina Lente:\n\nnpx festinalente init"
+
+        Current viewsWelcome (approximate):
+        ```json
+        {
+          "view": "festinalenteTasks",
+          "contents": "No .festinalente folder found in this workspace.\n\nOpen a folder containing a .festinalente directory to see tasks.",
+          "when": "!festinalente.hasFestinalenteFolder"
+        }
+        ```
+
+        Change to:
+        ```json
+        {
+          "view": "festinalenteTasks",
+          "contents": "Get started by initializing Festina Lente:\n\nnpx festinalente init",
+          "when": "!festinalente.hasFestinalenteFolder"
+        }
+        ```
+
+        Current views (approximate):
+        ```json
+        {
+          "id": "festinalenteQuicks",
+          "name": "Quicks"
+        }
+        ```
+
+        Change to:
+        ```json
+        {
+          "id": "festinalenteQuicks",
+          "name": "Quicks",
+          "when": "festinalente.hasFestinalenteFolder"
+        }
+        ```
+
+        Apply the same "when" pattern to Config, Directives, Product Docs, and Engineering Docs views.
+      </action>
+      <verify>pnpm --filter @mattfletcher94/festinalente-vscode build</verify>
+      <done>Tasks view shows welcome text when not initialized; other 5 views are hidden when not initialized; all views visible when initialized</done>
+    </task>
+
+    <task id="2" type="auto" depends="1">
+      <name>Extract orchestrator setup into function and add directory watcher</name>
+      <files>apps/vscode/src/extension.ts (modify)</files>
+      <requirements>FR3, FR4, FR5, FR6</requirements>
+      <pattern>File watcher pattern at apps/vscode/src/orchestrators/tasks.orchestrator.ts:348-356</pattern>
+      <context>
+        <file>apps/vscode/src/extension.ts</file>
+        <file>apps/vscode/src/orchestrators/tasks.orchestrator.ts</file>
+      </context>
+      <action>
+        - Extract lines 60-213 (everything after the early return) into a new function:
+          `function initializeOrchestrators(context: vscode.ExtensionContext, festinalenteDir: string, fs: ReturnType&lt;typeof createFileSystemCapability&gt;): void`
+          This function creates all orchestrators, registers TreeViews, commands, watchers, sets context, etc.
+
+        - Restructure activate() to:
+          1. Create fs capability
+          2. Find festinalente folder
+          3. If folder exists:
+             - Set context to true
+             - Call initializeOrchestrators()
+          4. If folder does NOT exist:
+             - Set context to false
+             - Set up a workspace-root file watcher for .festinalente/ directory creation
+             - When watcher detects creation:
+               a. Find the festinalente folder again (to get actual path)
+               b. Set context to true
+               c. Call initializeOrchestrators()
+               d. Dispose the directory watcher (FR6)
+
+        - For the directory watcher, use vscode.workspace.createFileSystemWatcher with a glob pattern
+          that watches for .festinalente directory creation. Use the first workspace folder as base:
+          ```typescript
+          const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+          if (workspaceFolder) {
+            const dirWatcher = vscode.workspace.createFileSystemWatcher(
+              new vscode.RelativePattern(workspaceFolder, '.festinalente/**')
+            );
+            dirWatcher.onDidCreate(() => {
+              const festinalenteDir = findFestinalenteFolder(vscode.workspace.workspaceFolders, fs);
+              if (festinalenteDir) {
+                vscode.commands.executeCommand('setContext', 'festinalente.hasFestinalenteFolder', true);
+                initializeOrchestrators(context, festinalenteDir, fs);
+                dirWatcher.dispose();
+              }
+            });
+            context.subscriptions.push(dirWatcher);
+          }
+          ```
+
+        - Keep the workspace change handler inside initializeOrchestrators since it only applies after init.
+      </action>
+      <verify>pnpm --filter @mattfletcher94/festinalente-vscode build</verify>
+      <done>Extension sets up directory watcher when .festinalente/ missing; dynamically initializes on creation; watcher disposed after init</done>
+    </task>
+
+    <task id="3" type="manual" depends="2">
+      <name>Manual verification of welcome state and dynamic initialization</name>
+      <files>N/A</files>
+      <requirements>FR1, FR2, FR3, FR4, FR5, FR6</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Open extension in a workspace WITHOUT .festinalente/ directory
+        - Verify Tasks view shows welcome message: "Get started by initializing Festina Lente:\n\nnpx festinalente init"
+        - Verify Quicks, Config, Directives, Product Docs, Engineering Docs views are NOT visible
+        - Run: npx festinalente init (or manually create .festinalente/ directory)
+        - Verify sidebar automatically refreshes to show kanban view with all views
+        - Verify no window reload was needed
+        - Open extension in a workspace WITH .festinalente/ directory
+        - Verify normal kanban view displays with all 6 views visible
+      </action>
+      <verify>Manual: Test welcome state, dynamic init, and normal state</verify>
+      <done>All acceptance criteria from task pass: welcome state shown when not initialized, normal view when initialized, auto-refresh on directory creation</done>
+    </task>
+  </tasks>
+
+  <testing>
+    <automated>Build verification only (pnpm --filter @mattfletcher94/festinalente-vscode build). No unit tests needed - this is declarative config and composition root wiring.</automated>
+    <manual>
+      - Open in workspace without .festinalente/: verify welcome state and hidden views
+      - Create .festinalente/ directory: verify auto-transition to kanban view
+      - Open in workspace with .festinalente/: verify normal operation
+    </manual>
+    <regression>Verify existing kanban view, file watchers, commands, and CodeLens still work after restructuring activate()</regression>
+  </testing>
+
+  <edge-cases>
+    <case scenario="No workspace folder open">No watcher set up, Tasks view shows welcome text via viewsWelcome (findFestinalenteFolder returns undefined)</case>
+    <case scenario="Multiple workspace folders">findFestinalenteFolder already iterates all folders; watcher uses first folder only which is acceptable since most users have single-root workspaces</case>
+    <case scenario=".festinalente/ created then immediately deleted">Watcher fires, findFestinalenteFolder re-checks existence before initializing, so false trigger is handled</case>
+  </edge-cases>
+
+  <pitfalls>
+    <pitfall issue="Double initialization if watcher fires multiple times">Guard with a boolean flag or dispose watcher immediately on first successful init (FR6 requires disposal)</pitfall>
+    <pitfall issue="Watcher glob pattern">Use '.festinalente/**' pattern since createFileSystemWatcher may not fire for directory creation alone; watching for any file creation inside .festinalente/ is more reliable</pitfall>
+    <pitfall issue="Extension.ts stays thin">initializeOrchestrators is an extracted function, not a new module. Extension.ts remains the composition root with no policy logic added.</pitfall>
+  </pitfalls>
+
+  <iterations></iterations>
+  <wip></wip>
+  <completeness></completeness>
+</plan>
