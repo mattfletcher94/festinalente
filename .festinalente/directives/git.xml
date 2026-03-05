@@ -26,9 +26,6 @@
   </context>
 
   <process>
-    <!-- ═══════════════════════════════════════════════════════════════
-         CREATE PHASE
-         ═══════════════════════════════════════════════════════════════ -->
     <rule id="G-CREATE-1" phase="create">
       Before starting, verify you are on the main (or master) branch:
       Run: git branch --show-current
@@ -41,10 +38,6 @@
       - If engineering stub doc was created: git add {newEngDocPath}
       - git commit -m "docs({id}): create - {title}"
     </rule>
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         SCOPE PHASE
-         ═══════════════════════════════════════════════════════════════ -->
     <rule id="G-SCOPE-1" phase="scope">
       Before starting, verify you are on the main (or master) branch:
       Run: git branch --show-current
@@ -56,10 +49,6 @@
       - git add .festinalente/tasks/{id}/spec.xml .festinalente/tasks/{id}/task.xml
       - git commit -m "docs({id}): scope - {title}"
     </rule>
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         PLAN PHASE
-         ═══════════════════════════════════════════════════════════════ -->
     <rule id="G-PLAN-1" phase="plan">
       Before starting, verify you are on the task/{id} branch:
       Run: git branch --show-current
@@ -70,10 +59,6 @@
       - git add .festinalente/tasks/{id}/plan.xml .festinalente/tasks/{id}/task.xml
       - git commit -m "docs({id}): plan - {title}"
     </rule>
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         IMPLEMENT PHASE
-         ═══════════════════════════════════════════════════════════════ -->
     <rule id="G-IMPL-1" phase="implement">
       Before starting, verify you are on the task/{id} branch:
       Run: git branch --show-current
@@ -82,10 +67,6 @@
     <rule id="G-IMPL-2" phase="implement">
       Do NOT commit during implementation. Code stays uncommitted until the finalize phase.
     </rule>
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         SAVE PHASE (WIP commit)
-         ═══════════════════════════════════════════════════════════════ -->
     <rule id="G-SAVE-1" phase="save">
       Before starting, verify you are on the task/{id} branch:
       Run: git branch --show-current
@@ -104,10 +85,6 @@
       - git commit -m "wip({id}): {progress summary}"
       The summary should briefly describe what was completed (e.g., "completed auth routes and login endpoint").
     </rule>
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         FINALIZE PHASE
-         ═══════════════════════════════════════════════════════════════ -->
     <rule id="G-FIN-1" phase="finalize">
       Before starting, verify you are on the task/{id} branch:
       Run: git branch --show-current
@@ -168,10 +145,6 @@
       8. Push main: git push
       9. Delete task branch: git branch -d task/{id}
     </rule>
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         REWORK PHASE
-         ═══════════════════════════════════════════════════════════════ -->
     <rule id="G-REWORK-1" phase="rework">
       Before starting, verify you are on the task/{id} branch:
       Run: git branch --show-current
@@ -183,10 +156,6 @@
       - git add .festinalente/tasks/{id}/plan.xml
       - git commit -m "docs({id}): rework - {title}"
     </rule>
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         DELETE PHASE
-         ═══════════════════════════════════════════════════════════════ -->
     <rule id="G-DELETE-1" phase="delete">
       Before starting, verify you are on the main (or master) branch:
       Run: git branch --show-current
@@ -197,10 +166,6 @@
       - git add -A .festinalente/tasks/{id}/
       - git commit -m "docs({id}): delete - {title}"
     </rule>
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         QUICK PHASE
-         ═══════════════════════════════════════════════════════════════ -->
     <rule id="G-QUICK-1" phase="quick">
       Before starting, verify you are on the main (or master) branch:
       Run: git branch --show-current
@@ -232,19 +197,12 @@
       - If yes: git checkout main && git merge quick/{id}
       - If no: keep changes on quick/{id} branch
     </rule>
-    <!-- ═══════════════════════════════════════════════════════════════
-         DEFINE-PRODUCT PHASE
-         ═══════════════════════════════════════════════════════════════ -->
     <rule id="G-DEFPROD-1" phase="define-product">
       After creating product documentation files, stage and commit:
       - git add .festinalente/product/
       - git commit -m "docs: define-product - {brief product description}"
       Example: docs: define-product - task management app with projects, tasks, collaboration
     </rule>
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         MAP-PRODUCT PHASE
-         ═══════════════════════════════════════════════════════════════ -->
     <rule id="G-MAPPROD-1" phase="map-product">
       After creating/updating product documentation and glossary, stage and commit:
       - git add .festinalente/product/
@@ -252,10 +210,6 @@
       - git commit -m "docs: map-product - {brief summary listing main features}"
       Example: docs: map-product - authentication, user management, notifications, search
     </rule>
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         MAP-ENGINEERING PHASE
-         ═══════════════════════════════════════════════════════════════ -->
     <rule id="G-MAPENG-1" phase="map-engineering">
       After creating/updating engineering documentation and glossary, stage and commit:
       - git add .festinalente/engineering/
@@ -263,10 +217,6 @@
       - git commit -m "docs: map-engineering - {systems, patterns listed}"
       Example: docs: map-engineering - auth system, api system, middleware pattern
     </rule>
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         DIRECTIVE PHASE
-         ═══════════════════════════════════════════════════════════════ -->
     <rule id="G-DIRECTIVE-1" phase="directive">
       After creating the directive file and updating config.yaml, stage and commit:
       - git add .festinalente/directives/{name}.xml .festinalente/config.yaml
