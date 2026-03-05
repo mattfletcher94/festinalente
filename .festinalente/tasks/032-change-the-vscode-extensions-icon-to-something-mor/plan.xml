@@ -1,0 +1,175 @@
+<plan task="032-change-the-vscode-extensions-icon-to-something-mor" spec="tasks/032-change-the-vscode-extensions-icon-to-something-mor/spec.xml" status="approved"
+      complexity="medium" created="2026-03-05" updated="2026-03-05"
+      generated-by="claude" model="claude-opus-4-6" version="1" iteration="1">
+  <title>Change the VSCode extensions icon to something more relevant</title>
+
+  <overview>
+    Replace the generic kanban board SVG icon with a Roman column/pillar design that represents
+    Festina Lente's identity (Latin phrase from Caesar Augustus meaning "make haste slowly").
+    The new icon follows the same SVG conventions as the existing icon (24x24 viewBox, currentColor,
+    stroke-width 1.5) and is referenced from package.json's activitybar configuration.
+  </overview>
+
+  <approach>
+    <rationale>
+      The existing kanban-icon.svg at apps/vscode/resources/kanban-icon.svg:1 establishes the SVG
+      convention: 24x24 viewBox, fill="none", stroke="currentColor", stroke-width="1.5". The new
+      icon follows this exact pattern to maintain theme compatibility (light/dark).
+
+      The Roman column design was chosen during scoping as the best representation of Festina Lente's
+      identity — connecting to Roman origins while symbolizing structured, enduring foundations.
+
+      The icon path is referenced in a single location: apps/vscode/package.json:45 in the
+      viewsContainers.activitybar[0].icon field. This is the only change needed to wire the new icon.
+    </rationale>
+    <breaking-changes>
+      <change type="rename">
+        <old>resources/kanban-icon.svg</old>
+        <new>resources/festinalente-icon.svg</new>
+        <affects>apps/vscode/package.json:45 (activitybar icon path)</affects>
+      </change>
+    </breaking-changes>
+  </approach>
+
+  <inventory>
+    <set name="icon-references" count="1">
+      <item>apps/vscode/package.json:45 — viewsContainers.activitybar[0].icon</item>
+    </set>
+  </inventory>
+
+  <tasks>
+    <task id="1" type="auto">
+      <name>Create Roman column/pillar SVG icon</name>
+      <files>apps/vscode/resources/festinalente-icon.svg (create)</files>
+      <requirements>FR1, FR2, FR3, FR4</requirements>
+      <pattern>SVG icon format at apps/vscode/resources/kanban-icon.svg:1</pattern>
+      <context>
+        <file>apps/vscode/resources/kanban-icon.svg</file>
+      </context>
+      <action>
+        - Create apps/vscode/resources/festinalente-icon.svg
+        - Use 24x24 viewBox with fill="none" and xmlns="http://www.w3.org/2000/svg"
+        - Design a Roman column/pillar silhouette with these elements:
+          - Capital (top): wider horizontal section with slight overhang
+          - Shaft (middle): slightly narrower vertical body
+          - Base (bottom): wider horizontal section for stability
+          - Optional: 1-2 subtle vertical fluting lines on the shaft for detail
+        - All stroke and fill values MUST use "currentColor" (no hex colors)
+        - Use stroke-width="1.5" for primary outlines (matching existing convention)
+        - Keep design simple enough to be recognizable at 16x16 rendering
+        - Avoid fine details that would blur at small sizes
+
+        Reference — existing icon format (apps/vscode/resources/kanban-icon.svg):
+        ```xml
+        &lt;svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"&gt;
+          &lt;!-- Elements use stroke="currentColor" stroke-width="1.5" --&gt;
+        &lt;/svg&gt;
+        ```
+
+        Target — approximate Roman column design:
+        ```xml
+        &lt;svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"&gt;
+          &lt;!-- Capital (top wider section) --&gt;
+          &lt;path d="M6 3h12v1H6z" ... /&gt;
+          &lt;!-- Abacus/echinus transition --&gt;
+          &lt;path d="M7 4h10v2H7z" ... /&gt;
+          &lt;!-- Shaft --&gt;
+          &lt;rect x="8" y="6" width="8" height="12" ... /&gt;
+          &lt;!-- Base --&gt;
+          &lt;path d="M7 18h10v2H7z" ... /&gt;
+          &lt;path d="M6 20h12v1H6z" ... /&gt;
+        &lt;/svg&gt;
+        ```
+        Note: The exact coordinates should be refined for visual balance and clarity.
+        The key constraint is: simple, recognizable at 16x16, currentColor only.
+      </action>
+      <verify>pnpm --filter @mattfletcher94/claudeban-vscode build</verify>
+      <done>New SVG file exists at apps/vscode/resources/festinalente-icon.svg with a Roman column design using only currentColor</done>
+    </task>
+
+    <task id="2" type="auto" depends="1">
+      <name>Update package.json icon path and delete old icon</name>
+      <files>apps/vscode/package.json (modify), apps/vscode/resources/kanban-icon.svg (delete)</files>
+      <requirements>FR5, FR6</requirements>
+      <pattern>Activity bar icon registration at apps/vscode/package.json:45</pattern>
+      <context>
+        <file>apps/vscode/package.json</file>
+      </context>
+      <action>
+        - Edit apps/vscode/package.json line 45
+        - Change icon path from "resources/kanban-icon.svg" to "resources/festinalente-icon.svg"
+        - Delete the old file: apps/vscode/resources/kanban-icon.svg
+
+        Current code (apps/vscode/package.json:40-47):
+        ```json
+        "viewsContainers": {
+          "activitybar": [
+            {
+              "id": "festinalente",
+              "title": "Festina Lente",
+              "icon": "resources/kanban-icon.svg"
+            }
+          ]
+        },
+        ```
+
+        Change to:
+        ```json
+        "viewsContainers": {
+          "activitybar": [
+            {
+              "id": "festinalente",
+              "title": "Festina Lente",
+              "icon": "resources/festinalente-icon.svg"
+            }
+          ]
+        },
+        ```
+      </action>
+      <verify>pnpm --filter @mattfletcher94/claudeban-vscode build</verify>
+      <done>package.json references festinalente-icon.svg, kanban-icon.svg is deleted, extension builds successfully</done>
+    </task>
+
+    <task id="3" type="manual" depends="2">
+      <name>Verify icon rendering in VSCode</name>
+      <files>N/A</files>
+      <requirements>FR1, FR2, FR3, FR4, FR5, FR6</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Open VSCode with the extension installed (F5 to launch Extension Development Host)
+        - Verify the Roman column icon appears in the activity bar
+        - Switch between light and dark themes to confirm theme compatibility
+        - Verify the icon is recognizable at the small activity bar size (16x16 rendering)
+        - Verify the old kanban board icon is no longer shown
+        - Confirm the sidebar opens correctly when clicking the icon
+      </action>
+      <verify>Manual: Verify icon renders correctly in activity bar across light and dark themes</verify>
+      <done>Icon displays correctly in activity bar, is recognizable at small size, works in both light and dark themes</done>
+    </task>
+  </tasks>
+
+  <testing>
+    <automated>Build verification: pnpm --filter @mattfletcher94/claudeban-vscode build</automated>
+    <manual>
+      - Launch Extension Development Host (F5) and verify icon in activity bar
+      - Toggle between light and dark themes, confirm icon adapts
+      - Verify icon is recognizable at small activity bar size
+      - Click icon to confirm sidebar opens correctly
+    </manual>
+    <regression>Extension still loads and activates, sidebar TreeView still functions</regression>
+  </testing>
+
+  <edge-cases>
+    <case scenario="Icon rendered at 16x16 in activity bar">Design uses simple shapes with stroke-width 1.5 — avoid fine details that blur at small sizes</case>
+    <case scenario="High-contrast VSCode themes">currentColor adapts to theme foreground color, no special handling needed</case>
+  </edge-cases>
+
+  <pitfalls>
+    <pitfall issue="Hardcoded colors breaking theme compatibility">All stroke and fill values must use currentColor — no hex colors (#fff, #000, etc.) or rgb values</pitfall>
+    <pitfall issue="Too much detail in the column design">Keep to essential silhouette (capital, shaft, base) with minimal decoration — the icon must read clearly at 16x16</pitfall>
+  </pitfalls>
+
+  <iterations></iterations>
+  <wip></wip>
+  <completeness></completeness>
+</plan>
