@@ -117,7 +117,7 @@ flowchart LR
 ## Directory Structure
 
 ```
-claudeban/
+festinalente/
 ├── apps/
 │   ├── festinalente/           # CLI package
 │   │   ├── src/cli/

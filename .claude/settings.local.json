@@ -13,8 +13,8 @@
       "Bash(done)",
       "Bash(wc:*)",
       "Bash(xargs:*)",
-      "Bash(git -C /c/Users/MattF/Documents/Code/claudeban log --oneline -20)",
-      "Bash(git -C /c/Users/MattF/Documents/Code/claudeban log --format=%B -5)",
+      "Bash(git -C /c/Users/MattF/Documents/Code/festinalente log --oneline -20)",
+      "Bash(git -C /c/Users/MattF/Documents/Code/festinalente log --format=%B -5)",
       "Bash(pnpm add:*)",
       "Bash(node dist/scripts/list-product.cjs:*)",
       "Bash(node dist/scripts/search-product.cjs:*)",
@@ -26,7 +26,7 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(gh api:*)",
       "Bash(ls:*)",
-      "Bash(dir /b \"C:\\\\Users\\\\MattF\\\\Documents\\\\Code\\\\claudeban\\\\*.md\")",
+      "Bash(dir /b \"C:\\\\Users\\\\MattF\\\\Documents\\\\Code\\\\festinalente\\\\*.md\")",
       "Bash(tree:*)",
       "Bash(pnpm build)",
       "Bash(dir:*)",
@@ -74,7 +74,7 @@
       "Bash(code --install-extension:*)",
       "Bash(echo:*)",
       "Bash(git fetch:*)",
-      "Bash(git -C \"C:\\\\Users\\\\MattF\\\\Documents\\\\Code\\\\claudeban\" log --oneline -20)",
+      "Bash(git -C \"C:\\\\Users\\\\MattF\\\\Documents\\\\Code\\\\festinalente\" log --oneline -20)",
       "Bash(find:*)",
       "Bash(npx vsce:*)",
       "Bash(pnpm vscode:install:*)",
@@ -86,14 +86,15 @@
       "Bash(npm run deploy:*)",
       "Bash(npm run init:dev:*)",
       "Bash(npm run:*)",
-      "Bash(git -C \"C:\\\\Users\\\\MattF\\\\Documents\\\\Code\\\\claudeban\" diff HEAD)",
+      "Bash(git -C \"C:\\\\Users\\\\MattF\\\\Documents\\\\Code\\\\festinalente\" diff HEAD)",
       "Bash(git revert:*)",
       "WebFetch(domain:www.alibabacloud.com)",
       "WebFetch(domain:ghuntley.com)",
       "Bash(then echo \"exists\")",
       "Bash(else echo \"not exists\")",
       "Bash(fi)",
-      "Bash(git -C \"C:\\\\Users\\\\MattF\\\\Documents\\\\Code\\\\claudeban\" log --format=%B -5)"
+      "Bash(git -C \"C:\\\\Users\\\\MattF\\\\Documents\\\\Code\\\\festinalente\" log --format=%B -5)",
+      "Bash(head:*)"
     ]
   }
 }

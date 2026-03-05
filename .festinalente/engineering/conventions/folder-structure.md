@@ -117,7 +117,7 @@ src/
 ## Monorepo Structure
 
 ```
-claudeban/
+festinalente/
 ├── apps/
 │   ├── festinalente/             # CLI package
 │   │   ├── src/
