@@ -3816,7 +3816,7 @@ function defineCommand(name, description, usage, handler) {
 
 //#endregion
 //#region src/cli/handlers/config.handler.ts
-const CONFIG_FILE$1 = ".festinalente/config.yaml";
+const CONFIG_FILE = ".festinalente/config.yaml";
 const DIRECTIVES_DIR$1 = ".festinalente/directives";
 const GLOSSARY_FILE = ".festinalente/glossary.yaml";
 /**
@@ -3834,14 +3834,14 @@ function createConfigHandler(deps) {
 		const parsed = parseArgs(args);
 		if (parsed.positional.length === 0) return error("Usage: get-skill-config <skill> (e.g., festina-implement)");
 		const skillName = parsed.positional[0];
-		if (!fs$3.exists(CONFIG_FILE$1)) return error(`${CONFIG_FILE$1} not found. Run npx festinalente first.`);
-		const readResult = fs$3.readFile(CONFIG_FILE$1);
-		if (!readResult.ok) return error(`Failed to read ${CONFIG_FILE$1}: ${readResult.error.message}`);
+		if (!fs$3.exists(CONFIG_FILE)) return error(`${CONFIG_FILE} not found. Run npx festinalente first.`);
+		const readResult = fs$3.readFile(CONFIG_FILE);
+		if (!readResult.ok) return error(`Failed to read ${CONFIG_FILE}: ${readResult.error.message}`);
 		let config;
 		try {
 			config = yamlParser.parseYaml(readResult.value);
 		} catch (err$1) {
-			return error(`Failed to parse ${CONFIG_FILE$1}: ${err$1 instanceof Error ? err$1.message : String(err$1)}`);
+			return error(`Failed to parse ${CONFIG_FILE}: ${err$1 instanceof Error ? err$1.message : String(err$1)}`);
 		}
 		const directivesConfig = config.directives;
 		if (!directivesConfig) return success({
@@ -6435,7 +6435,6 @@ var require_slugify = __commonJS({ "../../node_modules/.pnpm/slugify@1.6.6/node_
 //#region src/cli/handlers/task.handler.ts
 var import_slugify = __toESM(require_slugify(), 1);
 const TASKS_DIR$1 = ".festinalente/tasks";
-const CONFIG_FILE = ".festinalente/config.yaml";
 const MAX_SLUG_LENGTH = 50;
 /**
 * Create a task handler.
@@ -6550,38 +6549,13 @@ function createTaskHandler(deps) {
 		});
 	}
 	/**
-	* Parse simple YAML config.
-	*/
-	function parseSimpleYaml(content) {
-		const result = {};
-		const lines = content.split("\n");
-		for (const line of lines) {
-			const match = line.match(/^(\w+):\s*(.*)$/);
-			if (match) {
-				let value = match[2].trim();
-				if (value.startsWith("\"") && value.endsWith("\"")) value = value.slice(1, -1);
-				else if (value.startsWith("'") && value.endsWith("'")) value = value.slice(1, -1);
-				const num = parseInt(value, 10);
-				result[match[1]] = isNaN(num) ? value : num;
-			}
-		}
-		return result;
-	}
-	/**
 	* Next ID command.
 	*/
 	function nextId(args) {
 		const parsed = parseArgs(args);
 		const title = getStringFlag(parsed.flags, "title");
 		if (!title) return error("Usage: next-id --title=\"Task title\"");
-		let padding = 3;
-		if (fs$3.exists(CONFIG_FILE)) {
-			const configResult = fs$3.readFile(CONFIG_FILE);
-			if (configResult.ok) {
-				const config = parseSimpleYaml(configResult.value);
-				if (typeof config.idPadding === "number") padding = config.idPadding;
-			}
-		}
+		const padding = 3;
 		const slug = (0, import_slugify.default)(title, {
 			lower: true,
 			strict: true
@@ -6591,7 +6565,6 @@ function createTaskHandler(deps) {
 			return success({
 				nextId: `${paddedNumber$1}-${slug}`,
 				currentHighest: null,
-				padding,
 				slug
 			});
 		}
@@ -6601,7 +6574,6 @@ function createTaskHandler(deps) {
 			return success({
 				nextId: `${paddedNumber$1}-${slug}`,
 				currentHighest: null,
-				padding,
 				slug
 			});
 		}
@@ -6618,7 +6590,6 @@ function createTaskHandler(deps) {
 		return success({
 			nextId: `${paddedNumber}-${slug}`,
 			currentHighest,
-			padding,
 			slug
 		});
 	}

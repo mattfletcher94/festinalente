@@ -1,6 +1,9 @@
-# Festina Lente Config
+# Festina Lente Config Schema
+# ---------------------
+# This file has exactly THREE top-level keys: name, directives, settings
 #
-# Directives: each skill can load directives from .festinalente/directives/{name}.xml
+# Directives Configuration:
+# Each skill can load directives from .festinalente/directives/{name}.xml
 # Directives are mandatory instructions that the LLM must follow.
 
 directives:
