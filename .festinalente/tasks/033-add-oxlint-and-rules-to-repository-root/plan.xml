@@ -53,7 +53,7 @@
   </inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-03-05T12:03:29.718Z">
       <name>Create .oxlintrc.json configuration file</name>
       <files>.oxlintrc.json (create)</files>
       <requirements>FR1, FR2, FR3, FR4, FR5</requirements>
@@ -96,7 +96,7 @@
       <done>.oxlintrc.json exists at repo root with $schema, plugins, ignorePatterns, categories, and all 9 rules configured</done>
     </task>
 
-    <task id="2" type="auto">
+    <task id="2" type="auto" completed="true" completed_at="2026-03-05T12:03:29.718Z">
       <name>Install oxlint and add lint script to root package.json</name>
       <files>package.json (modify)</files>
       <requirements>FR6, FR7</requirements>
@@ -128,7 +128,7 @@
       <done>oxlint is in root devDependencies and "lint": "oxlint" script exists in root package.json</done>
     </task>
 
-    <task id="3" type="auto" depends="1,2">
+    <task id="3" type="auto" depends="1,2" completed="true" completed_at="2026-03-05T12:03:29.718Z">
       <name>Add lint task to turbo.json</name>
       <files>turbo.json (modify)</files>
       <requirements>FR8</requirements>
@@ -163,7 +163,7 @@
       <done>turbo.json has a lint task definition and running pnpm lint executes oxlint without configuration errors</done>
     </task>
 
-    <task id="4" type="auto">
+    <task id="4" type="auto" completed="true" completed_at="2026-03-05T12:03:29.718Z">
       <name>Remove dead eslint lint script from apps/vscode/package.json</name>
       <files>apps/vscode/package.json (modify)</files>
       <requirements>FR9</requirements>
@@ -186,7 +186,7 @@
       <done>apps/vscode/package.json no longer has a "lint" script</done>
     </task>
 
-    <task id="5" type="manual" depends="3,4">
+    <task id="5" type="manual" depends="3,4" completed="true" completed_at="2026-03-05T12:03:29.718Z">
       <name>Verify oxlint lints both app directories</name>
       <files>N/A</files>
       <requirements>FR10</requirements>
