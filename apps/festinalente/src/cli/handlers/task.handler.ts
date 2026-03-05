@@ -12,7 +12,6 @@ import { defineCommand } from '../registry';
 import slugify from 'slugify';
 
 const TASKS_DIR = '.festinalente/tasks';
-const CONFIG_FILE = '.festinalente/config.yaml';
 const MAX_SLUG_LENGTH = 50;
 
 /**
@@ -42,7 +41,6 @@ export interface ListTasksResult {
 export interface NextIdResult {
   readonly nextId: string;
   readonly currentHighest: string | null;
-  readonly padding: number;
   readonly slug: string;
 }
 
@@ -281,30 +279,6 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
   }
 
   /**
-   * Parse simple YAML config.
-   */
-  function parseSimpleYaml(content: string): Record<string, string | number> {
-    const result: Record<string, string | number> = {};
-    const lines = content.split('\n');
-
-    for (const line of lines) {
-      const match = line.match(/^(\w+):\s*(.*)$/);
-      if (match) {
-        let value = match[2].trim();
-        if (value.startsWith('"') && value.endsWith('"')) {
-          value = value.slice(1, -1);
-        } else if (value.startsWith("'") && value.endsWith("'")) {
-          value = value.slice(1, -1);
-        }
-        const num = parseInt(value, 10);
-        result[match[1]] = isNaN(num) ? value : num;
-      }
-    }
-
-    return result;
-  }
-
-  /**
    * Next ID command.
    */
   function nextId(args: string[]): CliResult<NextIdResult> {
@@ -315,18 +289,7 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
       return error('Usage: next-id --title="Task title"');
     }
 
-    // Read config for padding
-    let padding = 3;
-
-    if (fs.exists(CONFIG_FILE)) {
-      const configResult = fs.readFile(CONFIG_FILE);
-      if (configResult.ok) {
-        const config = parseSimpleYaml(configResult.value);
-        if (typeof config.idPadding === 'number') {
-          padding = config.idPadding;
-        }
-      }
-    }
+    const padding = 3;
 
     // Generate slug from title
     const slug = slugify(title, { lower: true, strict: true }).slice(0, MAX_SLUG_LENGTH);
@@ -336,7 +299,6 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
       return success({
         nextId: `${paddedNumber}-${slug}`,
         currentHighest: null,
-        padding,
         slug
       });
     }
@@ -347,7 +309,6 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
       return success({
         nextId: `${paddedNumber}-${slug}`,
         currentHighest: null,
-        padding,
         slug
       });
     }
@@ -371,7 +332,6 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
     return success({
       nextId: `${paddedNumber}-${slug}`,
       currentHighest,
-      padding,
       slug
     });
   }

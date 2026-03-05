@@ -154,15 +154,9 @@ directives:
   festina-quick: [git, design, coding]
   festina-explore: []
   festina-overview: []
-
-settings:
-  version: "2.0"
-  idPrefix: ""
-  idPadding: 3
-  archiveOnComplete: false
 ```
 
-> **Note:** The `git` directive is auto-bundled but user-configurable. Skills are git-agnostic — all git operations (branching, committing, merging) are handled by the `git.xml` directive. Users can remove `git` from any skill's directive list to disable git operations, or override specific rules with custom directives.
+> **Note:** The `git` directive is auto-bundled but user-configurable. Skills are git-agnostic — all git operations (branching, committing, merging) are handled by the `git.xml` directive. Users can remove `git` from any skill's directive list to disable git operations, or replace with `github` for full GitHub integration (Issues, PRs, team review workflow).
 
 ### workflow.yaml (Immutable)
 
