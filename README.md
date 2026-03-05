@@ -86,8 +86,6 @@ Asks three questions:
 
 **Produces:** `.festinalente/tasks/{id}/task.xml` — a structured requirements document with problem, value, acceptance criteria, labels, priority, and references to affected documentation.
 
-**Commit:** `docs({id}): create - {title}`
-
 ```
 /festina-create "Add user authentication"
 ```
@@ -112,8 +110,6 @@ The output is a technical specification that documents:
 Any unresolved technical decisions are surfaced as questions for the developer.
 
 **Produces:** `.festinalente/tasks/{id}/spec.xml`
-**Creates branch:** `task/{id}`
-**Commit:** `docs({id}): scope - {title}`
 
 ```
 /festina-scope 001
@@ -133,7 +129,6 @@ Transforms the spec into an executable implementation plan. Assesses complexity 
 The plan also documents edge cases, pitfalls, testing strategy, and task dependencies. A self-check question is applied: *"Can this plan be executed without reading the conversation?"*
 
 **Produces:** `.festinalente/tasks/{id}/plan.xml`
-**Commit:** `docs({id}): plan - {title}`
 
 ```
 /festina-plan 001
@@ -152,7 +147,7 @@ Uses smart context loading (`select-context`) to pull in only the documentation 
 
 After all steps complete, runs anti-pattern scans (no leftover TODO/FIXME), requirement tracing (every requirement addressed), and wiring verification.
 
-**Code stays uncommitted** — finalization handles the commit after validation.
+**Code stays as work-in-progress** — finalization handles validation and completion.
 
 ```
 /festina-implement 001
@@ -162,16 +157,11 @@ After all steps complete, runs anti-pattern scans (no leftover TODO/FIXME), requ
 
 A three-phase consolidation:
 
-**Phase 1 — Validate:** Runs all validation checks from active directives (build commands, pattern scans, checklists). If checks fail, attempts auto-fix and re-runs. Commits implementation code after checks pass.
+**Phase 1 — Validate:** Runs all validation checks from active directives (build commands, pattern scans, checklists). If checks fail, attempts auto-fix and re-runs.
 
 **Phase 2 — Document:** Spawns parallel agents to update product and engineering documentation with what was actually built. Stub docs created during `/festina-create` get filled in.
 
-**Phase 3 — Complete:** Pushes branch and merges to main. Marks the task as done. Directives can override the merge behavior — for example, replacing local merges with a PR-based review workflow.
-
-**Commits:**
-- `{type}({id}): {title}` — implementation commit (type is `feat`, `fix`, `refactor`, or `docs` based on task label)
-- `docs({id}): {description}` — documentation updates
-- `docs({id}): done - {title}` — task completion
+**Phase 3 — Complete:** Marks the task as done. Git operations (branching, committing, merging) are handled by the built-in `git.xml` directive, which can be overridden — for example, replacing local merges with a PR-based review workflow.
 
 ```
 /festina-finalize 001
@@ -191,9 +181,7 @@ Quick tasks ask only two questions:
 1. What problem are you solving?
 2. What does done look like?
 
-Creates a `quick.xml`, a `quick/{id}` branch, implements, commits, and optionally merges — all in one command.
-
-**Commit:** `quick({id}): {title}`
+Creates a `quick.xml`, implements the fix, and completes — all in one command. Git operations are handled by the built-in `git.xml` directive.
 
 ---
 
@@ -204,11 +192,12 @@ All Festina Lente state lives in the `.festinalente/` directory at your project 
 ```
 .festinalente/
 ├── config.yaml                    # Directive-to-skill mappings + settings
-├── workflow.yaml                  # Column/label/priority/transition/commit definitions
+├── workflow.yaml                  # Column/label/priority/transition definitions
 ├── manifest.json                  # Version, runtimes, installed metadata
 ├── glossary.yaml                  # Project-specific term aliases for search expansion
 │
 ├── directives/                    # Project-specific rules (XML)
+│   ├── git.xml                    # Built-in git workflow (branching, commits, merges)
 │   ├── coding.xml                 # Your code quality rules
 │   └── ...                        # Any directives you create
 │
@@ -252,9 +241,11 @@ Skills are installed to `.claude/skills/` as built output from the festinalente 
 
 ---
 
-## Commit Vocabulary
+## Built-in Git Directive
 
-Every commit Festina Lente creates follows a strict, predictable format defined in `workflow.yaml`. This makes the git history readable and traceable:
+Festina Lente ships with a built-in `git.xml` directive that handles all git operations — branching, committing, merging, and cleanup. Skills themselves are git-agnostic; they focus on task logic while the directive provides the git workflow.
+
+The directive is installed automatically and can be customized or overridden per-project. Every commit it creates follows a strict, predictable format:
 
 | Phase | Commit Format | Example |
 |-------|---------------|---------|
@@ -275,6 +266,8 @@ Every commit Festina Lente creates follows a strict, predictable format defined 
 | Create Directive | `docs: create directive - {name}` | `docs: create directive - coding` |
 
 The `{type}` in implementation commits comes from the task's label: `feature` → `feat`, `bug` → `fix`, `refactor` → `refactor`, `docs` → `docs`.
+
+The directive also handles branch verification (ensuring you're on the correct branch before each phase), `--no-ff` merges to preserve branch history, and automatic branch cleanup after merge. You can override any of these behaviors by editing `.festinalente/directives/git.xml`.
 
 ---
 
@@ -335,20 +328,19 @@ Every directive has up to five sections:
 </directive>
 ```
 
-### Overrides: Replacing Workflow Steps
+### Overrides: Replacing Directive Rules
 
-Directives can go beyond rules and validation — they can **override entire workflow steps**. The `<override>` element tells the system to skip specific steps within a skill and replace them with custom process rules:
+Directives can go beyond rules and validation — they can **override rules from other directives**, including the built-in `git.xml`. The `<override>` element tells the system to skip specific rules and replace them with custom behavior:
 
 ```xml
 <override phase="finalize">
-  <skip step="merge_branch"/>
-  <skip step="cleanup_branch"/>
-  <reason>Custom workflow replaces local git merge</reason>
+  <skip rule="G-FIN-7"/>
+  <reason>GitHub PR workflow replaces local git merge</reason>
   <instead rules="M-1,M-2,M-3"/>
 </override>
 ```
 
-This means directives aren't just passive rules — they can fundamentally change how the workflow operates for your project. For example, you could replace local merges with a PR-based review workflow, or add deployment steps after finalization.
+This means directives aren't just passive rules — they can fundamentally change how the workflow operates for your project. For example, you could override the git directive's merge rules (`G-FIN-7`) with a PR-based review workflow, or add deployment steps after finalization.
 
 ### Configuring Directives
 
@@ -433,12 +425,12 @@ Technical documentation for patterns, systems, and conventions:
 
 | Command | Purpose |
 |---------|---------|
-| `/festina-quick` | Fast path for simple fixes — two questions, single commit |
-| `/festina-save` | Save partial progress with a WIP commit (`wip({id}): {summary}`) |
+| `/festina-quick` | Fast path for simple fixes — two questions, quick implementation |
+| `/festina-save` | Save partial progress as a WIP save |
 | `/festina-rework` | Return a task from Finalize to In Progress with a structured issue report |
 | `/festina-delete` | Delete a task that's still in Backlog |
 | `/festina-overview` | View board status, task details, or visual ASCII kanban |
-| `/festina-explore` | Explore questions and ideas through Socratic dialogue before committing to a task |
+| `/festina-explore` | Explore questions and ideas through Socratic dialogue before starting a task |
 | `/festina-map-product` | Analyze codebase and document product features |
 | `/festina-map-engineering` | Analyze codebase and document technical architecture |
 | `/festina-define-product` | Define a new product from scratch through Socratic Q&A *(WIP)* |
@@ -449,7 +441,7 @@ Technical documentation for patterns, systems, and conventions:
 ## How It Prevents Context Rot
 
 1. **Persistent State** — All decisions live in XML files, not conversation history
-2. **Atomic Commands** — Each command does one thing and commits progress
+2. **Atomic Commands** — Each command does one thing and saves progress
 3. **Self-Contained Plans** — Implementation steps include enough context to execute without re-reading everything
 4. **Verification Gates** — Automated checks catch drift before it compounds
 5. **Documentation Links** — Tasks reference docs, docs reference code — everything stays connected
@@ -538,12 +530,11 @@ The most advanced directive in this repo. It integrates the entire workflow with
 </rule>
 ```
 
-During `finalize`, an **override** skips the default local merge and replaces it with a PR state machine:
+During `finalize`, an **override** skips the git directive's merge rule and replaces it with a PR state machine:
 
 ```xml
 <override phase="finalize">
-  <skip step="merge_branch"/>
-  <skip step="cleanup_branch"/>
+  <skip rule="G-FIN-7"/>
   <reason>GitHub PR workflow replaces local git merge</reason>
   <instead rules="M-G1,M-G2,M-G3,M-G4,M-G5"/>
 </override>
