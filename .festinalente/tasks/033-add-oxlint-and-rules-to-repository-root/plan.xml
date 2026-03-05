@@ -1,0 +1,235 @@
+<plan task="033-add-oxlint-and-rules-to-repository-root" spec="tasks/033-add-oxlint-and-rules-to-repository-root/spec.xml" status="approved"
+      complexity="medium" created="2026-03-05" updated="2026-03-05"
+      generated-by="claude" model="claude-opus-4-6" version="1" iteration="1">
+  <title>Add oxlint and rules to repository root</title>
+
+  <overview>
+    Install oxlint as a root devDependency and create .oxlintrc.json at the repository root
+    with rules mapped from a provided ESLint configuration. Add a lint script to root package.json,
+    a lint task to turbo.json, and remove the dead eslint lint script from apps/vscode/package.json.
+    This follows the existing pattern of root-level tooling config (like tsconfig.base.json) and
+    root devDependencies for shared tools (like turbo, typescript).
+  </overview>
+
+  <approach>
+    <rationale>
+      Following two existing patterns:
+      - Root-level tooling config: shared config files live at repo root (tsconfig.base.json:1)
+      - Root devDependencies for shared tools: turbo, typescript at package.json:19-22
+
+      Oxlint is configured via .oxlintrc.json (JSON format, not JS/TS flat config). Rules are
+      mapped from the user-provided ESLint configuration. Unsupported plugins (perfectionist,
+      tsdoc) are skipped per spec constraints. The turbo lint task follows the same pattern as
+      the existing build/typecheck/clean tasks in turbo.json.
+    </rationale>
+    <breaking-changes>
+      <change type="config">
+        <old>"lint": "eslint src --ext ts" in apps/vscode/package.json</old>
+        <new>Removed (dead code, no .eslintrc exists)</new>
+        <affects>apps/vscode/package.json:199</affects>
+      </change>
+    </breaking-changes>
+  </approach>
+
+  <inventory>
+    <set name="oxlint-rules-to-configure" count="9">
+      <item>eslint/sort-imports: warn</item>
+      <item>typescript/no-useless-constructor: off</item>
+      <item>typescript/no-extraneous-class: off</item>
+      <item>typescript/no-non-null-assertion: off</item>
+      <item>typescript/no-dynamic-delete: off</item>
+      <item>typescript/no-explicit-any: off</item>
+      <item>typescript/no-empty-object-type: off</item>
+      <item>typescript/no-unused-vars: error (argsIgnorePattern: ^_, varsIgnorePattern: ^_)</item>
+      <item>eslint/no-empty-pattern: off</item>
+    </set>
+    <set name="ignore-patterns" count="5">
+      <item>node_modules</item>
+      <item>dist</item>
+      <item>.turbo</item>
+      <item>coverage</item>
+      <item>scripts</item>
+    </set>
+  </inventory>
+
+  <tasks>
+    <task id="1" type="auto">
+      <name>Create .oxlintrc.json configuration file</name>
+      <files>.oxlintrc.json (create)</files>
+      <requirements>FR1, FR2, FR3, FR4, FR5</requirements>
+      <pattern>Root-level tooling config at tsconfig.base.json:1</pattern>
+      <context>
+        <file>tsconfig.base.json</file>
+      </context>
+      <action>
+        - Create .oxlintrc.json at repository root
+        - Add $schema reference: "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json"
+        - Enable plugins: ["eslint", "typescript", "import"]
+        - Set ignorePatterns: ["node_modules", "dist", ".turbo", "coverage", "scripts"]
+        - Enable correctness category as baseline in categories: { "correctness": "error" }
+        - Map all 9 rules from the inventory:
+
+        Target .oxlintrc.json structure:
+        ```json
+        {
+          "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+          "plugins": ["eslint", "typescript", "import"],
+          "ignorePatterns": ["node_modules", "dist", ".turbo", "coverage", "scripts"],
+          "categories": {
+            "correctness": "error"
+          },
+          "rules": {
+            "eslint/sort-imports": "warn",
+            "typescript/no-useless-constructor": "off",
+            "typescript/no-extraneous-class": "off",
+            "typescript/no-non-null-assertion": "off",
+            "typescript/no-dynamic-delete": "off",
+            "typescript/no-explicit-any": "off",
+            "typescript/no-empty-object-type": "off",
+            "typescript/no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+            "eslint/no-empty-pattern": "off"
+          }
+        }
+        ```
+      </action>
+      <verify>npx oxlint --version</verify>
+      <done>.oxlintrc.json exists at repo root with $schema, plugins, ignorePatterns, categories, and all 9 rules configured</done>
+    </task>
+
+    <task id="2" type="auto">
+      <name>Install oxlint and add lint script to root package.json</name>
+      <files>package.json (modify)</files>
+      <requirements>FR6, FR7</requirements>
+      <pattern>Root devDependencies pattern at package.json:19-22</pattern>
+      <context>
+        <file>package.json</file>
+      </context>
+      <action>
+        - Install oxlint as devDependency: pnpm add -D oxlint -w
+        - Add "lint": "oxlint" to the scripts section
+
+        Current scripts section (package.json:6-17):
+        ```json
+        "scripts": {
+          "dev": "turbo dev",
+          "build": "turbo build",
+          "clean": "turbo clean",
+          "typecheck": "turbo typecheck",
+          ...
+        }
+        ```
+
+        Add after existing scripts:
+        ```json
+        "lint": "oxlint"
+        ```
+      </action>
+      <verify>pnpm lint --help</verify>
+      <done>oxlint is in root devDependencies and "lint": "oxlint" script exists in root package.json</done>
+    </task>
+
+    <task id="3" type="auto" depends="1,2">
+      <name>Add lint task to turbo.json</name>
+      <files>turbo.json (modify)</files>
+      <requirements>FR8</requirements>
+      <pattern>Turbo task pattern at turbo.json:1-22</pattern>
+      <context>
+        <file>turbo.json</file>
+      </context>
+      <action>
+        - Add a "lint" task definition to turbo.json tasks object
+        - Follow the pattern of existing tasks (build, typecheck, clean)
+        - Lint does not depend on build outputs, so no dependsOn needed
+        - Set cache: false (lint results depend on source files, not build artifacts)
+
+        Current turbo.json tasks:
+        ```json
+        "tasks": {
+          "build": { ... },
+          "dev": { ... },
+          "typecheck": { ... },
+          "clean": { ... }
+        }
+        ```
+
+        Add:
+        ```json
+        "lint": {
+          "cache": false
+        }
+        ```
+      </action>
+      <verify>pnpm lint</verify>
+      <done>turbo.json has a lint task definition and running pnpm lint executes oxlint without configuration errors</done>
+    </task>
+
+    <task id="4" type="auto">
+      <name>Remove dead eslint lint script from apps/vscode/package.json</name>
+      <files>apps/vscode/package.json (modify)</files>
+      <requirements>FR9</requirements>
+      <pattern>N/A</pattern>
+      <context>
+        <file>apps/vscode/package.json</file>
+      </context>
+      <action>
+        - Remove the "lint": "eslint src --ext ts" line from apps/vscode/package.json scripts section
+        - This script is dead code — no .eslintrc file exists in apps/vscode/
+
+        Current (apps/vscode/package.json:199):
+        ```json
+        "lint": "eslint src --ext ts",
+        ```
+
+        Remove this line entirely.
+      </action>
+      <verify>node -e "const p = require('./apps/vscode/package.json'); if (p.scripts.lint) { process.exit(1); }"</verify>
+      <done>apps/vscode/package.json no longer has a "lint" script</done>
+    </task>
+
+    <task id="5" type="manual" depends="3,4">
+      <name>Verify oxlint lints both app directories</name>
+      <files>N/A</files>
+      <requirements>FR10</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Run oxlint from the repo root: pnpm lint
+        - Verify it scans files in apps/vscode/src/ and apps/festinalente/src/
+        - Verify no configuration errors occur
+        - Note: lint violations in existing code are expected and out of scope
+      </action>
+      <verify>Manual: Run pnpm lint and confirm it lints both apps/vscode/src and apps/festinalente/src without configuration errors</verify>
+      <done>oxlint successfully lints both app directories from repo root without configuration errors</done>
+    </task>
+  </tasks>
+
+  <testing>
+    <automated>No automated tests required — this is tooling configuration, not application code</automated>
+    <manual>
+      - Run pnpm lint from repo root and verify oxlint executes successfully
+      - Verify .oxlintrc.json is picked up (rules are applied)
+      - Verify ignored directories (node_modules, dist, .turbo, coverage, scripts) are not linted
+      - Verify both apps/vscode/src and apps/festinalente/src are scanned
+    </manual>
+    <regression>
+      - Verify pnpm build still succeeds (turbo.json change doesn't break build task)
+      - Verify pnpm typecheck still succeeds
+      - Verify apps/vscode package still builds without the removed lint script
+    </regression>
+  </testing>
+
+  <edge-cases>
+    <case scenario="oxlint finds lint violations in existing code">Out of scope per spec — violations are expected and will be fixed separately</case>
+    <case scenario="oxlint rule name doesn't match expected format">All 9 rules in inventory are verified oxlint equivalents from scoping research</case>
+    <case scenario="turbo tries to run lint in sub-packages without lint script">turbo lint will only run in packages that define a lint script — after removing eslint from vscode, only root has lint</case>
+  </edge-cases>
+
+  <pitfalls>
+    <pitfall issue="oxlint config schema URL may change">Use the canonical GitHub raw URL from oxc-project/oxc repository for the $schema reference</pitfall>
+    <pitfall issue="pnpm add may update lockfile">Expected behavior — pnpm-lock.yaml changes should be committed with the implementation</pitfall>
+    <pitfall issue="turbo lint may not work at root level">The root package.json lint script runs oxlint directly, not through turbo — turbo lint is for orchestration if sub-packages add lint scripts later</pitfall>
+  </pitfalls>
+
+  <iterations></iterations>
+  <wip></wip>
+  <completeness></completeness>
+</plan>
