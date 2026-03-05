@@ -10,43 +10,43 @@ name: ''
 
 directives:
   festina-create:
-    - git
+    - github
     - design
   festina-scope:
-    - git
+    - github
     - coding
     - design
   festina-plan:
-    - git
+    - github
     - planning
     - coding
   festina-implement:
-    - git
+    - github
     - coding
   festina-save:
-    - git
+    - github
   festina-finalize:
-    - git
+    - github
     - coding
   festina-rework:
-    - git
+    - github
     - coding
   festina-delete:
-    - git
+    - github
   festina-quick:
-    - git
+    - github
     - design
     - coding
   festina-explore: []
   festina-overview: []
   festina-directive:
-    - git
+    - github
   festina-map-product:
-    - git
+    - github
   festina-map-engineering:
-    - git
+    - github
   festina-define-product:
-    - git
+    - github
 
 settings:
   version: '2.0'
