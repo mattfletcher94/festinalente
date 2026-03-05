@@ -62,7 +62,7 @@ This domain does NOT cover CLI helper commands (use `node .festinalente/scripts/
 | [scope](./scope.md) | Research codebase and create functional specs | stable |
 | [plan](./plan.md) | Transform specs into implementation plans | stable |
 | [implement](./implement.md) | Execute plans with subagent orchestration | stable |
-| [finalize](./finalize.md) | Validate, commit, document, and complete | stable |
+| [finalize](./finalize.md) | Validate, document, and complete | stable |
 | [quick](./quick.md) | Fast path for simple fixes | stable |
 | [explore](./explore.md) | Explore questions through Socratic dialogue | stable |
 | [overview](./overview.md) | View board status and task details | stable |

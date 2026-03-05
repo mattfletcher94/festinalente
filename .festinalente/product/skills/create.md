@@ -3,7 +3,7 @@ id: skills/create
 title: "Create Task"
 type: feature
 tldr: "Create and refine tasks through conversational Q&A with automatic doc linking"
-summary: "The /festina-create skill captures problem, value, and acceptance criteria through iterative dialogue, then commits a new task to Backlog with automatic product/engineering doc linking."
+summary: "The /festina-create skill captures problem, value, and acceptance criteria through iterative dialogue, then saves a new task to Backlog with automatic product/engineering doc linking. Git operations are handled by the git.xml directive if mapped."
 keywords: [create, task, qa, backlog, acceptance-criteria, gherkin]
 aliases: [festina-create, new-task, add-task]
 boundary: "Does not scope or plan tasks - only captures requirements and creates task.xml"
@@ -22,7 +22,7 @@ The `/festina-create` skill is the entry point for all new work in Festina Lente
 
 **Why it exists:** To ensure every task has well-defined requirements before any implementation begins.
 
-**Summary:** Create validates that tasks are properly understood before committing to the backlog.
+**Summary:** Create validates that tasks are properly understood before adding them to the backlog.
 
 ## How It Works
 
@@ -34,7 +34,7 @@ sequenceDiagram
     Create-->>User: Propose understanding
     User-->>Create: Validate/correct
     Create->>Create: Write task.xml
-    Create->>Git: Commit to backlog
+    Create->>Directives: Run directive rules
     Create-->>-User: Next: /festina-scope
 ```
 
@@ -45,7 +45,7 @@ sequenceDiagram
 3. **Priority/label** - Auto-detect from keywords, user confirms
 4. **Q&A dialogue** - Propose understanding, user validates
 5. **Task creation** - Write task.xml with Gherkin acceptance criteria
-6. **Commit** - `docs({id}): create - {title}`
+6. **Directive rules** - Git commit, issue sync, etc. (directive-driven)
 
 **Summary:** Create follows a propose-then-validate pattern to minimize user effort.
 
@@ -118,5 +118,5 @@ What this skill does NOT do:
 
 ## Limitations
 
-- Must be run from main/master branch
 - Requires `.festinalente/` to be initialized
+- Branch requirements (e.g., must be on main/master) are enforced by the `git.xml` directive, not the skill

@@ -6,7 +6,7 @@ tldr: "Execute plan tasks through subagent orchestration with progress persisten
 summary: "The /festina-implement skill spawns subagents for each plan task, tracks completion in plan.xml, runs quality verification, and moves completed tasks to finalize status."
 keywords: [implement, execute, subagent, orchestration, verification, progress]
 aliases: [festina-implement, execute, run]
-boundary: "Does not commit code or update documentation - code stays uncommitted until finalize"
+boundary: "Does not update documentation - that happens in finalize. Git operations are directive-driven."
 references: [skills/plan, skills/finalize, cli/context]
 uses: [systems/cli, systems/data-model]
 updated: 2026-03-01
@@ -132,7 +132,7 @@ Resuming from task 3...
 What this skill does NOT do:
 
 - **Does NOT:** Create the plan → See [plan](./plan.md)
-- **Does NOT:** Commit code (stays uncommitted)
+- **Does NOT:** Handle git operations directly (directive-driven)
 - **Does NOT:** Update documentation → See [finalize](./finalize.md)
 
 ## Configuration
@@ -149,6 +149,5 @@ What this skill does NOT do:
 
 ## Limitations
 
-- Must be on task branch (`task/{id}`)
 - Task must have plan.xml (status: planned or in-progress)
-- Code stays uncommitted until finalize
+- Branch requirements (e.g., must be on task branch) are enforced by the `git.xml` directive, not the skill

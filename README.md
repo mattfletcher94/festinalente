@@ -161,7 +161,7 @@ A three-phase consolidation:
 
 **Phase 2 — Document:** Spawns parallel agents to update product and engineering documentation with what was actually built. Stub docs created during `/festina-create` get filled in.
 
-**Phase 3 — Complete:** Marks the task as done. Git operations (branching, committing, merging) are handled by the built-in `git.xml` directive, which can be overridden — for example, replacing local merges with a PR-based review workflow.
+**Phase 3 — Complete:** Marks the task as done. Git operations (branching, committing, merging) are handled by the `git.xml` directive if mapped, which can be overridden — for example, replacing local merges with a PR-based review workflow.
 
 ```
 /festina-finalize 001
@@ -181,7 +181,7 @@ Quick tasks ask only two questions:
 1. What problem are you solving?
 2. What does done look like?
 
-Creates a `quick.xml`, implements the fix, and completes — all in one command. Git operations are handled by the built-in `git.xml` directive.
+Creates a `quick.xml`, implements the fix, and completes — all in one command. Git operations are handled by the `git.xml` directive if mapped.
 
 ---
 
@@ -197,7 +197,7 @@ All Festina Lente state lives in the `.festinalente/` directory at your project 
 ├── glossary.yaml                  # Project-specific term aliases for search expansion
 │
 ├── directives/                    # Project-specific rules (XML)
-│   ├── git.xml                    # Built-in git workflow (branching, commits, merges)
+│   ├── git.xml                    # Auto-bundled git workflow (branching, commits, merges)
 │   ├── coding.xml                 # Your code quality rules
 │   └── ...                        # Any directives you create
 │
@@ -241,11 +241,11 @@ Skills are installed to `.claude/skills/` as built output from the festinalente 
 
 ---
 
-## Built-in Git Directive
+## Git Directive
 
-Festina Lente ships with a built-in `git.xml` directive that handles all git operations — branching, committing, merging, and cleanup. Skills themselves are git-agnostic; they focus on task logic while the directive provides the git workflow.
+Festina Lente auto-bundles a `git.xml` directive that handles git operations — branching, committing, merging, and cleanup. Skills themselves are completely git-agnostic; they focus on task logic while the directive provides the git workflow. Users opt into git functionality by mapping `git.xml` to their skills in `config.yaml`, or they can remove it entirely if their project doesn't need it.
 
-The directive is installed automatically and can be customized or overridden per-project. Every commit it creates follows a strict, predictable format:
+The directive can be customized or overridden per-project. Every commit it creates follows a strict, predictable format:
 
 | Phase | Commit Format | Example |
 |-------|---------------|---------|
@@ -267,7 +267,7 @@ The directive is installed automatically and can be customized or overridden per
 
 The `{type}` in implementation commits comes from the task's label: `feature` → `feat`, `bug` → `fix`, `refactor` → `refactor`, `docs` → `docs`.
 
-The directive also handles branch verification (ensuring you're on the correct branch before each phase), `--no-ff` merges to preserve branch history, and automatic branch cleanup after merge. You can override any of these behaviors by editing `.festinalente/directives/git.xml`.
+The directive also handles branch verification (ensuring you're on the correct branch before each phase), `--no-ff` merges to preserve branch history, and automatic branch cleanup after merge. You can customize these behaviors by editing `.festinalente/directives/git.xml`, or remove git functionality entirely by unmapping the directive from your skills in `config.yaml`.
 
 ---
 
@@ -330,7 +330,7 @@ Every directive has up to five sections:
 
 ### Overrides: Replacing Directive Rules
 
-Directives can go beyond rules and validation — they can **override rules from other directives**, including the built-in `git.xml`. The `<override>` element tells the system to skip specific rules and replace them with custom behavior:
+Directives can go beyond rules and validation — they can **override rules from other directives**, including the auto-bundled `git.xml`. The `<override>` element tells the system to skip specific rules and replace them with custom behavior:
 
 ```xml
 <override phase="finalize">

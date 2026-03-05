@@ -2,9 +2,9 @@
 id: skills/quick
 title: "Quick Implementation"
 type: feature
-tldr: "Fast path for simple fixes with minimal Q&A and single commit"
-summary: "The /festina-quick skill handles simple tasks like typo fixes and config changes with just two questions (problem, done), optional research, and a single commit workflow."
-keywords: [quick, fast, simple, single-commit, minimal]
+tldr: "Fast path for simple fixes with minimal Q&A"
+summary: "The /festina-quick skill handles simple tasks like typo fixes and config changes with just two questions (problem, done), optional research, and a streamlined workflow. Git operations are handled by the git.xml directive if mapped."
+keywords: [quick, fast, simple, minimal]
 aliases: [festina-quick, fast, simple-fix]
 boundary: "Does not handle complex multi-file changes - use full workflow for those"
 references: [docs/product]
@@ -14,11 +14,11 @@ updated: 2026-03-01
 
 # Quick Implementation
 
-> **TL;DR:** Fast path for simple fixes with minimal Q&A and single commit
+> **TL;DR:** Fast path for simple fixes with minimal Q&A
 
 ## Overview
 
-The `/festina-quick` skill is designed for simple tasks that don't need the full create→scope→plan→implement workflow. It asks just two questions, does the work, and commits - all in one session.
+The `/festina-quick` skill is designed for simple tasks that don't need the full create→scope→plan→implement workflow. It asks just two questions, does the work, and completes - all in one session. Git operations (branching, committing, merging) are handled by the `git.xml` directive if mapped.
 
 **Why it exists:** Not every change needs a formal spec and plan.
 
@@ -35,11 +35,9 @@ flowchart LR
     Explore --> Impl
     Impl --> Review{Review?}
     Review -->|Yes| Wait[User Reviews]
-    Review -->|No| Commit[Single Commit]
-    Wait --> Commit
-    Commit --> Merge{Merge?}
-    Merge -->|Yes| Done[Merged]
-    Merge -->|No| Branch[Stay on Branch]
+    Review -->|No| Complete[Complete]
+    Wait --> Complete
+    Complete --> Directives[Run Directive Rules]
 ```
 
 ### Minimal Q&A
@@ -91,15 +89,7 @@ What does done look like?
 Want me to research the codebase first?
 > No
 
-Created branch quick/000
 Fixing typo in src/components/LoginButton.tsx...
-
-Ready to commit? > Yes, commit
-
-Committed: quick(000): Fix typo in login button
-
-Merge to main? > Yes
-Merged quick/000 into main.
 
 Quick task 000 complete!
 ```
@@ -141,19 +131,13 @@ When to use full workflow instead:
 - You need to document the approach
 - Others need to review before merge
 
-## Configuration
-
-| Setting | Description | Default |
-|---------|-------------|---------|
-| Branch prefix | Quick task branch prefix | quick/ |
-
 ## Interactions
 
-- **Directives**: Applies `phase="quick"` rules if defined
-- **Product Docs**: Optional doc updates after commit
+- **Directives**: Applies `phase="quick"` rules if defined (including git operations from `git.xml`)
+- **Product Docs**: Optional doc updates
 
 ## Limitations
 
-- Must be on main/master branch to start
 - Best for changes touching 1-3 files
 - No parallel execution (single-threaded)
+- Branch requirements (e.g., must be on main/master) are enforced by the `git.xml` directive, not the skill

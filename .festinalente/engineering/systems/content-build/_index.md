@@ -91,11 +91,18 @@ flowchart TB
 
 | Partial | Purpose |
 |---------|---------|
-| `branch-verify` | Git branch verification steps |
 | `column-transition` | Task status transition rules |
-| `directives` | Directive loading instructions |
-| `scripts` | CLI script invocation helpers |
-| `commit-format` | Commit message formatting |
+| `directive-compliance` | Directive compliance checking steps |
+| `load-directives` | Directive loading instructions |
+| `helper-scripts` | CLI script invocation helpers |
+| `skill-complete` | Skill completion output and cleanup |
+| `workflow-load` | Workflow YAML loading steps |
+| `diagram-guidelines` | Mermaid/ASCII diagram conventions |
+| `engineering-docs-scripts` | Engineering doc CLI commands |
+| `product-docs-scripts` | Product doc CLI commands |
+| `directory-reference` | Directory structure reference |
+
+> **Note:** Skills are git-agnostic. All git operations (branching, committing, merging) are handled by the bundled `git.xml` directive, not by partials or skill process steps. Users can customize or remove the git directive as needed.
 
 ## Interactions
 

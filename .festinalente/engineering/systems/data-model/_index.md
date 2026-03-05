@@ -145,17 +145,24 @@ stateDiagram-v2
 
 ```yaml
 directives:
-  festina-create: [design]
-  festina-scope: [design, planning]
-  festina-plan: [planning, coding]
-  festina-implement: [coding]
-  festina-finalize: [coding, github]
+  festina-create: [git, design]
+  festina-scope: [git, coding, design]
+  festina-plan: [git, planning, coding]
+  festina-implement: [git, coding]
+  festina-save: [git]
+  festina-finalize: [git, coding]
+  festina-quick: [git, design, coding]
+  festina-explore: []
+  festina-overview: []
 
 settings:
+  version: "2.0"
   idPrefix: ""
   idPadding: 3
   archiveOnComplete: false
 ```
+
+> **Note:** The `git` directive is auto-bundled but user-configurable. Skills are git-agnostic — all git operations (branching, committing, merging) are handled by the `git.xml` directive. Users can remove `git` from any skill's directive list to disable git operations, or override specific rules with custom directives.
 
 ### workflow.yaml (Immutable)
 

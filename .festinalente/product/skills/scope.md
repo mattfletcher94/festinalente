@@ -143,5 +143,5 @@ What this skill does NOT do:
 
 ## Limitations
 
-- Must be on main/master branch to create task branch
 - Task must be in `backlog` status
+- Branch requirements (e.g., must be on main/master, creating task branch) are enforced by the `git.xml` directive, not the skill

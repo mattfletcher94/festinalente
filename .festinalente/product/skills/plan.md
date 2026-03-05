@@ -130,5 +130,5 @@ What this skill does NOT do:
 
 ## Limitations
 
-- Must be on task branch (`task/{id}`)
 - Task must have spec.xml (status: scoped)
+- Branch requirements (e.g., must be on task branch) are enforced by the `git.xml` directive, not the skill

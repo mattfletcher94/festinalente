@@ -155,7 +155,6 @@ What this skill does NOT do:
 ## Interactions
 
 - **CLI tasks**: Uses list-tasks, find-task commands
-- **Git**: Can show recent git activity
 
 ## Limitations
 
