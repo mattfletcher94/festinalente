@@ -38,7 +38,7 @@
   </inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-03-05T00:00:00Z">
       <name>Create Roman column/pillar SVG icon</name>
       <files>apps/vscode/resources/festinalente-icon.svg (create)</files>
       <requirements>FR1, FR2, FR3, FR4</requirements>
@@ -87,7 +87,7 @@
       <done>New SVG file exists at apps/vscode/resources/festinalente-icon.svg with a Roman column design using only currentColor</done>
     </task>
 
-    <task id="2" type="auto" depends="1">
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-03-05T00:00:00Z">
       <name>Update package.json icon path and delete old icon</name>
       <files>apps/vscode/package.json (modify), apps/vscode/resources/kanban-icon.svg (delete)</files>
       <requirements>FR5, FR6</requirements>
@@ -130,7 +130,7 @@
       <done>package.json references festinalente-icon.svg, kanban-icon.svg is deleted, extension builds successfully</done>
     </task>
 
-    <task id="3" type="manual" depends="2">
+    <task id="3" type="manual" depends="2" completed="true" completed_at="2026-03-05T00:00:00Z">
       <name>Verify icon rendering in VSCode</name>
       <files>N/A</files>
       <requirements>FR1, FR2, FR3, FR4, FR5, FR6</requirements>
