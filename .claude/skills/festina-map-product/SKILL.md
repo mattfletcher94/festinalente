@@ -1,7 +1,7 @@
 ---
 name: festina-map-product
 description: Analyze existing codebase and create product documentation through parallel exploration and Socratic Q&A
-allowed-tools: Read, Write, Glob, Grep, Bash(git add *, git commit *, git status), AskUserQuestion, Task
+allowed-tools: Read, Write, Glob, Grep, Bash(git add *, git commit *, git status), Task
 disable-model-invocation: true
 ---
 

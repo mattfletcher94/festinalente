@@ -1,7 +1,7 @@
 ---
 name: festina-save
 description: Save partial implementation progress with WIP commit. Use when implementation is interrupted and you need to save work.
-allowed-tools: Read, Write, Edit, Bash(ls *, git add *, git commit *, git status, git diff *, git branch *), AskUserQuestion
+allowed-tools: Read, Write, Edit, Bash(ls *, git add *, git commit *, git status, git diff *, git branch *)
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---

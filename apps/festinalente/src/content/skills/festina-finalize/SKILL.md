@@ -1,7 +1,7 @@
 ---
 name: festina-finalize
 description: Validate, commit, document, and complete a task. Consolidates check, docs, and merge into a single command.
-allowed-tools: Read, Write, Bash(*), Grep, AskUserQuestion, Task
+allowed-tools: Read, Write, Bash(*), Grep, Task
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---

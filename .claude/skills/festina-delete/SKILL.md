@@ -1,7 +1,7 @@
 ---
 name: festina-delete
 description: Delete a task from the festina board. Only works for tasks in Backlog status.
-allowed-tools: Read, Bash(node *, git add *, git commit *, git status, git branch *, git rm *), AskUserQuestion
+allowed-tools: Read, Bash(node *, git add *, git commit *, git status, git branch *, git rm *)
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---

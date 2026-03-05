@@ -1,7 +1,7 @@
 ---
 name: festina-overview
 description: Show board overview, current status, visual board, or task details. The main command for understanding current state.
-allowed-tools: Read, Glob, Grep, Bash(git log *), AskUserQuestion
+allowed-tools: Read, Glob, Grep, Bash(git log *)
 disable-model-invocation: true
 ---
 

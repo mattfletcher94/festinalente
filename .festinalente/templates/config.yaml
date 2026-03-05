@@ -9,8 +9,6 @@
 name: ""
 
 directives:
-  festina-status: []
-  festina-explore: []
   festina-create: []
   festina-scope: []
   festina-plan: []
@@ -18,14 +16,14 @@ directives:
   festina-save: []
   festina-finalize: []
   festina-rework: []
+  festina-delete: []
   festina-quick: []
+  festina-explore: []
+  festina-overview: []
+  festina-directive: []
   festina-map-product: []
-  festina-define-product: []
   festina-map-engineering: []
-  festina-view: []
-  festina-report-label: []
-  festina-report-task: []
-  festina-report-user: []
+  festina-define-product: []
 
 settings:
   version: "2.0"

@@ -1,7 +1,7 @@
 ---
 name: festina-create
 description: Create and refine a new task through conversational Q&A, then commit to Backlog. Captures problem, value, and acceptance criteria in a single workflow.
-allowed-tools: Read, Write, Bash(node *, git add *, git commit *, git status, git branch *), Grep, Glob, AskUserQuestion, WebSearch, WebFetch
+allowed-tools: Read, Write, Bash(node *, git add *, git commit *, git status, git branch *), Grep, Glob, WebSearch, WebFetch
 argument-hint: "[task title]"
 disable-model-invocation: true
 ---

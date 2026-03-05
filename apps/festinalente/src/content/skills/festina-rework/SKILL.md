@@ -1,7 +1,7 @@
 ---
 name: festina-rework
 description: Return task to In Progress with structured issue report. Works from Finalize column.
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *, gh pr *), AskUserQuestion
+allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *, gh pr *)
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---

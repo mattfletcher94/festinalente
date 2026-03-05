@@ -1,7 +1,7 @@
 ---
 name: festina-directive
 description: Create a new directive through conversational Q&A to define rules, validation, and examples for workflow phases
-allowed-tools: Read, Write, Bash(node *, git add *, git commit *, git status), AskUserQuestion
+allowed-tools: Read, Write, Bash(node *, git add *, git commit *, git status)
 argument-hint: "[directive name]"
 disable-model-invocation: true
 ---

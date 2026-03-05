@@ -1,7 +1,7 @@
 ---
 name: festina-implement
 description: Implement a planned task. Moves task to In Progress, executes the plan, then moves to Finalize. No commit - code stays uncommitted.
-allowed-tools: Read, Write, Edit, Bash(*), AskUserQuestion, Task
+allowed-tools: Read, Write, Edit, Bash(*), Task
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---

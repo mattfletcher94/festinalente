@@ -1,7 +1,7 @@
 ---
 name: festina-scope
 description: Research codebase and create functional specification through conversational Q&A. Focuses on engineering analysis - HOW to build it technically.
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *, git checkout *), Glob, Grep, AskUserQuestion, WebSearch, WebFetch, Task
+allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *, git checkout *), Glob, Grep, WebSearch, WebFetch, Task
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---

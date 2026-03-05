@@ -1,7 +1,7 @@
 ---
 name: festina-plan
 description: Create a plan document for a scoped task. Transforms functional specification into executable implementation steps with appropriate detail based on complexity.
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *), AskUserQuestion
+allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *)
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---

@@ -1,7 +1,7 @@
 ---
 name: festina-quick
 description: Fast implementation for simple fixes, config changes, and small features. Minimal Q&A, optional research, single commit.
-allowed-tools: Read, Write, Edit, Bash(node *, git add *, git commit *, git status, git branch *, git checkout *, git diff *, git merge *), Grep, Glob, AskUserQuestion
+allowed-tools: Read, Write, Edit, Bash(node *, git add *, git commit *, git status, git branch *, git checkout *, git diff *, git merge *), Grep, Glob
 argument-hint: "[task description]"
 disable-model-invocation: true
 ---

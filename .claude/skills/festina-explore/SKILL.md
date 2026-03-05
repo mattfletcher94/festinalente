@@ -1,7 +1,7 @@
 ---
 name: festina-explore
 description: Explore questions and ideas through Socratic dialogue, research codebase and docs, determine if something is worth pursuing, and optionally invoke festina-create.
-allowed-tools: Read, Glob, Grep, WebSearch, WebFetch, AskUserQuestion, Bash(node *), Task, Skill
+allowed-tools: Read, Glob, Grep, WebSearch, WebFetch, Bash(node *), Task, Skill
 argument-hint: "[question or topic to explore]"
 disable-model-invocation: true
 ---

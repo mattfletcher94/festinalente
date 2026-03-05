@@ -1,7 +1,7 @@
 ---
 name: festina-define-product
 description: Define a new product through Socratic Q&A and generate product documentation
-allowed-tools: Read, Write, Bash(git add *, git commit *, git status), AskUserQuestion
+allowed-tools: Read, Write, Bash(git add *, git commit *, git status)
 disable-model-invocation: true
 ---
 
