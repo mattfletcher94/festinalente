@@ -1,0 +1,81 @@
+<spec task="032-change-the-vscode-extensions-icon-to-something-mor" created="2026-03-05" updated="2026-03-05">
+  <title>Change the VSCode extensions icon to something more relevant</title>
+
+  <context>
+    The current VSCode extension icon is a generic kanban board with columns and task cards, which doesn't clearly represent Festina Lente's identity. "Festina Lente" is a Latin phrase from Caesar Augustus meaning "make haste slowly." A Roman column/pillar icon better represents the project's connection to Roman origins and its emphasis on structured, enduring foundations.
+  </context>
+
+  <scope>
+    <in-scope>
+      <item>Design and create a new Roman column/pillar SVG icon for the activity bar</item>
+      <item>Replace the existing kanban-icon.svg with the new icon</item>
+      <item>Rename the icon file to festinalente-icon.svg</item>
+      <item>Update package.json to reference the new icon path</item>
+    </in-scope>
+    <out-of-scope>
+      <item>Marketplace icon (top-level "icon" field in package.json) — deferred</item>
+      <item>Changes to in-code ThemeIcon usage (TreeView items, CodeLens, etc.)</item>
+      <item>Color or branding changes beyond the activity bar icon</item>
+    </out-of-scope>
+  </scope>
+
+  <requirements>
+    <requirement id="FR1">The activity bar icon shall be a Roman column/pillar design representing Festina Lente's identity and connection to its Roman origins</requirement>
+    <requirement id="FR2">The icon SVG shall use currentColor for all stroke and fill values to ensure compatibility with all VSCode themes (light and dark)</requirement>
+    <requirement id="FR3">The icon shall be a 24x24 SVG with simple, clean lines that remain recognizable at 16x16 rendering in the activity bar</requirement>
+    <requirement id="FR4">The icon file shall be named festinalente-icon.svg and placed in apps/vscode/resources/</requirement>
+    <requirement id="FR5">The package.json viewsContainers.activitybar icon path shall reference the new file</requirement>
+    <requirement id="FR6">The old kanban-icon.svg file shall be deleted</requirement>
+  </requirements>
+
+  <files>
+    <file action="create" path="apps/vscode/resources/festinalente-icon.svg" reason="New Roman column/pillar icon replacing the kanban board icon"/>
+    <file action="delete" path="apps/vscode/resources/kanban-icon.svg" reason="Old generic kanban board icon no longer needed"/>
+    <file action="modify" path="apps/vscode/package.json" reason="Update activity bar icon path from kanban-icon.svg to festinalente-icon.svg"/>
+  </files>
+
+  <patterns>
+    <pattern name="SVG icon format">
+      <description>24x24 viewBox SVG using currentColor for stroke/fill, stroke-width 1.5, no hardcoded colors. Follows VSCode activity bar icon conventions.</description>
+      <reference>apps/vscode/resources/kanban-icon.svg:1</reference>
+    </pattern>
+    <pattern name="Activity bar icon registration">
+      <description>Icon referenced via relative path in package.json contributes.viewsContainers.activitybar[].icon field</description>
+      <reference>apps/vscode/package.json:45</reference>
+    </pattern>
+  </patterns>
+
+  <research>
+    <product>
+      <finding doc="vscode/_index">The activity bar icon is the primary visual entry point for the extension sidebar. It must be identifiable among other extension icons.</finding>
+    </product>
+    <engineering>
+      <finding doc="systems/vscode-extension">Activity bar icons are configured in package.json viewsContainers. Unlike in-code icons (which use ThemeIcon), activity bar requires an SVG file path.</finding>
+    </engineering>
+    <codebase>
+      <finding component="kanban-icon.svg" path="apps/vscode/resources/kanban-icon.svg">Current icon is a 24x24 SVG depicting a kanban board with 3 columns and task cards. Uses currentColor for theme compatibility.</finding>
+      <finding component="package.json icon ref" path="apps/vscode/package.json">Line 45 references resources/kanban-icon.svg for the activity bar icon. Only place this file is referenced.</finding>
+    </codebase>
+    <pitfalls>
+      <pitfall issue="Theme compatibility" mitigation="Use currentColor for all stroke and fill values — no hardcoded hex colors (design directive C4, validation V1)"/>
+      <pitfall issue="Small size readability" mitigation="Keep design simple with few details — column silhouette must be recognizable at 16x16 pixels"/>
+    </pitfalls>
+  </research>
+
+  <constraints>
+    <constraint>SVG must use currentColor only — no hardcoded colors (design directive C4)</constraint>
+    <constraint>Icon must be readable at 16x16 pixels (VSCode activity bar minimum render size)</constraint>
+    <constraint>Must follow existing SVG conventions: 24x24 viewBox, stroke-based with stroke-width 1.5</constraint>
+  </constraints>
+
+  <dependencies>
+    <dependency type="external">None</dependency>
+    <dependency type="internal">None</dependency>
+  </dependencies>
+
+  <risks>
+    <risk impact="low" mitigation="Test icon rendering in both light and dark VSCode themes before finalizing">Icon may not be visually distinct enough at small sizes depending on column design complexity</risk>
+  </risks>
+
+  <open-questions/>
+</spec>
