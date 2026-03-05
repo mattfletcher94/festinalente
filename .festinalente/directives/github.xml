@@ -4,6 +4,8 @@
   <description>
     Full GitHub team workflow. Replaces git.xml — owns ALL git and GitHub operations.
     Teams of 10-30: Issues for tracking, draft PRs at plan, WIP pushes, review-gated merges.
+    Task artifacts (task.xml, spec.xml, plan.xml) live only on the task branch — never on main.
+    They are deleted before merge. Main only receives implementation code.
     Requires GitHub MCP server.
   </description>
 
@@ -11,7 +13,12 @@
     <principle id="GH1">
       Branch names use type prefix from task label: feat/{id}, fix/{id}, refactor/{id}, docs/{id}.
       Type is derived from the label's commit-type in workflow.yaml (default: feat).
-      Quick tasks use quick/{id}.
+      Quick tasks use quick/{id}. Branch is created at create phase, not scope.
+    </principle>
+    <principle id="GH9">
+      Task artifacts (task.xml, spec.xml, plan.xml) live only on the task branch.
+      They are deleted before merge. Main only receives implementation code.
+      GitHub Issues are the team's view into task state.
     </principle>
     <principle id="GH2">Conventional commits: type(scope): description</principle>
     <principle id="GH3">All merges through GitHub PRs. Never merge locally to main.</principle>
@@ -30,10 +37,16 @@
   <process>
     <rule id="GH-CREATE" phase="create">
       1. Verify on main: git branch --show-current. If not, error and exit.
-      2. Stage and commit task.xml (and any stub docs):
+      2. Derive branch type from task label's commit-type in workflow.yaml:
+         feature→feat, bug→fix, refactor→refactor, docs→docs. Default: feat.
+         Branch name: {type}/{id} (e.g., feat/022-add-dark-mode, fix/023-login-bug).
+      3. Create branch:
+         git checkout -b {type}/{id}
+         Add github-branch="{type}/{id}" to task element in task.xml.
+      4. Stage and commit task.xml (and any stub docs):
          git add .festinalente/tasks/{id}/task.xml {newDocPaths}
          git commit -m "docs({id}): create - {title}"
-      3. Sync to GitHub Issue:
+      5. Sync to GitHub Issue:
          IF $ARGUMENTS is an issue number (#N):
            Fetch via mcp__GitHub__issue_read, add github-issue="#N" and github-url to task.xml.
          ELSE:
@@ -41,22 +54,17 @@
            labels: [task label mapped to GitHub label], assignees: [authenticated user]).
            Add github-issue="#N" and github-url to task.xml.
          Amend commit: git add .festinalente/tasks/{id}/task.xml &amp;&amp; git commit --amend --no-edit
-      4. git push
+      6. git push -u origin {type}/{id}
     </rule>
 
     <rule id="GH-SCOPE" phase="scope">
-      1. Verify on main. If not, error and exit.
-      2. Derive branch type from task label's commit-type in workflow.yaml:
-         feature→feat, bug→fix, refactor→refactor, docs→docs. Default: feat.
-         Branch name: {type}/{id} (e.g., feat/022-add-dark-mode, fix/023-login-bug).
-      3. Create branch, store it, commit, push:
-         git checkout -b {type}/{id}
-         Add github-branch="{type}/{id}" to task element in task.xml.
+      1. Read github-branch from task.xml. Verify current branch matches. If not, error and exit.
+      2. Commit and push:
          git add .festinalente/tasks/{id}/spec.xml .festinalente/tasks/{id}/task.xml
          git commit -m "docs({id}): scope - {title}"
-         git push -u origin {type}/{id}
-      4. Comment on GitHub Issue with full spec:
-         mcp__GitHub__add_issue_comment — body: "## Scoped\n\nBranch: `{type}/{id}`\n\n```xml\n{spec.xml contents}\n```"
+         git push
+      3. Comment on GitHub Issue with full spec:
+         mcp__GitHub__add_issue_comment — body: "## Scoped\n\nBranch: `{github-branch}`\n\n```xml\n{spec.xml contents}\n```"
     </rule>
 
     <rule id="GH-PLAN" phase="plan">
@@ -131,22 +139,26 @@
       2. If merge:
          a. Update task status="done", add completed date.
          b. git add .festinalente/tasks/{id}/task.xml
-            git commit -m "docs({id}): done - {title}" &amp;&amp; git push
-         c. mcp__GitHub__merge_pull_request (merge_method: "rebase")
-         d. git checkout main &amp;&amp; git fetch origin &amp;&amp; git reset --hard origin/main
-         e. git branch -D {github-branch}
-         f. Output: "Merged! Issue #{github-issue} auto-closed."
+            git commit -m "docs({id}): done - {title}"
+         c. Remove task artifacts from branch:
+            git rm -r .festinalente/tasks/{id}/
+            git commit -m "chore({id}): cleanup - {title}"
+         d. git push
+         e. mcp__GitHub__merge_pull_request (merge_method: "rebase")
+         f. git checkout main &amp;&amp; git fetch origin &amp;&amp; git reset --hard origin/main
+         g. git branch -D {github-branch}
+         h. Output: "Merged! Issue #{github-issue} auto-closed."
       3. If wait: EXIT.
     </rule>
 
     <rule id="GH-FIN-CLEANUP" phase="finalize">
-      PR already merged externally:
+      PR already merged externally (task artifacts are now on main):
       1. git checkout main &amp;&amp; git fetch origin &amp;&amp; git reset --hard origin/main
       2. git branch -D {github-branch}
-      3. Update task: status="done", completed date.
-      4. git add .festinalente/tasks/{id}/task.xml
-         git commit -m "docs({id}): done - {title}" &amp;&amp; git push
-      5. Output: "PR was already merged. Task synced."
+      3. Remove task artifacts from main:
+         git rm -r .festinalente/tasks/{id}/
+         git commit -m "chore({id}): cleanup - {title}" &amp;&amp; git push
+      4. Output: "PR was already merged. Task artifacts cleaned up."
     </rule>
 
     <rule id="GH-REWORK" phase="rework">
@@ -160,15 +172,15 @@
     </rule>
 
     <rule id="GH-DELETE" phase="delete">
-      1. Verify on main. If not, error and exit.
-      2. GitHub cleanup (read github-pr, github-issue, github-branch from task.xml):
+      1. Read task.xml from the task branch (use git show {branch}:.festinalente/tasks/{id}/task.xml
+         if not on the branch). Extract github-pr, github-issue, github-branch.
+      2. If not on main: git checkout main
+      3. GitHub cleanup:
          If github-pr: close PR with comment "Task deleted."
          If github-issue: close issue via mcp__GitHub__issue_write (state: "closed").
          If remote branch exists: git push origin --delete {github-branch}
          If local branch exists: git branch -D {github-branch}
-      3. Delete task folder, commit, push:
-         git add -A .festinalente/tasks/{id}/
-         git commit -m "docs({id}): delete - {title}" &amp;&amp; git push
+      4. No commit needed — task files only existed on the deleted branch.
     </rule>
 
     <rule id="GH-QUICK" phase="quick">
@@ -226,39 +238,40 @@
   <examples>
     <example ref="GH1" type="correct">
       <code><![CDATA[
-# Branch names derived from task label:
+# Branch created at CREATE (not scope):
 # label="feature" → feat/022-add-dark-mode
 # label="bug"     → fix/023-login-redirect
-# label="refactor"→ refactor/024-cleanup-db
-# label="docs"    → docs/025-update-api-docs
 
-# task.xml stores the branch:
-<task id="022-add-dark-mode" status="scoped"
+# task.xml (lives on branch only, never main):
+<task id="022-add-dark-mode" status="backlog"
       github-issue="#42" github-branch="feat/022-add-dark-mode">
       ]]></code>
     </example>
     <example ref="GH2" type="correct">
       <code><![CDATA[
+# Full commit history (all on feat/022-add-dark-mode):
 docs(022-add-dark-mode): create - Add dark mode toggle
 docs(022-add-dark-mode): scope - Add dark mode toggle
 docs(022-add-dark-mode): plan - Add dark mode toggle
 docs(022-add-dark-mode): draft pr created - Add dark mode toggle
 wip(022-add-dark-mode): completed toggle and theme provider
 feat(022-add-dark-mode): Add dark mode toggle
-docs(022-add-dark-mode): product - dark mode documentation
+docs(022-add-dark-mode): product+engineering - dark mode docs
 docs(022-add-dark-mode): done - Add dark mode toggle
+chore(022-add-dark-mode): cleanup - Add dark mode toggle
+# ↑ deletes task.xml, spec.xml, plan.xml before merge
       ]]></code>
     </example>
     <example ref="GH3" type="violation">
       <code><![CDATA[
+# WRONG: committing task files to main
+git checkout main
+git add .festinalente/tasks/022/task.xml
+# CORRECT: task files live on branch only
+
 # WRONG: local merge
 git checkout main && git merge feat/022-add-dark-mode --no-ff
 # CORRECT: merge via mcp__GitHub__merge_pull_request
-
-# WRONG: old-style branch name
-git checkout -b task/022-add-dark-mode
-# CORRECT: type-prefixed branch
-git checkout -b feat/022-add-dark-mode
       ]]></code>
     </example>
   </examples>
