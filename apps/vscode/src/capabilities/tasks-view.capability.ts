@@ -3,7 +3,7 @@
  */
 
 import * as vscode from 'vscode';
-import type { Task, TaskAction, TaskColumn, TaskStatus } from '../types/task-types';
+import type { PlanProgress, Task, TaskAction, TaskColumn, TaskStatus } from '../types/task-types';
 
 /**
  * Tree item types.
@@ -55,7 +55,8 @@ export class TaskItem extends vscode.TreeItem {
   constructor(
     public readonly task: Task,
     public readonly files: { hasSpec: boolean; hasPlan: boolean },
-    public readonly actions: readonly TaskAction[]
+    public readonly actions: readonly TaskAction[],
+    public readonly progress: PlanProgress | undefined
   ) {
     const taskNumber = task.id.split('-')[0];
     super(`${taskNumber}: ${task.title}`, vscode.TreeItemCollapsibleState.Collapsed);
@@ -97,6 +98,11 @@ export class TaskItem extends vscode.TreeItem {
       parts.push(`[${fileIndicators.join('')}]`);
     }
 
+    // Progress indicator
+    if (this.progress && this.progress.total > 0) {
+      parts.push(`${this.progress.completed}/${this.progress.total}`);
+    }
+
     // Next action (show primary action)
     if (this.actions.length > 0) {
       parts.push(`→ ${this.actions[0].label}`);
@@ -134,6 +140,11 @@ export class TaskItem extends vscode.TreeItem {
     md.appendMarkdown(`- task.xml ✓\n`);
     md.appendMarkdown(`- spec.xml ${this.files.hasSpec ? '✓' : '✗'}\n`);
     md.appendMarkdown(`- plan.xml ${this.files.hasPlan ? '✓' : '✗'}\n`);
+
+    // Progress
+    if (this.progress && this.progress.total > 0) {
+      md.appendMarkdown(`\n**Progress:** ${this.progress.completed}/${this.progress.total} tasks completed\n`);
+    }
 
     // Next action (show primary action)
     if (this.actions.length > 0) {
@@ -235,6 +246,13 @@ export interface TasksViewCapabilityDeps {
   getTaskFiles: (taskPath: string) => string[];
   checkTaskFiles: (taskPath: string) => { hasSpec: boolean; hasPlan: boolean };
   getAllActions: (task: Task) => readonly TaskAction[];
+  /**
+   * Get plan progress for a task.
+   *
+   * @param taskPath - The absolute path to the task directory.
+   * @returns The plan progress, or undefined if no plan exists.
+   */
+  getPlanProgress: (taskPath: string) => PlanProgress | undefined;
 }
 
 export interface CreateTasksViewCapabilityReturn {
@@ -319,7 +337,7 @@ export function createTasksViewCapability(deps: TasksViewCapabilityDeps): Create
     const tasks = deps.loadTasks();
     const items = tasks
       .filter((t) => t.status === status)
-      .map((t) => new TaskItem(t, deps.checkTaskFiles(t.taskPath), deps.getAllActions(t)));
+      .map((t) => new TaskItem(t, deps.checkTaskFiles(t.taskPath), deps.getAllActions(t), deps.getPlanProgress(t.taskPath)));
 
     // Update cache and track parent
     items.forEach((item) => {
@@ -388,7 +406,7 @@ export function createTasksViewCapability(deps: TasksViewCapabilityDeps): Create
     const tasks = deps.loadTasks();
     for (const task of tasks) {
       if (!cachedTaskItems.has(task.id)) {
-        cachedTaskItems.set(task.id, new TaskItem(task, deps.checkTaskFiles(task.taskPath), deps.getAllActions(task)));
+        cachedTaskItems.set(task.id, new TaskItem(task, deps.checkTaskFiles(task.taskPath), deps.getAllActions(task), deps.getPlanProgress(task.taskPath)));
       }
     }
 

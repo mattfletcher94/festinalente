@@ -36,3 +36,11 @@ export interface TaskFiles {
   hasSpec: boolean;
   hasPlan: boolean;
 }
+
+/**
+ * Progress data for a task's plan.
+ */
+export interface PlanProgress {
+  readonly completed: number;
+  readonly total: number;
+}

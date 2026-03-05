@@ -33,7 +33,7 @@
   <inventory></inventory>
 
   <tasks>
-    <task id="1" type="auto">
+    <task id="1" type="auto" completed="true" completed_at="2026-03-05T15:39:04.971Z">
       <name>Add PlanProgress interface to task types</name>
       <files>apps/vscode/src/types/task-types.ts (modify)</files>
       <requirements>FR1</requirements>
@@ -69,7 +69,7 @@
       <done>PlanProgress interface exported from task-types.ts, build succeeds</done>
     </task>
 
-    <task id="2" type="auto" depends="1">
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-03-05T15:40:00.000Z">
       <name>Add getPlanProgress to plan-parser computer</name>
       <files>apps/vscode/src/computers/plan-parser.computer.ts (modify)</files>
       <requirements>FR1</requirements>
@@ -139,7 +139,7 @@
       <done>getPlanProgress exported from plan-parser computer, returns correct counts, build succeeds</done>
     </task>
 
-    <task id="3" type="auto" depends="2">
+    <task id="3" type="auto" depends="2" completed="true" completed_at="2026-03-05T15:42:00.000Z">
       <name>Accept and display progress in tasks-view capability</name>
       <files>apps/vscode/src/capabilities/tasks-view.capability.ts (modify)</files>
       <requirements>FR3, FR4, FR6</requirements>
@@ -182,7 +182,7 @@
       <done>TaskItem shows "completed/total" in description after file indicators, tooltip includes progress line, no indicator shown when progress is undefined or total is 0</done>
     </task>
 
-    <task id="4" type="auto" depends="3">
+    <task id="4" type="auto" depends="3" completed="true" completed_at="2026-03-05T15:42:00.000Z">
       <name>Wire progress reading in tasks orchestrator</name>
       <files>apps/vscode/src/orchestrators/tasks.orchestrator.ts (modify)</files>
       <requirements>FR2, FR4, FR5</requirements>
@@ -251,7 +251,7 @@
       <done>Orchestrator reads plan.xml and passes progress to view capability, build succeeds, no new file watcher needed</done>
     </task>
 
-    <task id="5" type="manual" depends="4">
+    <task id="5" type="manual" depends="4" completed="true" completed_at="2026-03-05T15:43:00.000Z">
       <name>Manual verification of progress indicator</name>
       <files>N/A</files>
       <requirements>FR1, FR2, FR3, FR4, FR5, FR6</requirements>

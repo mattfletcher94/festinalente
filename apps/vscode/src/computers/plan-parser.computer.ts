@@ -4,6 +4,8 @@
 
 import { XMLParser } from 'fast-xml-parser';
 
+import type { PlanProgress } from '../types/task-types';
+
 /**
  * Parsed symbol data for plan.xml elements.
  */
@@ -28,6 +30,14 @@ export interface CreatePlanParserComputerReturn {
    * @returns Array of plan symbols (typically one root plan element).
    */
   parsePlanSymbols(content: string): PlanSymbol[];
+
+  /**
+   * Extract progress counts from plan.xml content.
+   *
+   * @param content - Raw XML content of plan.xml file.
+   * @returns Progress object with completed and total task counts.
+   */
+  getPlanProgress(content: string): PlanProgress;
 }
 
 /**
@@ -378,5 +388,32 @@ export function createPlanParserComputer(): CreatePlanParserComputerReturn {
     }
   }
 
-  return { parsePlanSymbols };
+  /**
+   * Extract progress counts from plan.xml content.
+   *
+   * Parses the XML and counts tasks with completed="true".
+   * Returns zero counts if content is empty, has no tasks, or parsing fails.
+   */
+  function getPlanProgress(content: string): PlanProgress {
+    try {
+      const parsed = parser.parse(content);
+      if (!parsed.plan) return { completed: 0, total: 0 };
+
+      const plan = parsed.plan as Record<string, unknown>;
+      const tasksSection = plan.tasks as Record<string, unknown> | undefined;
+      if (!tasksSection?.task) return { completed: 0, total: 0 };
+
+      const taskArray = Array.isArray(tasksSection.task) ? tasksSection.task : [tasksSection.task];
+      const total = taskArray.length;
+      const completed = taskArray.filter(
+        (t: Record<string, unknown>) => t.completed === 'true' || t.completed === true
+      ).length;
+
+      return { completed, total };
+    } catch {
+      return { completed: 0, total: 0 };
+    }
+  }
+
+  return { parsePlanSymbols, getPlanProgress };
 }
