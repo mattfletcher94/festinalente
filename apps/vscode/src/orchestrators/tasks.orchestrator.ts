@@ -8,7 +8,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-import type { Task, TaskAction, TaskStatus } from '../types/task-types';
+import type { PlanProgress, Task, TaskAction, TaskStatus } from '../types/task-types';
 import { TaskItem, createTasksViewCapability } from '../capabilities/tasks-view.capability';
 import type { CreateTerminalOrchestratorReturn } from './terminal.orchestrator';
 import { createCodeLensCapability } from '../capabilities/codelens.capability';
@@ -186,6 +186,22 @@ export function createTasksOrchestrator(deps: TasksOrchestratorDeps): CreateTask
     return taskActions.getActions(task);
   }
 
+  /**
+   * Policy: Get plan progress for a task path.
+   */
+  function getPlanProgress(taskPath: string): PlanProgress | undefined {
+    const planPath = deps.fs.joinPath(taskPath, 'plan.xml');
+    if (!deps.fs.exists(planPath)) {
+      return undefined;
+    }
+    try {
+      const content = deps.fs.readFile(planPath);
+      return planParser.getPlanProgress(content);
+    } catch {
+      return undefined;
+    }
+  }
+
   // Initialize view capability with dependencies
   const tasksView = createTasksViewCapability({
     loadTasks: loadAllTasks,
@@ -194,7 +210,8 @@ export function createTasksOrchestrator(deps: TasksOrchestratorDeps): CreateTask
     getVisibleColumns: taskGrouping.getVisibleColumns,
     getTaskFiles,
     checkTaskFiles,
-    getAllActions
+    getAllActions,
+    getPlanProgress
   });
 
   // Initialize codelens capability with dependencies
