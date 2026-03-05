@@ -42,7 +42,6 @@ Create a new directive through conversational Q&A. Captures context principles, 
 
 <prohibited>
 - Do not skip the validation step
-- Do not skip the commit step
 - Do not create directives without understanding their purpose
 </prohibited>
 
@@ -447,16 +446,9 @@ Updated `.festinalente/config.yaml`
     </output>
   </step>
 
-  <step name="commit">
-    <note>Format: `docs: create directive - {name}`</note>
-    <command>git add .festinalente/directives/{name}.xml .festinalente/config.yaml</command>
-    <command>git commit -m "docs: create directive - {name}"</command>
-  </step>
-
   <step name="output_result">
     <output>Directive created: .festinalente/directives/{name}.xml</output>
     <output>Linked to skills: {selected skills}</output>
-    <output>Commit: {hash}</output>
     <output>
 **Next: Test by running a skill that uses this directive**
     </output>
@@ -477,7 +469,6 @@ Updated `.festinalente/config.yaml`
 - Directive XML is valid (passes validate-directive.cjs)
 - At least one section (context, process, validation, or examples) is present
 - config.yaml updated with directive in selected skills
-- Git log shows `docs: create directive -`
 </success_criteria>
 
 <example>
@@ -574,7 +565,6 @@ Updated .festinalente/config.yaml
 
 Directive created: .festinalente/directives/code-style.xml
 Linked to: festina-implement, festina-check
-Commit: c4d5e6f docs: create directive - code-style
 
 Next: Test by running a skill that uses this directive
 ```

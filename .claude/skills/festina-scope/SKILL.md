@@ -9,7 +9,7 @@ disable-model-invocation: true
 # Scope Festina Lente Task
 
 <purpose>
-Create a functional specification through iterative conversational Q&A focused on technical decisions, then move to Scoped and commit.
+Create a functional specification through iterative conversational Q&A focused on technical decisions, then move to Scoped.
 </purpose>
 
 <context>
@@ -69,24 +69,12 @@ Create a functional specification through iterative conversational Q&A focused o
 <prohibited>
 - Do not skip codebase research before the Q&A dialogue
 - Do not create a spec without understanding existing patterns
-- Do not skip the commit step
-- Do not forget to create the task branch
 </prohibited>
 
 <process>
   <step name="load_workflow">
-    <action>Read `.festinalente/workflow.yaml` for column definitions, labels, priorities, and commit formats</action>
+    <action>Read `.festinalente/workflow.yaml` for column definitions, labels, priorities, and transitions</action>
     <note>Use these values throughout this skill</note>
-  </step>
-
-  <step name="verify_branch">
-    <command>git branch --show-current</command>
-    <validate>Must be on `main` or `master` branch</validate>
-    <branch condition="not on main/master">
-      <output>Error: This command must be run on the main branch to create the task branch. Current branch: {branch}</output>
-      <output>Suggest: Switch to main with `git checkout main`</output>
-      <action>Exit</action>
-    </branch>
   </step>
 
   <step name="get_task_id" outputs="taskId">
@@ -816,17 +804,6 @@ The Q&A phase is the natural place to challenge any assumption made during synth
     <action>Write updated task file</action>
   </step>
 
-  <step name="create_task_branch">
-    <command>git checkout -b task/{taskId}</command>
-    <output>Confirm: "Created branch task/{taskId}"</output>
-  </step>
-
-  <step name="commit">
-    <note>Format: `docs({taskId}): scope - {title}`</note>
-    <command>git add .festinalente/tasks/{taskId}/spec.xml .festinalente/tasks/{taskId}/task.xml</command>
-    <command>git commit -m "docs({taskId}): scope - {title}"</command>
-  </step>
-
   <step name="directive_compliance">
     <note>Verify compliance with all loaded directives</note>
   
@@ -870,7 +847,6 @@ The Q&A phase is the natural place to challenge any assumption made during synth
     <output>Print existing patterns found</output>
     <output>Print any research findings and decisions</output>
     <output>Print any open questions</output>
-    <output>Print commit hash</output>
     <output>
 **Next: Plan the implementation**
 ```
@@ -898,8 +874,6 @@ The Q&A phase is the natural place to challenge any assumption made during synth
 - Spec file contains `## Functional Requirements` section
 - Spec file contains `## Affected Files` section
 - Spec file contains `## Existing Patterns` section
-- Git log shows `docs({taskId}): scope -`
-- Current branch is `task/{taskId}` after completion
 - Next steps shown to user
 </success_criteria>
 

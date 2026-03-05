@@ -9,7 +9,7 @@ disable-model-invocation: true
 # Plan Festina Lente Task
 
 <purpose>
-Create a plan file in `.festinalente/tasks/{id}/` and move task from Scoped to Planned, then commit. Plans are self-contained documents with enough context to implement without constantly re-reading the spec. Detail scales with complexity.
+Create a plan file in `.festinalente/tasks/{id}/` and move task from Scoped to Planned. Plans are self-contained documents with enough context to implement without constantly re-reading the spec. Detail scales with complexity.
 </purpose>
 
 <context>
@@ -27,7 +27,6 @@ Create a plan file in `.festinalente/tasks/{id}/` and move task from Scoped to P
 <prohibited>
 - Do not create a plan without reading the spec first
 - Do not create vague or non-atomic steps
-- Do not skip the commit step
 - Do not plan tasks that haven't been scoped
 - Do not create steps that mix multiple concerns (refactoring + features)
 - Do not omit verification criteria for steps
@@ -76,10 +75,6 @@ Create a plan file in `.festinalente/tasks/{id}/` and move task from Scoped to P
       <output>Error: Task not found</output>
       <action>Exit</action>
     </branch>
-  </step>
-
-  <step name="verify_branch">
-    {{> branch-verify-task}}
   </step>
 
   <step name="read_spec" outputs="functionalRequirements, affectedFiles, existingPatterns, risks, technicalConstraints, dependencies">
@@ -516,12 +511,6 @@ Run: /festina-scope {taskId}
     <action>Write task file</action>
   </step>
 
-  <step name="commit">
-    <note>Format: `docs({taskId}): plan - {title}`</note>
-    <command>git add .festinalente/tasks/{taskId}/plan.xml .festinalente/tasks/{taskId}/task.xml</command>
-    <command>git commit -m "docs({taskId}): plan - {title}"</command>
-  </step>
-
   {{> directive-compliance}}
 
   <step name="output_result">
@@ -529,7 +518,6 @@ Run: /festina-scope {taskId}
     <output>Print complexity level</output>
     <output>Print plan file path</output>
     <output>Print number of implementation steps created</output>
-    <output>Print commit hash</output>
     <output>
 Next:
 /clear
@@ -554,7 +542,6 @@ Next:
 - Plan has `<testing>` element with automated, manual, regression children
 - Plan has `<edge-cases>` element with `<case>` children
 - Plan has `<pitfalls>` element with `<pitfall>` children
-- Git log shows `docs({taskId}): plan -`
 - Next steps shown to user
 </success_criteria>
 
@@ -605,7 +592,6 @@ Task 001 moved to Planned
 - Status: planned
 - Spec: tasks/001/spec.xml
 - Plan: tasks/001/plan.xml
-Commit: g7h8i9j docs(001): plan - Add localStorage persistence for app state
 
 Next:
 /clear

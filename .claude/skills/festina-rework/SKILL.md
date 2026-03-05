@@ -58,12 +58,11 @@ See `.festinalente/workflow.yaml` for column definitions and valid transitions.
 <prohibited>
 - Do not skip gathering issue details
 - Do not forget to close PR if task was in PR column
-- Do not skip the commit step
 </prohibited>
 
 <process>
   <step name="load_workflow">
-    <action>Read `.festinalente/workflow.yaml` for column definitions, labels, priorities, and commit formats</action>
+    <action>Read `.festinalente/workflow.yaml` for column definitions, labels, priorities, and transitions</action>
     <note>Use these values throughout this skill</note>
   </step>
 
@@ -103,16 +102,6 @@ See `.festinalente/workflow.yaml` for column definitions and valid transitions.
     <action>Note title, status, and acceptance criteria for context</action>
     <branch condition="task not found">
       <output>Error: Task not found</output>
-      <action>Exit</action>
-    </branch>
-  </step>
-
-  <step name="verify_branch">
-    <command>git branch --show-current</command>
-    <validate>Must be on branch `task/{id}` where {id} is the task ID</validate>
-    <branch condition="not on expected branch">
-      <output>Error: This command must be run on branch task/{id}. Current branch: {branch}</output>
-      <output>Suggest: Switch to task branch with `git checkout task/{id}`</output>
       <action>Exit</action>
     </branch>
   </step>
@@ -337,13 +326,6 @@ Let me gather the details needed for a proper issue report.
     <action>Write updated task file</action>
   </step>
 
-  <step name="commit">
-    <note>Format: `docs({taskId}): rework - {title}`</note>
-    <command>git add .festinalente/tasks/{taskId}/task.xml</command>
-    <command>git add .festinalente/tasks/{taskId}/plan.xml</command>
-    <command>git commit -m "docs({taskId}): rework - {title}"</command>
-  </step>
-
   <step name="directive_compliance">
     <note>Verify compliance with all loaded directives</note>
   
@@ -383,7 +365,6 @@ Let me gather the details needed for a proper issue report.
   </step>
 
   <step name="output_result">
-    <output>Print commit hash</output>
     <output>
 **Task {taskId} returned to In Progress**
 
@@ -425,7 +406,6 @@ Then finalize:
 - Plan contains `<iterations>` section with structured issue entry
 - Issue entry has type, severity, summary, expected, actual
 - Issue entry has actionable items with status="pending"
-- Git log shows `docs({taskId}): rework -`
 - If was in PR: PR is closed
 - Next steps shown to user
 </success_criteria>
@@ -482,8 +462,6 @@ How do you reproduce it?
 Does this capture the issue correctly?
 > Yes
 
-Commit: h8i9j0k docs(007): rework - Add user authentication
-
 **Task 007 returned to In Progress**
 
 - Iteration: 2
@@ -537,8 +515,6 @@ Which acceptance criteria are not met?
 Does this capture the issue correctly?
 > Yes
 
-Commit: i9j0k1l docs(008): rework - Add password reset flow
-
 **Task 008 returned to In Progress**
 
 - Iteration: 2
@@ -589,8 +565,6 @@ What should it be instead and why?
 ---
 Does this capture the issue correctly?
 > Yes
-
-Commit: j0k1l2m docs(009): rework - Add dark mode toggle
 
 **Task 009 returned to In Progress**
 

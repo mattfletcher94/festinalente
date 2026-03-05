@@ -432,6 +432,23 @@ async function main() {
     festinalenteCopied++;
   }
 
+  // Copy default directives (don't overwrite user customizations)
+  const directivesSource = path.join(sourceDir, 'directives');
+  const directivesDest = path.join(festinalenteDir, 'directives');
+  if (fs.existsSync(directivesSource)) {
+    const directiveFiles = getAllFiles(directivesSource);
+    for (const relativePath of directiveFiles) {
+      const srcFile = path.join(directivesSource, relativePath);
+      const destFile = path.join(directivesDest, relativePath);
+      if (!fs.existsSync(destFile)) {
+        copyFile(srcFile, destFile);
+        logSuccess(`Created directive: .festinalente/directives/${relativePath}`);
+      } else {
+        logSuccess(`.festinalente/directives/${relativePath} already exists, skipping`);
+      }
+    }
+  }
+
   logStep('3/4', 'Setting up config...');
 
   // Copy config.yaml if it doesn't exist (don't overwrite user config)

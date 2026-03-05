@@ -27,7 +27,6 @@ Analyze existing codebase and create product documentation through parallel expl
 - Do not skip the parallel discovery phase
 - Do not write docs without validating with user through Q&A
 - Do not skip the validation phase
-- Do not skip the commit step
 </prohibited>
 
 <process>
@@ -628,13 +627,6 @@ Coverage: {percentage} of discovered features documented
     <action>Ensure all docs have proper `id` with domain prefix (e.g., `auth/login`)</action>
   </step>
 
-  <step name="commit">
-    <note>Format: `docs: map-product - {brief summary listing main features}`</note>
-    <command>git add .festinalente/product/</command>
-    <command>git add .festinalente/glossary.yaml</command>
-    <command>git commit -m "docs: map-product - {brief summary listing main features}"</command>
-    <note>Example: `docs: map-product - authentication, user management, notifications, search`</note>
-  </step>
 
   <step name="output_result">
     <output>Product documentation mapped!</output>
@@ -660,7 +652,6 @@ Ready to start creating tasks:
 - `overview.md` exists with `type: overview`
 - `.festinalente/glossary.yaml` exists with at least one term
 - Validation phase completed without errors
-- Git log shows `docs: map-product -`
 - Next steps shown to user
 </success_criteria>
 

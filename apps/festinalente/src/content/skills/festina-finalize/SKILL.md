@@ -1,6 +1,6 @@
 ---
 name: festina-finalize
-description: Validate, commit, document, and complete a task. Consolidates check, docs, and merge into a single command.
+description: Validate, document, and complete a task. Consolidates check and docs into a single command.
 allowed-tools: Read, Write, Bash(*), Grep, Task
 argument-hint: "[task-id]"
 disable-model-invocation: true
@@ -9,7 +9,7 @@ disable-model-invocation: true
 # Finalize Festina Lente Task
 
 <purpose>
-Run directive checks, commit implementation, update documentation, and complete the task. This skill consolidates the check, docs, and merge phases into a single streamlined command.
+Run directive checks, update documentation, and complete the task. This skill consolidates the check and docs phases into a single streamlined command.
 </purpose>
 
 <context>
@@ -37,29 +37,25 @@ Run directive checks, commit implementation, update documentation, and complete 
 
 <note>
 **This skill is an orchestrator with three phases:**
-- **Phase 1 (Validate):** Run directive checks, auto-fix if needed, commit implementation
+- **Phase 1 (Validate):** Run directive checks, auto-fix if needed
 - **Phase 2 (Document):** Update product/engineering docs based on task's affects/engineering fields
-- **Phase 3 (Complete):** Push branch, merge to main (or create PR via directive), move task to done
+- **Phase 3 (Complete):** Move task to done
 </note>
 
 ## Reference Files
 
 Load these as needed during each phase:
 
-- **[checks.md](checks.md)** - Load in Phase 1: Contains plan verification, check execution by type, auto-fix loop with iteration logging, uncommitted changes check, and commit type determination
+- **[checks.md](checks.md)** - Load in Phase 1: Contains plan verification, check execution by type, and auto-fix loop with iteration logging
 - **[docs-product.md](docs-product.md)** - Load in Phase 2 if product docs needed: Contains impact analysis, smart context loading, doc update/complete/create flows, domain index updates, glossary updates, and validation
 - **[docs-engineering.md](docs-engineering.md)** - Load in Phase 2 if engineering docs needed: Contains impact analysis, smart context loading, type-specific sections (system/pattern/convention), and engineering index updates
 </context>
 
 <prohibited>
-- Do not commit code that fails directive checks without user approval
+- Do not proceed if directive checks fail without user approval
 - Do not skip documentation analysis
-- Do not merge with dirty working tree
-- Do not use invented commit types like `festina(...)` - valid types are: `feat`, `fix`, `refactor`, `docs`
 - Do not auto-fix without asking the user first
-- Do not commit sensitive files (.env, credentials)
 - Do not update docs for features NOT touched by this task
-- Do not skip pushing to remote before merge
 </prohibited>
 
 <process>
@@ -107,44 +103,32 @@ Load these as needed during each phase:
     </branch>
   </step>
 
-  <step name="verify_branch">
-    {{> branch-verify-task}}
-  </step>
-
   <step name="load_directives">
     {{> load-directives skill="finalize"}}
   </step>
 
   <step name="detect_resume_state" outputs="resumeFrom">
     <note>Check what's already been done for resumability</note>
-    <command>git log --oneline -1</command>
-    <action>Check if last commit matches patterns:</action>
-    <branch condition="last commit is 'docs({taskId}): done - {title}'">
+    <action>Check task XML status and completed attribute</action>
+    <branch condition="task status is done and has completed attribute">
       <output>Task already complete!</output>
       <action>Exit</action>
     </branch>
-    <branch condition="last commit is 'docs({taskId}): product' or 'docs({taskId}): engineering' or 'docs({taskId}): product+engineering'">
-      <note>Docs committed, skip to Phase 3</note>
-      <action>Set resumeFrom = "phase3"</action>
-    </branch>
-    <branch condition="last commit is '{type}({taskId}): {title}' where type is feat/fix/refactor">
-      <note>Implementation committed, skip to Phase 2</note>
-      <action>Set resumeFrom = "phase2"</action>
-    </branch>
     <branch condition="else">
       <action>Set resumeFrom = "phase1"</action>
+      <note>Phases are idempotent — re-running from phase1 is safe even if partially complete.</note>
     </branch>
   </step>
 
   <!-- ═══════════════════════════════════════════════════════════════════════════
-       PHASE 1: VALIDATE AND COMMIT
+       PHASE 1: VALIDATE
        Reference: checks.md
        ═══════════════════════════════════════════════════════════════════════════ -->
 
   <step name="phase1_validate" when="resumeFrom is phase1">
     <output>
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-PHASE 1: VALIDATE AND COMMIT
+PHASE 1: VALIDATE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     </output>
     <action>Read checks.md for detailed guidance on this phase</action>
@@ -223,10 +207,6 @@ for each directive in checkDirectives:
               <fix directive="{name}">{description of fix}</fix>
             </iteration>
 
-        # Commit the fix
-        git add {changed files}
-        git commit -m "docs({taskId}): check-retry - {title}"
-
         # Restart all checks from beginning
         break and restart loop
 
@@ -241,52 +221,6 @@ for each directive in checkDirectives:
 Print "All automated checks passed!"
 ```
     </note>
-  </step>
-
-  <step name="check_uncommitted_changes" when="resumeFrom is phase1" outputs="changedFiles">
-    <command>git status</command>
-    <command>git diff --name-only</command>
-    <output>Display files that will be committed</output>
-    <branch condition="no changes found">
-      <output>Warning: No uncommitted changes to commit.</output>
-      <action>Use AskUserQuestion tool with:
-        - header: "Proceed?"
-        - question: "No uncommitted changes found. Proceed anyway (just move status)?"
-        - options:
-          - label: "Yes", description: "Continue to documentation phase"
-          - label: "No", description: "Cancel and investigate missing changes"
-        - multiSelect: false
-      </action>
-    </branch>
-  </step>
-
-  <step name="determine_commit_type" when="resumeFrom is phase1" outputs="commitType">
-    <action>Read checks.md for commit type determination guidance</action>
-    <action>Check task labels array</action>
-    <branch condition="contains `bug`">
-      <action>type = `fix`</action>
-    </branch>
-    <branch condition="contains `refactor`">
-      <action>type = `refactor`</action>
-    </branch>
-    <branch condition="contains `docs`">
-      <action>type = `docs`</action>
-    </branch>
-    <branch condition="contains `feature` or default">
-      <action>type = `feat`</action>
-    </branch>
-  </step>
-
-  <step name="commit_implementation" when="resumeFrom is phase1">
-    <note>Format: `{commitType}({taskId}): {title}`</note>
-    <warning>Valid commit types: `feat`, `fix`, `refactor`, `docs`</warning>
-
-    <action>Stage implementation files AND .festinalente files together</action>
-    <command>git add {implementation files}</command>
-    <command>git add .festinalente/</command>
-    <note>`.festinalente` files MUST be included - they accumulate status and plan changes</note>
-    <command>git commit -m "{commitType}({taskId}): {title}"</command>
-    <output>Implementation committed: {commitType}({taskId}): {title}</output>
   </step>
 
   <!-- ═══════════════════════════════════════════════════════════════════════════
@@ -614,55 +548,6 @@ All validations passed
     </branch>
   </step>
 
-  <step name="commit_docs" when="allFilesChanged has items">
-    <note>**Orchestrator handles glossary and _index.md updates after agents complete**</note>
-
-    <branch condition="newTermsFound has items">
-      <output>Updating glossary... Adding terms: {newTermsFound}</output>
-      <action>Read .festinalente/glossary.yaml</action>
-      <action>Add each new term with definition</action>
-      <action>Write updated glossary.yaml</action>
-    </branch>
-
-    <branch condition="allFilesChanged includes new docs (action='created')">
-      <output>Updating domain indexes...</output>
-      <action>For each new product doc: Update domain _index.md in .festinalente/product/{domain}/</action>
-      <action>For each new engineering doc: Update type _index.md in .festinalente/engineering/{type}/</action>
-    </branch>
-
-    <action>Run validation on all changed docs</action>
-    <command>node .festinalente/scripts/festinalente.cjs validate-docs {all paths from allFilesChanged}</command>
-    <branch condition="validation fails">
-      <output>Warning: Documentation validation failed: {errors}</output>
-      <action>Use AskUserQuestion tool with:
-        - header: "Validation"
-        - question: "Doc validation failed. How should I proceed?"
-        - options:
-          - label: "Continue anyway", description: "Commit despite validation warnings"
-          - label: "Abort", description: "Cancel commit, fix manually"
-        - multiSelect: false
-      </action>
-    </branch>
-
-    <output>Running final validation... Quality check passed</output>
-
-    <note>**Atomic commit: Stage all changes together**</note>
-    <command>git add .festinalente/product/</command>
-    <command>git add .festinalente/engineering/</command>
-    <command>git add .festinalente/glossary.yaml</command>
-
-    <branch condition="both needsProductDocs AND needsEngineeringDocs">
-      <command>git commit -m "docs({taskId}): product+engineering - {combinedSummary}"</command>
-    </branch>
-    <branch condition="only needsProductDocs">
-      <command>git commit -m "docs({taskId}): product - {combinedSummary}"</command>
-    </branch>
-    <branch condition="only needsEngineeringDocs">
-      <command>git commit -m "docs({taskId}): engineering - {combinedSummary}"</command>
-    </branch>
-    <output>Documentation committed</output>
-  </step>
-
   <step name="check_referencing_docs" when="allFilesChanged has items">
     <note>Check if other docs reference the updated docs</note>
     <action>For each doc in allFilesChanged, run reverse-lookup:</action>
@@ -680,7 +565,7 @@ All validations passed
       </action>
       <branch condition="user selects Review">
         <action>Read each referencing doc and check if references are still accurate</action>
-        <action>If updates needed, add to allFilesChanged and include in next commit</action>
+        <action>If updates needed, add to allFilesChanged</action>
       </branch>
     </branch>
   </step>
@@ -694,68 +579,6 @@ PHASE 3: COMPLETE
     </output>
   </step>
 
-  <step name="check_already_pushed">
-    <command>git log origin/task/{taskId}..HEAD --oneline 2>/dev/null || echo "no-remote"</command>
-    <branch condition="no new commits (already pushed)">
-      <note>Resuming - skip to merge confirmation</note>
-    </branch>
-    <branch condition="has new commits OR remote doesn't exist">
-      <command>git push -u origin task/{taskId}</command>
-      <output>Branch pushed to remote</output>
-    </branch>
-  </step>
-
-  <step name="verify_ready_to_merge" outputs="commitsToMerge">
-    <command>git status</command>
-    <validate>Ensure working tree is clean</validate>
-    <command>git log main..HEAD --oneline</command>
-    <output>Show commits to be merged</output>
-    <branch condition="working tree is dirty">
-      <output>Error: "Please commit or stash changes first"</output>
-      <action>Exit</action>
-    </branch>
-  </step>
-
-  <step name="prompt_merge_confirmation">
-    <note>DEFAULT behavior. Directives can override (e.g., github.xml skips this, uses PR approval instead)</note>
-    <output>Task: {taskId} - {title}</output>
-    <output>Branch: task/{taskId}</output>
-    <output>Commits to merge: {list from verify_ready_to_merge}</output>
-    <action>Use AskUserQuestion tool with:
-      - header: "Merge?"
-      - question: "Ready to merge this branch into main?"
-      - options:
-        - label: "Yes", description: "Merge branch task/{taskId} into main"
-        - label: "No", description: "Cancel - I'll merge later"
-      - multiSelect: false
-    </action>
-    <branch condition="user selects No">
-      <output>Branch pushed. Run /festina-finalize {taskId} again when ready to merge.</output>
-      <action>Exit</action>
-    </branch>
-  </step>
-
-  <step name="move_to_done_and_commit">
-    <note>Format: `docs({taskId}): done - {title}`</note>
-    <action>Change status to `done`</action>
-    <command>node .festinalente/scripts/festinalente.cjs get-date-time</command>
-    <action>Add `updated: {YYYY-MM-DD}`</action>
-    <action>Add `completed: {YYYY-MM-DD}`</action>
-    <action>Write updated task file</action>
-    <command>git add .festinalente/tasks/{taskId}/task.xml</command>
-    <command>git commit -m "docs({taskId}): done - {title}"</command>
-  </step>
-
-  <step name="merge_branch">
-    <command>git checkout main</command>
-    <command>git merge task/{taskId} --no-ff -m "Merge branch 'task/{taskId}'"</command>
-    <note>Use `--no-ff` to preserve branch history</note>
-  </step>
-
-  <step name="cleanup_branch">
-    <command>git branch -d task/{taskId}</command>
-  </step>
-
   {{> directive-compliance}}
 
   <step name="output_result">
@@ -766,7 +589,6 @@ Task {taskId} completed!
 
 - Status: done
 - Completed: {date}
-- Current branch: main
 
 Congratulations! Task complete.
 
@@ -786,8 +608,6 @@ Congratulations! Task complete.
 - Task XML has `completed` attribute with date
 - All directive checks passed (or skipped with user approval)
 - Documentation updated (or skipped for internal changes)
-- Branch merged into main
-- Branch `task/{taskId}` deleted locally
 - Next steps shown to user
 </success_criteria>
 
@@ -800,7 +620,7 @@ User: `/festina-finalize 001`
 Finalizing task 001 "Add user authentication"...
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-PHASE 1: VALIDATE AND COMMIT
+PHASE 1: VALIDATE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Loading directives from config.yaml...
@@ -813,16 +633,6 @@ Running check: Tests...
 PASS: Tests
 
 All automated checks passed!
-
-Staging files:
-- src/routes/auth.ts
-- src/middleware/jwt.ts
-- src/types/auth.ts
-- .festinalente/tasks/001/plan.xml
-
-Commit type: feat (from feature label)
-
-Commit: e5f6g7h feat(001): Add user authentication
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 PHASE 2: DOCUMENTATION
@@ -850,28 +660,11 @@ All validations passed
 Updating glossary... Added term "JWT"
 Running final validation... Quality check passed
 
-Commit: h8i9j0k docs(001): product - complete login documentation
-
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 PHASE 3: COMPLETE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Pushing branch...
-Branch pushed to remote.
-
-Task: 001 - Add user authentication
-Branch: task/001
-Commits to merge:
-  e5f6g7h feat(001): Add user authentication
-  h8i9j0k docs(001): product - complete login documentation
-
-[User selects "Yes" to merge]
-
-Merging branch into main...
-Branch merged successfully!
-
-Deleting branch task/001...
-Branch task/001 deleted.
+[User confirms merge]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Task 001 completed!
@@ -879,7 +672,6 @@ Task 001 completed!
 
 - Status: done
 - Completed: 2026-02-27
-- Current branch: main
 
 Congratulations! Task complete.
 
@@ -896,7 +688,7 @@ User: `/festina-finalize 001`
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-PHASE 1: VALIDATE AND COMMIT
+PHASE 1: VALIDATE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Running check: TypeScript...
@@ -912,8 +704,6 @@ Found issue: Type mismatch in auth handler
 Fixing: Adding type assertion in src/routes/auth.ts:45
 
 Logging fix to plan.xml iterations...
-Committing fix...
-Commit: a1b2c3d docs(001): check-retry - Add user authentication
 
 Restarting checks...
 
@@ -925,7 +715,7 @@ PASS: Tests
 
 All automated checks passed!
 
-[Continues to commit implementation and remaining phases...]
+[Continues to remaining phases...]
 ```
 </example>
 
@@ -938,15 +728,13 @@ User: `/festina-finalize 003`
 Finalizing task 003 "Refactor database queries"...
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-PHASE 1: VALIDATE AND COMMIT
+PHASE 1: VALIDATE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Running check: TypeScript...
 PASS: TypeScript
 
 All automated checks passed!
-
-Commit: d4e5f6g refactor(003): Refactor database queries
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 PHASE 2: DOCUMENTATION
@@ -958,7 +746,7 @@ No documentation updates needed (internal change)
 PHASE 3: COMPLETE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-[Merge flow continues...]
+[Completion flow continues...]
 
 Task 003 completed!
 ```

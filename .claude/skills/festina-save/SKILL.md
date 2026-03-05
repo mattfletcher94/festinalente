@@ -1,15 +1,15 @@
 ---
 name: festina-save
-description: Save partial implementation progress with WIP commit. Use when implementation is interrupted and you need to save work.
+description: Save partial implementation progress. Use when implementation is interrupted and you need to save work.
 allowed-tools: Read, Write, Edit, Bash(ls *, git add *, git commit *, git status, git diff *, git branch *)
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---
 
-# WIP Commit Festina Lente Task
+# Save Festina Lente Task
 
 <purpose>
-Save partial implementation progress when interrupted. Task stays in In Progress. Commits current code changes and ensures plan checkboxes are up to date.
+Save partial implementation progress when interrupted. Task stays in In Progress. Saves current progress and ensures plan checkboxes are up to date.
 </purpose>
 
 <context>
@@ -37,7 +37,7 @@ Save partial implementation progress when interrupted. Task stays in In Progress
 
 <process>
   <step name="load_workflow">
-    <action>Read `.festinalente/workflow.yaml` for column definitions, labels, priorities, and commit formats</action>
+    <action>Read `.festinalente/workflow.yaml` for column definitions, labels, priorities, and transitions</action>
     <note>Use these values throughout this skill</note>
   </step>
 
@@ -52,7 +52,7 @@ Save partial implementation progress when interrupted. Task stays in In Progress
         - question: "Which task would you like to save WIP for?"
         - options: Build from task list (up to 4 tasks in in-progress status), each with:
           - label: "{taskId}: {short title}" (truncate title if needed)
-          - description: "Status: in-progress | Has uncommitted work"
+          - description: "Status: in-progress | Has unsaved work"
         - multiSelect: false
       </action>
       <note>User can select "Other" to type a task ID directly</note>
@@ -65,21 +65,11 @@ Save partial implementation progress when interrupted. Task stays in In Progress
     <action>Parse XML</action>
     <validate>Verify current status is `in-progress`</validate>
     <branch condition="status is not in-progress">
-      <output>Task is not in progress. WIP commit only works for tasks being implemented.</output>
+      <output>Task is not in progress. WIP save only works for tasks being implemented.</output>
       <action>Exit</action>
     </branch>
     <branch condition="task not found">
       <output>Error: Task not found</output>
-      <action>Exit</action>
-    </branch>
-  </step>
-
-  <step name="verify_branch">
-    <command>git branch --show-current</command>
-    <validate>Must be on branch `task/{id}` where {id} is the task ID</validate>
-    <branch condition="not on expected branch">
-      <output>Error: This command must be run on branch task/{id}. Current branch: {branch}</output>
-      <output>Suggest: Switch to task branch with `git checkout task/{id}`</output>
       <action>Exit</action>
     </branch>
   </step>
@@ -91,7 +81,7 @@ Save partial implementation progress when interrupted. Task stays in In Progress
     </branch>
     <branch condition="plan NOT found">
       <output>Warning: No plan found for task {taskId}</output>
-      <note>Still proceed with WIP commit (code can still be committed)</note>
+      <note>Still proceed with WIP save</note>
     </branch>
   </step>
 
@@ -170,26 +160,6 @@ Save partial implementation progress when interrupted. Task stays in In Progress
     </example_code>
   </step>
 
-  <step name="check_uncommitted_changes" outputs="changedFiles">
-    <command>git status</command>
-    <command>git diff --name-only</command>
-    <branch condition="no changes found">
-      <output>Warning: No uncommitted changes to commit</output>
-      <action>Still update plan if checkboxes changed</action>
-      <branch condition="nothing to commit">
-        <action>Exit early</action>
-      </branch>
-    </branch>
-  </step>
-
-  <step name="stage_and_commit">
-    <note>Format: `wip({taskId}): {progress summary}`</note>
-    <action>Stage all relevant files (code + plan)</action>
-    <command>git add {changed files}</command>
-    <command>git add .festinalente/tasks/{taskId}/plan.xml</command>
-    <command>git commit -m "wip({taskId}): {progress summary}"</command>
-  </step>
-
   <step name="directive_compliance">
     <note>Verify compliance with all loaded directives</note>
   
@@ -229,7 +199,7 @@ Save partial implementation progress when interrupted. Task stays in In Progress
   </step>
 
   <step name="output_result">
-    <output>Print commit hash</output>
+
     <output>Print progress: "{completed}/{total} plan items complete"</output>
     <output>Print continuation hint from WIP Notes if present</output>
     <output>
@@ -254,12 +224,11 @@ Save partial implementation progress when interrupted. Task stays in In Progress
 <success_criteria>
 - Task file exists at `.festinalente/tasks/{taskId}/task.xml`
 - Task XML has `status="in-progress"`
-- If changes existed: git log shows `wip({taskId}):`
 - Next steps shown to user
 </success_criteria>
 
 <example>
-**WIP Commit Mid-Implementation:**
+**WIP Save Mid-Implementation:**
 
 User: `/festina-save 001`
 
@@ -283,8 +252,6 @@ Staging files:
 - src/middleware/jwt.ts
 - .festinalente/tasks/001/plan.xml
 
-Commit: d4e5f6g wip(001): completed auth routes and login endpoint
-
 WIP saved!
 - Progress: 2/5 items
 - Next step: Add logout endpoint
@@ -292,7 +259,7 @@ WIP saved!
 Resume with: /festina-implement 001
 ```
 
-**No Changes to Commit:**
+**No Changes to Save:**
 
 User: `/festina-save 002`
 
@@ -302,11 +269,11 @@ Saving WIP for task 002 "Setup database"...
 Reading plan: .festinalente/tasks/002/plan.md
 Progress: 3/5 items complete
 
-Checking for uncommitted changes...
-No uncommitted changes found.
+Checking for changes...
+No changes found.
 
 Plan checkboxes are up to date.
-Nothing to commit.
+Nothing to save.
 
 Resume with: /festina-implement 002
 ```

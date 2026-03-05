@@ -1,6 +1,6 @@
 ---
 name: festina-quick
-description: Fast implementation for simple fixes, config changes, and small features. Minimal Q&A, optional research, single commit.
+description: Fast implementation for simple fixes, config changes, and small features. Minimal Q&A, optional research.
 allowed-tools: Read, Write, Edit, Bash(node *, git add *, git commit *, git status, git branch *, git checkout *, git diff *, git merge *), Grep, Glob
 argument-hint: "[task description]"
 disable-model-invocation: true
@@ -10,7 +10,7 @@ disable-model-invocation: true
 
 <purpose>
 Fast implementation for simple tasks. Minimal Q&A (problem + done), optional research,
-implementation, optional review before commit, optional doc updates.
+implementation, optional review, optional doc updates.
 </purpose>
 
 <context>
@@ -68,7 +68,6 @@ implementation, optional review before commit, optional doc updates.
 </context>
 
 <prohibited>
-- Do not skip the commit step
 - Do not create full task.xml/spec.xml/plan.xml (use quick.xml only)
 - Do not use this for complex multi-file changes (use full workflow instead)
 - Do not ask about "value" - keep Q&A minimal
@@ -76,18 +75,8 @@ implementation, optional review before commit, optional doc updates.
 
 <process>
   <step name="load_workflow">
-    <action>Read `.festinalente/workflow.yaml` for column definitions, labels, priorities, and commit formats</action>
+    <action>Read `.festinalente/workflow.yaml` for column definitions, labels, priorities, and transitions</action>
     <note>Use these values throughout this skill</note>
-  </step>
-
-  <step name="verify_branch">
-    <command>git branch --show-current</command>
-    <validate>Must be on `main` or `master` branch</validate>
-    <branch condition="not on main/master">
-      <output>Error: This command must be run on the main branch. Current branch: {branch}</output>
-      <output>Suggest: Switch to main with `git checkout main`</output>
-      <action>Exit</action>
-    </branch>
   </step>
 
   <step name="verify_festina_exists">
@@ -207,16 +196,6 @@ implementation, optional review before commit, optional doc updates.
     <note>Findings will be stored in quick.xml context section for LLM resume</note>
   </step>
 
-  <step name="create_branch">
-    <command>git branch --list "quick/{quickId}"</command>
-    <branch condition="branch already exists">
-      <output>Error: Branch quick/{quickId} already exists. Use a different ID or delete the existing branch.</output>
-      <action>Exit</action>
-    </branch>
-    <command>git checkout -b quick/{quickId}</command>
-    <output>Created branch quick/{quickId}</output>
-  </step>
-
   <step name="create_quick_xml">
     <action>Create directory `.festinalente/quick/{quickId}/`</action>
     <action>Get current date/time from get-date-time.cjs</action>
@@ -284,13 +263,13 @@ implementation, optional review before commit, optional doc updates.
     <output>
 **Implementation complete.**
 
-Now's the time to review changes if you'd like. You can run `git diff` to see what changed.
+Now's the time to review changes if you'd like.
     </output>
     <action>Use AskUserQuestion tool with:
-      - header: "Commit"
-      - question: "Ready to commit?"
+      - header: "Proceed"
+      - question: "Ready to proceed?"
       - options:
-        - label: "Yes, commit", description: "Commit the changes now"
+        - label: "Yes, proceed", description: "Finalize the changes"
         - label: "Wait", description: "I need to review or make changes first"
       - multiSelect: false
     </action>
@@ -300,14 +279,6 @@ Now's the time to review changes if you'd like. You can run `git diff` to see wh
 No problem. Your progress is saved in `.festinalente/quick/{quickId}/quick.xml`.
 
 To resume later, read the quick.xml for context then continue.
-
-When you're ready to commit:
-```
-git add .
-git commit -m "quick({quickId}): {title}"
-```
-
-Or continue with Claude to make more changes.
       </output>
       <action>Exit</action>
     </branch>
@@ -351,13 +322,6 @@ Or continue with Claude to make more changes.
     </branch>
   </step>
 
-  <step name="commit">
-    <action>Stage all changes: git add .</action>
-    <command>git commit -m "quick({quickId}): {title}"</command>
-    <action>Capture commit hash</action>
-    <output>Committed: quick({quickId}): {title}</output>
-  </step>
-
   <step name="update_quick_xml">
     <action>Get current date/time from get-date-time.cjs</action>
     <action>Update `.festinalente/quick/{quickId}/quick.xml`:</action>
@@ -366,8 +330,6 @@ Or continue with Claude to make more changes.
     <action>- Update `<files>` section with files modified/created during implementation</action>
     <action>- Update `<commit>` element with hash, message, and date</action>
     <action>- Update `<summary>` element with brief description of what was done</action>
-    <action>Stage and amend commit to include updated quick.xml</action>
-    <command>git add .festinalente/quick/{quickId}/quick.xml && git commit --amend --no-edit</command>
   </step>
 
   <step name="ask_docs">
@@ -388,7 +350,6 @@ Or continue with Claude to make more changes.
     <branch condition="relevant docs found">
       <action>Read and update the relevant docs</action>
       <action>Update `<docs>` section in quick.xml</action>
-      <command>git add .festinalente/product/ .festinalente/engineering/ .festinalente/quick/{quickId}/ && git commit --amend --no-edit</command>
       <output>Updated docs: {doc ids}</output>
     </branch>
     <branch condition="no relevant docs found">
@@ -403,55 +364,12 @@ Or continue with Claude to make more changes.
     </branch>
   </step>
 
-  <step name="ask_merge">
-    <action>Use AskUserQuestion tool with:
-      - header: "Merge"
-      - question: "Do you want to merge to main?"
-      - options:
-        - label: "Yes", description: "Merge quick/{quickId} into main now"
-        - label: "No", description: "Keep changes on the quick/{quickId} branch"
-      - multiSelect: false
-    </action>
-    <branch condition="user selects Yes">
-      <command>git checkout main</command>
-      <command>git merge quick/{quickId}</command>
-      <output>Merged quick/{quickId} into main.</output>
-    </branch>
-    <branch condition="user selects No">
-      <note>Changes remain on quick/{quickId} branch</note>
-    </branch>
-  </step>
-
   <step name="output_result">
-    <branch condition="merge was performed">
-      <output>
+    <output>
 **Quick task {quickId} complete!**
 
-- Branch: quick/{quickId} (merged to main)
-- Commit: {hash}
 - Files: {list of modified files}
-      </output>
-    </branch>
-    <branch condition="merge was not performed">
-      <output>
-**Quick task {quickId} complete!**
-
-- Branch: quick/{quickId}
-- Commit: {hash}
-- Files: {list of modified files}
-
-To merge later:
-```
-git checkout main
-git merge quick/{quickId}
-```
-
-Or to create a PR:
-```
-gh pr create --title "quick({quickId}): {title}"
-```
-      </output>
-    </branch>
+    </output>
     <output>[FESTINA_COMPLETE]</output>
   </step>
 </process>
@@ -460,9 +378,6 @@ gh pr create --title "quick({quickId}): {title}"
 - Quick folder exists at `.festinalente/quick/{quickId}/`
 - Quick file exists at `.festinalente/quick/{quickId}/quick.xml`
 - Quick XML is valid (passes validate-xml.cjs)
-- Branch `quick/{quickId}` exists
-- Git log shows `quick({quickId}): {title}`
-- Code changes committed
 </success_criteria>
 
 <example>
@@ -484,8 +399,6 @@ What does done look like?
 Want me to research the codebase first?
 > No
 
-Created branch quick/000
-
 Created quick task: .festinalente/quick/000/quick.xml
 
 **Approach:** Find the LoginButton component and fix the text string
@@ -498,23 +411,14 @@ Fixing the typo in src/components/LoginButton.tsx...
 
 Now's the time to review changes if you'd like.
 
-Ready to commit? [Yes, commit / Wait]
-> Yes, commit
-
-Committed: quick(000): Fix typo in login button
+Ready to proceed? [Yes, proceed / Wait]
+> Yes, proceed
 
 Do you want me to update docs?
 > No
 
-Do you want to merge to main? [Yes / No]
-> Yes
-
-Merged quick/000 into main.
-
 **Quick task 000 complete!**
 
-- Branch: quick/000 (merged to main)
-- Commit: a1b2c3d
 - Files: src/components/LoginButton.tsx
 
 [FESTINA_COMPLETE]
@@ -543,8 +447,6 @@ Found 3 potentially affected files:
 - src/components/Spinner.tsx: Existing spinner component
 - src/hooks/useApi.ts: API hook used throughout the app
 
-Created branch quick/001
-
 Created quick task: .festinalente/quick/001/quick.xml
 (with context section populated from research findings)
 
@@ -557,14 +459,5 @@ Created quick task: .festinalente/quick/001/quick.xml
 </example>
 
 <next_steps>
-If you chose not to merge, you can merge later:
-```
-git checkout main
-git merge quick/{id}
-```
-
-Or create a PR instead:
-```
-gh pr create --title "quick({id}): {title}"
-```
+Run `/festina-overview` to view the board.
 </next_steps>

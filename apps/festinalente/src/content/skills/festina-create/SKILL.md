@@ -1,6 +1,6 @@
 ---
 name: festina-create
-description: Create and refine a new task through conversational Q&A, then commit to Backlog. Captures problem, value, and acceptance criteria in a single workflow.
+description: Create and refine a new task through conversational Q&A, then add to Backlog. Captures problem, value, and acceptance criteria in a single workflow.
 allowed-tools: Read, Write, Bash(node *, git add *, git commit *, git status, git branch *), Grep, Glob, WebSearch, WebFetch
 argument-hint: "[task title]"
 disable-model-invocation: true
@@ -9,7 +9,7 @@ disable-model-invocation: true
 # Create Festina Lente Task
 
 <purpose>
-Create and refine a new task through conversational Q&A, then commit to Backlog. Captures problem, value, and acceptance criteria in a single workflow.
+Create and refine a new task through conversational Q&A, then add to Backlog. Captures problem, value, and acceptance criteria in a single workflow.
 </purpose>
 
 <context>
@@ -28,17 +28,12 @@ Create and refine a new task through conversational Q&A, then commit to Backlog.
 - Do not use `Search()` or `Glob()` to find files manually
 - Do not read `.festinalente/config.yaml` directly
 - Do not run `ls` commands to explore directories
-- Do not skip the commit step
 - Do not guess filenames or IDs — always use the helper scripts
 </prohibited>
 
 <process>
   <step name="load_workflow">
     {{> workflow-load}}
-  </step>
-
-  <step name="verify_branch">
-    {{> branch-verify-main}}
   </step>
 
   <step name="verify_festina_exists">
@@ -430,23 +425,10 @@ And their session is established
     <action>Leave `<notes>` empty (filled during implementation)</action>
   </step>
 
-  <step name="commit">
-    <note>Format: `docs({nextId}): create - {title}`</note>
-    <command>git add .festinalente/tasks/{nextId}/task.xml</command>
-    <branch condition="product stub doc was created">
-      <command>git add {newDocPath}</command>
-    </branch>
-    <branch condition="engineering stub doc was created">
-      <command>git add {newEngDocPath}</command>
-    </branch>
-    <command>git commit -m "docs({nextId}): create - {title}"</command>
-  </step>
-
   {{> directive-compliance}}
 
   <step name="output_result">
     <output>Print the created file path and task ID</output>
-    <output>Print commit hash</output>
     <output>Print acceptance criteria summary</output>
     <output>
 **Next: Scope the implementation**
@@ -470,7 +452,6 @@ And their session is established
 - Task XML has `<acceptance-criteria>` section with Gherkin format
 - If new feature: stub doc exists at `.festinalente/product/{domain}/{slug}.md` with `stub: true`
 - If new engineering pattern: stub doc exists at `.festinalente/engineering/{type}s/{slug}.md` with `stub: true`
-- Git log shows `docs({nextId}): create -`
 - Next steps point to `/festina-scope`
 </success_criteria>
 
@@ -511,7 +492,6 @@ Task 002 created in Backlog
 - Labels: [bug]
 - Affects: auth/login
 - File: .festinalente/tasks/002/task.xml
-- Commit: a1b2c3d docs(002): create - Fix login redirect bug
 
 Next:
 /clear
@@ -560,7 +540,6 @@ Task 003 created in Backlog
 - Files:
   - .festinalente/tasks/003/task.xml
   - .festinalente/product/gui/dark-mode.md (stub)
-- Commit: b2c3d4e docs(003): create - Add dark mode toggle
 
 Next:
 /clear
@@ -618,7 +597,6 @@ Task 004 created in Backlog
   - .festinalente/tasks/004/task.xml
   - .festinalente/product/performance/api-caching.md (stub)
   - .festinalente/engineering/systems/api-cache.md (stub)
-- Commit: c3d4e5f docs(004): create - Add caching layer for API responses
 
 Next:
 /clear

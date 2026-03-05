@@ -55,21 +55,3 @@ transitions:
   planned: [in-progress]
   in-progress: [finalize]
   finalize: [done, in-progress]  # complete or rework
-
-commits:
-  # Commit message formats by phase
-  create: "docs({id}): create - {title}"
-  scope: "docs({id}): scope - {title}"
-  plan: "docs({id}): plan - {title}"
-  save: "wip({id}): {summary}"
-  finalize: "{commit-type}({id}): {title}"  # commit-type from label
-  finalize-retry: "docs({id}): check-retry - {title}"  # When AI retries check
-  finalize-docs: "docs({id}): {description}"  # product, engineering, or product+engineering
-  rework: "docs({id}): rework - {title}"  # Consolidated fail command
-  done: "docs({id}): done - {title}"
-  delete: "docs({id}): delete - {title}"
-  # Product discovery commands (not part of task workflow)
-  map-product: "docs: map-product - {features}"
-  define-product: "docs: define-product - {description}"
-  # Engineering documentation commands
-  map-engineering: "docs: map-engineering - {systems}"

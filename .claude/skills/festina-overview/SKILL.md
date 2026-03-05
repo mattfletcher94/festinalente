@@ -32,7 +32,7 @@ Show the current state of the board or specific tasks. Starts by asking what the
 <prohibited>
 - Do not show data before asking what the user wants
 - Do not suggest commands inappropriate for a task's current status
-- Do not make up information not found in task files or git history
+- Do not make up information not found in task files
 </prohibited>
 
 <process>
@@ -278,15 +278,8 @@ Done ({count} tasks)
       <output>[FESTINA_COMPLETE]</output>
     </branch>
 
-    <branch condition="input asks about git history">
-      <command>git log --oneline --all -20</command>
-      <output>
-## Recent Git Activity
-
-| Commit | Message |
-|--------|---------|
-{For each commit: | {hash} | {message} |}
-      </output>
+    <branch condition="input asks about recent activity">
+      <output>Recent activity is tracked in task files. Use `/festina-overview` with a task ID to see details.</output>
       ## Final Validation
       
       Before completing, validate all task XML:

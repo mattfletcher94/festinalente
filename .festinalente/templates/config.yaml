@@ -9,21 +9,34 @@
 name: ""
 
 directives:
-  festina-create: []
-  festina-scope: []
-  festina-plan: []
-  festina-implement: []
-  festina-save: []
-  festina-finalize: []
-  festina-rework: []
-  festina-delete: []
-  festina-quick: []
+  festina-create:
+    - git
+  festina-scope:
+    - git
+  festina-plan:
+    - git
+  festina-implement:
+    - git
+  festina-save:
+    - git
+  festina-finalize:
+    - git
+  festina-rework:
+    - git
+  festina-delete:
+    - git
+  festina-quick:
+    - git
   festina-explore: []
   festina-overview: []
-  festina-directive: []
-  festina-map-product: []
-  festina-map-engineering: []
-  festina-define-product: []
+  festina-directive:
+    - git
+  festina-map-product:
+    - git
+  festina-map-engineering:
+    - git
+  festina-define-product:
+    - git
 
 settings:
   version: "2.0"

@@ -114,13 +114,7 @@ Use AskUserQuestion:
 </iterations>
 ```
 
-4. **Commit the fix**:
-```bash
-git add {changed files}
-git commit -m "docs({taskId}): check-retry - {title}"
-```
-
-5. **Restart ALL checks from the beginning** - This ensures the fix didn't break something else
+4. **Restart ALL checks from the beginning** - This ensures the fix didn't break something else
 
 ### If user selects "Skip":
 
@@ -132,71 +126,6 @@ Continue to the next directive check. The skip is logged but no changes are made
 Print: "Exiting. Fix issues manually and re-run /festina-finalize {taskId}"
 Exit the skill
 ```
-
-## 4. Check Uncommitted Changes
-
-After checks pass, verify there's code to commit:
-
-```
-1. Run: git status
-2. Run: git diff --name-only
-3. Display files that will be committed
-4. If NO changes found:
-   - Output: "Warning: No uncommitted changes to commit."
-   - Use AskUserQuestion:
-     - header: "Proceed?"
-     - question: "No uncommitted changes found. Proceed anyway?"
-     - options:
-       - label: "Yes", description: "Continue to documentation phase"
-       - label: "No", description: "Cancel and investigate"
-   - If No: Exit
-```
-
-## 5. Determine Commit Type
-
-The commit type is derived from task labels:
-
-| Label Contains | Commit Type |
-|----------------|-------------|
-| `bug`          | `fix`       |
-| `refactor`     | `refactor`  |
-| `docs`         | `docs`      |
-| `feature` (or default) | `feat` |
-
-```
-1. Read task's <labels> element
-2. Check for label matches in priority order:
-   - If contains "bug" → type = "fix"
-   - If contains "refactor" → type = "refactor"
-   - If contains "docs" → type = "docs"
-   - Otherwise → type = "feat"
-3. Store type for commit message
-```
-
-## 6. Commit Implementation
-
-Stage and commit all implementation files:
-
-```bash
-# Stage implementation files (from plan's files list)
-git add {implementation files from plan.xml}
-
-# ALWAYS include .festinalente/ - it tracks task state
-git add .festinalente/
-
-# Commit with conventional commit format
-git commit -m "{type}({taskId}): {title}"
-```
-
-**Example commits:**
-- `feat(001): Add user authentication`
-- `fix(002): Resolve login redirect bug`
-- `refactor(003): Simplify database queries`
-
-**CRITICAL:**
-- Valid types are ONLY: `feat`, `fix`, `refactor`, `docs`
-- NEVER use invented types like `festina(...)` or `task(...)`
-- ALWAYS include `.festinalente/` files in the commit
 
 ## Summary Flow
 
@@ -210,16 +139,9 @@ git commit -m "{type}({taskId}): {title}"
    ├─ Run check by type
    ├─ If PASS: continue
    └─ If FAIL:
-       ├─ Fix → make changes, log, commit, RESTART
+       ├─ Fix → make changes, log, RESTART
        ├─ Skip → continue to next
        └─ Abort → exit
 
-4. Check uncommitted changes
-   └─ If none: prompt user
-
-5. Determine commit type from labels
-
-6. Commit: {type}({taskId}): {title}
-
-7. Proceed to Phase 2 (Documentation)
+4. Proceed to Phase 2 (Documentation)
 ```

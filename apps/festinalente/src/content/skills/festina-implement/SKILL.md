@@ -1,6 +1,6 @@
 ---
 name: festina-implement
-description: Implement a planned task. Moves task to In Progress, executes the plan, then moves to Finalize. No commit - code stays uncommitted.
+description: Implement a planned task. Moves task to In Progress, executes the plan, then moves to Finalize.
 allowed-tools: Read, Write, Edit, Bash(*), Task
 argument-hint: "[task-id]"
 disable-model-invocation: true
@@ -9,7 +9,7 @@ disable-model-invocation: true
 # Implement Festina Lente Task
 
 <purpose>
-Move task from Planned to In Progress and execute the plan. Code remains uncommitted until verification passes.
+Move task from Planned to In Progress and execute the plan.
 </purpose>
 
 <context>
@@ -21,7 +21,6 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
 </context>
 
 <prohibited>
-- Do not commit code during implementation (code stays uncommitted until verify passes)
 - Do not skip plan steps or mark them complete without executing them
 - Do not implement tasks that haven't been planned
 - Do not ask the user to manually verify or test during implementation - manual testing happens in QA phase only
@@ -72,10 +71,6 @@ Move task from Planned to In Progress and execute the plan. Code remains uncommi
       <output>Error: Task not found</output>
       <action>Exit</action>
     </branch>
-  </step>
-
-  <step name="verify_branch">
-    {{> branch-verify-task}}
   </step>
 
   <step name="move_to_in_progress" when="status was `planned`">
@@ -450,7 +445,7 @@ To save progress now:
 
   <step name="output_result">
     <output>Display implementation summary</output>
-    <output>Show files modified (uncommitted)</output>
+    <output>Show files modified</output>
     <output>Show status</output>
     <branch condition="ALL checkboxes complete">
       <output>**Next: Finalize the task**</output>
@@ -535,8 +530,7 @@ Done criteria met: Implementation complete
 
 All implementation tasks complete. Moving to finalize.
 - Status: finalize
-- Files modified: 2 (uncommitted)
-
+- Files modified: 2 
 Next:
 /clear
 /festina-finalize 001
@@ -593,8 +587,7 @@ Done criteria met: README has complete DB setup instructions
 
 All implementation tasks complete. Moving to finalize.
 - Status: finalize
-- Files modified: 5 (uncommitted)
-
+- Files modified: 5 
 Next:
 /clear
 /festina-finalize 002
@@ -607,7 +600,7 @@ If interrupted mid-implementation:
 /clear
 /festina-save {id}
 ```
-This commits your work-in-progress so you don't lose it.
+This saves your work-in-progress so you don't lose it.
 
 When implementation complete:
 ```
@@ -616,5 +609,5 @@ When implementation complete:
 ```
 Finalize runs directive checks, updates documentation, and completes the task.
 
-Code stays uncommitted until you run /festina-finalize.
+Code changes remain as work-in-progress until you run /festina-finalize.
 </next_steps>

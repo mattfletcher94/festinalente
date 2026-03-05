@@ -28,7 +28,6 @@ See `.festinalente/workflow.yaml` for column definitions and valid transitions.
 <prohibited>
 - Do not skip gathering issue details
 - Do not forget to close PR if task was in PR column
-- Do not skip the commit step
 </prohibited>
 
 <process>
@@ -74,10 +73,6 @@ See `.festinalente/workflow.yaml` for column definitions and valid transitions.
       <output>Error: Task not found</output>
       <action>Exit</action>
     </branch>
-  </step>
-
-  <step name="verify_branch">
-    {{> branch-verify-task}}
   </step>
 
   <step name="read_plan_file" outputs="planPath, currentIteration">
@@ -259,17 +254,9 @@ Let me gather the details needed for a proper issue report.
     <action>Write updated task file</action>
   </step>
 
-  <step name="commit">
-    <note>Format: `docs({taskId}): rework - {title}`</note>
-    <command>git add .festinalente/tasks/{taskId}/task.xml</command>
-    <command>git add .festinalente/tasks/{taskId}/plan.xml</command>
-    <command>git commit -m "docs({taskId}): rework - {title}"</command>
-  </step>
-
   {{> directive-compliance}}
 
   <step name="output_result">
-    <output>Print commit hash</output>
     <output>
 **Task {taskId} returned to In Progress**
 
@@ -303,7 +290,6 @@ Then finalize:
 - Plan contains `<iterations>` section with structured issue entry
 - Issue entry has type, severity, summary, expected, actual
 - Issue entry has actionable items with status="pending"
-- Git log shows `docs({taskId}): rework -`
 - If was in PR: PR is closed
 - Next steps shown to user
 </success_criteria>
@@ -360,8 +346,6 @@ How do you reproduce it?
 Does this capture the issue correctly?
 > Yes
 
-Commit: h8i9j0k docs(007): rework - Add user authentication
-
 **Task 007 returned to In Progress**
 
 - Iteration: 2
@@ -415,8 +399,6 @@ Which acceptance criteria are not met?
 Does this capture the issue correctly?
 > Yes
 
-Commit: i9j0k1l docs(008): rework - Add password reset flow
-
 **Task 008 returned to In Progress**
 
 - Iteration: 2
@@ -467,8 +449,6 @@ What should it be instead and why?
 ---
 Does this capture the issue correctly?
 > Yes
-
-Commit: j0k1l2m docs(009): rework - Add dark mode toggle
 
 **Task 009 returned to In Progress**
 

@@ -341,5 +341,5 @@ After creating or updating docs:
 
 9. Run validation
 
-10. Proceed to commit docs
+10. Proceed to complete
 ```

@@ -387,7 +387,7 @@ When new docs are created in a type folder:
 
 7. Update type _index.md
 
-8. Proceed to commit docs (handled in main skill)
+8. Proceed to complete (handled in main skill)
 ```
 
 ## Doc Type Quick Reference

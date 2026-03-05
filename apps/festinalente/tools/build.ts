@@ -144,6 +144,11 @@ async function main(): Promise<void> {
   );
   console.log('  Copied workflow.yaml');
 
+  // Copy directives/
+  console.log('\n5. Copying directives...');
+  const directiveCount = await copyDirectory('directives');
+  console.log(`  Copied ${directiveCount} directive files`);
+
   console.log('\n✓ Build complete!');
 }
 

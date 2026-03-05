@@ -140,12 +140,11 @@ HEADER                    [+] [↻]
 - Do not skip the parallel discovery phase
 - Do not write docs without validating with user through Q&A
 - Do not skip the validation phase
-- Do not skip the commit step
 </prohibited>
 
 <process>
   <step name="load_workflow">
-    <action>Read `.festinalente/workflow.yaml` for column definitions, labels, priorities, and commit formats</action>
+    <action>Read `.festinalente/workflow.yaml` for column definitions, labels, priorities, and transitions</action>
     <note>Use these values throughout this skill</note>
   </step>
 
@@ -621,13 +620,6 @@ Risks documented: {count} from Risk Identifier
     <action>Add any high-severity risks to relevant system docs</action>
   </step>
 
-  <step name="commit">
-    <note>Format: `docs: map-engineering - {brief summary}`</note>
-    <command>git add .festinalente/engineering/</command>
-    <command>git add .festinalente/glossary.yaml</command>
-    <command>git commit -m "docs: map-engineering - {systems, patterns listed}"</command>
-    <note>Example: `docs: map-engineering - auth system, api system, middleware pattern`</note>
-  </step>
 
   <step name="output_result">
     <output>Engineering documentation mapped!</output>
@@ -662,7 +654,6 @@ Risks documented: {count} from Risk Identifier
 - Each doc has valid frontmatter (id, type, title, tldr, summary, keywords, boundary, paths, verified, updated)
 - `.festinalente/glossary.yaml` updated with technical terms
 - Validation phase completed without errors
-- Git log shows `docs: map-engineering -`
 - Next steps shown to user
 </success_criteria>
 

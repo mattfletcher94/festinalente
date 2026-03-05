@@ -46,24 +46,12 @@ Permanently delete a task from the festina board. Only tasks in Backlog status c
 <prohibited>
 - Do not delete tasks in scoped, planned, in-progress, or later statuses
 - Do not delete without user confirmation
-- Do not skip the commit step
-- Do not run from a task branch (must be on main)
 </prohibited>
 
 <process>
   <step name="load_workflow">
-    <action>Read `.festinalente/workflow.yaml` for column definitions, labels, priorities, and commit formats</action>
+    <action>Read `.festinalente/workflow.yaml` for column definitions, labels, priorities, and transitions</action>
     <note>Use these values throughout this skill</note>
-  </step>
-
-  <step name="verify_branch">
-    <command>git branch --show-current</command>
-    <validate>Must be on `main` or `master` branch</validate>
-    <branch condition="not on main/master">
-      <output>Error: This command must be run on the main branch to ensure task branches are not affected. Current branch: {branch}</output>
-      <output>Suggest: Switch to main with `git checkout main`</output>
-      <action>Exit</action>
-    </branch>
   </step>
 
   <step name="get_task_id" outputs="taskId">
@@ -145,16 +133,8 @@ Permanently delete a task from the festina board. Only tasks in Backlog status c
     <output>Task folder deleted: .festinalente/tasks/{taskId}/</output>
   </step>
 
-  <step name="commit">
-    <note>Format from workflow.yaml: `docs({id}): delete - {title}`</note>
-    <command>git add -A .festinalente/tasks/{taskId}/</command>
-    <command>git commit -m "docs({taskId}): delete - {title}"</command>
-    <action>Capture commit hash</action>
-  </step>
-
   <step name="output_result">
     <output>Task {taskId} deleted successfully.</output>
-    <output>Commit: {commit hash}</output>
     ## Final Validation
     
     Before completing, validate all task XML:
@@ -169,7 +149,6 @@ Permanently delete a task from the festina board. Only tasks in Backlog status c
 
 <success_criteria>
 - Task folder `.festinalente/tasks/{taskId}/` no longer exists
-- Git log shows `docs({taskId}): delete - {title}`
 - User was shown task details before confirming
 - User explicitly confirmed deletion
 </success_criteria>
@@ -178,8 +157,6 @@ Permanently delete a task from the festina board. Only tasks in Backlog status c
 User: `/festina-delete 005`
 
 ```
-Verifying branch... main ✓
-
 Task details:
 - ID: 005
 - Title: Fix typo in README
@@ -192,7 +169,6 @@ Are you sure you want to permanently delete task 005: Fix typo in README?
 > Yes, delete
 
 Task folder deleted: .festinalente/tasks/005/
-Commit: a1b2c3d docs(005): delete - Fix typo in README
 
 Task 005 deleted successfully.
 
@@ -204,8 +180,6 @@ Task 005 deleted successfully.
 User: `/festina-delete 003`
 
 ```
-Verifying branch... main ✓
-
 Error: Cannot delete task in in-progress status.
 Only tasks in Backlog status can be deleted.
 Tasks in later stages contain work that should not be discarded.
@@ -216,8 +190,6 @@ Tasks in later stages contain work that should not be discarded.
 User: `/festina-delete`
 
 ```
-Verifying branch... main ✓
-
 No task ID provided. Eligible tasks:
 
 Which task would you like to delete?

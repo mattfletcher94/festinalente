@@ -21,7 +21,6 @@ Define a new product through Socratic Q&A and generate product documentation.
 
 <prohibited>
 - Do not write docs without validating with user through Q&A
-- Do not skip the commit step
 - Do not invent features the user hasn't described
 </prohibited>
 
@@ -276,12 +275,6 @@ updated: {YYYY-MM-DD from get-date-time}
     <action>Ensure all docs have proper `id` with domain prefix (e.g., `auth/login`)</action>
   </step>
 
-  <step name="commit">
-    <note>Format: `docs: define-product - {brief product description}`</note>
-    <command>git add .festinalente/product/</command>
-    <command>git commit -m "docs: define-product - {brief product description}"</command>
-    <note>Example: `docs: define-product - task management app with projects, tasks, collaboration`</note>
-  </step>
 
   <step name="output_result">
     <output>Product documentation created!</output>
@@ -301,7 +294,6 @@ Ready to start creating tasks:
 - At least one product doc was created
 - Each product doc has valid frontmatter (id with domain prefix, type, title, summary, keywords, updated)
 - `overview.md` exists with `type: overview`
-- Git log shows `docs: define-product -`
 - Next steps shown to user
 </success_criteria>
 
