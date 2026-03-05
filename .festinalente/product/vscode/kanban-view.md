@@ -9,7 +9,7 @@ aliases: [sidebar, task-tree]
 boundary: "Does not execute skills - click actions open terminals"
 references: [skills/overview]
 uses: [systems/vscode-extension, systems/cli]
-updated: 2026-03-01
+updated: 2026-03-05
 ---
 
 # Kanban TreeView
@@ -28,10 +28,10 @@ The kanban TreeView is the visual counterpart to `/festina-overview`. It shows a
 FESTINA LENTE
 ├── TASKS
 │   ├── ▼ In Progress (1)
-│   │   └── 007: Add auth [feature]
+│   │   └── 007: Add auth ! #feature [SP] 3/5 → Implement
 │   ├── ▼ Planned (2)
-│   │   ├── 008: Password reset
-│   │   └── 009: Email notifications
+│   │   ├── 008: Password reset ! #feature [SP] 0/4 → Implement
+│   │   └── 009: Email notifications ! #feature [S] → Plan
 │   └── ▶ Backlog (3)
 ├── QUICKS
 ├── PRODUCT DOCS
@@ -45,6 +45,7 @@ FESTINA LENTE
 - **Click to open**: Opens task.xml in editor
 - **Status icons**: Visual indicators per status
 - **Label badges**: Shows first label on each task
+- **Progress indicator**: Shows plan task completion (e.g., `3/7`) in the task description when a plan.xml exists. Tooltip shows "Progress: X/Y tasks completed". Updates automatically when plan.xml changes.
 
 ## Boundaries
 

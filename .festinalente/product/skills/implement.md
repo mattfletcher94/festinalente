@@ -9,7 +9,7 @@ aliases: [festina-implement, execute, run]
 boundary: "Does not update documentation - that happens in finalize. Git operations are directive-driven."
 references: [skills/plan, skills/finalize, cli/context]
 uses: [systems/cli, systems/data-model]
-updated: 2026-03-01
+updated: 2026-03-05
 ---
 
 # Implement Task
@@ -75,7 +75,7 @@ After each task completes:
 
 This enables:
 - **Resume** - Continue from where you left off
-- **Visibility** - See which tasks are done
+- **Visibility** - See which tasks are done (also shown as a progress indicator in the sidebar kanban TreeView)
 - **Audit** - Track when each step completed
 
 ### Quality Verification
