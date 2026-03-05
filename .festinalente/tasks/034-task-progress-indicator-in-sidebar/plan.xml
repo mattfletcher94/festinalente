@@ -1,0 +1,309 @@
+<plan task="034-task-progress-indicator-in-sidebar" spec="tasks/034-task-progress-indicator-in-sidebar/spec.xml" status="approved"
+      complexity="medium" created="2026-03-05" updated="2026-03-05"
+      generated-by="claude" model="claude-opus-4-6" version="1" iteration="1">
+  <title>Task progress indicator in sidebar</title>
+
+  <overview>
+    Add a progress indicator (e.g., "3/7") to each task in the sidebar kanban TreeView,
+    showing how many plan.xml tasks are completed vs total. The implementation adds a
+    getPlanProgress function to the plan-parser computer, threads progress data through
+    the orchestrator into the view capability, and displays it in both description and tooltip.
+    The existing file watcher already covers plan.xml changes, so no new watcher is needed.
+  </overview>
+
+  <approach>
+    <rationale>
+      Following three established patterns:
+      1. Computer Factory pattern at apps/vscode/src/computers/plan-parser.computer.ts:38 -
+         getPlanProgress will be a new pure function on the existing createPlanParserComputer return type,
+         reusing the same XMLParser instance already configured for plan.xml parsing.
+      2. Dependency Injection via Deps at apps/vscode/src/capabilities/tasks-view.capability.ts:230 -
+         A new getPlanProgress dep function will be added to TasksViewCapabilityDeps, following the
+         same pattern as checkTaskFiles.
+      3. Description Parts Array at apps/vscode/src/capabilities/tasks-view.capability.ts:69 -
+         Progress indicator inserts into the parts array between file indicators (line 97) and
+         next action arrow (line 101).
+
+      Implementation order follows planning directive P3: types first, then computer, capability, orchestrator.
+      No new orchestrator needed - this feature extends the existing tasks domain.
+    </rationale>
+    <breaking-changes>None</breaking-changes>
+  </approach>
+
+  <inventory></inventory>
+
+  <tasks>
+    <task id="1" type="auto">
+      <name>Add PlanProgress interface to task types</name>
+      <files>apps/vscode/src/types/task-types.ts (modify)</files>
+      <requirements>FR1</requirements>
+      <pattern>Existing interfaces in apps/vscode/src/types/task-types.ts:11</pattern>
+      <context>
+        <file>apps/vscode/src/types/task-types.ts</file>
+      </context>
+      <action>
+        - Add PlanProgress interface with completed (number) and total (number) readonly fields
+        - Place it after the TaskFiles interface (line 38)
+
+        Current code (approximate):
+        ```typescript
+        export interface TaskFiles {
+          hasTask: boolean;
+          hasSpec: boolean;
+          hasPlan: boolean;
+        }
+        ```
+
+        Add after:
+        ```typescript
+        /**
+         * Progress data for a task's plan.
+         */
+        export interface PlanProgress {
+          readonly completed: number;
+          readonly total: number;
+        }
+        ```
+      </action>
+      <verify>pnpm --filter @mattfletcher94/festinalente-vscode build</verify>
+      <done>PlanProgress interface exported from task-types.ts, build succeeds</done>
+    </task>
+
+    <task id="2" type="auto" depends="1">
+      <name>Add getPlanProgress to plan-parser computer</name>
+      <files>apps/vscode/src/computers/plan-parser.computer.ts (modify)</files>
+      <requirements>FR1</requirements>
+      <pattern>Computer Factory pattern at apps/vscode/src/computers/plan-parser.computer.ts:38</pattern>
+      <context>
+        <file>apps/vscode/src/computers/plan-parser.computer.ts</file>
+        <file>apps/vscode/src/types/task-types.ts</file>
+      </context>
+      <action>
+        - Import PlanProgress from task-types.ts
+        - Add getPlanProgress method to CreatePlanParserComputerReturn interface (line 23)
+        - Implement getPlanProgress inside createPlanParserComputer function body
+        - The function accepts plan.xml content (string), parses with the existing `parser` instance,
+          extracts task elements, counts those with completed="true", returns { completed, total }
+        - Return { completed: 0, total: 0 } if content is empty or has no tasks
+        - Include getPlanProgress in the return object alongside parsePlanSymbols (line 381)
+
+        Current return interface (approximate):
+        ```typescript
+        export interface CreatePlanParserComputerReturn {
+          parsePlanSymbols(content: string): PlanSymbol[];
+        }
+        ```
+
+        Change to:
+        ```typescript
+        export interface CreatePlanParserComputerReturn {
+          parsePlanSymbols(content: string): PlanSymbol[];
+          getPlanProgress(content: string): PlanProgress;
+        }
+        ```
+
+        Implementation (inside createPlanParserComputer):
+        ```typescript
+        function getPlanProgress(content: string): PlanProgress {
+          try {
+            const parsed = parser.parse(content);
+            if (!parsed.plan) return { completed: 0, total: 0 };
+
+            const plan = parsed.plan as Record&lt;string, unknown&gt;;
+            const tasksSection = plan.tasks as Record&lt;string, unknown&gt; | undefined;
+            if (!tasksSection?.task) return { completed: 0, total: 0 };
+
+            const taskArray = Array.isArray(tasksSection.task) ? tasksSection.task : [tasksSection.task];
+            const total = taskArray.length;
+            const completed = taskArray.filter((t: Record&lt;string, unknown&gt;) =>
+              t.completed === 'true' || t.completed === true
+            ).length;
+
+            return { completed, total };
+          } catch {
+            return { completed: 0, total: 0 };
+          }
+        }
+        ```
+
+        Return statement change from:
+        ```typescript
+        return { parsePlanSymbols };
+        ```
+        to:
+        ```typescript
+        return { parsePlanSymbols, getPlanProgress };
+        ```
+      </action>
+      <verify>pnpm --filter @mattfletcher94/festinalente-vscode build</verify>
+      <done>getPlanProgress exported from plan-parser computer, returns correct counts, build succeeds</done>
+    </task>
+
+    <task id="3" type="auto" depends="2">
+      <name>Accept and display progress in tasks-view capability</name>
+      <files>apps/vscode/src/capabilities/tasks-view.capability.ts (modify)</files>
+      <requirements>FR3, FR4, FR6</requirements>
+      <pattern>Description Parts Array at apps/vscode/src/capabilities/tasks-view.capability.ts:69</pattern>
+      <context>
+        <file>apps/vscode/src/capabilities/tasks-view.capability.ts</file>
+        <file>apps/vscode/src/types/task-types.ts</file>
+      </context>
+      <action>
+        - Import PlanProgress from task-types.ts
+        - Add getPlanProgress to TasksViewCapabilityDeps interface (line 230):
+          `getPlanProgress: (taskPath: string) => PlanProgress | undefined;`
+        - Add progress parameter to TaskItem constructor:
+          Change constructor signature to accept a fourth parameter:
+          `public readonly progress: PlanProgress | undefined`
+        - In buildDescription() (line 69), after the file indicators block (line 97) and before
+          the next action block (line 100), add progress indicator:
+          ```typescript
+          if (this.progress && this.progress.total > 0) {
+            parts.push(`${this.progress.completed}/${this.progress.total}`);
+          }
+          ```
+        - In buildTooltip() (line 108), after the Files section (line 136) and before
+          the Next action section (line 139), add progress info:
+          ```typescript
+          if (this.progress && this.progress.total > 0) {
+            md.appendMarkdown(`\n**Progress:** ${this.progress.completed}/${this.progress.total} tasks completed\n`);
+          }
+          ```
+        - Update getTasksForStatus (line 318) to call deps.getPlanProgress and pass to TaskItem:
+          ```typescript
+          .map((t) => new TaskItem(t, deps.checkTaskFiles(t.taskPath), deps.getAllActions(t), deps.getPlanProgress(t.taskPath)));
+          ```
+        - Update findTaskItem (line 391) similarly to pass progress:
+          ```typescript
+          cachedTaskItems.set(task.id, new TaskItem(task, deps.checkTaskFiles(task.taskPath), deps.getAllActions(task), deps.getPlanProgress(task.taskPath)));
+          ```
+      </action>
+      <verify>pnpm --filter @mattfletcher94/festinalente-vscode build</verify>
+      <done>TaskItem shows "completed/total" in description after file indicators, tooltip includes progress line, no indicator shown when progress is undefined or total is 0</done>
+    </task>
+
+    <task id="4" type="auto" depends="3">
+      <name>Wire progress reading in tasks orchestrator</name>
+      <files>apps/vscode/src/orchestrators/tasks.orchestrator.ts (modify)</files>
+      <requirements>FR2, FR4, FR5</requirements>
+      <pattern>Dependency Injection at apps/vscode/src/orchestrators/tasks.orchestrator.ts:190</pattern>
+      <context>
+        <file>apps/vscode/src/orchestrators/tasks.orchestrator.ts</file>
+        <file>apps/vscode/src/computers/plan-parser.computer.ts</file>
+        <file>apps/vscode/src/capabilities/tasks-view.capability.ts</file>
+        <file>apps/vscode/src/types/task-types.ts</file>
+      </context>
+      <action>
+        - Import PlanProgress from task-types.ts
+        - Add a getPlanProgress policy function that:
+          1. Checks if plan.xml exists at taskPath (using deps.fs.exists and deps.fs.joinPath)
+          2. If not, returns undefined (FR4)
+          3. If yes, reads content with deps.fs.readFile
+          4. Calls planParser.getPlanProgress(content) and returns the result
+          5. Wraps in try/catch, returns undefined on error
+
+        ```typescript
+        function getPlanProgress(taskPath: string): PlanProgress | undefined {
+          const planPath = deps.fs.joinPath(taskPath, 'plan.xml');
+          if (!deps.fs.exists(planPath)) return undefined;
+          try {
+            const content = deps.fs.readFile(planPath);
+            return planParser.getPlanProgress(content);
+          } catch {
+            return undefined;
+          }
+        }
+        ```
+
+        - Add getPlanProgress to the createTasksViewCapability deps object (line 190):
+
+        Current (approximate):
+        ```typescript
+        const tasksView = createTasksViewCapability({
+          loadTasks: loadAllTasks,
+          getColumns: taskGrouping.getColumns,
+          groupByStatus: taskGrouping.groupByStatus,
+          getVisibleColumns: taskGrouping.getVisibleColumns,
+          getTaskFiles,
+          checkTaskFiles,
+          getAllActions
+        });
+        ```
+
+        Change to:
+        ```typescript
+        const tasksView = createTasksViewCapability({
+          loadTasks: loadAllTasks,
+          getColumns: taskGrouping.getColumns,
+          groupByStatus: taskGrouping.groupByStatus,
+          getVisibleColumns: taskGrouping.getVisibleColumns,
+          getTaskFiles,
+          checkTaskFiles,
+          getAllActions,
+          getPlanProgress
+        });
+        ```
+
+        - FR5 (auto-refresh on plan.xml changes) is already handled by the existing file watcher
+          at line 332 which watches tasks/**/*.xml - no changes needed.
+      </action>
+      <verify>pnpm --filter @mattfletcher94/festinalente-vscode build</verify>
+      <done>Orchestrator reads plan.xml and passes progress to view capability, build succeeds, no new file watcher needed</done>
+    </task>
+
+    <task id="5" type="manual" depends="4">
+      <name>Manual verification of progress indicator</name>
+      <files>N/A</files>
+      <requirements>FR1, FR2, FR3, FR4, FR5, FR6</requirements>
+      <pattern>N/A</pattern>
+      <action>
+        - Build extension: pnpm --filter @mattfletcher94/festinalente-vscode build
+        - Run circular dependency check: pnpm check:dpdm
+        - Launch extension in VS Code Extension Development Host (F5)
+        - Verify: Task with plan.xml shows "completed/total" in description (e.g., "3/7")
+        - Verify: Task without plan.xml shows no progress indicator
+        - Verify: Hover tooltip includes "Progress: X/Y tasks completed" line
+        - Verify: Modifying plan.xml (marking a task completed) updates the indicator after file watcher fires
+        - Verify: Progress appears after file indicators [SP] and before next action arrow
+      </action>
+      <verify>Manual: Test all acceptance criteria in Extension Development Host</verify>
+      <done>All acceptance criteria verified: progress shows for tasks with plans, hidden for tasks without, updates on file changes, tooltip includes progress</done>
+    </task>
+  </tasks>
+
+  <testing>
+    <automated>None required - pure function logic is simple enough for manual verification. plan-parser computer has no existing test suite to extend.</automated>
+    <manual>
+      - Build succeeds: pnpm --filter @mattfletcher94/festinalente-vscode build
+      - No circular deps: pnpm check:dpdm
+      - Task with plan.xml shows "completed/total" in TreeView description
+      - Task without plan.xml shows no progress indicator
+      - Tooltip shows "Progress: X/Y tasks completed"
+      - Modifying plan.xml triggers auto-refresh of progress counts
+      - Progress indicator positioned after [SP] file indicators, before next action arrow
+    </manual>
+    <regression>
+      - Existing TreeView description elements (priority, labels, file indicators, next action) unchanged
+      - Existing tooltip sections (title, priority, labels, files, next action, dates) unchanged
+      - Plan symbol provider still works correctly
+      - File watcher still triggers refresh for all task file types
+    </regression>
+  </testing>
+
+  <edge-cases>
+    <case scenario="Plan exists but has zero tasks element">getPlanProgress returns { completed: 0, total: 0 }, no indicator shown because total is 0</case>
+    <case scenario="Plan.xml is malformed XML">getPlanProgress catches parse error and returns { completed: 0, total: 0 }, no indicator shown</case>
+    <case scenario="Plan has single task (not array)">XMLParser returns object instead of array; getPlanProgress wraps in array (same pattern as parsePlanSymbols at line 157)</case>
+    <case scenario="All tasks completed">Shows "7/7" - no special handling needed</case>
+  </edge-cases>
+
+  <pitfalls>
+    <pitfall issue="XMLParser returns single object vs array for one task">Must normalize with Array.isArray check, matching existing pattern at plan-parser.computer.ts:157</pitfall>
+    <pitfall issue="TaskItem constructor change breaks existing callers">Two call sites in tasks-view.capability.ts (getTasksForStatus:322, findTaskItem:391) must both be updated to pass progress parameter</pitfall>
+    <pitfall issue="Import PlanProgress in multiple files">Must import from task-types.ts in plan-parser.computer.ts, tasks-view.capability.ts, and tasks.orchestrator.ts</pitfall>
+  </pitfalls>
+
+  <iterations></iterations>
+  <wip></wip>
+  <completeness></completeness>
+</plan>
