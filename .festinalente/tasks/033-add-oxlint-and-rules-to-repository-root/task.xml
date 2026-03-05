@@ -1,4 +1,4 @@
-<task id="033-add-oxlint-and-rules-to-repository-root" status="backlog" priority="high" created="2026-03-05" updated="2026-03-05">
+<task id="033-add-oxlint-and-rules-to-repository-root" status="scoped" priority="high" created="2026-03-05" updated="2026-03-05">
   <title>Add oxlint and rules to repository root</title>
 
   <labels>
