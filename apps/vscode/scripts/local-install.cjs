@@ -27,7 +27,9 @@ try {
   // Install the extension
   console.log('\n\x1b[36m[2/2]\x1b[0m Installing extension...');
   const vsixPath = path.join(rootDir, 'festinalente-vscode.vsix');
-  execSync(`code --install-extension "${vsixPath}"`, {
+  // Use code.cmd on Windows — the bash wrapper can silently fail
+  const codeCmd = process.platform === 'win32' ? 'code.cmd' : 'code';
+  execSync(`${codeCmd} --install-extension "${vsixPath}"`, {
     cwd: rootDir,
     stdio: 'inherit'
   });
