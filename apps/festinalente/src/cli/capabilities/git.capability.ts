@@ -6,10 +6,10 @@
  * @module cli/capabilities/git
  */
 
+import { err, ok } from './file-system.capability';
+import type { Result } from './file-system.capability';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
-import type { Result } from './file-system.capability';
-import { ok, err } from './file-system.capability';
 
 const execFileAsync = promisify(execFile);
 
@@ -58,7 +58,7 @@ export function createGitCapability(): GitCapability {
       }
 
       return ok(new Date(dateStr));
-    } catch (e) {
+    } catch {
       // File might not be tracked by git
       return ok(null);
     }

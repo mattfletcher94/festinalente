@@ -7,9 +7,9 @@
 
 import * as vscode from 'vscode';
 
+import type { CreateTerminalOrchestratorReturn } from './terminal.orchestrator';
 import { createDocsViewCapability } from '../capabilities/docs-view.capability';
 import type { createFileSystemCapability } from '../capabilities/file-system.capability';
-import type { CreateTerminalOrchestratorReturn } from './terminal.orchestrator';
 
 /**
  * Dependencies required by the docs orchestrator.

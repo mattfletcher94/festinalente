@@ -2,7 +2,7 @@
  * Task actions computer - pure functions for computing task actions.
  */
 
-import type { Task, TaskAction, TaskStatus } from '../types/task-types';
+import type { Task, TaskAction } from '../types/task-types';
 
 export interface CreateTaskActionsComputerReturn {
   getActions(task: Task): readonly TaskAction[];

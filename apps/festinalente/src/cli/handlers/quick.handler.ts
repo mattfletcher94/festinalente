@@ -4,10 +4,10 @@
  * @module cli/handlers/quick
  */
 
+import type { CliCommand, CliResult } from '../types';
+import { error, success } from '../types';
 import type { FileSystemCapability } from '../capabilities/file-system.capability';
 import type { XmlParserComputer } from '../computers/xml-parser.computer';
-import type { CliResult, CliCommand } from '../types';
-import { success, error } from '../types';
 import { defineCommand } from '../registry';
 
 const QUICK_DIR = '.festinalente/quick';

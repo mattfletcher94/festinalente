@@ -5,19 +5,19 @@
  * Coordinates task-related capabilities and computers.
  */
 
-import * as vscode from 'vscode';
 import * as path from 'path';
+import * as vscode from 'vscode';
 
-import { createTaskParserComputer } from '../computers/task-parser.computer';
+import type { Task, TaskAction, TaskStatus } from '../types/task-types';
+import { TaskItem, createTasksViewCapability } from '../capabilities/tasks-view.capability';
+import type { CreateTerminalOrchestratorReturn } from './terminal.orchestrator';
+import { createCodeLensCapability } from '../capabilities/codelens.capability';
+import type { createFileSystemCapability } from '../capabilities/file-system.capability';
+import { createPlanParserComputer } from '../computers/plan-parser.computer';
+import { createPlanSymbolCapability } from '../capabilities/plan-symbol.capability';
 import { createTaskActionsComputer } from '../computers/task-actions.computer';
 import { createTaskGroupingComputer } from '../computers/task-grouping.computer';
-import { createPlanParserComputer } from '../computers/plan-parser.computer';
-import { createTasksViewCapability, TaskItem } from '../capabilities/tasks-view.capability';
-import { createCodeLensCapability } from '../capabilities/codelens.capability';
-import { createPlanSymbolCapability } from '../capabilities/plan-symbol.capability';
-import type { createFileSystemCapability } from '../capabilities/file-system.capability';
-import type { Task, TaskAction, TaskStatus } from '../types/task-types';
-import type { CreateTerminalOrchestratorReturn } from './terminal.orchestrator';
+import { createTaskParserComputer } from '../computers/task-parser.computer';
 
 /**
  * Dependencies required by the tasks orchestrator.

@@ -10,10 +10,10 @@
  */
 
 import Handlebars from 'handlebars';
-import { glob } from 'glob';
-import fs from 'fs/promises';
-import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs/promises';
+import { glob } from 'glob';
+import path from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,7 +49,7 @@ async function registerPartials(): Promise<void> {
     if (partialFiles.length === 0) {
       console.log('  No partials found (this is OK for initial build)');
     }
-  } catch (error) {
+  } catch {
     // Partials directory might not exist yet
     console.log('  No partials directory found (this is OK for initial build)');
   }

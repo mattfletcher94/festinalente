@@ -7,11 +7,11 @@
 
 import * as vscode from 'vscode';
 
-import { createQuickParserComputer } from '../computers/quick-parser.computer';
-import { createQuicksViewCapability, QuickItem } from '../capabilities/quicks-view.capability';
-import type { createFileSystemCapability } from '../capabilities/file-system.capability';
-import type { Quick } from '../types/quick-types';
+import { QuickItem, createQuicksViewCapability } from '../capabilities/quicks-view.capability';
 import type { CreateTerminalOrchestratorReturn } from './terminal.orchestrator';
+import type { Quick } from '../types/quick-types';
+import type { createFileSystemCapability } from '../capabilities/file-system.capability';
+import { createQuickParserComputer } from '../computers/quick-parser.computer';
 
 /**
  * Dependencies required by the quicks orchestrator.

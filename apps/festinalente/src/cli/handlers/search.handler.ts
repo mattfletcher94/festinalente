@@ -4,11 +4,11 @@
  * @module cli/handlers/search
  */
 
+import type { CliCommand, CliResult } from '../types';
+import type { SearchComputer, SearchConfig, SearchIndex } from '../computers/search.computer';
+import { error, getNumberFlag, getStringFlag, parseArgs, success } from '../types';
 import type { FileSystemCapability } from '../capabilities/file-system.capability';
 import type { YamlParserComputer } from '../computers/yaml-parser.computer';
-import type { SearchComputer, SearchConfig, SearchIndex } from '../computers/search.computer';
-import type { CliResult, CliCommand } from '../types';
-import { success, error, parseArgs, getStringFlag, getNumberFlag } from '../types';
 import { defineCommand } from '../registry';
 
 const PRODUCT_DIR = '.festinalente/product';

@@ -4,12 +4,12 @@
  * @module cli/handlers/task
  */
 
-import slugify from 'slugify';
+import type { CliCommand, CliResult } from '../types';
+import { error, getStringFlag, parseArgs, success } from '../types';
 import type { FileSystemCapability } from '../capabilities/file-system.capability';
 import type { XmlParserComputer } from '../computers/xml-parser.computer';
-import type { CliResult, CliCommand, ParsedArgs } from '../types';
-import { success, error, parseArgs, getStringFlag } from '../types';
 import { defineCommand } from '../registry';
+import slugify from 'slugify';
 
 const TASKS_DIR = '.festinalente/tasks';
 const CONFIG_FILE = '.festinalente/config.yaml';

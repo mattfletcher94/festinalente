@@ -74,10 +74,6 @@ function logSuccess(message) {
   log(`${colors.green}✓${colors.reset} ${message}`);
 }
 
-function logWarning(message) {
-  log(`${colors.yellow}⚠${colors.reset} ${message}`);
-}
-
 function logError(message) {
   log(`${colors.red}✗${colors.reset} ${message}`);
 }
@@ -370,7 +366,6 @@ async function main() {
 
   // Install skills for each selected runtime
   const skillsSource = path.join(sourceDir, 'skills');
-  let skillsCopied = 0;
 
   for (const runtime of selectedRuntimes) {
     const config = RUNTIMES[runtime];
@@ -384,7 +379,6 @@ async function main() {
         const srcFile = path.join(skillsSource, relativePath);
         const destFile = path.join(skillsDest, relativePath);
         copySkillFile(srcFile, destFile, runtime);
-        skillsCopied++;
       }
     }
   }

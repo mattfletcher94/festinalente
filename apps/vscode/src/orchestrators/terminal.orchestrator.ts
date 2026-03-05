@@ -7,10 +7,10 @@
 
 import * as vscode from 'vscode';
 
-import { createTerminalCapability } from '../capabilities/terminal.capability';
 import { createClaudeSettingsCapability } from '../capabilities/claude-settings.capability';
 import { createClaudeSettingsComputer } from '../computers/claude-settings.computer';
 import type { createFileSystemCapability } from '../capabilities/file-system.capability';
+import { createTerminalCapability } from '../capabilities/terminal.capability';
 
 /**
  * Dependencies required by the terminal orchestrator.

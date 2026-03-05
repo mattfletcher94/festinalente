@@ -6,8 +6,8 @@
  */
 
 import * as os from 'os';
-import type { CreateFileSystemCapabilityReturn } from './file-system.capability';
 import type { ClaudeSettings } from '../computers/claude-settings.computer';
+import type { CreateFileSystemCapabilityReturn } from './file-system.capability';
 
 /**
  * Return type for the Claude settings capability factory.

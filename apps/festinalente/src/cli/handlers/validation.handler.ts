@@ -4,11 +4,11 @@
  * @module cli/handlers/validation
  */
 
+import type { CliCommand, CliResult } from '../types';
+import type { DocValidationResult, ValidationComputer } from '../computers/validation.computer';
+import { error, getStringFlag, parseArgs, success } from '../types';
 import type { FileSystemCapability } from '../capabilities/file-system.capability';
 import type { YamlParserComputer } from '../computers/yaml-parser.computer';
-import type { ValidationComputer, DocValidationResult } from '../computers/validation.computer';
-import type { CliResult, CliCommand } from '../types';
-import { success, error, parseArgs, getStringFlag } from '../types';
 import { defineCommand } from '../registry';
 
 const TASKS_DIR = '.festinalente/tasks';

@@ -3,7 +3,7 @@
  */
 
 import * as vscode from 'vscode';
-import type { Workflow, Directive } from '../types/directives-types';
+import type { Directive, Workflow } from '../types/directives-types';
 
 /**
  * Tree item types for the directives view.
@@ -90,7 +90,7 @@ export function createDirectivesViewCapability(
   const onDidChangeTreeData = new vscode.EventEmitter<DirectivesTreeItem | undefined | void>();
 
   // Cache for TreeItems to enable reveal() to work with same references
-  let cachedWorkflowItems: WorkflowItem[] | null = null;
+  let _cachedWorkflowItems: WorkflowItem[] | null = null;
   // Parent tracking for getParent() - enables reveal() to traverse tree
   const directiveToWorkflow: Map<DirectiveItem, WorkflowItem> = new Map();
 
@@ -139,7 +139,7 @@ export function createDirectivesViewCapability(
     const items = workflows.map((workflow) => new WorkflowItem(workflow));
 
     // Update cache
-    cachedWorkflowItems = items;
+    _cachedWorkflowItems = items;
 
     return items;
   }
@@ -166,7 +166,7 @@ export function createDirectivesViewCapability(
   function createRefreshCallback(): () => void {
     return () => {
       // Clear caches on refresh
-      cachedWorkflowItems = null;
+      _cachedWorkflowItems = null;
       directiveToWorkflow.clear();
       onDidChangeTreeData.fire();
     };

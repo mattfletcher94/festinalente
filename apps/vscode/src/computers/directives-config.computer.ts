@@ -3,7 +3,7 @@
  */
 
 import * as yaml from 'js-yaml';
-import type { Workflow, WorkflowId, Directive, DirectiveId } from '../types/directives-types';
+import type { Directive, DirectiveId, Workflow, WorkflowId } from '../types/directives-types';
 
 /**
  * Structure of the directives section in config.yaml.

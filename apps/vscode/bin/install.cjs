@@ -53,15 +53,6 @@ function logSuccess(message) {
 }
 
 /**
- * Log a warning message.
- *
- * @param message - The warning message.
- */
-function logWarning(message) {
-  log(`${colors.yellow}⚠${colors.reset} ${message}`);
-}
-
-/**
  * Log an error message.
  *
  * @param message - The error message.

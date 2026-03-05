@@ -14,8 +14,9 @@
     "vscode:watch": "pnpm --filter @mattfletcher94/festinalente-vscode watch",
     "vscode:package": "pnpm --filter @mattfletcher94/festinalente-vscode package",
     "vscode:local": "pnpm --filter @mattfletcher94/festinalente-vscode local",
+    "vscode:publish": "pnpm --filter @mattfletcher94/festinalente-vscode publish --no-git-checks",
     "lint": "oxlint",
-    "vscode:publish": "pnpm --filter @mattfletcher94/festinalente-vscode publish --no-git-checks"
+    "lint:fix": "oxlint --fix"
   },
   "devDependencies": {
     "oxlint": "^1.51.0",

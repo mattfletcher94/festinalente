@@ -7,21 +7,21 @@
  * @module cli/orchestrator
  */
 
+import { type CommandRegistry, createCommandRegistry } from './registry';
+import { createConfigHandler } from './handlers/config.handler';
+import { createDocsHandler } from './handlers/docs.handler';
 import { createFileSystemCapability } from './capabilities/file-system.capability';
 import { createGitCapability } from './capabilities/git.capability';
+import { createQueryHandler } from './handlers/query.handler';
+import { createQuickHandler } from './handlers/quick.handler';
+import { createSearchComputer } from './computers/search.computer';
+import { createSearchHandler } from './handlers/search.handler';
+import { createSpecHandler } from './handlers/spec.handler';
+import { createTaskHandler } from './handlers/task.handler';
+import { createValidationComputer } from './computers/validation.computer';
+import { createValidationHandler } from './handlers/validation.handler';
 import { createXmlParserComputer } from './computers/xml-parser.computer';
 import { createYamlParserComputer } from './computers/yaml-parser.computer';
-import { createSearchComputer } from './computers/search.computer';
-import { createValidationComputer } from './computers/validation.computer';
-import { createTaskHandler } from './handlers/task.handler';
-import { createSpecHandler } from './handlers/spec.handler';
-import { createQuickHandler } from './handlers/quick.handler';
-import { createSearchHandler } from './handlers/search.handler';
-import { createDocsHandler } from './handlers/docs.handler';
-import { createValidationHandler } from './handlers/validation.handler';
-import { createConfigHandler } from './handlers/config.handler';
-import { createQueryHandler } from './handlers/query.handler';
-import { createCommandRegistry, type CommandRegistry } from './registry';
 
 /**
  * CLI application orchestrator.

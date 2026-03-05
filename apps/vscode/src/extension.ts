@@ -5,19 +5,15 @@
  * All policy decisions are delegated to domain orchestrators.
  */
 
-import * as vscode from 'vscode';
 import * as path from 'path';
-
-// Shared capabilities
-import { createFileSystemCapability } from './capabilities/file-system.capability';
-
-// Domain orchestrators
-import { createTerminalOrchestrator } from './orchestrators/terminal.orchestrator';
-import { createTasksOrchestrator } from './orchestrators/tasks.orchestrator';
-import { createQuicksOrchestrator } from './orchestrators/quicks.orchestrator';
-import { createDocsOrchestrator } from './orchestrators/docs.orchestrator';
+import * as vscode from 'vscode';
 import { createConfigOrchestrator } from './orchestrators/config.orchestrator';
 import { createDirectivesOrchestrator } from './orchestrators/directives.orchestrator';
+import { createDocsOrchestrator } from './orchestrators/docs.orchestrator';
+import { createFileSystemCapability } from './capabilities/file-system.capability';
+import { createQuicksOrchestrator } from './orchestrators/quicks.orchestrator';
+import { createTasksOrchestrator } from './orchestrators/tasks.orchestrator';
+import { createTerminalOrchestrator } from './orchestrators/terminal.orchestrator';
 
 /**
  * Find the .festinalente folder in the workspace.

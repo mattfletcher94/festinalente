@@ -3,7 +3,7 @@
  */
 
 import * as vscode from 'vscode';
-import type { Task, TaskStatus, TaskColumn, TaskAction } from '../types/task-types';
+import type { Task, TaskAction, TaskColumn, TaskStatus } from '../types/task-types';
 
 /**
  * Tree item types.

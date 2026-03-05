@@ -2,8 +2,8 @@
  * Task parser computer - pure functions for XML parsing.
  */
 
-import { XMLParser } from 'fast-xml-parser';
 import type { Task, TaskStatus } from '../types/task-types';
+import { XMLParser } from 'fast-xml-parser';
 
 const parser = new XMLParser({
   ignoreAttributes: false,

@@ -7,11 +7,11 @@
 
 import * as vscode from 'vscode';
 
+import type { Workflow } from '../types/directives-types';
 import { createDirectivesConfigComputer } from '../computers/directives-config.computer';
 import { createDirectivesViewCapability } from '../capabilities/directives-view.capability';
 import type { createFileSystemCapability } from '../capabilities/file-system.capability';
 import type { createTerminalOrchestrator } from './terminal.orchestrator';
-import type { Workflow } from '../types/directives-types';
 
 /**
  * Dependencies required by the directives orchestrator.

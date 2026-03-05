@@ -4,10 +4,10 @@
  * @module cli/handlers/config
  */
 
+import type { CliCommand, CliResult } from '../types';
+import { error, parseArgs, success } from '../types';
 import type { FileSystemCapability } from '../capabilities/file-system.capability';
 import type { YamlParserComputer } from '../computers/yaml-parser.computer';
-import type { CliResult, CliCommand } from '../types';
-import { success, error, parseArgs } from '../types';
 import { defineCommand } from '../registry';
 
 const CONFIG_FILE = '.festinalente/config.yaml';

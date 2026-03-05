@@ -2,8 +2,8 @@
  * Quick parser computer - pure functions for XML parsing.
  */
 
-import { XMLParser } from 'fast-xml-parser';
 import type { Quick, QuickStatus } from '../types/quick-types';
+import { XMLParser } from 'fast-xml-parser';
 
 const parser = new XMLParser({
   ignoreAttributes: false,

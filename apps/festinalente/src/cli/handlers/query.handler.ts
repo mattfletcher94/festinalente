@@ -4,12 +4,12 @@
  * @module cli/handlers/query
  */
 
+import type { CliCommand, CliResult } from '../types';
+import { error, getNumberFlag, getStringFlag, parseArgs, success } from '../types';
 import type { FileSystemCapability } from '../capabilities/file-system.capability';
 import type { GitCapability } from '../capabilities/git.capability';
-import type { YamlParserComputer } from '../computers/yaml-parser.computer';
 import type { XmlParserComputer } from '../computers/xml-parser.computer';
-import type { CliResult, CliCommand } from '../types';
-import { success, error, parseArgs, getStringFlag, getNumberFlag } from '../types';
+import type { YamlParserComputer } from '../computers/yaml-parser.computer';
 import { defineCommand } from '../registry';
 
 const TASKS_DIR = '.festinalente/tasks';

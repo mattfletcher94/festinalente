@@ -4,8 +4,8 @@
  * @module cli/computers/yaml-parser
  */
 
-import matter from 'gray-matter';
 import * as yaml from 'js-yaml';
+import matter from 'gray-matter';
 
 /**
  * Parsed frontmatter result.

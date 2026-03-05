@@ -4,10 +4,10 @@
  * @module cli/handlers/docs
  */
 
+import type { CliCommand, CliResult } from '../types';
+import { error, getStringFlag, parseArgs, success } from '../types';
 import type { FileSystemCapability } from '../capabilities/file-system.capability';
 import type { YamlParserComputer } from '../computers/yaml-parser.computer';
-import type { CliResult, CliCommand } from '../types';
-import { success, error, parseArgs, getStringFlag } from '../types';
 import { defineCommand } from '../registry';
 
 const PRODUCT_DIR = '.festinalente/product';
