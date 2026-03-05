@@ -1,0 +1,105 @@
+<spec task="033-add-oxlint-and-rules-to-repository-root" created="2026-03-05" updated="2026-03-05">
+  <title>Add oxlint and rules to repository root</title>
+
+  <context>
+    The repository currently lacks a fast JavaScript/TypeScript linter. No oxlint configuration exists at the repo root, leaving code quality enforcement without rapid feedback. Adding oxlint provides significantly faster lint feedback than ESLint, consistent code quality enforcement across the project, and early detection of bugs and anti-patterns during development.
+  </context>
+
+  <scope>
+    <in-scope>
+      <item>Create .oxlintrc.json at the repository root with rules mapped from the provided ESLint configuration</item>
+      <item>Install oxlint as a root devDependency</item>
+      <item>Add a lint script to the root package.json</item>
+      <item>Add a lint task to turbo.json</item>
+      <item>Remove the non-functional eslint lint script from apps/vscode/package.json</item>
+      <item>Map all supported ESLint rules to oxlint equivalents</item>
+    </in-scope>
+    <out-of-scope>
+      <item>Fixing any lint violations found by the new configuration</item>
+      <item>Configuring ESLint alongside oxlint</item>
+      <item>Rules not supported by oxlint (perfectionist/sort-classes, tsdoc/syntax)</item>
+      <item>CI/CD integration for linting</item>
+    </out-of-scope>
+  </scope>
+
+  <requirements>
+    <requirement id="FR1">An .oxlintrc.json configuration file shall exist at the repository root with a $schema reference for editor support</requirement>
+    <requirement id="FR2">The configuration shall enable the eslint, typescript, and import built-in plugins</requirement>
+    <requirement id="FR3">The configuration shall set ignorePatterns for node_modules, dist, .turbo, coverage, and scripts directories</requirement>
+    <requirement id="FR4">The configuration shall enable the correctness category as the baseline</requirement>
+    <requirement id="FR5">The configuration shall map the following ESLint rules to oxlint equivalents:
+      - eslint/sort-imports: warn
+      - typescript/no-useless-constructor: off
+      - typescript/no-extraneous-class: off
+      - typescript/no-non-null-assertion: off
+      - typescript/no-dynamic-delete: off
+      - typescript/no-explicit-any: off
+      - typescript/no-empty-object-type: off
+      - typescript/no-unused-vars: error (with argsIgnorePattern: ^_, varsIgnorePattern: ^_)
+      - eslint/no-empty-pattern: off</requirement>
+    <requirement id="FR6">The root package.json shall have oxlint installed as a devDependency</requirement>
+    <requirement id="FR7">The root package.json shall have a "lint": "oxlint" script</requirement>
+    <requirement id="FR8">turbo.json shall include a lint task definition</requirement>
+    <requirement id="FR9">The non-functional "lint": "eslint src --ext ts" script shall be removed from apps/vscode/package.json</requirement>
+    <requirement id="FR10">Running oxlint from the repo root shall lint both apps/vscode/src and apps/festinalente/src without configuration errors</requirement>
+  </requirements>
+
+  <files>
+    <file action="create" path=".oxlintrc.json" reason="Root oxlint configuration file with rules mapped from ESLint config"/>
+    <file action="modify" path="package.json" reason="Add oxlint devDependency and lint script"/>
+    <file action="modify" path="turbo.json" reason="Add lint task definition"/>
+    <file action="modify" path="apps/vscode/package.json" reason="Remove non-functional eslint lint script"/>
+  </files>
+
+  <patterns>
+    <pattern name="Root-level tooling config">
+      <description>Tooling configuration files (.oxlintrc.json, tsconfig.base.json) live at the repo root and apply to all packages in the monorepo</description>
+      <reference>tsconfig.base.json:1</reference>
+    </pattern>
+    <pattern name="Turbo task orchestration">
+      <description>Build and lint tasks are defined in turbo.json for consistent execution across the monorepo</description>
+      <reference>turbo.json:1</reference>
+    </pattern>
+    <pattern name="Root devDependencies for shared tools">
+      <description>Shared tooling (turbo, typescript) is installed as devDependencies in the root package.json</description>
+      <reference>package.json:19</reference>
+    </pattern>
+  </patterns>
+
+  <research>
+    <product>
+      <finding doc="tooling/oxlint">Stub doc — will be completed after implementation during /festina-docs</finding>
+    </product>
+    <engineering>
+      <finding doc="conventions/oxlint">Stub doc — will be completed after implementation during /festina-docs</finding>
+    </engineering>
+    <codebase>
+      <finding component="monorepo-structure" path="pnpm-workspace.yaml">pnpm workspace with apps/vscode and apps/festinalente packages, turbo for build orchestration</finding>
+      <finding component="tsconfig" path="tsconfig.base.json">Shared TypeScript config with strict mode, ES2023 target — similar pattern for shared oxlint config at root</finding>
+      <finding component="vscode-lint-script" path="apps/vscode/package.json:199">Non-functional "lint": "eslint src --ext ts" — no .eslintrc file exists, script is dead code</finding>
+    </codebase>
+    <pitfalls>
+      <pitfall issue="No existing ESLint config in repo" mitigation="User provided ESLint flat config as reference for rule mapping"/>
+      <pitfall issue="Unsupported ESLint plugins" mitigation="perfectionist/sort-classes and tsdoc/syntax have no oxlint equivalents — skip these rules, use eslint/sort-imports as partial replacement for perfectionist/sort-imports"/>
+      <pitfall issue="node_modules and build output" mitigation="Use ignorePatterns to exclude node_modules, dist, .turbo, coverage, and scripts directories"/>
+      <pitfall issue="Dead ESLint reference in apps/vscode" mitigation="Remove the non-functional lint script from apps/vscode/package.json"/>
+    </pitfalls>
+  </research>
+
+  <constraints>
+    <constraint>Oxlint supports 43/59 typescript-eslint rules — some strict config rules may not have oxlint equivalents</constraint>
+    <constraint>perfectionist and tsdoc ESLint plugins are not available as built-in oxlint plugins</constraint>
+    <constraint>Config file must be .oxlintrc.json format (JSON, not JS/TS flat config)</constraint>
+  </constraints>
+
+  <dependencies>
+    <dependency type="external">oxlint npm package (devDependency)</dependency>
+  </dependencies>
+
+  <risks>
+    <risk impact="low" mitigation="Run oxlint after configuration to identify and address any issues">Some typescript-eslint strict rules may not be available in oxlint, resulting in fewer checks than the ESLint equivalent</risk>
+    <risk impact="low" mitigation="Lint violations are out of scope for this task — fix separately">Existing code may have lint violations that surface when oxlint is first configured</risk>
+  </risks>
+
+  <open-questions/>
+</spec>

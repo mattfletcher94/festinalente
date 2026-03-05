@@ -106,7 +106,7 @@
   </process>
   <validation>
     <check id="V-B1" type="command" severity="error">
-      <run>pnpm --filter @mattfletcher94/claudeban-vscode build</run>
+      <run>pnpm --filter @mattfletcher94/festinalente-vscode build</run>
       <expect>VSCode extension builds successfully (exit code 0)</expect>
     </check>
     <check id="V-B2" type="command" severity="error">
@@ -410,7 +410,7 @@ export function createTasksOrchestrator(deps) {
     </example>
   </examples>
   <verification>
-    <command id="vscode-build" description="Build the VSCode extension">pnpm --filter @mattfletcher94/claudeban-vscode build</command>
+    <command id="vscode-build" description="Build the VSCode extension">pnpm --filter @mattfletcher94/festinalente-vscode build</command>
     <command id="festinalente-build" description="Build the Festina Lente package">pnpm festinalente:build</command>
     <command id="typecheck" description="Check TypeScript types across all packages">pnpm typecheck</command>
     <command id="dpdm" description="Check for circular dependencies">pnpm check:dpdm</command>
