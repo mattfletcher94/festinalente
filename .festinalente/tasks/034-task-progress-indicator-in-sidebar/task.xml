@@ -1,0 +1,41 @@
+<task id="034-task-progress-indicator-in-sidebar" status="backlog" priority="medium" created="2026-03-05" updated="2026-03-05" github-branch="feat/034-task-progress-indicator-in-sidebar" github-issue="#24" github-url="https://github.com/mattfletcher94/festinalente/issues/24">
+  <title>Task progress indicator in sidebar</title>
+
+  <labels>
+    <label>feature</label>
+  </labels>
+
+  <refs spec="tasks/034-task-progress-indicator-in-sidebar/spec.xml" plan="tasks/034-task-progress-indicator-in-sidebar/plan.xml"/>
+
+  <affects>
+    <doc id="vscode/kanban-view"/>
+    <doc id="skills/implement"/>
+  </affects>
+
+  <engineering>
+  </engineering>
+
+  <description>Show a small progress indicator (e.g., 3/7) next to each task in the sidebar kanban TreeView, based on how many plan.xml tasks are marked complete. Provides at-a-glance implementation progress without opening the file.</description>
+
+  <problem>When viewing the sidebar kanban, there is no way to see how far along a task's implementation is without opening the plan.xml file. Users have to click into each task to check progress, which breaks their flow and slows down board scanning.</problem>
+
+  <value>At-a-glance progress visibility in the sidebar reduces context-switching. Users can quickly identify which tasks are nearly done, which just started, and where to focus — all without leaving the kanban view.</value>
+
+  <acceptance-criteria>
+Given a task has a plan.xml with implementation tasks
+When the task is displayed in the sidebar kanban TreeView
+Then a progress indicator like "3/7" is shown in the TreeView item description
+And the numerator reflects the count of completed tasks in plan.xml
+And the denominator reflects the total count of tasks in plan.xml
+
+Given a task does not have a plan.xml
+When the task is displayed in the sidebar kanban TreeView
+Then no progress indicator is shown
+
+Given a plan.xml file is modified (tasks completed or added)
+When the file watcher detects the change
+Then the progress indicator updates to reflect the new counts
+  </acceptance-criteria>
+
+  <notes></notes>
+</task>
