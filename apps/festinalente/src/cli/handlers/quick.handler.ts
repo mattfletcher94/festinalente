@@ -92,7 +92,7 @@ export function createQuickHandler(deps: QuickHandlerDeps): QuickHandler {
       path: quickPath,
       title: parsed.title,
       created: parsed.created,
-      updated: parsed.updated,
+      updated: parsed.updated
     });
   }
 
@@ -106,7 +106,7 @@ export function createQuickHandler(deps: QuickHandlerDeps): QuickHandler {
       return success({
         nextId: '0'.padStart(padding, '0'),
         currentHighest: null,
-        padding,
+        padding
       });
     }
 
@@ -115,7 +115,7 @@ export function createQuickHandler(deps: QuickHandlerDeps): QuickHandler {
       return success({
         nextId: '0'.padStart(padding, '0'),
         currentHighest: null,
-        padding,
+        padding
       });
     }
 
@@ -135,7 +135,7 @@ export function createQuickHandler(deps: QuickHandlerDeps): QuickHandler {
     return success({
       nextId,
       currentHighest,
-      padding,
+      padding
     });
   }
 
@@ -144,24 +144,14 @@ export function createQuickHandler(deps: QuickHandlerDeps): QuickHandler {
    */
   function getCommands(): readonly CliCommand[] {
     return [
-      defineCommand(
-        'find-quick',
-        'Find a quick task by ID',
-        'find-quick <id>',
-        findQuick
-      ),
-      defineCommand(
-        'next-quick-id',
-        'Get the next available quick task ID',
-        'next-quick-id',
-        nextQuickId
-      ),
+      defineCommand('find-quick', 'Find a quick task by ID', 'find-quick <id>', findQuick),
+      defineCommand('next-quick-id', 'Get the next available quick task ID', 'next-quick-id', nextQuickId)
     ];
   }
 
   return {
     findQuick,
     nextQuickId,
-    getCommands,
+    getCommands
   };
 }

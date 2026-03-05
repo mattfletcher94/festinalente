@@ -14,7 +14,7 @@ class ConfigItem extends vscode.TreeItem {
     this.command = {
       command: 'festinalente.openFile',
       title: 'Open Config',
-      arguments: [{ filePath }],
+      arguments: [{ filePath }]
     };
     this.contextValue = 'config';
     this.resourceUri = vscode.Uri.file(filePath);
@@ -43,9 +43,7 @@ export interface CreateConfigViewCapabilityReturn {
  * @param deps - Dependencies for checking config existence and getting path.
  * @returns Object with createTreeDataProvider and createRefreshCallback functions.
  */
-export function createConfigViewCapability(
-  deps: ConfigViewCapabilityDeps
-): CreateConfigViewCapabilityReturn {
+export function createConfigViewCapability(deps: ConfigViewCapabilityDeps): CreateConfigViewCapabilityReturn {
   const onDidChangeTreeData = new vscode.EventEmitter<ConfigItem | undefined | void>();
 
   function createTreeDataProvider(): vscode.TreeDataProvider<ConfigItem> {
@@ -61,7 +59,7 @@ export function createConfigViewCapability(
           return [new ConfigItem(deps.getConfigPath())];
         }
         return [];
-      },
+      }
     };
   }
 
@@ -71,6 +69,6 @@ export function createConfigViewCapability(
 
   return {
     createTreeDataProvider,
-    createRefreshCallback,
+    createRefreshCallback
   };
 }

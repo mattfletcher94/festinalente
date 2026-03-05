@@ -58,9 +58,7 @@ export interface CreateDirectivesOrchestratorReturn {
  * @param deps - Dependencies for the orchestrator.
  * @returns Directives orchestrator with domain policy.
  */
-export function createDirectivesOrchestrator(
-  deps: DirectivesOrchestratorDeps
-): CreateDirectivesOrchestratorReturn {
+export function createDirectivesOrchestrator(deps: DirectivesOrchestratorDeps): CreateDirectivesOrchestratorReturn {
   const configComputer = createDirectivesConfigComputer();
 
   /**
@@ -81,7 +79,7 @@ export function createDirectivesOrchestrator(
 
   // Initialize directives view capability
   const directivesView = createDirectivesViewCapability({
-    loadWorkflows,
+    loadWorkflows
   });
 
   // Create providers
@@ -143,6 +141,6 @@ export function createDirectivesOrchestrator(
     treeDataProvider,
     refresh,
     createFileWatcher,
-    registerCommands,
+    registerCommands
   };
 }

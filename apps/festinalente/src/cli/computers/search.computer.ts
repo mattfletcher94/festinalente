@@ -91,7 +91,7 @@ export function createSearchComputer(): SearchComputer {
       threshold: config.threshold ?? 0.4,
       includeScore: true,
       ignoreLocation: config.ignoreLocation ?? true,
-      findAllMatches: true,
+      findAllMatches: true
     });
 
     return {
@@ -99,9 +99,9 @@ export function createSearchComputer(): SearchComputer {
         const results = fuse.search(term);
         return results.map((r) => ({
           item: r.item,
-          score: 1 - (r.score ?? 0), // Invert: 0=no match, 1=perfect
+          score: 1 - (r.score ?? 0) // Invert: 0=no match, 1=perfect
         }));
-      },
+      }
     };
   }
 
@@ -134,7 +134,7 @@ export function createSearchComputer(): SearchComputer {
 
       return {
         item: entry.item,
-        score: combinedScore,
+        score: combinedScore
       };
     });
   }
@@ -153,6 +153,6 @@ export function createSearchComputer(): SearchComputer {
   return {
     createIndex,
     searchOrStyle,
-    checkBoundaryMatch,
+    checkBoundaryMatch
   };
 }

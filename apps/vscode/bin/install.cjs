@@ -162,7 +162,7 @@ async function main() {
   console.log();
 }
 
-main().catch(err => {
+main().catch((err) => {
   logError(`Installation failed: ${err.message}`);
   process.exit(1);
 });

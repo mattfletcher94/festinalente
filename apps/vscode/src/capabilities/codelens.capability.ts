@@ -15,19 +15,14 @@ export interface CreateCodeLensCapabilityReturn {
   createRefreshCallback(): () => void;
 }
 
-export function createCodeLensCapability(
-  deps: CodeLensCapabilityDeps
-): CreateCodeLensCapabilityReturn {
+export function createCodeLensCapability(deps: CodeLensCapabilityDeps): CreateCodeLensCapabilityReturn {
   const onDidChangeCodeLenses = new vscode.EventEmitter<void>();
 
   function createCodeLensProvider(): vscode.CodeLensProvider {
     return {
       onDidChangeCodeLenses: onDidChangeCodeLenses.event,
 
-      provideCodeLenses(
-        document: vscode.TextDocument,
-        _token: vscode.CancellationToken
-      ): vscode.CodeLens[] {
+      provideCodeLenses(document: vscode.TextDocument, _token: vscode.CancellationToken): vscode.CodeLens[] {
         const task = deps.parseTaskFromUri(document.uri);
         if (!task) {
           return [];
@@ -45,13 +40,13 @@ export function createCodeLensCapability(
               title: action.label,
               tooltip: action.description,
               command: 'festinalente.runAction',
-              arguments: [{ command: action.command, taskId: task.id }],
+              arguments: [{ command: action.command, taskId: task.id }]
             })
           );
         }
 
         return lenses;
-      },
+      }
     };
   }
 
@@ -61,6 +56,6 @@ export function createCodeLensCapability(
 
   return {
     createCodeLensProvider,
-    createRefreshCallback,
+    createRefreshCallback
   };
 }

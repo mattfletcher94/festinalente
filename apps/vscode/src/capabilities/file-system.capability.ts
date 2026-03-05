@@ -43,6 +43,6 @@ export function createFileSystemCapability(): CreateFileSystemCapabilityReturn {
     readFile,
     readDir,
     isDirectory,
-    joinPath,
+    joinPath
   };
 }

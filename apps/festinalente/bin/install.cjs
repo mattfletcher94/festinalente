@@ -19,37 +19,37 @@ const SOURCE_DIR = 'dist';
 const RUNTIMES = {
   claude: {
     name: 'Claude Code',
-    skillsDir: '.claude/skills',
+    skillsDir: '.claude/skills'
   },
   opencode: {
     name: 'OpenCode',
-    skillsDir: '.opencode/skills',
-  },
+    skillsDir: '.opencode/skills'
+  }
 };
 
 // Tool name mapping: Claude Code -> OpenCode
 const TOOL_NAME_MAP = {
-  'Read': 'read',
-  'Write': 'write',
-  'Edit': 'edit',
-  'Glob': 'glob',
-  'Grep': 'grep',
-  'Bash': 'bash',
-  'WebSearch': 'websearch',
-  'WebFetch': 'webfetch',
-  'AskUserQuestion': 'question',
-  'Skill': 'skill',
-  'Task': 'task',
-  'TaskCreate': 'task_create',
-  'TaskUpdate': 'task_update',
-  'TaskList': 'task_list',
-  'TaskGet': 'task_get',
+  Read: 'read',
+  Write: 'write',
+  Edit: 'edit',
+  Glob: 'glob',
+  Grep: 'grep',
+  Bash: 'bash',
+  WebSearch: 'websearch',
+  WebFetch: 'webfetch',
+  AskUserQuestion: 'question',
+  Skill: 'skill',
+  Task: 'task',
+  TaskCreate: 'task_create',
+  TaskUpdate: 'task_update',
+  TaskList: 'task_list',
+  TaskGet: 'task_get'
 };
 
 // Path replacements for OpenCode
 const PATH_REPLACEMENTS = {
   '.claude/skills/': '.opencode/skills/',
-  '~/.claude/': '~/.config/opencode/',
+  '~/.claude/': '~/.config/opencode/'
 };
 
 // ANSI colors
@@ -82,7 +82,7 @@ function logError(message) {
 async function promptRuntime() {
   const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout,
+    output: process.stdout
   });
 
   console.log();
@@ -116,7 +116,7 @@ function convertAllowedTools(allowedToolsStr) {
   if (!allowedToolsStr) return null;
 
   const tools = {};
-  const toolList = allowedToolsStr.split(',').map(t => t.trim());
+  const toolList = allowedToolsStr.split(',').map((t) => t.trim());
 
   for (const tool of toolList) {
     // Check for pattern syntax: ToolName(pattern)
@@ -356,7 +356,7 @@ async function main() {
   const selectedRuntimes = await promptRuntime();
 
   console.log();
-  console.log(`Installing for: ${selectedRuntimes.map(r => RUNTIMES[r].name).join(' + ')}`);
+  console.log(`Installing for: ${selectedRuntimes.map((r) => RUNTIMES[r].name).join(' + ')}`);
   console.log();
 
   const cwd = process.cwd();
@@ -472,8 +472,8 @@ async function main() {
     _version: require('../package.json').version,
     _installedAt: new Date().toISOString(),
     runtimes: selectedRuntimes,
-    skillsDirs: selectedRuntimes.map(r => RUNTIMES[r].skillsDir),
-    festinalenteDir: '.festinalente/',
+    skillsDirs: selectedRuntimes.map((r) => RUNTIMES[r].skillsDir),
+    festinalenteDir: '.festinalente/'
   };
   const manifestPath = path.join(festinalenteDir, 'manifest.json');
   fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
@@ -490,12 +490,14 @@ async function main() {
   console.log(`${colors.bright}Next steps:${colors.reset}`);
   const runtimeName = selectedRuntimes.includes('opencode') ? 'OpenCode' : 'Claude Code';
   console.log(`  1. Open ${runtimeName} in your project`);
-  console.log(`  2. Run ${colors.cyan}/festina-define-product${colors.reset} (new projects) or ${colors.cyan}/festina-map-product${colors.reset} (existing code)`);
+  console.log(
+    `  2. Run ${colors.cyan}/festina-define-product${colors.reset} (new projects) or ${colors.cyan}/festina-map-product${colors.reset} (existing code)`
+  );
   console.log(`  3. Optionally run ${colors.cyan}/festina-map-engineering${colors.reset} to document architecture`);
   console.log();
 }
 
-main().catch(err => {
+main().catch((err) => {
   logError(`Installation failed: ${err.message}`);
   process.exit(1);
 });

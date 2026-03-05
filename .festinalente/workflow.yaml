@@ -34,7 +34,7 @@ labels:
   - id: docs
     name: Docs
     commit-type: docs
-    detect-keywords: [doc, readme, guide, "update docs"]
+    detect-keywords: [doc, readme, guide, 'update docs']
   - id: refactor
     name: Refactor
     commit-type: refactor
@@ -54,4 +54,4 @@ transitions:
   scoped: [planned]
   planned: [in-progress]
   in-progress: [finalize]
-  finalize: [done, in-progress]  # complete or rework
+  finalize: [done, in-progress] # complete or rework

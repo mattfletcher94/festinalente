@@ -175,7 +175,7 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
       title: parsed.title,
       status: parsed.status,
       priority: parsed.priority,
-      labels: parsed.labels,
+      labels: parsed.labels
     });
   }
 
@@ -214,7 +214,7 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
         title: parsedTask.title,
         status: parsedTask.status,
         priority: parsedTask.priority,
-        labels: parsedTask.labels,
+        labels: parsedTask.labels
       };
 
       // Apply filters
@@ -233,7 +233,7 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
 
     return success({
       count: tasks.length,
-      tasks,
+      tasks
     });
   }
 
@@ -276,7 +276,7 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
       success: true,
       id,
       title: parsed.title,
-      path: taskPath,
+      path: taskPath
     });
   }
 
@@ -337,7 +337,7 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
         nextId: `${paddedNumber}-${slug}`,
         currentHighest: null,
         padding,
-        slug,
+        slug
       });
     }
 
@@ -348,7 +348,7 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
         nextId: `${paddedNumber}-${slug}`,
         currentHighest: null,
         padding,
-        slug,
+        slug
       });
     }
 
@@ -372,7 +372,7 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
       nextId: `${paddedNumber}-${slug}`,
       currentHighest,
       padding,
-      slug,
+      slug
     });
   }
 
@@ -426,7 +426,7 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
       action: parsed.action,
       verify: parsed.verify,
       done: parsed.done,
-      completed: parsed.completed,
+      completed: parsed.completed
     });
   }
 
@@ -472,7 +472,7 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
 
     return success({
       taskId: parsed.taskId,
-      files: parsed.files,
+      files: parsed.files
     });
   }
 
@@ -481,30 +481,15 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
    */
   function getCommands(): readonly CliCommand[] {
     return [
-      defineCommand(
-        'find-task',
-        'Find a task by ID',
-        'find-task <id>',
-        findTask
-      ),
+      defineCommand('find-task', 'Find a task by ID', 'find-task <id>', findTask),
       defineCommand(
         'list-tasks',
         'List all tasks with optional filtering',
         'list-tasks [--status=X] [--exclude-status=X] [--label=X] [--priority=X]',
         listTasks
       ),
-      defineCommand(
-        'delete-task',
-        'Delete a task (backlog status only)',
-        'delete-task <id>',
-        deleteTask
-      ),
-      defineCommand(
-        'next-id',
-        'Get the next available task ID',
-        'next-id --title="Task title"',
-        nextId
-      ),
+      defineCommand('delete-task', 'Delete a task (backlog status only)', 'delete-task <id>', deleteTask),
+      defineCommand('next-id', 'Get the next available task ID', 'next-id --title="Task title"', nextId),
       defineCommand(
         'get-plan-task',
         'Get a single task from plan.xml by task ID',
@@ -516,7 +501,7 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
         'Get context files for a task from plan.xml',
         'get-plan-task-context <festina-task-id> <plan-task-id>',
         getPlanTaskContext
-      ),
+      )
     ];
   }
 
@@ -527,6 +512,6 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
     nextId,
     getPlanTask,
     getPlanTaskContext,
-    getCommands,
+    getCommands
   };
 }

@@ -17,7 +17,7 @@ export class QuickItem extends vscode.TreeItem {
     this.command = {
       command: 'festinalente.openFile',
       title: 'Open Quick',
-      arguments: [{ filePath: quick.quickPath }],
+      arguments: [{ filePath: quick.quickPath }]
     };
     this.contextValue = 'quickItem';
   }
@@ -56,9 +56,7 @@ export interface CreateQuicksViewCapabilityReturn {
  * @param deps - Dependencies for loading quick tasks.
  * @returns Object with factory functions for provider, refresh callback, and find.
  */
-export function createQuicksViewCapability(
-  deps: QuicksViewCapabilityDeps
-): CreateQuicksViewCapabilityReturn {
+export function createQuicksViewCapability(deps: QuicksViewCapabilityDeps): CreateQuicksViewCapabilityReturn {
   const onDidChangeTreeData = new vscode.EventEmitter<QuickItem | undefined | void>();
   const cachedQuickItems: Map<string, QuickItem> = new Map();
 
@@ -81,7 +79,7 @@ export function createQuicksViewCapability(
       },
       getParent(): undefined {
         return undefined;
-      },
+      }
     };
   }
 
@@ -99,6 +97,6 @@ export function createQuicksViewCapability(
   return {
     createTreeDataProvider,
     createRefreshCallback,
-    findQuickItem,
+    findQuickItem
   };
 }

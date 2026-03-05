@@ -66,41 +66,41 @@ export function activate(context: vscode.ExtensionContext): void {
   // Terminal orchestrator (shared by other orchestrators)
   const terminalOrch = createTerminalOrchestrator({
     fs,
-    workspaceRoot,
+    workspaceRoot
   });
 
   // Tasks orchestrator
   const tasksOrch = createTasksOrchestrator({
     fs,
     festinalenteDir,
-    terminal: terminalOrch,
+    terminal: terminalOrch
   });
 
   // Quicks orchestrator
   const quicksOrch = createQuicksOrchestrator({
     fs,
     festinalenteDir,
-    terminal: terminalOrch,
+    terminal: terminalOrch
   });
 
   // Docs orchestrator
   const docsOrch = createDocsOrchestrator({
     fs,
     festinalenteDir,
-    terminal: terminalOrch,
+    terminal: terminalOrch
   });
 
   // Config orchestrator
   const configOrch = createConfigOrchestrator({
     fs,
-    festinalenteDir,
+    festinalenteDir
   });
 
   // Directives orchestrator
   const directivesOrch = createDirectivesOrchestrator({
     fs,
     festinalenteDir,
-    terminal: terminalOrch,
+    terminal: terminalOrch
   });
 
   // --- Register TreeViews ---
@@ -108,38 +108,38 @@ export function activate(context: vscode.ExtensionContext): void {
   // Tasks TreeView
   const tasksTreeView = vscode.window.createTreeView('festinalenteTasks', {
     treeDataProvider: tasksOrch.treeDataProvider,
-    showCollapseAll: true,
+    showCollapseAll: true
   });
   context.subscriptions.push(tasksTreeView);
 
   // Quicks TreeView
   const quicksTreeView = vscode.window.createTreeView('festinalenteQuicks', {
     treeDataProvider: quicksOrch.treeDataProvider,
-    showCollapseAll: true,
+    showCollapseAll: true
   });
   context.subscriptions.push(quicksTreeView);
 
   // Product Docs TreeView
   const productDocsTreeView = vscode.window.createTreeView('festinalenteProductDocs', {
-    treeDataProvider: docsOrch.productDocsProvider,
+    treeDataProvider: docsOrch.productDocsProvider
   });
   context.subscriptions.push(productDocsTreeView);
 
   // Engineering Docs TreeView
   const engineeringDocsTreeView = vscode.window.createTreeView('festinalenteEngineeringDocs', {
-    treeDataProvider: docsOrch.engineeringDocsProvider,
+    treeDataProvider: docsOrch.engineeringDocsProvider
   });
   context.subscriptions.push(engineeringDocsTreeView);
 
   // Config TreeView
   const configTreeView = vscode.window.createTreeView('festinalenteConfig', {
-    treeDataProvider: configOrch.treeDataProvider,
+    treeDataProvider: configOrch.treeDataProvider
   });
   context.subscriptions.push(configTreeView);
 
   // Directives TreeView
   const directivesTreeView = vscode.window.createTreeView('festinalenteDirectives', {
-    treeDataProvider: directivesOrch.treeDataProvider,
+    treeDataProvider: directivesOrch.treeDataProvider
   });
   context.subscriptions.push(directivesTreeView);
 
@@ -199,10 +199,7 @@ export function activate(context: vscode.ExtensionContext): void {
       const newFestinalenteDir = findFestinalenteFolder(vscode.workspace.workspaceFolders, fs);
       if (newFestinalenteDir !== festinalenteDir) {
         vscode.window
-          .showInformationMessage(
-            'Workspace changed. Reload to update Festina Lente extension?',
-            'Reload'
-          )
+          .showInformationMessage('Workspace changed. Reload to update Festina Lente extension?', 'Reload')
           .then((selection) => {
             if (selection === 'Reload') {
               vscode.commands.executeCommand('workbench.action.reloadWindow');

@@ -8,7 +8,7 @@ import { XMLParser } from 'fast-xml-parser';
 const parser = new XMLParser({
   ignoreAttributes: false,
   attributeNamePrefix: '',
-  textNodeName: '_text',
+  textNodeName: '_text'
 });
 
 export interface ParsedQuick {
@@ -42,7 +42,7 @@ export function createQuickParserComputer(): CreateQuickParserComputerReturn {
       problem: quick.problem || '',
       done: quick.done || '',
       created: quick.created || '',
-      updated: quick.updated || '',
+      updated: quick.updated || ''
     };
   }
 
@@ -51,12 +51,12 @@ export function createQuickParserComputer(): CreateQuickParserComputerReturn {
     return {
       ...parsed,
       status: parsed.status as QuickStatus,
-      quickPath,
+      quickPath
     };
   }
 
   return {
     parseQuickXml,
-    parseQuickWithPath,
+    parseQuickWithPath
   };
 }

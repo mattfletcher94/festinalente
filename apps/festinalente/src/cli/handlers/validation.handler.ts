@@ -202,7 +202,7 @@ export function createValidationHandler(deps: ValidationHandlerDeps): Validation
       return success({
         valid: true,
         filesChecked: 0,
-        errors: [],
+        errors: []
       });
     }
 
@@ -213,7 +213,7 @@ export function createValidationHandler(deps: ValidationHandlerDeps): Validation
       if (!readResult.ok) {
         errors.push({
           file: file.replace(/\\/g, '/'),
-          message: readResult.error.message,
+          message: readResult.error.message
         });
         continue;
       }
@@ -223,7 +223,7 @@ export function createValidationHandler(deps: ValidationHandlerDeps): Validation
         for (const errMsg of validationResult.errors) {
           errors.push({
             file: file.replace(/\\/g, '/'),
-            message: errMsg,
+            message: errMsg
           });
         }
       }
@@ -232,7 +232,7 @@ export function createValidationHandler(deps: ValidationHandlerDeps): Validation
     return success({
       valid: errors.length === 0,
       filesChecked: files.length,
-      errors,
+      errors
     });
   }
 
@@ -279,7 +279,7 @@ export function createValidationHandler(deps: ValidationHandlerDeps): Validation
       if (!readResult.ok) {
         errors.push({
           file,
-          message: readResult.error.message,
+          message: readResult.error.message
         });
         continue;
       }
@@ -289,14 +289,14 @@ export function createValidationHandler(deps: ValidationHandlerDeps): Validation
       } catch (err) {
         errors.push({
           file,
-          message: err instanceof Error ? err.message : String(err),
+          message: err instanceof Error ? err.message : String(err)
         });
       }
     }
 
     return success({
       valid: errors.length === 0,
-      errors,
+      errors
     });
   }
 
@@ -327,7 +327,7 @@ export function createValidationHandler(deps: ValidationHandlerDeps): Validation
     return success({
       valid: result.valid,
       errors: result.errors,
-      warnings: result.warnings,
+      warnings: result.warnings
     });
   }
 
@@ -366,12 +366,7 @@ export function createValidationHandler(deps: ValidationHandlerDeps): Validation
           const id = deriveIdFromPath(docPath, PRODUCT_DIR);
           const normalizedPath = docPath.replace(/\\/g, '/');
 
-          const result = validation.validateDocQuality(
-            frontmatter,
-            body,
-            id,
-            normalizedPath
-          );
+          const result = validation.validateDocQuality(frontmatter, body, id, normalizedPath);
           results.push(result);
         }
       }
@@ -390,12 +385,7 @@ export function createValidationHandler(deps: ValidationHandlerDeps): Validation
           const id = deriveIdFromPath(docPath, ENGINEERING_DIR);
           const normalizedPath = docPath.replace(/\\/g, '/');
 
-          const result = validation.validateDocQuality(
-            frontmatter,
-            body,
-            id,
-            normalizedPath
-          );
+          const result = validation.validateDocQuality(frontmatter, body, id, normalizedPath);
           results.push(result);
         }
       }
@@ -449,7 +439,7 @@ export function createValidationHandler(deps: ValidationHandlerDeps): Validation
       errors: errorsCount,
       results,
       brokenRefs,
-      orphanDocs,
+      orphanDocs
     });
   }
 
@@ -458,18 +448,8 @@ export function createValidationHandler(deps: ValidationHandlerDeps): Validation
    */
   function getCommands(): readonly CliCommand[] {
     return [
-      defineCommand(
-        'validate-xml',
-        'Validate XML in task files',
-        'validate-xml [taskId]',
-        validateXml
-      ),
-      defineCommand(
-        'validate-yaml',
-        'Validate YAML frontmatter in task files',
-        'validate-yaml',
-        validateYamlCommand
-      ),
+      defineCommand('validate-xml', 'Validate XML in task files', 'validate-xml [taskId]', validateXml),
+      defineCommand('validate-yaml', 'Validate YAML frontmatter in task files', 'validate-yaml', validateYamlCommand),
       defineCommand(
         'validate-directive',
         'Validate a directive XML file',
@@ -481,7 +461,7 @@ export function createValidationHandler(deps: ValidationHandlerDeps): Validation
         'Validate documentation quality',
         'validate-docs [--type=product|engineering]',
         validateDocs
-      ),
+      )
     ];
   }
 
@@ -490,6 +470,6 @@ export function createValidationHandler(deps: ValidationHandlerDeps): Validation
     validateYaml: validateYamlCommand,
     validateDirective: validateDirectiveCommand,
     validateDocs,
-    getCommands,
+    getCommands
   };
 }

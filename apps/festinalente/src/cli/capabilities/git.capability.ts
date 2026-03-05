@@ -79,7 +79,7 @@ export function createGitCapability(): GitCapability {
     try {
       const result = spawnSync('git', ['log', '-1', '--format=%cI', '--', filePath], {
         encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'pipe'],
+        stdio: ['pipe', 'pipe', 'pipe']
       });
 
       if (result.status === 0 && result.stdout) {
@@ -97,6 +97,6 @@ export function createGitCapability(): GitCapability {
   return {
     getLastCommitDate,
     getCurrentBranch,
-    getLastCommitDateSync,
+    getLastCommitDateSync
   };
 }

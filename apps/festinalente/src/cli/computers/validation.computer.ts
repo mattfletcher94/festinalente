@@ -48,31 +48,31 @@ const DOC_QUALITY_CHECKS: readonly QualityCheck[] = [
     name: 'has-tldr',
     check: (fm) => typeof fm.tldr === 'string' && fm.tldr.length > 10,
     severity: 'error',
-    message: 'Missing or too short tldr (need >10 chars)',
+    message: 'Missing or too short tldr (need >10 chars)'
   },
   {
     name: 'has-summary',
     check: (fm) => typeof fm.summary === 'string' && fm.summary.length > 50,
     severity: 'error',
-    message: 'Missing or too short summary (need >50 chars)',
+    message: 'Missing or too short summary (need >50 chars)'
   },
   {
     name: 'has-keywords',
     check: (fm) => Array.isArray(fm.keywords) && fm.keywords.length >= 2,
     severity: 'warning',
-    message: 'Need at least 2 keywords for search',
+    message: 'Need at least 2 keywords for search'
   },
   {
     name: 'has-overview',
     check: (_, body) => body.includes('## Overview') || body.includes('## What is this'),
     severity: 'error',
-    message: 'Missing Overview section',
+    message: 'Missing Overview section'
   },
   {
     name: 'has-examples',
     check: (_, body) => body.includes('```') || body.includes('## Examples'),
     severity: 'warning',
-    message: 'No code examples found',
+    message: 'No code examples found'
   },
   {
     name: 'has-boundaries',
@@ -81,20 +81,20 @@ const DOC_QUALITY_CHECKS: readonly QualityCheck[] = [
       body.includes('## Boundaries') ||
       body.includes('Does NOT'),
     severity: 'warning',
-    message: 'No boundaries defined (helps prevent false positives in search)',
+    message: 'No boundaries defined (helps prevent false positives in search)'
   },
   {
     name: 'not-too-short',
     check: (_, body) => body.length > 300,
     severity: 'warning',
-    message: 'Content too short (<300 chars) - may lack detail',
+    message: 'Content too short (<300 chars) - may lack detail'
   },
   {
     name: 'not-too-long',
     check: (_, body) => body.length < 5000,
     severity: 'warning',
-    message: 'Content too long (>5000 chars) - consider splitting',
-  },
+    message: 'Content too long (>5000 chars) - consider splitting'
+  }
 ];
 
 /**
@@ -172,8 +172,7 @@ export function createValidationComputer(): ValidationComputer {
     ignoreAttributes: false,
     attributeNamePrefix: '',
     textNodeName: '_text',
-    isArray: (tagName) =>
-      ['principle', 'rule', 'check', 'item', 'example', 'override', 'skip'].includes(tagName),
+    isArray: (tagName) => ['principle', 'rule', 'check', 'item', 'example', 'override', 'skip'].includes(tagName)
   });
 
   function validateXml(content: string): ValidationResult {
@@ -184,7 +183,7 @@ export function createValidationComputer(): ValidationComputer {
       return {
         valid: false,
         errors: [err instanceof Error ? err.message : String(err)],
-        warnings: [],
+        warnings: []
       };
     }
   }
@@ -200,7 +199,7 @@ export function createValidationComputer(): ValidationComputer {
       return {
         valid: false,
         errors: [`XML parse error: ${err instanceof Error ? err.message : String(err)}`],
-        warnings: [],
+        warnings: []
       };
     }
 
@@ -276,9 +275,7 @@ export function createValidationComputer(): ValidationComputer {
             const phases = phase.split(',').map((p) => p.trim());
             for (const p of phases) {
               if (!VALID_PHASES.includes(p)) {
-                errors.push(
-                  `Invalid phase "${p}" in <rule id="${rule.id}">. Valid: ${VALID_PHASES.join(', ')}`
-                );
+                errors.push(`Invalid phase "${p}" in <rule id="${rule.id}">. Valid: ${VALID_PHASES.join(', ')}`);
               }
             }
           }
@@ -296,9 +293,7 @@ export function createValidationComputer(): ValidationComputer {
 
           const type = check.type as string | undefined;
           if (!type) {
-            errors.push(
-              `Missing required type attribute in <validation><check id="${check.id}">`
-            );
+            errors.push(`Missing required type attribute in <validation><check id="${check.id}">`);
           } else if (!VALID_CHECK_TYPES.includes(type)) {
             errors.push(
               `Invalid check type "${type}" in <check id="${check.id}">. Valid: ${VALID_CHECK_TYPES.join(', ')}`
@@ -307,9 +302,7 @@ export function createValidationComputer(): ValidationComputer {
 
           const severity = check.severity as string | undefined;
           if (!severity) {
-            errors.push(
-              `Missing required severity attribute in <validation><check id="${check.id}">`
-            );
+            errors.push(`Missing required severity attribute in <validation><check id="${check.id}">`);
           } else if (!VALID_SEVERITIES.includes(severity)) {
             errors.push(
               `Invalid severity "${severity}" in <check id="${check.id}">. Valid: ${VALID_SEVERITIES.join(', ')}`
@@ -367,7 +360,7 @@ export function createValidationComputer(): ValidationComputer {
         name: check.name,
         passed,
         severity: check.severity,
-        message: passed ? undefined : check.message,
+        message: passed ? undefined : check.message
       });
 
       if (!passed) {
@@ -380,7 +373,7 @@ export function createValidationComputer(): ValidationComputer {
       id,
       path,
       status: hasError ? 'error' : hasWarning ? 'warning' : 'pass',
-      checks,
+      checks
     };
   }
 
@@ -392,6 +385,6 @@ export function createValidationComputer(): ValidationComputer {
     validateXml,
     validateDirective,
     validateDocQuality,
-    getQualityChecks,
+    getQualityChecks
   };
 }

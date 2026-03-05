@@ -38,9 +38,7 @@ export interface CreateTerminalOrchestratorReturn {
  * @param deps - Dependencies for the orchestrator.
  * @returns Terminal orchestrator with execution policy.
  */
-export function createTerminalOrchestrator(
-  deps: TerminalOrchestratorDeps
-): CreateTerminalOrchestratorReturn {
+export function createTerminalOrchestrator(deps: TerminalOrchestratorDeps): CreateTerminalOrchestratorReturn {
   // Initialize capabilities
   const terminal = createTerminalCapability();
   const settings = createClaudeSettingsCapability({ fs: deps.fs });
@@ -88,6 +86,6 @@ export function createTerminalOrchestrator(
   }
 
   return {
-    executeInTerminal,
+    executeInTerminal
   };
 }

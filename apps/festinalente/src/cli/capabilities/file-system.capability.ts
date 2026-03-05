@@ -10,9 +10,7 @@ import path from 'path';
 /**
  * Result type for operations that can fail.
  */
-export type Result<T, E = Error> =
-  | { readonly ok: true; readonly value: T }
-  | { readonly ok: false; readonly error: E };
+export type Result<T, E = Error> = { readonly ok: true; readonly value: T } | { readonly ok: false; readonly error: E };
 
 /**
  * Create a success result.
@@ -191,7 +189,7 @@ export function createFileSystemCapability(): FileSystemCapability {
         entries.map((entry) => ({
           name: entry.name,
           isDirectory: entry.isDirectory(),
-          isFile: entry.isFile(),
+          isFile: entry.isFile()
         }))
       );
     } catch (e) {
@@ -270,6 +268,6 @@ export function createFileSystemCapability(): FileSystemCapability {
     dirname,
     basename,
     deleteFile,
-    scanRecursive,
+    scanRecursive
   };
 }

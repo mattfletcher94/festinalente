@@ -52,9 +52,7 @@ export interface CreateConfigOrchestratorReturn {
  * @param deps - Dependencies for the orchestrator.
  * @returns Config orchestrator with domain policy.
  */
-export function createConfigOrchestrator(
-  deps: ConfigOrchestratorDeps
-): CreateConfigOrchestratorReturn {
+export function createConfigOrchestrator(deps: ConfigOrchestratorDeps): CreateConfigOrchestratorReturn {
   /**
    * Policy: Check if config exists.
    */
@@ -72,7 +70,7 @@ export function createConfigOrchestrator(
   // Initialize config view capability
   const configView = createConfigViewCapability({
     checkConfigExists,
-    getConfigPath,
+    getConfigPath
   });
 
   // Create providers
@@ -90,9 +88,7 @@ export function createConfigOrchestrator(
    * Create file watcher for config file.
    */
   function createFileWatcher(kanbanPath: string): vscode.Disposable {
-    const watcher = vscode.workspace.createFileSystemWatcher(
-      new vscode.RelativePattern(kanbanPath, 'config.yaml')
-    );
+    const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(kanbanPath, 'config.yaml'));
 
     watcher.onDidChange(() => refresh());
 
@@ -113,6 +109,6 @@ export function createConfigOrchestrator(
     treeDataProvider,
     refresh,
     checkConfigExists,
-    createFileWatcher,
+    createFileWatcher
   };
 }

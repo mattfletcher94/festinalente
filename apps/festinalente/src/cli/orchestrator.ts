@@ -93,6 +93,6 @@ export function createCliOrchestrator(): CliOrchestrator {
   }
 
   return {
-    registry,
+    registry
   };
 }

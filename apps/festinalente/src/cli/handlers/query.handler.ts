@@ -161,7 +161,7 @@ export function createQueryHandler(deps: QueryHandlerDeps): QueryHandler {
         content: body,
         tldr: (frontmatter.tldr as string) || '',
         summary: (frontmatter.summary as string) || '',
-        boundary: (frontmatter.boundary as string) || '',
+        boundary: (frontmatter.boundary as string) || ''
       };
     } catch {
       return null;
@@ -262,20 +262,17 @@ export function createQueryHandler(deps: QueryHandlerDeps): QueryHandler {
     // Apply tier content
     const tieredDocs = selectedDocs.map((doc) => ({
       ...doc,
-      content: getTieredContent(doc, tier),
+      content: getTieredContent(doc, tier)
     }));
 
     // Calculate token estimate
-    const totalTokens = tieredDocs.reduce(
-      (sum, doc) => sum + estimateTokens(doc.content),
-      0
-    );
+    const totalTokens = tieredDocs.reduce((sum, doc) => sum + estimateTokens(doc.content), 0);
 
     return success({
       taskId,
       tier,
       docs: tieredDocs,
-      totalTokensEstimate: totalTokens,
+      totalTokensEstimate: totalTokens
     });
   }
 
@@ -307,7 +304,7 @@ export function createQueryHandler(deps: QueryHandlerDeps): QueryHandler {
         verifiedDate: null,
         codeRefs: [],
         modifiedCodeRefs: [],
-        daysSinceVerified: -1,
+        daysSinceVerified: -1
       };
     }
 
@@ -322,7 +319,7 @@ export function createQueryHandler(deps: QueryHandlerDeps): QueryHandler {
         verifiedDate: null,
         codeRefs,
         modifiedCodeRefs: [],
-        daysSinceVerified: -1,
+        daysSinceVerified: -1
       };
     }
 
@@ -337,7 +334,7 @@ export function createQueryHandler(deps: QueryHandlerDeps): QueryHandler {
         verifiedDate: verified,
         codeRefs,
         modifiedCodeRefs: [],
-        daysSinceVerified: daysSince,
+        daysSinceVerified: daysSince
       };
     }
 
@@ -358,7 +355,7 @@ export function createQueryHandler(deps: QueryHandlerDeps): QueryHandler {
       verifiedDate: verified,
       codeRefs,
       modifiedCodeRefs: modifiedRefs,
-      daysSinceVerified: daysSince,
+      daysSinceVerified: daysSince
     };
   }
 
@@ -415,7 +412,7 @@ export function createQueryHandler(deps: QueryHandlerDeps): QueryHandler {
           verifiedDate: result.verifiedDate,
           codeRefs: result.codeRefs,
           modifiedCodeRefs: result.modifiedCodeRefs,
-          daysSinceVerified: result.daysSinceVerified,
+          daysSinceVerified: result.daysSinceVerified
         });
       } else {
         freshCount++;
@@ -427,7 +424,7 @@ export function createQueryHandler(deps: QueryHandlerDeps): QueryHandler {
       fresh: freshCount,
       stale: staleDocs.length,
       noVerification: noVerificationCount,
-      staleDocs,
+      staleDocs
     });
   }
 
@@ -447,13 +444,13 @@ export function createQueryHandler(deps: QueryHandlerDeps): QueryHandler {
         'Check documentation freshness based on verified dates',
         'check-freshness [--stale-days=30] [--type=product|engineering]',
         checkFreshness
-      ),
+      )
     ];
   }
 
   return {
     selectContext,
     checkFreshness,
-    getCommands,
+    getCommands
   };
 }

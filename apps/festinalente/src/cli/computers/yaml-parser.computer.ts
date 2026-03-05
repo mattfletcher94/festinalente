@@ -54,7 +54,7 @@ export function createYamlParserComputer(): YamlParserComputer {
     const { data, content: body } = matter(content);
     return {
       data: data as Record<string, unknown>,
-      content: body,
+      content: body
     };
   }
 
@@ -71,6 +71,6 @@ export function createYamlParserComputer(): YamlParserComputer {
   return {
     parseFrontmatter,
     parseYaml,
-    validateYaml,
+    validateYaml
   };
 }

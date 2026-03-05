@@ -74,16 +74,14 @@ export interface CreateDocsOrchestratorReturn {
  * @param deps - Dependencies for the orchestrator.
  * @returns Docs orchestrator with domain policy.
  */
-export function createDocsOrchestrator(
-  deps: DocsOrchestratorDeps
-): CreateDocsOrchestratorReturn {
+export function createDocsOrchestrator(deps: DocsOrchestratorDeps): CreateDocsOrchestratorReturn {
   // Initialize docs view capability
   const docsView = createDocsViewCapability(
     {
       readDir: deps.fs.readDir,
       isDirectory: deps.fs.isDirectory,
       exists: deps.fs.exists,
-      joinPath: deps.fs.joinPath,
+      joinPath: deps.fs.joinPath
     },
     deps.festinalenteDir
   );
@@ -98,9 +96,7 @@ export function createDocsOrchestrator(
    * Create file watcher for product docs.
    */
   function createProductDocsWatcher(kanbanPath: string): vscode.Disposable {
-    const watcher = vscode.workspace.createFileSystemWatcher(
-      new vscode.RelativePattern(kanbanPath, 'product/**/*.md')
-    );
+    const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(kanbanPath, 'product/**/*.md'));
 
     watcher.onDidChange(() => refreshProductDocs());
     watcher.onDidCreate(() => refreshProductDocs());
@@ -130,16 +126,13 @@ export function createDocsOrchestrator(
   function registerCommands(context: vscode.ExtensionContext): void {
     // Run global action command (for docs mapping actions)
     context.subscriptions.push(
-      vscode.commands.registerCommand(
-        'festinalente.runGlobalAction',
-        (args: { command: string }) => {
-          if (!args?.command) {
-            vscode.window.showErrorMessage('Invalid global action arguments');
-            return;
-          }
-          deps.terminal.executeInTerminal(args.command);
+      vscode.commands.registerCommand('festinalente.runGlobalAction', (args: { command: string }) => {
+        if (!args?.command) {
+          vscode.window.showErrorMessage('Invalid global action arguments');
+          return;
         }
-      )
+        deps.terminal.executeInTerminal(args.command);
+      })
     );
   }
 
@@ -150,6 +143,6 @@ export function createDocsOrchestrator(
     refreshEngineeringDocs,
     createProductDocsWatcher,
     createEngineeringDocsWatcher,
-    registerCommands,
+    registerCommands
   };
 }

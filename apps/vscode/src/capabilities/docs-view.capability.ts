@@ -21,7 +21,7 @@ export class DocsActionItem extends vscode.TreeItem {
     this.command = {
       command: 'festinalente.runGlobalAction',
       title: label,
-      arguments: [{ command: actionCommand }],
+      arguments: [{ command: actionCommand }]
     };
     this.contextValue = 'docsAction';
   }
@@ -36,12 +36,7 @@ export class DocsFolderItem extends vscode.TreeItem {
     name: string,
     isExpanded: boolean = false
   ) {
-    super(
-      name,
-      isExpanded
-        ? vscode.TreeItemCollapsibleState.Expanded
-        : vscode.TreeItemCollapsibleState.Collapsed
-    );
+    super(name, isExpanded ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.Collapsed);
     this.iconPath = new vscode.ThemeIcon('folder');
     this.contextValue = 'docsFolder';
   }
@@ -60,7 +55,7 @@ export class DocsFileItem extends vscode.TreeItem {
     this.command = {
       command: 'festinalente.openFile',
       title: 'Open',
-      arguments: [{ filePath }],
+      arguments: [{ filePath }]
     };
     this.contextValue = 'docsFile';
   }
@@ -197,7 +192,7 @@ export function createDocsViewCapability(
         }
         const itemPath = element instanceof DocsFolderItem ? element.folderPath : element.filePath;
         return parentMap.get(itemPath);
-      },
+      }
     };
   }
 
@@ -241,6 +236,6 @@ export function createDocsViewCapability(
     createProductDocsProvider,
     createEngineeringDocsProvider,
     createProductRefresh,
-    createEngineeringRefresh,
+    createEngineeringRefresh
   };
 }

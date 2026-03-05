@@ -24,11 +24,7 @@ export interface CreateDirectivesConfigComputerReturn {
    * @param checkExists - Function to check if a file exists.
    * @returns Array of workflows with their assigned directives.
    */
-  parseConfig(
-    content: string,
-    directivesDir: string,
-    checkExists: (path: string) => boolean
-  ): Workflow[];
+  parseConfig(content: string, directivesDir: string, checkExists: (path: string) => boolean): Workflow[];
 
   /**
    * Format a skill ID as a display name.
@@ -56,11 +52,7 @@ export function createDirectivesConfigComputer(): CreateDirectivesConfigComputer
   /**
    * Parse config.yaml content and extract workflow-directive mappings.
    */
-  function parseConfig(
-    content: string,
-    directivesDir: string,
-    checkExists: (path: string) => boolean
-  ): Workflow[] {
+  function parseConfig(content: string, directivesDir: string, checkExists: (path: string) => boolean): Workflow[] {
     const workflows: Workflow[] = [];
 
     try {
@@ -77,14 +69,14 @@ export function createDirectivesConfigComputer(): CreateDirectivesConfigComputer
             id: name as DirectiveId,
             name,
             path,
-            exists: checkExists(path),
+            exists: checkExists(path)
           };
         });
 
         workflows.push({
           id: skillId as WorkflowId,
           displayName: formatWorkflowName(skillId),
-          directives,
+          directives
         });
       }
     } catch {
@@ -97,6 +89,6 @@ export function createDirectivesConfigComputer(): CreateDirectivesConfigComputer
 
   return {
     parseConfig,
-    formatWorkflowName,
+    formatWorkflowName
   };
 }

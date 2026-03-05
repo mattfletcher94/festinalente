@@ -190,10 +190,7 @@ export function createSearchHandler(deps: SearchHandlerDeps): SearchHandler {
   /**
    * Load documents from a directory.
    */
-  function loadDocs(
-    dir: string,
-    docType: 'product' | 'engineering'
-  ): readonly InternalDoc[] {
+  function loadDocs(dir: string, docType: 'product' | 'engineering'): readonly InternalDoc[] {
     const scanResult = fs.scanRecursive(dir, '.md');
     if (!scanResult.ok) return [];
 
@@ -236,7 +233,7 @@ export function createSearchHandler(deps: SearchHandlerDeps): SearchHandler {
         system,
         paths: Array.isArray(frontmatter.paths) ? frontmatter.paths : [],
         references: Array.isArray(frontmatter.references) ? frontmatter.references : [],
-        uses: Array.isArray(frontmatter.uses) ? frontmatter.uses : [],
+        uses: Array.isArray(frontmatter.uses) ? frontmatter.uses : []
       });
     }
 
@@ -256,10 +253,10 @@ export function createSearchHandler(deps: SearchHandlerDeps): SearchHandler {
         { name: 'id', weight: 0.2 },
         { name: 'summary', weight: 0.15 },
         { name: 'domain', weight: 0.1 },
-        { name: 'body', weight: 0.05 },
+        { name: 'body', weight: 0.05 }
       ],
       threshold: 0.4,
-      ignoreLocation: true,
+      ignoreLocation: true
     };
   }
 
@@ -277,10 +274,10 @@ export function createSearchHandler(deps: SearchHandlerDeps): SearchHandler {
         { name: 'summary', weight: 0.15 },
         { name: 'system', weight: 0.1 },
         { name: 'paths', weight: 0.1 },
-        { name: 'body', weight: 0.05 },
+        { name: 'body', weight: 0.05 }
       ],
       threshold: 0.4,
-      ignoreLocation: true,
+      ignoreLocation: true
     };
   }
 
@@ -303,9 +300,7 @@ export function createSearchHandler(deps: SearchHandlerDeps): SearchHandler {
         const doc = result.item;
         const baseScore = result.score;
         const hasBoundaryMatch = search.checkBoundaryMatch(doc.boundary, searchTerms);
-        const adjustedScore = hasBoundaryMatch
-          ? Math.max(0, baseScore - BOUNDARY_PENALTY)
-          : baseScore;
+        const adjustedScore = hasBoundaryMatch ? Math.max(0, baseScore - BOUNDARY_PENALTY) : baseScore;
 
         return {
           id: doc.id,
@@ -316,7 +311,7 @@ export function createSearchHandler(deps: SearchHandlerDeps): SearchHandler {
           path: doc.path,
           boundaryPenalty: hasBoundaryMatch,
           references: doc.references,
-          uses: doc.uses,
+          uses: doc.uses
         };
       })
       .filter((result) => result.score >= minScore)
@@ -349,7 +344,7 @@ export function createSearchHandler(deps: SearchHandlerDeps): SearchHandler {
         relatedDocs.push({
           id: relId,
           tldr: doc.tldr,
-          via: relatedVia.get(relId) || '',
+          via: relatedVia.get(relId) || ''
         });
       }
     }
@@ -380,7 +375,7 @@ export function createSearchHandler(deps: SearchHandlerDeps): SearchHandler {
       query: searchTerms,
       count: results.length,
       docs: results,
-      relatedDocs,
+      relatedDocs
     });
   }
 
@@ -407,7 +402,7 @@ export function createSearchHandler(deps: SearchHandlerDeps): SearchHandler {
       query: searchTerms,
       count: results.length,
       docs: results,
-      relatedDocs,
+      relatedDocs
     });
   }
 
@@ -441,7 +436,7 @@ export function createSearchHandler(deps: SearchHandlerDeps): SearchHandler {
     const config: SearchConfig = {
       keys: [{ name: field, weight: 1 }],
       threshold,
-      ignoreLocation: true,
+      ignoreLocation: true
     };
 
     const index = search.createIndex(docs, config);
@@ -465,9 +460,7 @@ export function createSearchHandler(deps: SearchHandlerDeps): SearchHandler {
     const docTypeFilter = getStringFlag(parsed.flags, 'type') as 'product' | 'engineering' | undefined;
 
     if (searchTerms.length === 0) {
-      return error(
-        'Usage: search-hybrid keyword1 keyword2 ... [--type=product|engineering] [--min-score=0.3]'
-      );
+      return error('Usage: search-hybrid keyword1 keyword2 ... [--type=product|engineering] [--min-score=0.3]');
     }
 
     // Load docs based on filter
@@ -488,7 +481,7 @@ export function createSearchHandler(deps: SearchHandlerDeps): SearchHandler {
     if (docs.length === 0) {
       return success({
         query: searchTerms,
-        results: [],
+        results: []
       });
     }
 
@@ -530,13 +523,13 @@ export function createSearchHandler(deps: SearchHandlerDeps): SearchHandler {
             exactAlias,
             fuzzyTitle: Math.round(fuzzyTitle * 100) / 100,
             fuzzyTldr: Math.round(fuzzyTldr * 100) / 100,
-            fuzzyBody: Math.round(fuzzyBody * 100) / 100,
+            fuzzyBody: Math.round(fuzzyBody * 100) / 100
           },
           boundaryPenalty: Math.round(boundaryPenalty * 100) / 100,
           path: doc.path,
           docType: doc.docType,
           tldr: doc.tldr,
-          summary: doc.summary,
+          summary: doc.summary
         });
       }
     }
@@ -546,7 +539,7 @@ export function createSearchHandler(deps: SearchHandlerDeps): SearchHandler {
 
     return success({
       query: searchTerms,
-      results,
+      results
     });
   }
 
@@ -610,7 +603,7 @@ export function createSearchHandler(deps: SearchHandlerDeps): SearchHandler {
         'Find docs that reference a given doc ID',
         'reverse-lookup <doc-id>',
         reverseLookup
-      ),
+      )
     ];
   }
 
@@ -619,6 +612,6 @@ export function createSearchHandler(deps: SearchHandlerDeps): SearchHandler {
     searchEngineering,
     searchHybrid,
     reverseLookup,
-    getCommands,
+    getCommands
   };
 }

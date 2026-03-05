@@ -52,10 +52,7 @@ export interface CreateQuicksOrchestratorReturn {
    * @param context - Extension context for subscriptions.
    * @param treeView - The quicks tree view for reveal operations.
    */
-  readonly registerCommands: (
-    context: vscode.ExtensionContext,
-    treeView: vscode.TreeView<vscode.TreeItem>
-  ) => void;
+  readonly registerCommands: (context: vscode.ExtensionContext, treeView: vscode.TreeView<vscode.TreeItem>) => void;
 
   /**
    * Create file watcher for quick files.
@@ -72,9 +69,7 @@ export interface CreateQuicksOrchestratorReturn {
  * @param deps - Dependencies for the orchestrator.
  * @returns Quicks orchestrator with domain policy.
  */
-export function createQuicksOrchestrator(
-  deps: QuicksOrchestratorDeps
-): CreateQuicksOrchestratorReturn {
+export function createQuicksOrchestrator(deps: QuicksOrchestratorDeps): CreateQuicksOrchestratorReturn {
   // Initialize computers
   const quickParser = createQuickParserComputer();
 
@@ -116,7 +111,7 @@ export function createQuicksOrchestrator(
 
   // Initialize view capability with dependencies
   const quicksView = createQuicksViewCapability({
-    loadQuicks: loadAllQuicks,
+    loadQuicks: loadAllQuicks
   });
 
   // Create providers
@@ -133,16 +128,13 @@ export function createQuicksOrchestrator(
   /**
    * Register quick-related commands.
    */
-  function registerCommands(
-    context: vscode.ExtensionContext,
-    treeView: vscode.TreeView<vscode.TreeItem>
-  ): void {
+  function registerCommands(context: vscode.ExtensionContext, treeView: vscode.TreeView<vscode.TreeItem>): void {
     // Create quick command
     context.subscriptions.push(
       vscode.commands.registerCommand('festinalente.createQuick', async () => {
         const title = await vscode.window.showInputBox({
           prompt: 'Enter quick task title',
-          placeHolder: 'e.g., Fix typo in README',
+          placeHolder: 'e.g., Fix typo in README'
         });
 
         if (!title) {
@@ -175,13 +167,13 @@ export function createQuicksOrchestrator(
           label: `${quick.id}: ${quick.title}`,
           description: quick.status,
           detail: quick.problem || 'No problem description',
-          quick,
+          quick
         }));
 
         const selected = await vscode.window.showQuickPick(items, {
           placeHolder: 'Search quicks by ID or title...',
           matchOnDescription: true,
-          matchOnDetail: true,
+          matchOnDetail: true
         });
 
         if (selected) {
@@ -198,9 +190,7 @@ export function createQuicksOrchestrator(
    * Create file watcher for quick files.
    */
   function createFileWatcher(kanbanPath: string): vscode.Disposable {
-    const watcher = vscode.workspace.createFileSystemWatcher(
-      new vscode.RelativePattern(kanbanPath, 'quick/**/*.xml')
-    );
+    const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(kanbanPath, 'quick/**/*.xml'));
 
     watcher.onDidChange(() => refresh());
     watcher.onDidCreate(() => refresh());
@@ -215,6 +205,6 @@ export function createQuicksOrchestrator(
     loadAllQuicks,
     findQuickItem: quicksView.findQuickItem,
     registerCommands,
-    createFileWatcher,
+    createFileWatcher
   };
 }

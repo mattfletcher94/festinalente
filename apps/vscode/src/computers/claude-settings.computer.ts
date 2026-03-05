@@ -14,7 +14,7 @@
  */
 export interface ClaudeSettings {
   'dangerously-skip-permissions'?: boolean;
-  defaultMode?: string;
+  'defaultMode'?: string;
 }
 
 /**
@@ -28,10 +28,7 @@ export interface CreateClaudeSettingsComputerReturn {
    * @param globalSettings - Settings from ~/.claude/settings.json.
    * @returns True if YOLO mode is enabled in either settings file (project takes precedence).
    */
-  isYoloEnabled(
-    projectSettings: ClaudeSettings | null,
-    globalSettings: ClaudeSettings | null
-  ): boolean;
+  isYoloEnabled(projectSettings: ClaudeSettings | null, globalSettings: ClaudeSettings | null): boolean;
 }
 
 /**
@@ -40,10 +37,7 @@ export interface CreateClaudeSettingsComputerReturn {
  * @returns Computer with isYoloEnabled function.
  */
 export function createClaudeSettingsComputer(): CreateClaudeSettingsComputerReturn {
-  function isYoloEnabled(
-    projectSettings: ClaudeSettings | null,
-    globalSettings: ClaudeSettings | null
-  ): boolean {
+  function isYoloEnabled(projectSettings: ClaudeSettings | null, globalSettings: ClaudeSettings | null): boolean {
     // Check project settings first (takes precedence per FR6)
     const settings = projectSettings ?? globalSettings;
     if (!settings) return false;

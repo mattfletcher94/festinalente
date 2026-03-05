@@ -56,18 +56,13 @@ function mapKindToSymbolKind(kind: PlanSymbol['kind']): vscode.SymbolKind {
  * @param deps - Dependencies for the capability.
  * @returns Plan symbol capability with provider factory.
  */
-export function createPlanSymbolCapability(
-  deps: PlanSymbolCapabilityDeps
-): CreatePlanSymbolCapabilityReturn {
+export function createPlanSymbolCapability(deps: PlanSymbolCapabilityDeps): CreatePlanSymbolCapabilityReturn {
   const onDidChangeSymbols = new vscode.EventEmitter<void>();
 
   /**
    * Convert a PlanSymbol to a VSCode DocumentSymbol.
    */
-  function convertToDocumentSymbol(
-    symbol: PlanSymbol,
-    document: vscode.TextDocument
-  ): vscode.DocumentSymbol {
+  function convertToDocumentSymbol(symbol: PlanSymbol, document: vscode.TextDocument): vscode.DocumentSymbol {
     // Clamp endLine to document bounds
     const maxLine = document.lineCount - 1;
     const clampedEndLine = Math.min(symbol.endLine, maxLine);
@@ -75,12 +70,7 @@ export function createPlanSymbolCapability(
 
     const endLineLength = document.lineAt(clampedEndLine).text.length;
 
-    const range = new vscode.Range(
-      clampedStartLine,
-      0,
-      clampedEndLine,
-      endLineLength
-    );
+    const range = new vscode.Range(clampedStartLine, 0, clampedEndLine, endLineLength);
     const selectionRange = new vscode.Range(
       clampedStartLine,
       0,
@@ -96,9 +86,7 @@ export function createPlanSymbolCapability(
       selectionRange
     );
 
-    docSymbol.children = symbol.children.map((child) =>
-      convertToDocumentSymbol(child, document)
-    );
+    docSymbol.children = symbol.children.map((child) => convertToDocumentSymbol(child, document));
 
     return docSymbol;
   }
@@ -108,14 +96,11 @@ export function createPlanSymbolCapability(
    */
   function createDocumentSymbolProvider(): vscode.DocumentSymbolProvider {
     return {
-      provideDocumentSymbols(
-        document: vscode.TextDocument,
-        _token: vscode.CancellationToken
-      ): vscode.DocumentSymbol[] {
+      provideDocumentSymbols(document: vscode.TextDocument, _token: vscode.CancellationToken): vscode.DocumentSymbol[] {
         const content = document.getText();
         const symbols = deps.parsePlanSymbols(content);
         return symbols.map((s) => convertToDocumentSymbol(s, document));
-      },
+      }
     };
   }
 
@@ -128,6 +113,6 @@ export function createPlanSymbolCapability(
 
   return {
     createDocumentSymbolProvider,
-    createRefreshCallback,
+    createRefreshCallback
   };
 }

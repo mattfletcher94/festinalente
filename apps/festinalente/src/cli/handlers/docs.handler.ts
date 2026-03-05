@@ -202,7 +202,7 @@ export function createDocsHandler(deps: DocsHandlerDeps): DocsHandler {
         summary: (frontmatter.summary as string) || '',
         keywords: Array.isArray(frontmatter.keywords) ? frontmatter.keywords : [],
         domain,
-        path: normalizedPath,
+        path: normalizedPath
       };
 
       // Apply filters
@@ -214,7 +214,7 @@ export function createDocsHandler(deps: DocsHandlerDeps): DocsHandler {
 
     return success({
       count: docs.length,
-      docs,
+      docs
     });
   }
 
@@ -254,7 +254,7 @@ export function createDocsHandler(deps: DocsHandlerDeps): DocsHandler {
         keywords: Array.isArray(frontmatter.keywords) ? frontmatter.keywords : [],
         system,
         paths: Array.isArray(frontmatter.paths) ? frontmatter.paths : [],
-        filePath: normalizedPath,
+        filePath: normalizedPath
       };
 
       // Apply filters
@@ -266,7 +266,7 @@ export function createDocsHandler(deps: DocsHandlerDeps): DocsHandler {
 
     return success({
       count: docs.length,
-      docs,
+      docs
     });
   }
 
@@ -292,7 +292,7 @@ export function createDocsHandler(deps: DocsHandlerDeps): DocsHandler {
       results.push({
         id,
         exists,
-        path: docPath,
+        path: docPath
       });
 
       if (exists) {
@@ -306,8 +306,8 @@ export function createDocsHandler(deps: DocsHandlerDeps): DocsHandler {
       results,
       summary: {
         existing,
-        missing,
-      },
+        missing
+      }
     });
   }
 
@@ -333,7 +333,7 @@ export function createDocsHandler(deps: DocsHandlerDeps): DocsHandler {
       results.push({
         id,
         exists,
-        path: docPath,
+        path: docPath
       });
 
       if (exists) {
@@ -347,8 +347,8 @@ export function createDocsHandler(deps: DocsHandlerDeps): DocsHandler {
       results,
       summary: {
         existing,
-        missing,
-      },
+        missing
+      }
     });
   }
 
@@ -369,18 +369,13 @@ export function createDocsHandler(deps: DocsHandlerDeps): DocsHandler {
         'list-engineering [--type=X] [--system=X]',
         listEngineering
       ),
-      defineCommand(
-        'check-product',
-        'Check if product docs exist by ID',
-        'check-product id1 id2 ...',
-        checkProduct
-      ),
+      defineCommand('check-product', 'Check if product docs exist by ID', 'check-product id1 id2 ...', checkProduct),
       defineCommand(
         'check-engineering',
         'Check if engineering docs exist by ID',
         'check-engineering id1 id2 ...',
         checkEngineering
-      ),
+      )
     ];
   }
 
@@ -389,6 +384,6 @@ export function createDocsHandler(deps: DocsHandlerDeps): DocsHandler {
     listEngineering,
     checkProduct,
     checkEngineering,
-    getCommands,
+    getCommands
   };
 }

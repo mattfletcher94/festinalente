@@ -28,8 +28,8 @@ function main(): void {
     commands: registry.list().map((cmd) => ({
       name: cmd.name,
       description: cmd.description,
-      usage: cmd.usage,
-    })),
+      usage: cmd.usage
+    }))
   });
 
   // No command provided - show help

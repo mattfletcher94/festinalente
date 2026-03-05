@@ -99,7 +99,7 @@ export function generateHelp(registry: CommandRegistry): HelpOutput {
   const commands = registry.list().map((cmd) => ({
     name: cmd.name,
     description: cmd.description,
-    usage: cmd.usage,
+    usage: cmd.usage
   }));
 
   return { commands };
@@ -113,11 +113,7 @@ export function generateHelp(registry: CommandRegistry): HelpOutput {
  * @param args - The arguments to pass to the command.
  * @returns The result of the command execution.
  */
-export function executeCommand(
-  registry: CommandRegistry,
-  commandName: string,
-  args: string[]
-): CliResult<unknown> {
+export function executeCommand(registry: CommandRegistry, commandName: string, args: string[]): CliResult<unknown> {
   const command = registry.get(commandName);
 
   if (!command) {
@@ -139,11 +135,6 @@ export function executeCommand(
  * @param handler - Handler function.
  * @returns A CliCommand object.
  */
-export function defineCommand(
-  name: string,
-  description: string,
-  usage: string,
-  handler: CommandHandler
-): CliCommand {
+export function defineCommand(name: string, description: string, usage: string, handler: CommandHandler): CliCommand {
   return { name, description, usage, handler };
 }

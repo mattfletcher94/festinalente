@@ -149,7 +149,7 @@ export function createXmlParserComputer(): XmlParserComputer {
   const parser = new XMLParser({
     ignoreAttributes: false,
     attributeNamePrefix: '',
-    textNodeName: '_text',
+    textNodeName: '_text'
   });
 
   /**
@@ -161,11 +161,13 @@ export function createXmlParserComputer(): XmlParserComputer {
     const ref = sectionObj.ref;
 
     if (Array.isArray(ref)) {
-      return ref.map((r) => {
-        if (typeof r === 'string') return r.trim();
-        if (typeof r === 'object' && r && '_text' in r) return String(r._text).trim();
-        return '';
-      }).filter(Boolean);
+      return ref
+        .map((r) => {
+          if (typeof r === 'string') return r.trim();
+          if (typeof r === 'object' && r && '_text' in r) return String(r._text).trim();
+          return '';
+        })
+        .filter(Boolean);
     }
 
     if (typeof ref === 'string') {
@@ -188,15 +190,11 @@ export function createXmlParserComputer(): XmlParserComputer {
       priority: task.priority || '',
       title: task.title || '',
       description: task.description || '',
-      labels: Array.isArray(task.labels?.label)
-        ? task.labels.label
-        : task.labels?.label
-          ? [task.labels.label]
-          : [],
+      labels: Array.isArray(task.labels?.label) ? task.labels.label : task.labels?.label ? [task.labels.label] : [],
       affects: parseRefs(task.affects),
       engineering: parseRefs(task.engineering),
       created: task.created || '',
-      updated: task.updated || '',
+      updated: task.updated || ''
     };
   }
 
@@ -207,7 +205,7 @@ export function createXmlParserComputer(): XmlParserComputer {
       task: spec.task || '',
       title: spec.title || '',
       created: spec.created || '',
-      updated: spec.updated || '',
+      updated: spec.updated || ''
     };
   }
 
@@ -219,7 +217,7 @@ export function createXmlParserComputer(): XmlParserComputer {
       spec: plan.spec || '',
       status: plan.status || '',
       iteration: parseInt(plan.iteration || '1', 10),
-      title: plan.title || '',
+      title: plan.title || ''
     };
   }
 
@@ -230,7 +228,7 @@ export function createXmlParserComputer(): XmlParserComputer {
       id: quick.id || '',
       title: quick.title || '',
       created: quick.created || '',
-      updated: quick.updated || '',
+      updated: quick.updated || ''
     };
   }
 
@@ -249,11 +247,13 @@ export function createXmlParserComputer(): XmlParserComputer {
     const file = contextObj.file;
 
     if (Array.isArray(file)) {
-      return file.map((f) => {
-        if (typeof f === 'string') return f.trim();
-        if (typeof f === 'object' && f && '_text' in f) return String(f._text).trim();
-        return '';
-      }).filter(Boolean);
+      return file
+        .map((f) => {
+          if (typeof f === 'string') return f.trim();
+          if (typeof f === 'object' && f && '_text' in f) return String(f._text).trim();
+          return '';
+        })
+        .filter(Boolean);
     }
 
     if (typeof file === 'string') {
@@ -300,7 +300,7 @@ export function createXmlParserComputer(): XmlParserComputer {
       action: extractText(found.action),
       verify: extractText(found.verify),
       done: extractText(found.done),
-      completed: found.completed === 'true' || found.completed === true,
+      completed: found.completed === 'true' || found.completed === true
     };
   }
 
@@ -318,7 +318,7 @@ export function createXmlParserComputer(): XmlParserComputer {
 
     return {
       taskId: String(found.id || ''),
-      files: parseContextFiles(found.context),
+      files: parseContextFiles(found.context)
     };
   }
 
@@ -329,6 +329,6 @@ export function createXmlParserComputer(): XmlParserComputer {
     parseQuickXml,
     validateXml,
     parsePlanTask,
-    parsePlanTaskContext,
+    parsePlanTaskContext
   };
 }

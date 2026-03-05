@@ -2,7 +2,20 @@
   "name": "@mattfletcher94/festinalente",
   "version": "1.0.2",
   "description": "Festina Lente - Make haste slowly. Spec-driven development for AI coding agents.",
-  "type": "module",
+  "keywords": [
+    "ai-workflow",
+    "claude",
+    "claude-code",
+    "festinalente",
+    "llm-agents",
+    "spec-driven-development"
+  ],
+  "license": "MIT",
+  "author": "Matt Fletcher",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mattfletcher94/festinalente"
+  },
   "bin": {
     "festinalente": "bin/install.cjs"
   },
@@ -10,6 +23,11 @@
     "bin",
     "dist"
   ],
+  "type": "module",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://npm.pkg.github.com"
+  },
   "scripts": {
     "build": "pnpm build:tools && pnpm build:cli && pnpm build:content",
     "build:tools": "tsdown -c tsdown.config.ts tools/build.ts --format esm --out-dir dist/tools",
@@ -18,26 +36,13 @@
     "clean": "node -e \"fs=require('fs');fs.rmSync('dist',{recursive:true,force:true})\"",
     "prepublishOnly": "pnpm build"
   },
-  "keywords": [
-    "claude",
-    "claude-code",
-    "festinalente",
-    "spec-driven-development",
-    "ai-workflow",
-    "llm-agents"
-  ],
-  "author": "Matt Fletcher",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/mattfletcher94/festinalente"
-  },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com",
-    "access": "public"
-  },
-  "engines": {
-    "node": ">=18.0.0"
+  "dependencies": {
+    "fast-xml-parser": "^5.3.6",
+    "fuse.js": "^7.1.0",
+    "gray-matter": "^4.0.3",
+    "js-yaml": "^4.1.1",
+    "slugify": "^1.6.6",
+    "zod": "^3.24.0"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
@@ -47,12 +52,7 @@
     "tsdown": "^0.11.4",
     "typescript": "^5.3.3"
   },
-  "dependencies": {
-    "fast-xml-parser": "^5.3.6",
-    "fuse.js": "^7.1.0",
-    "gray-matter": "^4.0.3",
-    "js-yaml": "^4.1.1",
-    "slugify": "^1.6.6",
-    "zod": "^3.24.0"
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

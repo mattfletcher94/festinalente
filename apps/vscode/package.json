@@ -1,12 +1,8 @@
 {
   "name": "@mattfletcher94/festinalente-vscode",
   "displayName": "Festina Lente",
-  "description": "Make haste slowly. Spec-driven development for AI coding agents.",
   "version": "1.0.2",
-  "publisher": "festinalente",
-  "engines": {
-    "vscode": "^1.85.0"
-  },
+  "description": "Make haste slowly. Spec-driven development for AI coding agents.",
   "categories": [
     "Other"
   ],
@@ -14,14 +10,39 @@
     "type": "git",
     "url": "https://github.com/mattfletcher94/festinalente"
   },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com",
-    "access": "public"
+  "publisher": "festinalente",
+  "bin": {
+    "festinalente-vscode": "bin/install.cjs"
   },
-  "activationEvents": [
-    "onStartupFinished"
+  "files": [
+    "bin",
+    "festinalente-vscode.vsix"
   ],
   "main": "./dist/extension.js",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://npm.pkg.github.com"
+  },
+  "scripts": {
+    "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
+    "compile": "npm run build",
+    "watch": "npm run build -- --watch",
+    "package": "npm run build && node scripts/package.cjs",
+    "local": "node scripts/local-install.cjs",
+    "prepublishOnly": "npm run package"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^4.5.1",
+    "js-yaml": "^4.1.1"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20.17.12",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.2.1",
+    "esbuild": "^0.27.3",
+    "typescript": "^5.7.0"
+  },
   "contributes": {
     "configuration": {
       "title": "Festina Lente",
@@ -192,31 +213,10 @@
       ]
     }
   },
-  "scripts": {
-    "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
-    "compile": "npm run build",
-    "watch": "npm run build -- --watch",
-    "package": "npm run build && node scripts/package.cjs",
-    "local": "node scripts/local-install.cjs",
-    "prepublishOnly": "npm run package"
-  },
-  "dependencies": {
-    "fast-xml-parser": "^4.5.1",
-    "js-yaml": "^4.1.1"
-  },
-  "devDependencies": {
-    "@types/js-yaml": "^4.0.9",
-    "@types/node": "^20.17.12",
-    "@types/vscode": "^1.85.0",
-    "@vscode/vsce": "^3.2.1",
-    "esbuild": "^0.27.3",
-    "typescript": "^5.7.0"
-  },
-  "files": [
-    "bin",
-    "festinalente-vscode.vsix"
+  "activationEvents": [
+    "onStartupFinished"
   ],
-  "bin": {
-    "festinalente-vscode": "bin/install.cjs"
+  "engines": {
+    "vscode": "^1.85.0"
   }
 }

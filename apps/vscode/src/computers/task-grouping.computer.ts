@@ -7,10 +7,7 @@ import type { Task, TaskColumn, TaskStatus } from '../types/task-types';
 export interface CreateTaskGroupingComputerReturn {
   getColumns(): readonly TaskColumn[];
   groupByStatus(tasks: readonly Task[]): Map<TaskStatus, Task[]>;
-  getVisibleColumns(
-    columns: readonly TaskColumn[],
-    grouped: Map<TaskStatus, Task[]>
-  ): readonly TaskColumn[];
+  getVisibleColumns(columns: readonly TaskColumn[], grouped: Map<TaskStatus, Task[]>): readonly TaskColumn[];
 }
 
 export function createTaskGroupingComputer(): CreateTaskGroupingComputerReturn {
@@ -20,7 +17,7 @@ export function createTaskGroupingComputer(): CreateTaskGroupingComputerReturn {
     { id: 'planned', name: 'Planned', open: true },
     { id: 'scoped', name: 'Scoped', open: true },
     { id: 'backlog', name: 'Backlog', open: true },
-    { id: 'done', name: 'Done', open: false },
+    { id: 'done', name: 'Done', open: false }
   ];
 
   function getColumns(): readonly TaskColumn[] {
@@ -44,10 +41,7 @@ export function createTaskGroupingComputer(): CreateTaskGroupingComputerReturn {
     return grouped;
   }
 
-  function getVisibleColumns(
-    columns: readonly TaskColumn[],
-    grouped: Map<TaskStatus, Task[]>
-  ): readonly TaskColumn[] {
+  function getVisibleColumns(columns: readonly TaskColumn[], grouped: Map<TaskStatus, Task[]>): readonly TaskColumn[] {
     return columns.filter((col) => {
       const tasks = grouped.get(col.id);
       return tasks && tasks.length > 0;
@@ -57,6 +51,6 @@ export function createTaskGroupingComputer(): CreateTaskGroupingComputerReturn {
   return {
     getColumns,
     groupByStatus,
-    getVisibleColumns,
+    getVisibleColumns
   };
 }

@@ -39,7 +39,7 @@ export function createPlanParserComputer(): CreatePlanParserComputerReturn {
   const parser = new XMLParser({
     ignoreAttributes: false,
     attributeNamePrefix: '',
-    textNodeName: '_text',
+    textNodeName: '_text'
   });
 
   const MAX_LABEL_LENGTH = 60;
@@ -174,7 +174,7 @@ export function createPlanParserComputer(): CreatePlanParserComputerReturn {
             startLine: taskStartLine,
             endLine: taskEndLine,
             children: [],
-            completed: isCompleted,
+            completed: isCompleted
           });
         });
       }
@@ -195,7 +195,7 @@ export function createPlanParserComputer(): CreatePlanParserComputerReturn {
           kind: 'item',
           startLine: automatedStart,
           endLine: automatedEnd,
-          children: [],
+          children: []
         });
       }
 
@@ -210,7 +210,7 @@ export function createPlanParserComputer(): CreatePlanParserComputerReturn {
           kind: 'item',
           startLine: manualStart,
           endLine: manualEnd,
-          children: [],
+          children: []
         });
       }
 
@@ -225,7 +225,7 @@ export function createPlanParserComputer(): CreatePlanParserComputerReturn {
           kind: 'item',
           startLine: regressionStart,
           endLine: regressionEnd,
-          children: [],
+          children: []
         });
       }
     }
@@ -249,7 +249,7 @@ export function createPlanParserComputer(): CreatePlanParserComputerReturn {
             kind: 'item',
             startLine: caseStart,
             endLine: caseStart,
-            children: [],
+            children: []
           });
         });
       }
@@ -274,7 +274,7 @@ export function createPlanParserComputer(): CreatePlanParserComputerReturn {
             kind: 'item',
             startLine: pitfallStart,
             endLine: pitfallStart,
-            children: [],
+            children: []
           });
         });
       }
@@ -285,7 +285,7 @@ export function createPlanParserComputer(): CreatePlanParserComputerReturn {
       kind: 'section',
       startLine,
       endLine,
-      children,
+      children
     };
   }
 
@@ -341,7 +341,7 @@ export function createPlanParserComputer(): CreatePlanParserComputerReturn {
           kind: 'section',
           startLine: overviewStart,
           endLine: overviewEnd,
-          children: [],
+          children: []
         });
       }
 
@@ -359,7 +359,7 @@ export function createPlanParserComputer(): CreatePlanParserComputerReturn {
           kind: 'section',
           startLine: approachStart,
           endLine: approachEnd,
-          children: [],
+          children: []
         });
       }
 
@@ -369,8 +369,8 @@ export function createPlanParserComputer(): CreatePlanParserComputerReturn {
           kind: 'plan',
           startLine: planStartLine,
           endLine: planEndLine,
-          children: sections,
-        },
+          children: sections
+        }
       ];
     } catch (err) {
       console.warn('Failed to parse plan.xml:', err);

@@ -8,7 +8,7 @@ import { XMLParser } from 'fast-xml-parser';
 const parser = new XMLParser({
   ignoreAttributes: false,
   attributeNamePrefix: '',
-  textNodeName: '_text',
+  textNodeName: '_text'
 });
 
 export interface ParsedTask {
@@ -35,13 +35,9 @@ export function createTaskParserComputer(): CreateTaskParserComputerReturn {
       status: task.status || '',
       priority: task.priority || '',
       title: task.title || '',
-      labels: Array.isArray(task.labels?.label)
-        ? task.labels.label
-        : task.labels?.label
-          ? [task.labels.label]
-          : [],
+      labels: Array.isArray(task.labels?.label) ? task.labels.label : task.labels?.label ? [task.labels.label] : [],
       created: task.created || '',
-      updated: task.updated || '',
+      updated: task.updated || ''
     };
   }
 
@@ -50,12 +46,12 @@ export function createTaskParserComputer(): CreateTaskParserComputerReturn {
     return {
       ...parsed,
       status: parsed.status as TaskStatus,
-      taskPath,
+      taskPath
     };
   }
 
   return {
     parseTaskXml,
-    parseTaskWithPath,
+    parseTaskWithPath
   };
 }

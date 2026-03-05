@@ -138,10 +138,7 @@ async function main(): Promise<void> {
 
   // Copy workflow.yaml
   console.log('\n4. Copying workflow.yaml...');
-  await copyFile(
-    path.join(SRC_CONTENT, 'workflow.yaml'),
-    path.join(DIST, 'workflow.yaml')
-  );
+  await copyFile(path.join(SRC_CONTENT, 'workflow.yaml'), path.join(DIST, 'workflow.yaml'));
   console.log('  Copied workflow.yaml');
 
   // Copy directives/

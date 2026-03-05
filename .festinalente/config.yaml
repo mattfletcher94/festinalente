@@ -6,7 +6,7 @@
 # Each skill can load directives from .festinalente/directives/{name}.xml
 # Directives are mandatory instructions that the LLM must follow.
 
-name: ""
+name: ''
 
 directives:
   festina-create:
@@ -49,7 +49,7 @@ directives:
     - git
 
 settings:
-  version: "2.0"
-  idPrefix: ""
+  version: '2.0'
+  idPrefix: ''
   idPadding: 3
   archiveOnComplete: false

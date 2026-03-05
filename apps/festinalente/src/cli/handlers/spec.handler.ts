@@ -96,7 +96,7 @@ export function createSpecHandler(deps: SpecHandlerDeps): SpecHandler {
       path: specPath,
       task: parsed.task || id,
       created: parsed.created,
-      updated: parsed.updated,
+      updated: parsed.updated
     });
   }
 
@@ -134,7 +134,7 @@ export function createSpecHandler(deps: SpecHandlerDeps): SpecHandler {
       task: parsed.task || id,
       spec: parsed.spec,
       status: parsed.status,
-      iteration: parsed.iteration,
+      iteration: parsed.iteration
     });
   }
 
@@ -143,24 +143,14 @@ export function createSpecHandler(deps: SpecHandlerDeps): SpecHandler {
    */
   function getCommands(): readonly CliCommand[] {
     return [
-      defineCommand(
-        'find-spec',
-        'Find a spec file by task ID',
-        'find-spec <id>',
-        findSpec
-      ),
-      defineCommand(
-        'find-plan',
-        'Find a plan file by task ID',
-        'find-plan <id>',
-        findPlan
-      ),
+      defineCommand('find-spec', 'Find a spec file by task ID', 'find-spec <id>', findSpec),
+      defineCommand('find-plan', 'Find a plan file by task ID', 'find-plan <id>', findPlan)
     ];
   }
 
   return {
     findSpec,
     findPlan,
-    getCommands,
+    getCommands
   };
 }

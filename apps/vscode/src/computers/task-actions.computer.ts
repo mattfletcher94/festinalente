@@ -23,8 +23,8 @@ export function createTaskActionsComputer(): CreateTaskActionsComputerReturn {
           {
             label: 'Scope',
             command: buildCommand('scope', id),
-            description: 'Research codebase and create spec',
-          },
+            description: 'Research codebase and create spec'
+          }
         ];
 
       case 'scoped':
@@ -32,8 +32,8 @@ export function createTaskActionsComputer(): CreateTaskActionsComputerReturn {
           {
             label: 'Plan',
             command: buildCommand('plan', id),
-            description: 'Create implementation plan',
-          },
+            description: 'Create implementation plan'
+          }
         ];
 
       case 'planned':
@@ -41,8 +41,8 @@ export function createTaskActionsComputer(): CreateTaskActionsComputerReturn {
           {
             label: 'Implement',
             command: buildCommand('implement', id),
-            description: 'Execute the plan',
-          },
+            description: 'Execute the plan'
+          }
         ];
 
       case 'in-progress':
@@ -50,13 +50,13 @@ export function createTaskActionsComputer(): CreateTaskActionsComputerReturn {
           {
             label: 'Continue',
             command: buildCommand('implement', id),
-            description: 'Resume implementation',
+            description: 'Resume implementation'
           },
           {
             label: 'Save WIP',
             command: buildCommand('save', id),
-            description: 'Commit progress and pause',
-          },
+            description: 'Commit progress and pause'
+          }
         ];
 
       case 'finalize':
@@ -64,13 +64,13 @@ export function createTaskActionsComputer(): CreateTaskActionsComputerReturn {
           {
             label: 'Finalize',
             command: buildCommand('finalize', id),
-            description: 'Validate, document, and complete',
+            description: 'Validate, document, and complete'
           },
           {
             label: 'Rework',
             command: buildCommand('rework', id),
-            description: 'Send back for fixes',
-          },
+            description: 'Send back for fixes'
+          }
         ];
 
       case 'done':
@@ -83,6 +83,6 @@ export function createTaskActionsComputer(): CreateTaskActionsComputerReturn {
 
   return {
     getActions,
-    buildCommand,
+    buildCommand
   };
 }

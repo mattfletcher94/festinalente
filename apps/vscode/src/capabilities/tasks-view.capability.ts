@@ -22,9 +22,7 @@ export class StatusGroupItem extends vscode.TreeItem {
   ) {
     super(
       `${statusName} (${count})`,
-      collapsed
-        ? vscode.TreeItemCollapsibleState.Collapsed
-        : vscode.TreeItemCollapsibleState.Expanded
+      collapsed ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.Expanded
     );
     this.contextValue = 'statusGroup';
     this.iconPath = this.getStatusIcon(status);
@@ -77,7 +75,7 @@ export class TaskItem extends vscode.TreeItem {
         critical: '!!!',
         high: '!!',
         medium: '!',
-        low: '·',
+        low: '·'
       };
       parts.push(prioMap[this.task.priority.toLowerCase()] || '');
     }
@@ -120,7 +118,7 @@ export class TaskItem extends vscode.TreeItem {
         critical: '🔴',
         high: '🟠',
         medium: '🟡',
-        low: '🔵',
+        low: '🔵'
       };
       const icon = prioColors[this.task.priority.toLowerCase()] || '⚪';
       md.appendMarkdown(`**Priority:** ${icon} ${this.task.priority}\n\n`);
@@ -189,7 +187,7 @@ class ActionItem extends vscode.TreeItem {
     this.command = {
       command: 'festinalente.runAction',
       title: 'Run Action',
-      arguments: [{ command: action.command, taskId }],
+      arguments: [{ command: action.command, taskId }]
     };
   }
 }
@@ -207,7 +205,7 @@ class FileItem extends vscode.TreeItem {
     this.command = {
       command: 'festinalente.openFile',
       title: 'Open File',
-      arguments: [{ filePath }],
+      arguments: [{ filePath }]
     };
 
     this.iconPath = this.getFileIcon();
@@ -233,10 +231,7 @@ export interface TasksViewCapabilityDeps {
   loadTasks: () => Task[];
   getColumns: () => readonly TaskColumn[];
   groupByStatus: (tasks: readonly Task[]) => Map<TaskStatus, Task[]>;
-  getVisibleColumns: (
-    columns: readonly TaskColumn[],
-    grouped: Map<TaskStatus, Task[]>
-  ) => readonly TaskColumn[];
+  getVisibleColumns: (columns: readonly TaskColumn[], grouped: Map<TaskStatus, Task[]>) => readonly TaskColumn[];
   getTaskFiles: (taskPath: string) => string[];
   checkTaskFiles: (taskPath: string) => { hasSpec: boolean; hasPlan: boolean };
   getAllActions: (task: Task) => readonly TaskAction[];
@@ -249,9 +244,7 @@ export interface CreateTasksViewCapabilityReturn {
   findStatusGroup(status: TaskStatus): StatusGroupItem | undefined;
 }
 
-export function createTasksViewCapability(
-  deps: TasksViewCapabilityDeps
-): CreateTasksViewCapabilityReturn {
+export function createTasksViewCapability(deps: TasksViewCapabilityDeps): CreateTasksViewCapabilityReturn {
   const onDidChangeTreeData = new vscode.EventEmitter<TreeItem | undefined | void>();
 
   // Cache for TreeItems to enable reveal() to work with same references
@@ -299,7 +292,7 @@ export function createTasksViewCapability(
         }
 
         return undefined;
-      },
+      }
     };
   }
 
@@ -395,10 +388,7 @@ export function createTasksViewCapability(
     const tasks = deps.loadTasks();
     for (const task of tasks) {
       if (!cachedTaskItems.has(task.id)) {
-        cachedTaskItems.set(
-          task.id,
-          new TaskItem(task, deps.checkTaskFiles(task.taskPath), deps.getAllActions(task))
-        );
+        cachedTaskItems.set(task.id, new TaskItem(task, deps.checkTaskFiles(task.taskPath), deps.getAllActions(task)));
       }
     }
 
@@ -422,6 +412,6 @@ export function createTasksViewCapability(
     createTreeDataProvider,
     createRefreshCallback,
     findTaskItem,
-    findStatusGroup,
+    findStatusGroup
   };
 }

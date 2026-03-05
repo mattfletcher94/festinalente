@@ -127,7 +127,7 @@ export function createConfigHandler(deps: ConfigHandlerDeps): ConfigHandler {
     if (!directivesConfig) {
       return success({
         skill: skillName,
-        directives: [],
+        directives: []
       });
     }
 
@@ -135,7 +135,7 @@ export function createConfigHandler(deps: ConfigHandlerDeps): ConfigHandler {
     if (!skillDirectives || !Array.isArray(skillDirectives)) {
       return success({
         skill: skillName,
-        directives: [],
+        directives: []
       });
     }
 
@@ -145,13 +145,13 @@ export function createConfigHandler(deps: ConfigHandlerDeps): ConfigHandler {
       return {
         name,
         path,
-        exists: fs.exists(path),
+        exists: fs.exists(path)
       };
     });
 
     return success({
       skill: skillName,
-      directives,
+      directives
     });
   }
 
@@ -163,7 +163,7 @@ export function createConfigHandler(deps: ConfigHandlerDeps): ConfigHandler {
 
     return success({
       iso: now.toISOString(),
-      date: now.toISOString().split('T')[0],
+      date: now.toISOString().split('T')[0]
     });
   }
 
@@ -204,7 +204,7 @@ export function createConfigHandler(deps: ConfigHandlerDeps): ConfigHandler {
       return success({
         original: terms,
         expanded: terms,
-        glossaryMatches: [],
+        glossaryMatches: []
       });
     }
 
@@ -235,7 +235,7 @@ export function createConfigHandler(deps: ConfigHandlerDeps): ConfigHandler {
           matches.push({
             term: entry.term,
             matchedOn: term,
-            aliases: entry.aliases,
+            aliases: entry.aliases
           });
         }
       }
@@ -244,7 +244,7 @@ export function createConfigHandler(deps: ConfigHandlerDeps): ConfigHandler {
     return success({
       original: terms,
       expanded: Array.from(expanded),
-      glossaryMatches: matches,
+      glossaryMatches: matches
     });
   }
 
@@ -259,18 +259,13 @@ export function createConfigHandler(deps: ConfigHandlerDeps): ConfigHandler {
         'get-skill-config <skill>',
         getSkillConfig
       ),
-      defineCommand(
-        'get-date-time',
-        'Get formatted date-time strings',
-        'get-date-time',
-        getDateTime
-      ),
+      defineCommand('get-date-time', 'Get formatted date-time strings', 'get-date-time', getDateTime),
       defineCommand(
         'expand-query',
         'Expand search query using glossary',
         'expand-query keyword1 keyword2 ...',
         expandQuery
-      ),
+      )
     ];
   }
 
@@ -278,6 +273,6 @@ export function createConfigHandler(deps: ConfigHandlerDeps): ConfigHandler {
     getSkillConfig,
     getDateTime,
     expandQuery,
-    getCommands,
+    getCommands
   };
 }

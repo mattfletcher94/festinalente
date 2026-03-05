@@ -73,10 +73,7 @@ export interface CreateTasksOrchestratorReturn {
    * @param context - Extension context for subscriptions.
    * @param treeView - The tasks tree view for reveal operations.
    */
-  readonly registerCommands: (
-    context: vscode.ExtensionContext,
-    treeView: vscode.TreeView<vscode.TreeItem>
-  ) => void;
+  readonly registerCommands: (context: vscode.ExtensionContext, treeView: vscode.TreeView<vscode.TreeItem>) => void;
 
   /**
    * Create file watcher for task files.
@@ -93,9 +90,7 @@ export interface CreateTasksOrchestratorReturn {
  * @param deps - Dependencies for the orchestrator.
  * @returns Tasks orchestrator with domain policy.
  */
-export function createTasksOrchestrator(
-  deps: TasksOrchestratorDeps
-): CreateTasksOrchestratorReturn {
+export function createTasksOrchestrator(deps: TasksOrchestratorDeps): CreateTasksOrchestratorReturn {
   // Initialize computers
   const taskParser = createTaskParserComputer();
   const taskActions = createTaskActionsComputer();
@@ -161,7 +156,7 @@ export function createTasksOrchestrator(
   function checkTaskFiles(taskPath: string): { hasSpec: boolean; hasPlan: boolean } {
     return {
       hasSpec: deps.fs.exists(deps.fs.joinPath(taskPath, 'spec.xml')),
-      hasPlan: deps.fs.exists(deps.fs.joinPath(taskPath, 'plan.xml')),
+      hasPlan: deps.fs.exists(deps.fs.joinPath(taskPath, 'plan.xml'))
     };
   }
 
@@ -199,18 +194,18 @@ export function createTasksOrchestrator(
     getVisibleColumns: taskGrouping.getVisibleColumns,
     getTaskFiles,
     checkTaskFiles,
-    getAllActions,
+    getAllActions
   });
 
   // Initialize codelens capability with dependencies
   const codelens = createCodeLensCapability({
     parseTaskFromUri,
-    getActions: taskActions.getActions,
+    getActions: taskActions.getActions
   });
 
   // Initialize plan symbol capability
   const planSymbol = createPlanSymbolCapability({
-    parsePlanSymbols: planParser.parsePlanSymbols,
+    parsePlanSymbols: planParser.parsePlanSymbols
   });
 
   // Create providers
@@ -234,10 +229,7 @@ export function createTasksOrchestrator(
   /**
    * Register task-related commands.
    */
-  function registerCommands(
-    context: vscode.ExtensionContext,
-    treeView: vscode.TreeView<vscode.TreeItem>
-  ): void {
+  function registerCommands(context: vscode.ExtensionContext, treeView: vscode.TreeView<vscode.TreeItem>): void {
     // Refresh command
     context.subscriptions.push(
       vscode.commands.registerCommand('festinalente.refresh', () => {
@@ -248,16 +240,13 @@ export function createTasksOrchestrator(
 
     // Run action command
     context.subscriptions.push(
-      vscode.commands.registerCommand(
-        'festinalente.runAction',
-        (args: { command: string; taskId: string }) => {
-          if (!args?.command || !args?.taskId) {
-            vscode.window.showErrorMessage('Invalid action arguments');
-            return;
-          }
-          deps.terminal.executeInTerminal(args.command);
+      vscode.commands.registerCommand('festinalente.runAction', (args: { command: string; taskId: string }) => {
+        if (!args?.command || !args?.taskId) {
+          vscode.window.showErrorMessage('Invalid action arguments');
+          return;
         }
-      )
+        deps.terminal.executeInTerminal(args.command);
+      })
     );
 
     // Create task command
@@ -265,7 +254,7 @@ export function createTasksOrchestrator(
       vscode.commands.registerCommand('festinalente.createTask', async () => {
         const title = await vscode.window.showInputBox({
           prompt: 'Enter task title',
-          placeHolder: 'e.g., Add user authentication',
+          placeHolder: 'e.g., Add user authentication'
         });
 
         if (!title) {
@@ -314,13 +303,13 @@ export function createTasksOrchestrator(
           label: `${task.id}: ${task.title}`,
           description: task.labels.map((l) => `#${l}`).join(' '),
           detail: `Status: ${task.status} | Priority: ${task.priority || 'none'}`,
-          task,
+          task
         }));
 
         const selected = await vscode.window.showQuickPick(items, {
           placeHolder: 'Search tasks by ID or title...',
           matchOnDescription: true,
-          matchOnDetail: true,
+          matchOnDetail: true
         });
 
         if (selected) {
@@ -340,9 +329,7 @@ export function createTasksOrchestrator(
    * Create file watcher for task files.
    */
   function createFileWatcher(kanbanPath: string): vscode.Disposable {
-    const watcher = vscode.workspace.createFileSystemWatcher(
-      new vscode.RelativePattern(kanbanPath, 'tasks/**/*.xml')
-    );
+    const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(kanbanPath, 'tasks/**/*.xml'));
 
     watcher.onDidChange(() => refresh());
     watcher.onDidCreate(() => refresh());
@@ -360,6 +347,6 @@ export function createTasksOrchestrator(
     findStatusGroup: tasksView.findStatusGroup,
     findTaskItem: tasksView.findTaskItem,
     registerCommands,
-    createFileWatcher,
+    createFileWatcher
   };
 }

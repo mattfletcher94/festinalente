@@ -2,7 +2,6 @@
   "name": "festinalente-monorepo",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@9.15.2",
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
@@ -16,11 +15,15 @@
     "vscode:local": "pnpm --filter @mattfletcher94/festinalente-vscode local",
     "vscode:publish": "pnpm --filter @mattfletcher94/festinalente-vscode publish --no-git-checks",
     "lint": "oxlint",
-    "lint:fix": "oxlint --fix"
+    "lint:fix": "oxlint --fix",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check ."
   },
   "devDependencies": {
+    "oxfmt": "^0.36.0",
     "oxlint": "^1.51.0",
     "turbo": "^2.4.0",
     "typescript": "^5.7.0"
-  }
+  },
+  "packageManager": "pnpm@9.15.2"
 }

@@ -18,318 +18,318 @@
 version: 1
 terms:
   # Workflow terms
-  - term: "festina-lente"
-    aliases: ["festinalente", "fl", "spec-driven"]
+  - term: 'festina-lente'
+    aliases: ['festinalente', 'fl', 'spec-driven']
     domain: tasks
-    definition: "Spec-driven AI development framework with DAG architecture"
+    definition: 'Spec-driven AI development framework with DAG architecture'
     auto_generated: true
 
-  - term: "task"
-    aliases: ["ticket", "item", "work-item"]
+  - term: 'task'
+    aliases: ['ticket', 'item', 'work-item']
     domain: tasks
-    definition: "A unit of work tracked through the kanban workflow"
+    definition: 'A unit of work tracked through the kanban workflow'
     auto_generated: true
 
-  - term: "workflow"
-    aliases: ["pipeline", "process", "flow"]
+  - term: 'workflow'
+    aliases: ['pipeline', 'process', 'flow']
     domain: tasks
-    definition: "9-column task progression from backlog to done"
+    definition: '9-column task progression from backlog to done'
     auto_generated: true
 
-  - term: "backlog"
-    aliases: ["todo", "unstarted", "new"]
+  - term: 'backlog'
+    aliases: ['todo', 'unstarted', 'new']
     domain: tasks
-    definition: "Initial workflow column for tasks ready to be scoped"
+    definition: 'Initial workflow column for tasks ready to be scoped'
     auto_generated: true
 
-  - term: "scoped"
-    aliases: ["specified", "defined", "analyzed"]
+  - term: 'scoped'
+    aliases: ['specified', 'defined', 'analyzed']
     domain: tasks
-    definition: "Workflow column for tasks with functional specification"
+    definition: 'Workflow column for tasks with functional specification'
     auto_generated: true
 
-  - term: "planned"
-    aliases: ["ready", "designed", "prepared"]
+  - term: 'planned'
+    aliases: ['ready', 'designed', 'prepared']
     domain: tasks
-    definition: "Workflow column for tasks with implementation plan"
+    definition: 'Workflow column for tasks with implementation plan'
     auto_generated: true
 
-  - term: "in-progress"
-    aliases: ["implementing", "coding", "wip"]
+  - term: 'in-progress'
+    aliases: ['implementing', 'coding', 'wip']
     domain: tasks
-    definition: "Workflow column for tasks currently being implemented"
+    definition: 'Workflow column for tasks currently being implemented'
     auto_generated: true
 
-  - term: "check"
-    aliases: ["verification", "automated-check", "checks", "qa", "quality-assurance"]
+  - term: 'check'
+    aliases: ['verification', 'automated-check', 'checks', 'qa', 'quality-assurance']
     domain: tasks
-    definition: "Workflow column for automated checks, requirements verification, and human QA"
+    definition: 'Workflow column for automated checks, requirements verification, and human QA'
     auto_generated: true
 
-  - term: "rework"
-    aliases: ["revision", "redo", "fix"]
+  - term: 'rework'
+    aliases: ['revision', 'redo', 'fix']
     domain: tasks
-    definition: "Moving a task back to in-progress after failed review"
+    definition: 'Moving a task back to in-progress after failed review'
     auto_generated: true
 
-  - term: "spec"
-    aliases: ["specification", "spec.xml", "functional-spec"]
+  - term: 'spec'
+    aliases: ['specification', 'spec.xml', 'functional-spec']
     domain: tasks
-    definition: "Functional specification file with technical requirements"
+    definition: 'Functional specification file with technical requirements'
     auto_generated: true
 
-  - term: "plan"
-    aliases: ["implementation-plan", "plan.xml", "steps"]
+  - term: 'plan'
+    aliases: ['implementation-plan', 'plan.xml', 'steps']
     domain: tasks
-    definition: "Implementation plan file with executable steps"
+    definition: 'Implementation plan file with executable steps'
     auto_generated: true
 
-  - term: "affects"
-    aliases: ["product-link", "feature-link"]
+  - term: 'affects'
+    aliases: ['product-link', 'feature-link']
     domain: tasks
-    definition: "Task XML field linking to product documentation IDs"
+    definition: 'Task XML field linking to product documentation IDs'
     auto_generated: true
 
   # Skill/CLI terms
-  - term: "skill"
-    aliases: ["command", "slash-command", "kanban-command"]
+  - term: 'skill'
+    aliases: ['command', 'slash-command', 'kanban-command']
     domain: cli
-    definition: "Interactive Claude Code workflow invoked via /kanban-{name}"
+    definition: 'Interactive Claude Code workflow invoked via /kanban-{name}'
     auto_generated: true
 
-  - term: "directive"
-    aliases: ["governance-rule", "coding-directive", "check-rule"]
+  - term: 'directive'
+    aliases: ['governance-rule', 'coding-directive', 'check-rule']
     domain: validation
-    definition: "XML file defining coding rules, checks, and examples"
+    definition: 'XML file defining coding rules, checks, and examples'
     auto_generated: true
 
   # Documentation terms
-  - term: "product docs"
-    aliases: ["feature-docs", "user-docs", "product-documentation"]
+  - term: 'product docs'
+    aliases: ['feature-docs', 'user-docs', 'product-documentation']
     domain: docs
-    definition: "Documentation describing user-facing features in .kanban/product/"
+    definition: 'Documentation describing user-facing features in .kanban/product/'
     auto_generated: true
 
-  - term: "engineering docs"
-    aliases: ["technical-docs", "system-docs", "patterns"]
+  - term: 'engineering docs'
+    aliases: ['technical-docs', 'system-docs', 'patterns']
     domain: docs
-    definition: "Documentation describing systems, patterns, conventions in .kanban/engineering/"
+    definition: 'Documentation describing systems, patterns, conventions in .kanban/engineering/'
     auto_generated: true
 
-  - term: "tldr"
-    aliases: ["summary", "one-liner", "brief"]
+  - term: 'tldr'
+    aliases: ['summary', 'one-liner', 'brief']
     domain: docs
-    definition: "Single sentence summary field in documentation frontmatter"
+    definition: 'Single sentence summary field in documentation frontmatter'
     auto_generated: true
 
-  - term: "boundary"
-    aliases: ["scope-limit", "exclusion", "does-not"]
+  - term: 'boundary'
+    aliases: ['scope-limit', 'exclusion', 'does-not']
     domain: docs
-    definition: "Documentation field describing what a feature does NOT cover"
+    definition: 'Documentation field describing what a feature does NOT cover'
     auto_generated: true
 
-  - term: "stub doc"
-    aliases: ["stub", "placeholder-doc", "draft"]
+  - term: 'stub doc'
+    aliases: ['stub', 'placeholder-doc', 'draft']
     domain: docs
-    definition: "Minimal documentation created during task creation, completed later"
+    definition: 'Minimal documentation created during task creation, completed later'
     auto_generated: true
 
-  - term: "freshness"
-    aliases: ["staleness", "doc-age", "outdated"]
+  - term: 'freshness'
+    aliases: ['staleness', 'doc-age', 'outdated']
     domain: docs
-    definition: "Documentation age tracking based on verified date and code changes"
+    definition: 'Documentation age tracking based on verified date and code changes'
     auto_generated: true
 
-  - term: "context selection"
-    aliases: ["doc-selection", "context-loading", "smart-context"]
+  - term: 'context selection'
+    aliases: ['doc-selection', 'context-loading', 'smart-context']
     domain: docs
-    definition: "Tiered retrieval of relevant documentation for implementation"
+    definition: 'Tiered retrieval of relevant documentation for implementation'
     auto_generated: true
 
-  - term: "tier"
-    aliases: ["detail-level", "verbosity", "context-tier"]
+  - term: 'tier'
+    aliases: ['detail-level', 'verbosity', 'context-tier']
     domain: docs
-    definition: "Context detail level: minimal, standard, or full"
+    definition: 'Context detail level: minimal, standard, or full'
     auto_generated: true
 
   # Search terms
-  - term: "hybrid search"
-    aliases: ["combined-search", "fuzzy-search", "doc-search"]
+  - term: 'hybrid search'
+    aliases: ['combined-search', 'fuzzy-search', 'doc-search']
     domain: docs
-    definition: "Search combining exact keyword matching with fuzzy search"
+    definition: 'Search combining exact keyword matching with fuzzy search'
     auto_generated: true
 
-  - term: "glossary"
-    aliases: ["terms", "synonyms", "aliases"]
+  - term: 'glossary'
+    aliases: ['terms', 'synonyms', 'aliases']
     domain: utilities
-    definition: "Project-specific term mappings for search expansion"
+    definition: 'Project-specific term mappings for search expansion'
     auto_generated: true
 
-  - term: "query expansion"
-    aliases: ["term-expansion", "synonym-expansion"]
+  - term: 'query expansion'
+    aliases: ['term-expansion', 'synonym-expansion']
     domain: utilities
-    definition: "Expanding search queries with glossary aliases"
+    definition: 'Expanding search queries with glossary aliases'
     auto_generated: true
 
   # VSCode terms
-  - term: "codelens"
-    aliases: ["inline-action", "code-lens", "lens"]
+  - term: 'codelens'
+    aliases: ['inline-action', 'code-lens', 'lens']
     domain: vscode
-    definition: "VSCode inline action links displayed above task.xml content"
+    definition: 'VSCode inline action links displayed above task.xml content'
     auto_generated: true
 
-  - term: "treeview"
-    aliases: ["tree-view", "sidebar-view", "kanban-view"]
+  - term: 'treeview'
+    aliases: ['tree-view', 'sidebar-view', 'kanban-view']
     domain: vscode
-    definition: "VSCode sidebar panel showing tasks grouped by status"
+    definition: 'VSCode sidebar panel showing tasks grouped by status'
     auto_generated: true
 
-  - term: "file watcher"
-    aliases: ["watcher", "auto-refresh", "file-monitor"]
+  - term: 'file watcher'
+    aliases: ['watcher', 'auto-refresh', 'file-monitor']
     domain: vscode
-    definition: "Monitors task files and refreshes UI on changes"
+    definition: 'Monitors task files and refreshes UI on changes'
     auto_generated: true
 
   # Validation terms
-  - term: "xml validation"
-    aliases: ["validate-xml", "xml-syntax"]
+  - term: 'xml validation'
+    aliases: ['validate-xml', 'xml-syntax']
     domain: validation
-    definition: "Syntax validation for task.xml, spec.xml, plan.xml files"
+    definition: 'Syntax validation for task.xml, spec.xml, plan.xml files'
     auto_generated: true
 
-  - term: "yaml validation"
-    aliases: ["validate-yaml", "frontmatter-validation"]
+  - term: 'yaml validation'
+    aliases: ['validate-yaml', 'frontmatter-validation']
     domain: validation
-    definition: "Syntax validation for documentation frontmatter"
+    definition: 'Syntax validation for documentation frontmatter'
     auto_generated: true
 
-  - term: "quality check"
-    aliases: ["doc-quality", "validate-docs", "quality-audit"]
+  - term: 'quality check'
+    aliases: ['doc-quality', 'validate-docs', 'quality-audit']
     domain: validation
-    definition: "Documentation completeness validation with 8 criteria"
+    definition: 'Documentation completeness validation with 8 criteria'
     auto_generated: true
 
   # Utility terms
-  - term: "next-id"
-    aliases: ["id-generation", "task-id", "sequential-id"]
+  - term: 'next-id'
+    aliases: ['id-generation', 'task-id', 'sequential-id']
     domain: utilities
-    definition: "Generates next available task ID with padding"
+    definition: 'Generates next available task ID with padding'
     auto_generated: true
 
-  - term: "datetime"
-    aliases: ["timestamp", "date-time", "current-date"]
+  - term: 'datetime'
+    aliases: ['timestamp', 'date-time', 'current-date']
     domain: utilities
-    definition: "Current timestamp in ISO and YYYY-MM-DD formats"
+    definition: 'Current timestamp in ISO and YYYY-MM-DD formats'
     auto_generated: true
 
   # Engineering architecture terms
-  - term: "dag"
-    aliases: ["directed-acyclic-graph", "dag-architecture", "layered-architecture"]
+  - term: 'dag'
+    aliases: ['directed-acyclic-graph', 'dag-architecture', 'layered-architecture']
     domain: engineering
-    definition: "Directed Acyclic Graph architecture with orchestrator → capability → computer layers"
+    definition: 'Directed Acyclic Graph architecture with orchestrator → capability → computer layers'
     auto_generated: true
 
-  - term: "capability"
-    aliases: ["mechanism", "io-layer", "side-effect"]
+  - term: 'capability'
+    aliases: ['mechanism', 'io-layer', 'side-effect']
     domain: engineering
-    definition: "Component handling I/O and side effects (file system, terminal, git)"
+    definition: 'Component handling I/O and side effects (file system, terminal, git)'
     auto_generated: true
 
-  - term: "computer"
-    aliases: ["pure-function", "logic", "computation"]
+  - term: 'computer'
+    aliases: ['pure-function', 'logic', 'computation']
     domain: engineering
-    definition: "VSCode extension component with pure functions, no side effects"
+    definition: 'VSCode extension component with pure functions, no side effects'
     auto_generated: true
 
-  - term: "orchestrator"
-    aliases: ["coordinator", "extension-entry", "policy"]
+  - term: 'orchestrator'
+    aliases: ['coordinator', 'extension-entry', 'policy']
     domain: engineering
-    definition: "extension.ts that coordinates capabilities and computers"
+    definition: 'extension.ts that coordinates capabilities and computers'
     auto_generated: true
 
-  - term: "subagent"
-    aliases: ["child-agent", "spawned-agent", "task-agent"]
+  - term: 'subagent'
+    aliases: ['child-agent', 'spawned-agent', 'task-agent']
     domain: engineering
-    definition: "Fresh Claude instance spawned via Task tool for isolated task execution"
+    definition: 'Fresh Claude instance spawned via Task tool for isolated task execution'
 
-  - term: "factory-di"
-    aliases: ["factory-pattern", "dependency-injection", "di"]
+  - term: 'factory-di'
+    aliases: ['factory-pattern', 'dependency-injection', 'di']
     domain: engineering
-    definition: "Factory functions that inject dependencies for testability"
+    definition: 'Factory functions that inject dependencies for testability'
     auto_generated: true
 
-  - term: "tagged-union"
-    aliases: ["discriminated-union", "result-type", "error-union"]
+  - term: 'tagged-union'
+    aliases: ['discriminated-union', 'result-type', 'error-union']
     domain: engineering
-    definition: "TypeScript pattern with error/success tags for CLI output"
+    definition: 'TypeScript pattern with error/success tags for CLI output'
     auto_generated: true
 
-  - term: "monorepo"
-    aliases: ["workspace", "multi-package", "pnpm-workspace"]
+  - term: 'monorepo'
+    aliases: ['workspace', 'multi-package', 'pnpm-workspace']
     domain: engineering
-    definition: "Single repository containing multiple packages (apps/)"
+    definition: 'Single repository containing multiple packages (apps/)'
     auto_generated: true
 
-  - term: "dogfooding"
-    aliases: ["self-hosting", "eating-own-dogfood", "using-own-product"]
+  - term: 'dogfooding'
+    aliases: ['self-hosting', 'eating-own-dogfood', 'using-own-product']
     domain: engineering
-    definition: "Using the kanban system to build the kanban system itself"
+    definition: 'Using the kanban system to build the kanban system itself'
 
-  - term: "build-output"
-    aliases: ["generated-file", "compiled-output", "built-file"]
+  - term: 'build-output'
+    aliases: ['generated-file', 'compiled-output', 'built-file']
     domain: engineering
-    definition: "Files generated by build process - edit source in apps/kanban/src/ instead"
+    definition: 'Files generated by build process - edit source in apps/kanban/src/ instead'
 
-  - term: "turbo"
-    aliases: ["turborepo", "build-orchestration", "task-runner"]
+  - term: 'turbo'
+    aliases: ['turborepo', 'build-orchestration', 'task-runner']
     domain: engineering
-    definition: "Build system for monorepo task orchestration and caching"
+    definition: 'Build system for monorepo task orchestration and caching'
     auto_generated: true
 
-  - term: "fuse"
-    aliases: ["fuse.js", "fuzzy-match", "fuzzy-library"]
+  - term: 'fuse'
+    aliases: ['fuse.js', 'fuzzy-match', 'fuzzy-library']
     domain: engineering
-    definition: "JavaScript library for fuzzy searching"
+    definition: 'JavaScript library for fuzzy searching'
     auto_generated: true
 
   # Distribution terms
-  - term: "github packages"
-    aliases: ["npm.pkg.github.com", "github npm", "ghp"]
+  - term: 'github packages'
+    aliases: ['npm.pkg.github.com', 'github npm', 'ghp']
     domain: distribution
     definition: "GitHub's package registry for npm-compatible distribution"
 
-  - term: "npx"
-    aliases: ["npm exec", "package runner"]
+  - term: 'npx'
+    aliases: ['npm exec', 'package runner']
     domain: distribution
-    definition: "npm command to execute packages without installing globally"
+    definition: 'npm command to execute packages without installing globally'
 
   # Documentation diagram terms
-  - term: "mermaid"
-    aliases: ["mermaid-diagram", "mermaid.js", "diagram"]
+  - term: 'mermaid'
+    aliases: ['mermaid-diagram', 'mermaid.js', 'diagram']
     domain: docs
-    definition: "Markdown-embedded diagramming syntax for flowcharts, sequences, etc."
+    definition: 'Markdown-embedded diagramming syntax for flowcharts, sequences, etc.'
     auto_generated: true
 
-  - term: "flowchart"
-    aliases: ["flow-diagram", "process-diagram"]
+  - term: 'flowchart'
+    aliases: ['flow-diagram', 'process-diagram']
     domain: docs
-    definition: "Mermaid diagram type showing process flow with nodes and edges"
+    definition: 'Mermaid diagram type showing process flow with nodes and edges'
     auto_generated: true
 
-  - term: "sequence-diagram"
-    aliases: ["sequenceDiagram", "interaction-diagram"]
+  - term: 'sequence-diagram'
+    aliases: ['sequenceDiagram', 'interaction-diagram']
     domain: docs
-    definition: "Mermaid diagram type showing message flow between components"
+    definition: 'Mermaid diagram type showing message flow between components'
     auto_generated: true
 
-  - term: "state-diagram"
-    aliases: ["stateDiagram", "state-machine"]
+  - term: 'state-diagram'
+    aliases: ['stateDiagram', 'state-machine']
     domain: docs
-    definition: "Mermaid diagram type showing state transitions"
+    definition: 'Mermaid diagram type showing state transitions'
     auto_generated: true
 
-  - term: "class-diagram"
-    aliases: ["classDiagram", "uml-class"]
+  - term: 'class-diagram'
+    aliases: ['classDiagram', 'uml-class']
     domain: docs
-    definition: "Mermaid diagram type showing class relationships and interfaces"
+    definition: 'Mermaid diagram type showing class relationships and interfaces'
     auto_generated: true

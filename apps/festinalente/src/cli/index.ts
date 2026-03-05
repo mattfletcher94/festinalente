@@ -14,7 +14,7 @@ export type {
   CliResult,
   CommandHandler,
   CliCommand,
-  ParsedArgs,
+  ParsedArgs
 } from './types';
 
 export {
@@ -28,7 +28,7 @@ export {
   parseArgs,
   getStringFlag,
   getBoolFlag,
-  getNumberFlag,
+  getNumberFlag
 } from './types';
 
 // Registry
@@ -47,26 +47,21 @@ export type {
   ParsedTask,
   ParsedSpec,
   ParsedPlan,
-  ParsedQuick,
+  ParsedQuick
 } from './computers/xml-parser.computer';
 export { createXmlParserComputer } from './computers/xml-parser.computer';
 
 export type { YamlParserComputer, FrontmatterResult } from './computers/yaml-parser.computer';
 export { createYamlParserComputer } from './computers/yaml-parser.computer';
 
-export type {
-  SearchComputer,
-  SearchConfig,
-  SearchIndex,
-  SearchResult,
-} from './computers/search.computer';
+export type { SearchComputer, SearchConfig, SearchIndex, SearchResult } from './computers/search.computer';
 export { createSearchComputer } from './computers/search.computer';
 
 export type {
   ValidationComputer,
   ValidationResult,
   DocValidationResult,
-  CheckResult,
+  CheckResult
 } from './computers/validation.computer';
 export { createValidationComputer } from './computers/validation.computer';
 
@@ -85,7 +80,7 @@ export type {
   DocSearchResult,
   SearchOutput,
   HybridSearchResult,
-  HybridSearchOutput,
+  HybridSearchOutput
 } from './handlers/search.handler';
 export { createSearchHandler } from './handlers/search.handler';
 
@@ -97,7 +92,7 @@ export type {
   ListEngineeringResult,
   CheckDocResult,
   CheckSummary,
-  CheckDocsOutput,
+  CheckDocsOutput
 } from './handlers/docs.handler';
 export { createDocsHandler } from './handlers/docs.handler';
 
@@ -108,7 +103,7 @@ export type {
   YamlValidationError,
   YamlValidationResult,
   DirectiveValidationResult,
-  DocQualityOutput,
+  DocQualityOutput
 } from './handlers/validation.handler';
 export { createValidationHandler } from './handlers/validation.handler';
 
@@ -119,7 +114,7 @@ export type {
   DateTimeResult,
   GlossaryTerm,
   GlossaryMatch,
-  ExpandQueryResult,
+  ExpandQueryResult
 } from './handlers/config.handler';
 export { createConfigHandler } from './handlers/config.handler';
 
@@ -128,7 +123,7 @@ export type {
   DocContent,
   SelectContextOutput,
   StaleDoc,
-  FreshnessOutput,
+  FreshnessOutput
 } from './handlers/query.handler';
 export { createQueryHandler } from './handlers/query.handler';
 

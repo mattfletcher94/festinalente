@@ -18,9 +18,7 @@ export class WorkflowItem extends vscode.TreeItem {
     const hasDirectives = workflow.directives.length > 0;
     super(
       workflow.displayName,
-      hasDirectives
-        ? vscode.TreeItemCollapsibleState.Collapsed
-        : vscode.TreeItemCollapsibleState.None
+      hasDirectives ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None
     );
     this.iconPath = new vscode.ThemeIcon('symbol-method');
     this.description = hasDirectives
@@ -42,7 +40,7 @@ export class DirectiveItem extends vscode.TreeItem {
       this.command = {
         command: 'festinalente.openFile',
         title: 'Open Directive',
-        arguments: [{ filePath: directive.path }],
+        arguments: [{ filePath: directive.path }]
       };
       this.contextValue = 'directive';
     } else {
@@ -127,7 +125,7 @@ export function createDirectivesViewCapability(
         }
 
         return undefined;
-      },
+      }
     };
   }
 
@@ -148,9 +146,7 @@ export function createDirectivesViewCapability(
    * Get directive items for a workflow.
    */
   function getDirectiveItems(workflowItem: WorkflowItem): DirectiveItem[] {
-    const items = workflowItem.workflow.directives.map(
-      (directive) => new DirectiveItem(directive)
-    );
+    const items = workflowItem.workflow.directives.map((directive) => new DirectiveItem(directive));
 
     // Track parent for getParent()
     items.forEach((item) => {
@@ -174,6 +170,6 @@ export function createDirectivesViewCapability(
 
   return {
     createTreeDataProvider,
-    createRefreshCallback,
+    createRefreshCallback
   };
 }

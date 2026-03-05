@@ -23,7 +23,7 @@ export function createTerminalCapability(): CreateTerminalCapabilityReturn {
     kanbanTerminal = vscode.window.createTerminal({
       name,
       cwd,
-      iconPath: new vscode.ThemeIcon('tasklist'),
+      iconPath: new vscode.ThemeIcon('tasklist')
     });
 
     return kanbanTerminal;
@@ -40,6 +40,6 @@ export function createTerminalCapability(): CreateTerminalCapabilityReturn {
   return {
     createFreshTerminal,
     sendCommand,
-    showTerminal,
+    showTerminal
   };
 }
