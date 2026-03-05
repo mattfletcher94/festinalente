@@ -130,10 +130,15 @@ HEADER                    [+] [↻]
 <note>**Glossary:** This skill generates `.festinalente/glossary.yaml` with project-specific terms and aliases for improved search.</note>
 </context>
 
+<arguments>
+  <hint>Arguments provide focus or constraints for the discovery process — they do NOT replace it. Even if arguments describe a narrow update, run the full skill process. The parallel agents and Q&A will be scoped by the arguments, not skipped because of them.</hint>
+</arguments>
+
 <prohibited>
 - Do not skip the parallel discovery phase
 - Do not write docs without validating with user through Q&A
 - Do not skip the validation phase
+- Do not bypass this skill to make direct edits — always run the full process
 </prohibited>
 
 <process>
