@@ -20,7 +20,10 @@
       Scope is the GitHub issue number (e.g., #26), not the task slug.
       The issue is always created before the first commit so the number is available.
     </principle>
-    <principle id="GH3">All merges through GitHub PRs. Never merge locally to main.</principle>
+    <principle id="GH3">
+      All merges through GitHub PRs via squash merge. Never merge locally to main.
+      The PR title (conventional commit format) becomes the single commit on main.
+    </principle>
     <principle id="GH4">Every task syncs to a GitHub Issue for team visibility.</principle>
     <principle id="GH5">Every save pushes. Draft PR reflects WIP automatically.</principle>
     <principle id="GH6">PR body includes "Closes #N" to auto-close the linked issue.</principle>
@@ -129,7 +132,7 @@
       1. Prompt: "PR #{N} approved. Merge now or wait?"
       2. If merge:
          a. Update task status="done", add completed date (local only).
-         b. mcp__github__merge_pull_request (merge_method: "rebase").
+         b. mcp__github__merge_pull_request (merge_method: "squash").
          c. git checkout main &amp;&amp; git fetch origin &amp;&amp; git reset --hard origin/main
          d. git branch -D {github-branch}
          e. Output: "Merged! Issue #{issueNumber} auto-closed."
@@ -187,7 +190,7 @@
          head: quick/{id}, base: main, body: "Closes #{issueNumber}\n\n## Summary\n{brief description}").
          Add github-pr="#{N}" to quick.xml.
          Ask: "Merge now or wait for review?"
-         Merge: mcp__github__merge_pull_request (merge_method: "rebase").
+         Merge: mcp__github__merge_pull_request (merge_method: "squash").
            git checkout main &amp;&amp; git fetch origin &amp;&amp; git reset --hard origin/main &amp;&amp; git branch -D quick/{id}
          Wait: EXIT.
     </rule>
