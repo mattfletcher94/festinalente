@@ -1,7 +1,7 @@
 ---
 name: festina-rework
 description: Return task to In Progress with structured issue report. Works from Finalize column.
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *, gh pr *)
+allowed-tools: Read, Write, Bash(ls *, node *)
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---
@@ -57,7 +57,6 @@ See `.festinalente/workflow.yaml` for column definitions and valid transitions.
 
 <prohibited>
 - Do not skip gathering issue details
-- Do not forget to close PR if task was in PR column
 </prohibited>
 
 <process>
@@ -158,15 +157,6 @@ See `.festinalente/workflow.yaml` for column definitions and valid transitions.
       ]
     }
     </example_code>
-  </step>
-
-  <step name="close_pr" when="PR exists for this branch">
-    <note>Check if a PR was created (via github directive) and close it if needed</note>
-    <command>gh pr view task/{taskId} --json state 2>/dev/null || echo "no-pr"</command>
-    <branch condition="PR exists and is open">
-      <command>gh pr close</command>
-      <output>PR closed</output>
-    </branch>
   </step>
 
   <!-- ============================================ -->
@@ -406,7 +396,6 @@ Then finalize:
 - Plan contains `<iterations>` section with structured issue entry
 - Issue entry has type, severity, summary, expected, actual
 - Issue entry has actionable items with status="pending"
-- If was in PR: PR is closed
 - Next steps shown to user
 </success_criteria>
 
@@ -524,15 +513,12 @@ Does this capture the issue correctly?
 ```
 </example>
 
-<example label="Design change from PR">
+<example label="Design change">
 User: `/festina-rework 009`
 
 ```
 Task: 009 - Add dark mode toggle
-Status: pr
-
-Closing PR...
-PR closed.
+Status: finalize
 
 What type of issue was found?
 > Design change
