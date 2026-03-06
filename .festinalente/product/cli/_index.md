@@ -58,7 +58,7 @@ This domain does NOT include AI-assisted workflows. For that, see [skills](../sk
 | Quicks | find-quick, next-quick-id | Quick task operations |
 | Search | search-product, search-engineering, search-hybrid | Documentation discovery |
 | Validation | validate-xml, validate-yaml, validate-directive, validate-docs | Quality checks |
-| Context | select-context, check-freshness, expand-query | Smart context selection |
+| Context | select-context, expand-query | Smart context selection |
 | Config | get-skill-config, get-date-time | Configuration access |
 
 **Summary:** CLI provides ~20 commands across 7 functional groups.

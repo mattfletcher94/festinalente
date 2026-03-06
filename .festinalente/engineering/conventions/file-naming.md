@@ -11,8 +11,6 @@ references: [patterns/dag-architecture]
 uses: [systems/cli, systems/vscode-extension]
 paths: [apps/festinalente/src/cli, apps/vscode/src]
 updated: 2026-03-01
-verified: 2026-03-01
-code_refs: []
 ---
 
 # File Naming Convention
@@ -51,8 +49,7 @@ All TypeScript files use **kebab-case** with a **functional suffix** indicating 
 ```
 apps/festinalente/src/cli/
 ├── capabilities/
-│   ├── file-system.capability.ts    ✅ kebab-case + .capability
-│   └── git.capability.ts            ✅ single word is fine
+│   └── file-system.capability.ts    ✅ kebab-case + .capability
 ├── computers/
 │   ├── xml-parser.computer.ts       ✅ kebab-case + .computer
 │   ├── yaml-parser.computer.ts      ✅

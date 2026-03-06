@@ -11,8 +11,6 @@ references: [systems/distribution, systems/cli]
 uses: []
 paths: [apps/festinalente/src/content, apps/festinalente/tools]
 updated: 2026-03-01
-verified: 2026-03-01
-code_refs: [apps/festinalente/tools/build.ts]
 ---
 
 # Content Build System

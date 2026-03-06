@@ -9,8 +9,6 @@ aliases: [linting, lint-config]
 boundary: "Does not replace type-checking; only applies static lint rules"
 references: []
 uses: []
-code_refs: [".oxlintrc.json", "package.json", "turbo.json"]
-verified: true
 updated: 2026-03-05
 ---
 

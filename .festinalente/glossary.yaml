@@ -134,12 +134,6 @@ terms:
     definition: 'Minimal documentation created during task creation, completed later'
     auto_generated: true
 
-  - term: 'freshness'
-    aliases: ['staleness', 'doc-age', 'outdated']
-    domain: docs
-    definition: 'Documentation age tracking based on verified date and code changes'
-    auto_generated: true
-
   - term: 'context selection'
     aliases: ['doc-selection', 'context-loading', 'smart-context']
     domain: docs

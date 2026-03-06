@@ -27,54 +27,52 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 //#endregion
 const fs = __toESM(require("fs"));
 const path = __toESM(require("path"));
-const child_process = __toESM(require("child_process"));
-const util = __toESM(require("util"));
 
 //#region ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/util.js
-var util$1;
-(function(util$2) {
-	util$2.assertEqual = (_) => {};
+var util;
+(function(util$1) {
+	util$1.assertEqual = (_) => {};
 	function assertIs(_arg) {}
-	util$2.assertIs = assertIs;
+	util$1.assertIs = assertIs;
 	function assertNever(_x) {
 		throw new Error();
 	}
-	util$2.assertNever = assertNever;
-	util$2.arrayToEnum = (items) => {
+	util$1.assertNever = assertNever;
+	util$1.arrayToEnum = (items) => {
 		const obj = {};
 		for (const item of items) obj[item] = item;
 		return obj;
 	};
-	util$2.getValidEnumValues = (obj) => {
-		const validKeys = util$2.objectKeys(obj).filter((k) => typeof obj[obj[k]] !== "number");
+	util$1.getValidEnumValues = (obj) => {
+		const validKeys = util$1.objectKeys(obj).filter((k) => typeof obj[obj[k]] !== "number");
 		const filtered = {};
 		for (const k of validKeys) filtered[k] = obj[k];
-		return util$2.objectValues(filtered);
+		return util$1.objectValues(filtered);
 	};
-	util$2.objectValues = (obj) => {
-		return util$2.objectKeys(obj).map(function(e) {
+	util$1.objectValues = (obj) => {
+		return util$1.objectKeys(obj).map(function(e) {
 			return obj[e];
 		});
 	};
-	util$2.objectKeys = typeof Object.keys === "function" ? (obj) => Object.keys(obj) : (object) => {
+	util$1.objectKeys = typeof Object.keys === "function" ? (obj) => Object.keys(obj) : (object) => {
 		const keys = [];
 		for (const key in object) if (Object.prototype.hasOwnProperty.call(object, key)) keys.push(key);
 		return keys;
 	};
-	util$2.find = (arr, checker) => {
+	util$1.find = (arr, checker) => {
 		for (const item of arr) if (checker(item)) return item;
 		return void 0;
 	};
-	util$2.isInteger = typeof Number.isInteger === "function" ? (val) => Number.isInteger(val) : (val) => typeof val === "number" && Number.isFinite(val) && Math.floor(val) === val;
+	util$1.isInteger = typeof Number.isInteger === "function" ? (val) => Number.isInteger(val) : (val) => typeof val === "number" && Number.isFinite(val) && Math.floor(val) === val;
 	function joinValues(array, separator = " | ") {
 		return array.map((val) => typeof val === "string" ? `'${val}'` : val).join(separator);
 	}
-	util$2.joinValues = joinValues;
-	util$2.jsonStringifyReplacer = (_, value) => {
+	util$1.joinValues = joinValues;
+	util$1.jsonStringifyReplacer = (_, value) => {
 		if (typeof value === "bigint") return value.toString();
 		return value;
 	};
-})(util$1 || (util$1 = {}));
+})(util || (util = {}));
 var objectUtil;
 (function(objectUtil$1) {
 	objectUtil$1.mergeShapes = (first, second) => {
@@ -84,7 +82,7 @@ var objectUtil;
 		};
 	};
 })(objectUtil || (objectUtil = {}));
-const ZodParsedType = util$1.arrayToEnum([
+const ZodParsedType = util.arrayToEnum([
 	"string",
 	"nan",
 	"number",
@@ -130,7 +128,7 @@ const getParsedType = (data) => {
 
 //#endregion
 //#region ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/ZodError.js
-const ZodIssueCode = util$1.arrayToEnum([
+const ZodIssueCode = util.arrayToEnum([
 	"invalid_type",
 	"invalid_literal",
 	"custom",
@@ -203,7 +201,7 @@ var ZodError = class ZodError extends Error {
 		return this.message;
 	}
 	get message() {
-		return JSON.stringify(this.issues, util$1.jsonStringifyReplacer, 2);
+		return JSON.stringify(this.issues, util.jsonStringifyReplacer, 2);
 	}
 	get isEmpty() {
 		return this.issues.length === 0;
@@ -240,19 +238,19 @@ const errorMap = (issue, _ctx) => {
 			else message = `Expected ${issue.expected}, received ${issue.received}`;
 			break;
 		case ZodIssueCode.invalid_literal:
-			message = `Invalid literal value, expected ${JSON.stringify(issue.expected, util$1.jsonStringifyReplacer)}`;
+			message = `Invalid literal value, expected ${JSON.stringify(issue.expected, util.jsonStringifyReplacer)}`;
 			break;
 		case ZodIssueCode.unrecognized_keys:
-			message = `Unrecognized key(s) in object: ${util$1.joinValues(issue.keys, ", ")}`;
+			message = `Unrecognized key(s) in object: ${util.joinValues(issue.keys, ", ")}`;
 			break;
 		case ZodIssueCode.invalid_union:
 			message = `Invalid input`;
 			break;
 		case ZodIssueCode.invalid_union_discriminator:
-			message = `Invalid discriminator value. Expected ${util$1.joinValues(issue.options)}`;
+			message = `Invalid discriminator value. Expected ${util.joinValues(issue.options)}`;
 			break;
 		case ZodIssueCode.invalid_enum_value:
-			message = `Invalid enum value. Expected ${util$1.joinValues(issue.options)}, received '${issue.received}'`;
+			message = `Invalid enum value. Expected ${util.joinValues(issue.options)}, received '${issue.received}'`;
 			break;
 		case ZodIssueCode.invalid_arguments:
 			message = `Invalid function arguments`;
@@ -269,7 +267,7 @@ const errorMap = (issue, _ctx) => {
 				if (typeof issue.validation.position === "number") message = `${message} at one or more positions greater than or equal to ${issue.validation.position}`;
 			} else if ("startsWith" in issue.validation) message = `Invalid input: must start with "${issue.validation.startsWith}"`;
 			else if ("endsWith" in issue.validation) message = `Invalid input: must end with "${issue.validation.endsWith}"`;
-			else util$1.assertNever(issue.validation);
+			else util.assertNever(issue.validation);
 			else if (issue.validation !== "regex") message = `Invalid ${issue.validation}`;
 			else message = "Invalid";
 			break;
@@ -303,7 +301,7 @@ const errorMap = (issue, _ctx) => {
 			break;
 		default:
 			message = _ctx.defaultError;
-			util$1.assertNever(issue);
+			util.assertNever(issue);
 	}
 	return { message };
 };
@@ -1110,7 +1108,7 @@ var ZodString = class ZodString extends ZodType {
 				});
 				status.dirty();
 			}
-		} else util$1.assertNever(check);
+		} else util.assertNever(check);
 		return {
 			status: status.value,
 			value: input.data
@@ -1422,7 +1420,7 @@ var ZodNumber = class ZodNumber extends ZodType {
 		let ctx = void 0;
 		const status = new ParseStatus();
 		for (const check of this._def.checks) if (check.kind === "int") {
-			if (!util$1.isInteger(input.data)) {
+			if (!util.isInteger(input.data)) {
 				ctx = this._getOrReturnCtx(input, ctx);
 				addIssueToContext(ctx, {
 					code: ZodIssueCode.invalid_type,
@@ -1479,7 +1477,7 @@ var ZodNumber = class ZodNumber extends ZodType {
 				});
 				status.dirty();
 			}
-		} else util$1.assertNever(check);
+		} else util.assertNever(check);
 		return {
 			status: status.value,
 			value: input.data
@@ -1593,7 +1591,7 @@ var ZodNumber = class ZodNumber extends ZodType {
 		return max;
 	}
 	get isInt() {
-		return !!this._def.checks.find((ch) => ch.kind === "int" || ch.kind === "multipleOf" && util$1.isInteger(ch.value));
+		return !!this._def.checks.find((ch) => ch.kind === "int" || ch.kind === "multipleOf" && util.isInteger(ch.value));
 	}
 	get isFinite() {
 		let max = null;
@@ -1667,7 +1665,7 @@ var ZodBigInt = class ZodBigInt extends ZodType {
 				});
 				status.dirty();
 			}
-		} else util$1.assertNever(check);
+		} else util.assertNever(check);
 		return {
 			status: status.value,
 			value: input.data
@@ -1842,7 +1840,7 @@ var ZodDate = class ZodDate extends ZodType {
 				});
 				status.dirty();
 			}
-		} else util$1.assertNever(check);
+		} else util.assertNever(check);
 		return {
 			status: status.value,
 			value: new Date(input.data.getTime())
@@ -2167,7 +2165,7 @@ var ZodObject = class ZodObject extends ZodType {
 	_getCached() {
 		if (this._cached !== null) return this._cached;
 		const shape = this._def.shape();
-		const keys = util$1.objectKeys(shape);
+		const keys = util.objectKeys(shape);
 		this._cached = {
 			shape,
 			keys
@@ -2320,7 +2318,7 @@ var ZodObject = class ZodObject extends ZodType {
 	}
 	pick(mask) {
 		const shape = {};
-		for (const key of util$1.objectKeys(mask)) if (mask[key] && this.shape[key]) shape[key] = this.shape[key];
+		for (const key of util.objectKeys(mask)) if (mask[key] && this.shape[key]) shape[key] = this.shape[key];
 		return new ZodObject({
 			...this._def,
 			shape: () => shape
@@ -2328,7 +2326,7 @@ var ZodObject = class ZodObject extends ZodType {
 	}
 	omit(mask) {
 		const shape = {};
-		for (const key of util$1.objectKeys(this.shape)) if (!mask[key]) shape[key] = this.shape[key];
+		for (const key of util.objectKeys(this.shape)) if (!mask[key]) shape[key] = this.shape[key];
 		return new ZodObject({
 			...this._def,
 			shape: () => shape
@@ -2342,7 +2340,7 @@ var ZodObject = class ZodObject extends ZodType {
 	}
 	partial(mask) {
 		const newShape = {};
-		for (const key of util$1.objectKeys(this.shape)) {
+		for (const key of util.objectKeys(this.shape)) {
 			const fieldSchema = this.shape[key];
 			if (mask && !mask[key]) newShape[key] = fieldSchema;
 			else newShape[key] = fieldSchema.optional();
@@ -2354,7 +2352,7 @@ var ZodObject = class ZodObject extends ZodType {
 	}
 	required(mask) {
 		const newShape = {};
-		for (const key of util$1.objectKeys(this.shape)) if (mask && !mask[key]) newShape[key] = this.shape[key];
+		for (const key of util.objectKeys(this.shape)) if (mask && !mask[key]) newShape[key] = this.shape[key];
 		else {
 			const fieldSchema = this.shape[key];
 			let newField = fieldSchema;
@@ -2367,7 +2365,7 @@ var ZodObject = class ZodObject extends ZodType {
 		});
 	}
 	keyof() {
-		return createZodEnum(util$1.objectKeys(this.shape));
+		return createZodEnum(util.objectKeys(this.shape));
 	}
 };
 ZodObject.create = (shape, params) => {
@@ -2484,7 +2482,7 @@ const getDiscriminator = (type$1) => {
 	else if (type$1 instanceof ZodEffects) return getDiscriminator(type$1.innerType());
 	else if (type$1 instanceof ZodLiteral) return [type$1.value];
 	else if (type$1 instanceof ZodEnum) return type$1.options;
-	else if (type$1 instanceof ZodNativeEnum) return util$1.objectValues(type$1.enum);
+	else if (type$1 instanceof ZodNativeEnum) return util.objectValues(type$1.enum);
 	else if (type$1 instanceof ZodDefault) return getDiscriminator(type$1._def.innerType);
 	else if (type$1 instanceof ZodUndefined) return [void 0];
 	else if (type$1 instanceof ZodNull) return [null];
@@ -2572,8 +2570,8 @@ function mergeValues(a, b) {
 		data: a
 	};
 	else if (aType === ZodParsedType.object && bType === ZodParsedType.object) {
-		const bKeys = util$1.objectKeys(b);
-		const sharedKeys = util$1.objectKeys(a).filter((key) => bKeys.indexOf(key) !== -1);
+		const bKeys = util.objectKeys(b);
+		const sharedKeys = util.objectKeys(a).filter((key) => bKeys.indexOf(key) !== -1);
 		const newObj = {
 			...a,
 			...b
@@ -3083,7 +3081,7 @@ var ZodEnum = class ZodEnum extends ZodType {
 			const ctx = this._getOrReturnCtx(input);
 			const expectedValues = this._def.values;
 			addIssueToContext(ctx, {
-				expected: util$1.joinValues(expectedValues),
+				expected: util.joinValues(expectedValues),
 				received: ctx.parsedType,
 				code: ZodIssueCode.invalid_type
 			});
@@ -3136,20 +3134,20 @@ var ZodEnum = class ZodEnum extends ZodType {
 ZodEnum.create = createZodEnum;
 var ZodNativeEnum = class extends ZodType {
 	_parse(input) {
-		const nativeEnumValues = util$1.getValidEnumValues(this._def.values);
+		const nativeEnumValues = util.getValidEnumValues(this._def.values);
 		const ctx = this._getOrReturnCtx(input);
 		if (ctx.parsedType !== ZodParsedType.string && ctx.parsedType !== ZodParsedType.number) {
-			const expectedValues = util$1.objectValues(nativeEnumValues);
+			const expectedValues = util.objectValues(nativeEnumValues);
 			addIssueToContext(ctx, {
-				expected: util$1.joinValues(expectedValues),
+				expected: util.joinValues(expectedValues),
 				received: ctx.parsedType,
 				code: ZodIssueCode.invalid_type
 			});
 			return INVALID;
 		}
-		if (!this._cache) this._cache = new Set(util$1.getValidEnumValues(this._def.values));
+		if (!this._cache) this._cache = new Set(util.getValidEnumValues(this._def.values));
 		if (!this._cache.has(input.data)) {
-			const expectedValues = util$1.objectValues(nativeEnumValues);
+			const expectedValues = util.objectValues(nativeEnumValues);
 			addIssueToContext(ctx, {
 				received: ctx.data,
 				code: ZodIssueCode.invalid_enum_value,
@@ -3307,7 +3305,7 @@ var ZodEffects = class extends ZodType {
 				value: result
 			}));
 		});
-		util$1.assertNever(effect);
+		util.assertNever(effect);
 	}
 };
 ZodEffects.create = (schema$1, effect, params) => {
@@ -4293,72 +4291,6 @@ function createFileSystemCapability() {
 }
 
 //#endregion
-//#region src/cli/capabilities/git.capability.ts
-const execFileAsync = (0, util.promisify)(child_process.execFile);
-/**
-* Create a git capability.
-*
-* @returns A GitCapability instance.
-*/
-function createGitCapability() {
-	async function getLastCommitDate(filePath) {
-		try {
-			const { stdout } = await execFileAsync("git", [
-				"log",
-				"-1",
-				"--format=%cI",
-				"--",
-				filePath
-			]);
-			const dateStr = stdout.trim();
-			if (!dateStr) return ok(null);
-			return ok(new Date(dateStr));
-		} catch {
-			return ok(null);
-		}
-	}
-	async function getCurrentBranch() {
-		try {
-			const { stdout } = await execFileAsync("git", ["branch", "--show-current"]);
-			return ok(stdout.trim());
-		} catch (e) {
-			return err(e instanceof Error ? e : new Error(String(e)));
-		}
-	}
-	function getLastCommitDateSync(filePath) {
-		const { spawnSync } = require("child_process");
-		try {
-			const result = spawnSync("git", [
-				"log",
-				"-1",
-				"--format=%cI",
-				"--",
-				filePath
-			], {
-				encoding: "utf8",
-				stdio: [
-					"pipe",
-					"pipe",
-					"pipe"
-				]
-			});
-			if (result.status === 0 && result.stdout) {
-				const dateStr = result.stdout.trim();
-				if (dateStr) return new Date(dateStr);
-			}
-			return null;
-		} catch {
-			return null;
-		}
-	}
-	return {
-		getLastCommitDate,
-		getCurrentBranch,
-		getLastCommitDateSync
-	};
-}
-
-//#endregion
 //#region src/cli/handlers/query.handler.ts
 const TASKS_DIR$3 = ".festinalente/tasks";
 const PRODUCT_DIR$2 = ".festinalente/product";
@@ -4370,7 +4302,7 @@ const ENGINEERING_DIR$2 = ".festinalente/engineering";
 * @returns A QueryHandler instance.
 */
 function createQueryHandler(deps) {
-	const { fs: fs$3, git, yamlParser, xmlParser } = deps;
+	const { fs: fs$3, yamlParser, xmlParser } = deps;
 	/**
 	* Find task file by ID.
 	*/
@@ -4499,121 +4431,13 @@ function createQueryHandler(deps) {
 		});
 	}
 	/**
-	* Calculate days between two dates.
-	*/
-	function daysBetween(date1, date2) {
-		const msPerDay = 24 * 60 * 60 * 1e3;
-		return Math.floor((date2.getTime() - date1.getTime()) / msPerDay);
-	}
-	/**
-	* Check doc freshness.
-	*/
-	function checkDocFreshness(docPath, staleDays) {
-		const readResult = fs$3.readFile(docPath);
-		if (!readResult.ok) return {
-			isStale: false,
-			verifiedDate: null,
-			codeRefs: [],
-			modifiedCodeRefs: [],
-			daysSinceVerified: -1
-		};
-		const { data: frontmatter } = yamlParser.parseFrontmatter(readResult.value);
-		const verified = frontmatter.verified;
-		const codeRefs = frontmatter.code_refs || [];
-		if (!verified) return {
-			isStale: false,
-			verifiedDate: null,
-			codeRefs,
-			modifiedCodeRefs: [],
-			daysSinceVerified: -1
-		};
-		const verifiedDate = new Date(verified);
-		const now = new Date();
-		const daysSince = daysBetween(verifiedDate, now);
-		if (daysSince < staleDays) return {
-			isStale: false,
-			verifiedDate: verified,
-			codeRefs,
-			modifiedCodeRefs: [],
-			daysSinceVerified: daysSince
-		};
-		const modifiedRefs = [];
-		for (const ref of codeRefs) if (fs$3.exists(ref)) {
-			const lastModified = git.getLastCommitDateSync(ref);
-			if (lastModified && lastModified > verifiedDate) modifiedRefs.push(ref);
-		}
-		return {
-			isStale: modifiedRefs.length > 0,
-			verifiedDate: verified,
-			codeRefs,
-			modifiedCodeRefs: modifiedRefs,
-			daysSinceVerified: daysSince
-		};
-	}
-	/**
-	* Check freshness command.
-	*/
-	function checkFreshness(args) {
-		const parsed = parseArgs(args);
-		const staleDays = getNumberFlag(parsed.flags, "stale-days") ?? 30;
-		const typeFilter = getStringFlag(parsed.flags, "type");
-		const docsToCheck = [];
-		if (!typeFilter || typeFilter === "product") {
-			const scanResult = fs$3.scanRecursive(PRODUCT_DIR$2, ".md");
-			if (scanResult.ok) for (const docPath of scanResult.value) {
-				const relativePath = fs$3.relativePath(PRODUCT_DIR$2, docPath).replace(/\\/g, "/");
-				const id = relativePath.replace(/\.md$/, "");
-				docsToCheck.push({
-					path: docPath,
-					id
-				});
-			}
-		}
-		if (!typeFilter || typeFilter === "engineering") {
-			const scanResult = fs$3.scanRecursive(ENGINEERING_DIR$2, ".md");
-			if (scanResult.ok) for (const docPath of scanResult.value) {
-				const relativePath = fs$3.relativePath(ENGINEERING_DIR$2, docPath).replace(/\\/g, "/");
-				let id = relativePath.replace(/\.md$/, "");
-				if (id.endsWith("/_index")) id = id.replace(/\/_index$/, "");
-				docsToCheck.push({
-					path: docPath,
-					id
-				});
-			}
-		}
-		const staleDocs = [];
-		let freshCount = 0;
-		let noVerificationCount = 0;
-		for (const { path: docPath, id } of docsToCheck) {
-			const result = checkDocFreshness(docPath, staleDays);
-			if (result.verifiedDate === null) noVerificationCount++;
-			else if (result.isStale) staleDocs.push({
-				id,
-				path: docPath.replace(/\\/g, "/"),
-				verifiedDate: result.verifiedDate,
-				codeRefs: result.codeRefs,
-				modifiedCodeRefs: result.modifiedCodeRefs,
-				daysSinceVerified: result.daysSinceVerified
-			});
-			else freshCount++;
-		}
-		return success({
-			totalDocs: docsToCheck.length,
-			fresh: freshCount,
-			stale: staleDocs.length,
-			noVerification: noVerificationCount,
-			staleDocs
-		});
-	}
-	/**
 	* Get command definitions.
 	*/
 	function getCommands() {
-		return [defineCommand("select-context", "Smart context selection for task implementation", "select-context <task-id> [--tier=minimal|standard|full] [--max=5]", selectContext), defineCommand("check-freshness", "Check documentation freshness based on verified dates", "check-freshness [--stale-days=30] [--type=product|engineering]", checkFreshness)];
+		return [defineCommand("select-context", "Smart context selection for task implementation", "select-context <task-id> [--tier=minimal|standard|full] [--max=5]", selectContext)];
 	}
 	return {
 		selectContext,
-		checkFreshness,
 		getCommands
 	};
 }
@@ -13682,7 +13506,6 @@ function createYamlParserComputer() {
 */
 function createCliOrchestrator() {
 	const fs$3 = createFileSystemCapability();
-	const git = createGitCapability();
 	const xmlParser = createXmlParserComputer();
 	const yamlParser = createYamlParserComputer();
 	const search$1 = createSearchComputer();
@@ -13723,7 +13546,6 @@ function createCliOrchestrator() {
 	});
 	const queryHandler = createQueryHandler({
 		fs: fs$3,
-		git,
 		yamlParser,
 		xmlParser
 	});

@@ -11,8 +11,6 @@ references: [patterns/dag-architecture]
 uses: [systems/cli, systems/vscode-extension]
 paths: [apps/festinalente/src/cli, apps/vscode/src]
 updated: 2026-03-01
-verified: 2026-03-01
-code_refs: []
 ---
 
 # Folder Structure Convention
@@ -49,8 +47,7 @@ src/
 ```
 apps/festinalente/src/cli/
 ├── capabilities/                 ✅ All I/O in one folder
-│   ├── file-system.capability.ts
-│   └── git.capability.ts
+│   └── file-system.capability.ts
 ├── computers/                    ✅ All pure logic in one folder
 │   ├── xml-parser.computer.ts
 │   ├── yaml-parser.computer.ts

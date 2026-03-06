@@ -1,5 +1,5 @@
 /**
- * Query handler - commands for context selection and freshness checking.
+ * Query handler - commands for context selection.
  *
  * @module cli/handlers/query
  */
@@ -7,7 +7,6 @@
 import type { CliCommand, CliResult } from '../types';
 import { error, getNumberFlag, getStringFlag, parseArgs, success } from '../types';
 import type { FileSystemCapability } from '../capabilities/file-system.capability';
-import type { GitCapability } from '../capabilities/git.capability';
 import type { XmlParserComputer } from '../computers/xml-parser.computer';
 import type { YamlParserComputer } from '../computers/yaml-parser.computer';
 import { defineCommand } from '../registry';
@@ -40,34 +39,10 @@ export interface SelectContextOutput {
 }
 
 /**
- * Stale doc info.
- */
-export interface StaleDoc {
-  readonly id: string;
-  readonly path: string;
-  readonly verifiedDate: string;
-  readonly codeRefs: readonly string[];
-  readonly modifiedCodeRefs: readonly string[];
-  readonly daysSinceVerified: number;
-}
-
-/**
- * Freshness output.
- */
-export interface FreshnessOutput {
-  readonly totalDocs: number;
-  readonly fresh: number;
-  readonly stale: number;
-  readonly noVerification: number;
-  readonly staleDocs: readonly StaleDoc[];
-}
-
-/**
  * Dependencies for query handler.
  */
 export interface QueryHandlerDeps {
   readonly fs: FileSystemCapability;
-  readonly git: GitCapability;
   readonly yamlParser: YamlParserComputer;
   readonly xmlParser: XmlParserComputer;
 }
@@ -77,7 +52,6 @@ export interface QueryHandlerDeps {
  */
 export interface QueryHandler {
   readonly selectContext: (args: string[]) => CliResult<SelectContextOutput>;
-  readonly checkFreshness: (args: string[]) => CliResult<FreshnessOutput>;
   readonly getCommands: () => readonly CliCommand[];
 }
 
@@ -88,7 +62,7 @@ export interface QueryHandler {
  * @returns A QueryHandler instance.
  */
 export function createQueryHandler(deps: QueryHandlerDeps): QueryHandler {
-  const { fs, git, yamlParser, xmlParser } = deps;
+  const { fs, yamlParser, xmlParser } = deps;
 
   /**
    * Find task file by ID.
@@ -277,158 +251,6 @@ export function createQueryHandler(deps: QueryHandlerDeps): QueryHandler {
   }
 
   /**
-   * Calculate days between two dates.
-   */
-  function daysBetween(date1: Date, date2: Date): number {
-    const msPerDay = 24 * 60 * 60 * 1000;
-    return Math.floor((date2.getTime() - date1.getTime()) / msPerDay);
-  }
-
-  /**
-   * Check doc freshness.
-   */
-  function checkDocFreshness(
-    docPath: string,
-    staleDays: number
-  ): {
-    isStale: boolean;
-    verifiedDate: string | null;
-    codeRefs: readonly string[];
-    modifiedCodeRefs: readonly string[];
-    daysSinceVerified: number;
-  } {
-    const readResult = fs.readFile(docPath);
-    if (!readResult.ok) {
-      return {
-        isStale: false,
-        verifiedDate: null,
-        codeRefs: [],
-        modifiedCodeRefs: [],
-        daysSinceVerified: -1
-      };
-    }
-
-    const { data: frontmatter } = yamlParser.parseFrontmatter(readResult.value);
-
-    const verified = frontmatter.verified as string | undefined;
-    const codeRefs = (frontmatter.code_refs as string[]) || [];
-
-    if (!verified) {
-      return {
-        isStale: false,
-        verifiedDate: null,
-        codeRefs,
-        modifiedCodeRefs: [],
-        daysSinceVerified: -1
-      };
-    }
-
-    const verifiedDate = new Date(verified);
-    const now = new Date();
-    const daysSince = daysBetween(verifiedDate, now);
-
-    // If within stale threshold, it's fresh
-    if (daysSince < staleDays) {
-      return {
-        isStale: false,
-        verifiedDate: verified,
-        codeRefs,
-        modifiedCodeRefs: [],
-        daysSinceVerified: daysSince
-      };
-    }
-
-    // Check if any code_refs have been modified since verified date
-    const modifiedRefs: string[] = [];
-
-    for (const ref of codeRefs) {
-      if (fs.exists(ref)) {
-        const lastModified = git.getLastCommitDateSync(ref);
-        if (lastModified && lastModified > verifiedDate) {
-          modifiedRefs.push(ref);
-        }
-      }
-    }
-
-    return {
-      isStale: modifiedRefs.length > 0,
-      verifiedDate: verified,
-      codeRefs,
-      modifiedCodeRefs: modifiedRefs,
-      daysSinceVerified: daysSince
-    };
-  }
-
-  /**
-   * Check freshness command.
-   */
-  function checkFreshness(args: string[]): CliResult<FreshnessOutput> {
-    const parsed = parseArgs(args);
-    const staleDays = getNumberFlag(parsed.flags, 'stale-days') ?? 30;
-    const typeFilter = getStringFlag(parsed.flags, 'type') as 'product' | 'engineering' | undefined;
-
-    const docsToCheck: { path: string; id: string }[] = [];
-
-    // Collect docs based on type filter
-    if (!typeFilter || typeFilter === 'product') {
-      const scanResult = fs.scanRecursive(PRODUCT_DIR, '.md');
-      if (scanResult.ok) {
-        for (const docPath of scanResult.value) {
-          const relativePath = fs.relativePath(PRODUCT_DIR, docPath).replace(/\\/g, '/');
-          const id = relativePath.replace(/\.md$/, '');
-          docsToCheck.push({ path: docPath, id });
-        }
-      }
-    }
-
-    if (!typeFilter || typeFilter === 'engineering') {
-      const scanResult = fs.scanRecursive(ENGINEERING_DIR, '.md');
-      if (scanResult.ok) {
-        for (const docPath of scanResult.value) {
-          const relativePath = fs.relativePath(ENGINEERING_DIR, docPath).replace(/\\/g, '/');
-          let id = relativePath.replace(/\.md$/, '');
-          // Handle _index.md files
-          if (id.endsWith('/_index')) {
-            id = id.replace(/\/_index$/, '');
-          }
-          docsToCheck.push({ path: docPath, id });
-        }
-      }
-    }
-
-    const staleDocs: StaleDoc[] = [];
-    let freshCount = 0;
-    let noVerificationCount = 0;
-
-    for (const { path: docPath, id } of docsToCheck) {
-      const result = checkDocFreshness(docPath, staleDays);
-
-      if (result.verifiedDate === null) {
-        noVerificationCount++;
-      } else if (result.isStale) {
-        staleDocs.push({
-          id,
-          path: docPath.replace(/\\/g, '/'),
-          verifiedDate: result.verifiedDate,
-          codeRefs: result.codeRefs,
-          modifiedCodeRefs: result.modifiedCodeRefs,
-          daysSinceVerified: result.daysSinceVerified
-        });
-      } else {
-        freshCount++;
-      }
-    }
-
-    return success({
-      totalDocs: docsToCheck.length,
-      fresh: freshCount,
-      stale: staleDocs.length,
-      noVerification: noVerificationCount,
-      staleDocs
-    });
-  }
-
-  /**
    * Get command definitions.
    */
   function getCommands(): readonly CliCommand[] {
@@ -438,19 +260,12 @@ export function createQueryHandler(deps: QueryHandlerDeps): QueryHandler {
         'Smart context selection for task implementation',
         'select-context <task-id> [--tier=minimal|standard|full] [--max=5]',
         selectContext
-      ),
-      defineCommand(
-        'check-freshness',
-        'Check documentation freshness based on verified dates',
-        'check-freshness [--stale-days=30] [--type=product|engineering]',
-        checkFreshness
       )
     ];
   }
 
   return {
     selectContext,
-    checkFreshness,
     getCommands
   };
 }

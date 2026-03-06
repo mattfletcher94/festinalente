@@ -11,8 +11,6 @@ references: [systems/cli, systems/vscode-extension]
 uses: []
 paths: [.festinalente]
 updated: 2026-03-01
-verified: 2026-03-01
-code_refs: []
 ---
 
 # Data Model & Storage

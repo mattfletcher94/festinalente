@@ -11,8 +11,6 @@ references: [patterns/dag-architecture, patterns/factory-di, systems/cli, system
 uses: []
 paths: [apps/vscode/src]
 updated: 2026-03-06
-verified: 2026-03-06
-code_refs: [apps/vscode/src/extension.ts, apps/vscode/src/orchestrators/directives.orchestrator.ts, apps/vscode/src/capabilities/directive-diagnostics.capability.ts, apps/vscode/src/computers/directive-validator.computer.ts, apps/vscode/src/types/directives-types.ts]
 ---
 
 # VSCode Extension
