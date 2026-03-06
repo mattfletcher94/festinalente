@@ -115,6 +115,15 @@
       7. git push
     </rule>
 
+    <rule id="GH-FIN-UPDATE-PR" phase="finalize">
+      Update the PR title and body via mcp__GitHub__update_issue (PRs are issues in GitHub's API):
+      1. Set title to the implementation commit message: "{type}({id}): {title}"
+         (same commit type/scope/title used in GH-FIN-COMMIT step 4).
+      2. Set body to:
+         "Closes #{github-issue}\n\n## Summary\n\n{bullet list of changes}\n\n## Test plan\n\n{checklist from acceptance criteria}"
+      3. Use mcp__GitHub__update_issue with issue_number={PR number from github-pr}.
+    </rule>
+
     <rule id="GH-FIN-PR" phase="finalize">
       STATE CHECK — read github-pr from task.xml:
 
