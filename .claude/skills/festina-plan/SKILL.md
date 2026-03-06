@@ -294,7 +294,6 @@ Run: /festina-scope {taskId}
     <action name="testing_strategy">
       <note>Derive from functional requirements and affected files:</note>
       - Automated: What tests to write (unit, integration) based on FRs
-      - Manual: What to verify by hand based on acceptance criteria
       - Regression: What existing behavior to confirm still works based on affected files
     </action>
 
@@ -417,17 +416,6 @@ Run: /festina-scope {taskId}
       <done>Verification criteria</done>
     </task>
 
-    <task id="3" type="manual" depends="2">
-      <name>Manual verification step</name>
-      <files>N/A</files>
-      <requirements>FR1-FR3</requirements>
-      <pattern>N/A</pattern>
-      <action>
-        - Manual verification steps
-      </action>
-      <verify>Manual: Description of what to verify</verify>
-      <done>All acceptance criteria verified</done>
-    </task>
   </tasks>
 
   <testing>
@@ -458,7 +446,7 @@ Run: /festina-scope {taskId}
       | Attribute | Required | Description |
       |-----------|----------|-------------|
       | `id` | Yes | Sequential number (1, 2, 3...) |
-      | `type` | Yes | "auto" (has executable verify) or "manual" (human verification) |
+      | `type` | Yes | "auto" (has executable verify command) |
       | `depends` | No | Comma-separated IDs of prerequisite tasks |
     </table>
 
@@ -472,7 +460,7 @@ Run: /festina-scope {taskId}
       | `<pattern>` | No | Existing pattern to follow with file:line reference |
       | `<context>` | No | Files the subagent should read before implementing (contains `<file>` children) |
       | `<action>` | Yes | Specific steps to take (can be multi-line with - bullets) |
-      | `<verify>` | Yes | Command to run OR "Manual: {description}" |
+      | `<verify>` | Yes | Command to run to verify task completion |
       | `<done>` | Yes | Acceptance criteria for this specific task |
     </table>
 
@@ -484,14 +472,12 @@ Run: /festina-scope {taskId}
     <note>- Related files containing types, interfaces, or constants needed for the task</note>
     <note>Context should include files the subagent needs to read for understanding, NOT files being created (they don't exist yet).</note>
 
-    <note>Verification types:</note>
-    <note>- **Command verification:** `<verify>{command}</verify>` - Executed automatically. Derive from directive `<validation type="command">` when available.</note>
-    <note>- **Manual verification:** `<verify>Manual: {description}</verify>` - Shown to user</note>
-    <note>- Tasks with `type="manual"` always use manual verification</note>
+    <note>Verification:</note>
+    <note>- `<verify>{command}</verify>` - Executed automatically after task completion. Derive from directive `<validation type="command">` when available.</note>
 
     <note>Task creation guidelines:
 1. ATOMIC: Each task = one logical change that leaves codebase working
-2. VERIFIABLE: Every task has explicit `<verify>` command or manual step
+2. VERIFIABLE: Every task has explicit `<verify>` command
 3. TRACEABLE: Reference specific files and FRs from spec
 4. ORDERED: Use `depends` to express prerequisites
 5. PATTERN-AWARE: Include `<pattern>` reference when following existing code
@@ -728,7 +714,7 @@ Creating implementation plan...
 
 Plan created: .festinalente/tasks/001/plan.xml
 - Complexity: medium
-- 4 implementation steps (structured format)
+- 3 implementation steps (structured format)
 - Testing strategy defined
 - 3 edge cases identified
 - 2 pitfalls documented
@@ -813,20 +799,6 @@ Next:
       <done>Change in one tab reflects in another tab</done>
     </task>
 
-    <task id="4" type="manual" depends="3">
-      <name>Final verification</name>
-      <files>N/A</files>
-      <requirements>FR1, FR2, FR3, FR4</requirements>
-      <pattern>N/A</pattern>
-      <action>
-        - Verify all acceptance criteria from task met
-        - Verify state persists across refresh
-        - Verify state syncs across tabs
-        - Verify no regressions in existing store functionality
-      </action>
-      <verify>Manual: Test all acceptance criteria</verify>
-      <done>All acceptance criteria pass</done>
-    </task>
   </tasks>
 
   <testing>

@@ -54,7 +54,7 @@ Move task from Planned to In Progress and execute the plan.
 <prohibited>
 - Do not skip plan steps or mark them complete without executing them
 - Do not implement tasks that haven't been planned
-- Do not ask the user to manually verify or test during implementation - manual testing happens in QA phase only
+- Do not ask the user to manually verify or test during implementation
 </prohibited>
 
 <process>
@@ -270,7 +270,7 @@ Spawning subagent...
 
     <substep name="build_subagent_prompt" outputs="subagentPrompt">
       <note>Build prompt from task elements - file refs only, no embedded content.</note>
-      <action>Extract task elements: id, name, context, pattern, action, verify, done, type</action>
+      <action>Extract task elements: id, name, context, pattern, action, verify, done</action>
       <action>Build prompt using template:</action>
 
       <prompt_template>
@@ -298,9 +298,6 @@ When complete, report:
 - FAILURE: {what failed and why}
       </prompt_template>
 
-      <branch condition="task.type is 'manual'">
-        <action>Append to prompt: "\n**Note:** This task has manual verification - implementation is complete when action is done, verification deferred to QA."</action>
-      </branch>
     </substep>
 
     <substep name="spawn_subagent">
@@ -374,11 +371,6 @@ To resume later:
           <branch condition="command fails">
             <action>Treat as FAILURE - trigger user question above</action>
           </branch>
-        </branch>
-        <branch condition="task.type is 'manual' OR task.verify starts with 'Manual:'">
-          <output>⏭ Manual verification deferred to QA</output>
-          <action>Update plan.xml: Add `completed="true" completed_at="{ISO timestamp}"` to the task element</action>
-          <action>Write updated plan file</action>
         </branch>
       </branch>
     </substep>
@@ -593,7 +585,7 @@ To save progress now:
 - If partial progress: `status: in-progress`
 - Plan file exists at `.festinalente/tasks/{taskId}/plan.xml`
 - Completed tasks have `completed="true"` attribute
-- Verification was run for each auto task
+- Verification was run for each task
 - Next steps shown to user
 </success_criteria>
 
@@ -609,10 +601,10 @@ Task 001 moved to In Progress
 
 Reading spec: .festinalente/tasks/001/spec.xml
 Reading plan: .festinalente/tasks/001/plan.xml
-Found 3 tasks, 0 completed, execution order: 1, 2, 3
+Found 2 tasks, 0 completed, execution order: 1, 2
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[1/3] Create auth routes file
+[1/2] Create auth routes file
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 **Files:** src/routes/auth.ts (create)
 **Requirements:** FR1
@@ -624,7 +616,7 @@ Running verification: npx tsc --noEmit
 Done criteria met: File exists and compiles
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[2/3] Add login endpoint
+[2/2] Add login endpoint
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 **Files:** src/routes/auth.ts (modify)
 **Requirements:** FR1
@@ -635,19 +627,9 @@ Running verification: npm run build
 ✓ Verification passed
 Done criteria met: Login endpoint responds to POST
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[3/3] Test login flow manually
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-**Files:** N/A
-**Requirements:** FR1
-**Pattern:** N/A
-
-⏭ Manual verification deferred: Test login with valid and invalid credentials
-Done criteria met: Implementation complete
-
 All implementation tasks complete. Moving to finalize.
 - Status: finalize
-- Files modified: 2 
+- Files modified: 2
 Next:
 /clear
 /festina-finalize 001

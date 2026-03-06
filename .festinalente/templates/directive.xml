@@ -59,9 +59,6 @@
   <verification>
     <!-- Command: executable verification step -->
     <command id="build" description="Build the project">npm run build</command>
-
-    <!-- Manual: human verification step -->
-    <manual id="review" description="Review changes manually"/>
   </verification>
 
   <!-- EXAMPLES: Concrete correct/violation illustrations -->
