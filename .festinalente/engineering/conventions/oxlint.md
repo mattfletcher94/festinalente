@@ -11,10 +11,6 @@ references: []
 uses: [systems/cli, systems/vscode-extension]
 paths: [.oxlintrc.json, package.json, turbo.json]
 updated: 2026-03-05
-verified: 2026-03-05
-code_refs:
-  - path: .oxlintrc.json
-    description: Root oxlint configuration with plugins, ignore patterns, categories, and rule overrides
 ---
 
 # Oxlint Convention

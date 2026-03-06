@@ -11,8 +11,6 @@ references: [patterns/dag-architecture, patterns/factory-di, patterns/command-re
 uses: []
 paths: [apps/festinalente/src/cli]
 updated: 2026-03-06
-verified: 2026-03-06
-code_refs: [apps/festinalente/src/cli/dispatcher.ts, apps/festinalente/src/cli/orchestrator.ts, apps/festinalente/src/cli/computers/task-resolver.computer.ts]
 ---
 
 # CLI System
@@ -43,7 +41,6 @@ The CLI system provides a single entry point (`dispatcher.ts`) that routes comma
 | ValidationHandler | XML/YAML validation | `handlers/validation.handler.ts` |
 | QueryHandler | Query operations | `handlers/query.handler.ts` |
 | FileSystemCapability | File I/O operations | `capabilities/file-system.capability.ts` |
-| GitCapability | Git operations | `capabilities/git.capability.ts` |
 | XmlParserComputer | XML parsing | `computers/xml-parser.computer.ts` |
 | YamlParserComputer | YAML parsing | `computers/yaml-parser.computer.ts` |
 | SearchComputer | Fuzzy search with Fuse.js | `computers/search.computer.ts` |

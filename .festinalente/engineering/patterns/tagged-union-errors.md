@@ -11,8 +11,6 @@ references: []
 uses: [systems/cli]
 paths: [apps/festinalente/src/cli]
 updated: 2026-03-01
-verified: 2026-03-01
-code_refs: [apps/festinalente/src/cli/capabilities/file-system.capability.ts, apps/festinalente/src/cli/types.ts]
 ---
 
 # Tagged Union Error Handling

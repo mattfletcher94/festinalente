@@ -11,8 +11,6 @@ references: [patterns/dag-architecture]
 uses: [systems/cli, systems/vscode-extension]
 paths: [apps/festinalente/src/cli, apps/vscode/src]
 updated: 2026-03-01
-verified: 2026-03-01
-code_refs: [apps/festinalente/src/cli/handlers/config.handler.ts]
 ---
 
 # Factory Function Dependency Injection

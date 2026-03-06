@@ -11,8 +11,6 @@ references: []
 uses: []
 paths: []
 updated: YYYY-MM-DD
-verified: YYYY-MM-DD
-code_refs: []
 ---
 
 # {Convention Name}

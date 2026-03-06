@@ -11,8 +11,6 @@ references: [patterns/factory-di]
 uses: [systems/cli, systems/vscode-extension]
 paths: [apps/festinalente/src/cli, apps/vscode/src]
 updated: 2026-03-01
-verified: 2026-03-01
-code_refs: [apps/festinalente/src/cli/orchestrator.ts, apps/vscode/src/extension.ts]
 ---
 
 # DAG Architecture Pattern
@@ -145,7 +143,6 @@ flowchart TB
 export function createCliOrchestrator(): CliOrchestrator {
   // Layer 4: Create capabilities (I/O)
   const fs = createFileSystemCapability();
-  const git = createGitCapability();
 
   // Layer 5: Create computers (pure logic)
   const xmlParser = createXmlParserComputer();

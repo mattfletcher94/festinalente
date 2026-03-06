@@ -11,8 +11,6 @@ references: [systems/content-build, systems/cli, systems/vscode-extension]
 uses: []
 paths: [apps/festinalente, apps/vscode]
 updated: 2026-03-01
-verified: 2026-03-01
-code_refs: []
 ---
 
 # Package Distribution

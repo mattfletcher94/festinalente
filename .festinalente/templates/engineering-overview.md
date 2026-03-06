@@ -9,8 +9,6 @@ aliases: []
 boundary: "{What this overview does NOT cover}"
 paths: []
 updated: YYYY-MM-DD
-verified: YYYY-MM-DD
-code_refs: []
 ---
 
 # {Project Name} Engineering Overview

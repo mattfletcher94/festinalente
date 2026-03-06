@@ -11,8 +11,6 @@ references: [patterns/dag-architecture, patterns/factory-di, patterns/tagged-uni
 uses: []
 paths: [apps/festinalente, apps/vscode]
 updated: 2026-03-01
-verified: 2026-03-01
-code_refs: []
 ---
 
 # Festina Lente Engineering Overview
