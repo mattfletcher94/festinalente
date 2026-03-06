@@ -29,3 +29,6 @@ npm-debug.log*
 .turbo/cache/
 
 .npmrc
+
+.festinalente/tasks/
+.festinalente/quick/
