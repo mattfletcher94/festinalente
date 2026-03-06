@@ -44,6 +44,7 @@ export interface DirectiveValidationError {
   readonly severity: DirectiveValidationSeverity;
   readonly elementTag: string;
   readonly elementId: string | undefined;
+  readonly elementIndex: number | undefined;
 }
 
 /**

@@ -61,11 +61,22 @@ function mapSeverity(severity: DirectiveValidationSeverity): vscode.DiagnosticSe
  * @param elementId - The optional element id attribute to match.
  * @returns The 0-based line number, or 0 as fallback.
  */
-function findLineForElement(text: string, elementTag: string, elementId: string | undefined): number {
+function escapeRegExp(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function findLineForElement(
+  text: string,
+  elementTag: string,
+  elementId: string | undefined,
+  elementIndex: number | undefined
+): number {
   const lines = text.split('\n');
+  const escapedTag = escapeRegExp(elementTag);
 
   if (elementId) {
-    const idPattern = new RegExp(`<${elementTag}\\b[^>]*id\\s*=\\s*"${elementId}"`);
+    const escapedId = escapeRegExp(elementId);
+    const idPattern = new RegExp(`<${escapedTag}\\b[^>]*id\\s*=\\s*"${escapedId}"`);
     for (let i = 0; i < lines.length; i++) {
       if (idPattern.test(lines[i])) {
         return i;
@@ -73,10 +84,22 @@ function findLineForElement(text: string, elementTag: string, elementId: string 
     }
   }
 
-  const tagPattern = new RegExp(`<${elementTag}(\\s|>)`);
-  for (let i = 0; i < lines.length; i++) {
-    if (tagPattern.test(lines[i])) {
-      return i;
+  const tagPattern = new RegExp(`<${escapedTag}(\\s|>)`);
+  if (elementIndex !== undefined) {
+    let count = 0;
+    for (let i = 0; i < lines.length; i++) {
+      if (tagPattern.test(lines[i])) {
+        if (count === elementIndex) {
+          return i;
+        }
+        count++;
+      }
+    }
+  } else {
+    for (let i = 0; i < lines.length; i++) {
+      if (tagPattern.test(lines[i])) {
+        return i;
+      }
     }
   }
 
@@ -110,7 +133,7 @@ export function createDirectiveDiagnosticsCapability(
     }
 
     const diagnostics: vscode.Diagnostic[] = result.errors.map((error) => {
-      const line = findLineForElement(content, error.elementTag, error.elementId);
+      const line = findLineForElement(content, error.elementTag, error.elementId, error.elementIndex);
       const lineText = document.lineAt(line).text;
       const range = new vscode.Range(line, 0, line, lineText.length);
 

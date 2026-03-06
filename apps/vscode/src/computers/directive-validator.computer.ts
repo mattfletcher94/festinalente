@@ -79,9 +79,10 @@ export function createDirectiveValidatorComputer(): CreateDirectiveValidatorComp
       message: string,
       severity: DirectiveValidationError['severity'],
       elementTag: string,
-      elementId: string | undefined
+      elementId: string | undefined,
+      elementIndex?: number | undefined
     ): void {
-      errors.push({ message, severity, elementTag, elementId });
+      errors.push({ message, severity, elementTag, elementId, elementIndex });
     }
 
     let parsed: Record<string, unknown>;
@@ -95,7 +96,8 @@ export function createDirectiveValidatorComputer(): CreateDirectiveValidatorComp
             message: `XML parse error: ${err instanceof Error ? err.message : String(err)}`,
             severity: 'error',
             elementTag: 'directive',
-            elementId: undefined
+            elementId: undefined,
+            elementIndex: undefined
           }
         ]
       };
@@ -110,7 +112,8 @@ export function createDirectiveValidatorComputer(): CreateDirectiveValidatorComp
             message: 'Missing root <directive> element',
             severity: 'error',
             elementTag: 'directive',
-            elementId: undefined
+            elementId: undefined,
+            elementIndex: undefined
           }
         ]
       };
@@ -163,9 +166,15 @@ export function createDirectiveValidatorComputer(): CreateDirectiveValidatorComp
     const allIds = new Map<string, string>();
     const duplicateIds: Array<{ readonly id: string; readonly elementTag: string }> = [];
 
-    function checkId(id: string | undefined, elementTag: string): void {
+    function checkId(id: string | undefined, elementTag: string, elementIndex: number): void {
       if (!id) {
-        addError(`Missing required id attribute in <${elementTag}>`, 'error', elementTag, undefined);
+        addError(
+          `Missing required id attribute in <${elementTag}>`,
+          'error',
+          elementTag,
+          undefined,
+          elementIndex
+        );
         return;
       }
       if (allIds.has(id)) {
@@ -179,8 +188,8 @@ export function createDirectiveValidatorComputer(): CreateDirectiveValidatorComp
     if (context) {
       const principles = context['principle'] as Array<Record<string, unknown>> | undefined;
       if (principles) {
-        for (const principle of principles) {
-          checkId(principle['id'] as string | undefined, 'principle');
+        for (let i = 0; i < principles.length; i++) {
+          checkId(principles[i]['id'] as string | undefined, 'principle', i);
         }
       }
     }
@@ -190,9 +199,10 @@ export function createDirectiveValidatorComputer(): CreateDirectiveValidatorComp
     if (process) {
       const rules = process['rule'] as Array<Record<string, unknown>> | undefined;
       if (rules) {
-        for (const rule of rules) {
+        for (let ruleIdx = 0; ruleIdx < rules.length; ruleIdx++) {
+          const rule = rules[ruleIdx];
           const ruleId = rule['id'] as string | undefined;
-          checkId(ruleId, 'rule');
+          checkId(ruleId, 'rule', ruleIdx);
 
           const phase = rule['phase'] as string | undefined;
           if (!phase) {
@@ -224,9 +234,10 @@ export function createDirectiveValidatorComputer(): CreateDirectiveValidatorComp
     if (validation) {
       const checks = validation['check'] as Array<Record<string, unknown>> | undefined;
       if (checks) {
-        for (const check of checks) {
+        for (let checkIdx = 0; checkIdx < checks.length; checkIdx++) {
+          const check = checks[checkIdx];
           const checkId_ = check['id'] as string | undefined;
-          checkId(checkId_, 'check');
+          checkId(checkId_, 'check', checkIdx);
 
           const type = check['type'] as string | undefined;
           if (!type) {
