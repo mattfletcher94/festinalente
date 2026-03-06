@@ -1,7 +1,5 @@
 {
-  "outputStyle": "concise",
   "permissions": {
-    "defaultMode": "bypassPermissions",
     "allow": [
       "Bash(pnpm *)",
       "Bash(npm *)",
@@ -11,7 +9,10 @@
       "Bash(gh *)",
       "Bash(code *)",
       "WebFetch",
-      "WebSearch"
-    ]
-  }
+      "WebSearch",
+      "mcp__github__get_file_contents"
+    ],
+    "defaultMode": "bypassPermissions"
+  },
+  "outputStyle": "concise"
 }

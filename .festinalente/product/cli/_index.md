@@ -10,7 +10,7 @@ boundary: "Does not include AI workflows (see skills domain) or GUI features (se
 contains: [cli/tasks, cli/search, cli/validation, cli/context]
 references: [skills/_index, vscode/_index]
 uses: [systems/cli, patterns/command-registry]
-updated: 2026-03-01
+updated: 2026-03-06
 ---
 
 # CLI
@@ -67,6 +67,7 @@ This domain does NOT include AI-assisted workflows. For that, see [skills](../sk
 
 - **JSON Output**: All commands return structured JSON for easy parsing
 - **ID Resolution**: Commands handle ID-to-path mapping (e.g., `auth/login` → `.festinalente/product/auth/login.md`)
+- **Prefix Resolution**: Task commands accept numeric prefixes (e.g., `001`) and resolve them to the matching full task folder ID, so callers don't need to know the full directory name
 - **Hybrid Search**: Combines exact keyword matching with fuzzy search and boundary penalties
 
 ## Relationships

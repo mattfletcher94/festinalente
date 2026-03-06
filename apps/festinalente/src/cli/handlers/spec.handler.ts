@@ -8,6 +8,7 @@ import type { CliCommand, CliResult } from '../types';
 import { error, success } from '../types';
 import type { FileSystemCapability } from '../capabilities/file-system.capability';
 import type { XmlParserComputer } from '../computers/xml-parser.computer';
+import type { TaskResolverComputer } from '../computers/task-resolver.computer';
 import { defineCommand } from '../registry';
 
 const TASKS_DIR = '.festinalente/tasks';
@@ -43,6 +44,7 @@ export interface PlanInfo {
 export interface SpecHandlerDeps {
   readonly fs: FileSystemCapability;
   readonly xmlParser: XmlParserComputer;
+  readonly taskResolver: TaskResolverComputer;
 }
 
 /**
@@ -61,7 +63,17 @@ export interface SpecHandler {
  * @returns A SpecHandler instance.
  */
 export function createSpecHandler(deps: SpecHandlerDeps): SpecHandler {
-  const { fs, xmlParser } = deps;
+  const { fs, xmlParser, taskResolver } = deps;
+
+  /**
+   * Resolve a task ID (prefix or full) to the actual folder name.
+   */
+  function resolveTaskId(id: string): string | null {
+    if (!fs.exists(TASKS_DIR)) return null;
+    const result = fs.listDirectories(TASKS_DIR);
+    if (!result.ok) return null;
+    return taskResolver.resolveTaskFolder(result.value, id);
+  }
 
   /**
    * Find spec command.
@@ -77,10 +89,11 @@ export function createSpecHandler(deps: SpecHandlerDeps): SpecHandler {
       return error(`${TASKS_DIR}/ directory not found. Run npx festinalente first.`);
     }
 
-    const specPath = fs.joinPath(TASKS_DIR, id, 'spec.xml').replace(/\\/g, '/');
+    const resolvedId = resolveTaskId(id) ?? id;
+    const specPath = fs.joinPath(TASKS_DIR, resolvedId, 'spec.xml').replace(/\\/g, '/');
 
     if (!fs.exists(specPath)) {
-      return error(`Spec for task ${id} not found in ${TASKS_DIR}/${id}/`);
+      return error(`No task found matching '${id}'`);
     }
 
     const readResult = fs.readFile(specPath);
@@ -91,10 +104,10 @@ export function createSpecHandler(deps: SpecHandlerDeps): SpecHandler {
     const parsed = xmlParser.parseSpecXml(readResult.value);
 
     return success({
-      id,
+      id: resolvedId,
       filename: 'spec.xml',
       path: specPath,
-      task: parsed.task || id,
+      task: parsed.task || resolvedId,
       created: parsed.created,
       updated: parsed.updated
     });
@@ -114,10 +127,11 @@ export function createSpecHandler(deps: SpecHandlerDeps): SpecHandler {
       return error(`${TASKS_DIR}/ directory not found. Run npx festinalente first.`);
     }
 
-    const planPath = fs.joinPath(TASKS_DIR, id, 'plan.xml').replace(/\\/g, '/');
+    const resolvedId = resolveTaskId(id) ?? id;
+    const planPath = fs.joinPath(TASKS_DIR, resolvedId, 'plan.xml').replace(/\\/g, '/');
 
     if (!fs.exists(planPath)) {
-      return error(`Plan for task ${id} not found in ${TASKS_DIR}/${id}/`);
+      return error(`No task found matching '${id}'`);
     }
 
     const readResult = fs.readFile(planPath);
@@ -128,10 +142,10 @@ export function createSpecHandler(deps: SpecHandlerDeps): SpecHandler {
     const parsed = xmlParser.parsePlanXml(readResult.value);
 
     return success({
-      id,
+      id: resolvedId,
       filename: 'plan.xml',
       path: planPath,
-      task: parsed.task || id,
+      task: parsed.task || resolvedId,
       spec: parsed.spec,
       status: parsed.status,
       iteration: parsed.iteration

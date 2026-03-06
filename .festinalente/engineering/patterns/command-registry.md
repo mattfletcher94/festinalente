@@ -11,7 +11,7 @@ references: [patterns/factory-di, patterns/tagged-union-errors]
 uses: [systems/cli]
 paths: [apps/festinalente/src/cli]
 updated: 2026-03-01
-verified: 2026-03-01
+verified: 2026-03-06
 code_refs: [apps/festinalente/src/cli/registry.ts]
 ---
 

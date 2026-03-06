@@ -9,6 +9,7 @@ import type { DocValidationResult, ValidationComputer } from '../computers/valid
 import { error, getStringFlag, parseArgs, success } from '../types';
 import type { FileSystemCapability } from '../capabilities/file-system.capability';
 import type { YamlParserComputer } from '../computers/yaml-parser.computer';
+import type { TaskResolverComputer } from '../computers/task-resolver.computer';
 import { defineCommand } from '../registry';
 
 const TASKS_DIR = '.festinalente/tasks';
@@ -88,6 +89,7 @@ export interface ValidationHandlerDeps {
   readonly fs: FileSystemCapability;
   readonly yamlParser: YamlParserComputer;
   readonly validation: ValidationComputer;
+  readonly taskResolver: TaskResolverComputer;
 }
 
 /**
@@ -108,7 +110,7 @@ export interface ValidationHandler {
  * @returns A ValidationHandler instance.
  */
 export function createValidationHandler(deps: ValidationHandlerDeps): ValidationHandler {
-  const { fs, yamlParser, validation } = deps;
+  const { fs, yamlParser, validation, taskResolver } = deps;
 
   /**
    * Get XML files for a quick task.
@@ -137,7 +139,11 @@ export function createValidationHandler(deps: ValidationHandlerDeps): Validation
       return getXmlFilesForQuick(quickId);
     }
 
-    const taskDir = fs.joinPath(TASKS_DIR, taskId);
+    const dirsResult = fs.listDirectories(TASKS_DIR);
+    const resolvedId = dirsResult.ok
+      ? taskResolver.resolveTaskFolder(dirsResult.value, taskId) ?? taskId
+      : taskId;
+    const taskDir = fs.joinPath(TASKS_DIR, resolvedId);
     if (!fs.exists(taskDir) || !fs.isDirectory(taskDir)) {
       return null;
     }
