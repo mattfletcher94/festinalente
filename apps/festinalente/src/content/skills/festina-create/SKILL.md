@@ -411,6 +411,51 @@ And their session is established
     </example_code>
   </step>
 
+  <step name="refine_doc_links">
+    <note>After Q&amp;A, the combined problem, value, and acceptance criteria text contains richer context
+(system names, domain terms, technical concepts) than the title alone. Re-search to catch docs
+the initial title-based search may have missed.</note>
+
+    <action>Extract keywords from the combined problem, value, and acceptance criteria text.
+Focus on nouns, verbs, domain terms, and technical terms — skip stopwords and generic phrases.</action>
+
+    <command description="Search product docs with full-context keywords">node .festinalente/scripts/festinalente.cjs search-product {keyword1} {keyword2} ...</command>
+    <action>Filter results to score &gt;= 0.5. Remove any doc IDs already present in the affects field (from the earlier title-based search).</action>
+
+    <command description="Search engineering docs with full-context keywords">node .festinalente/scripts/festinalente.cjs search-engineering {keyword1} {keyword2} ...</command>
+    <action>Filter results to score &gt;= 0.5. Remove any doc IDs already present in the engineering field (from the earlier title-based search).</action>
+
+    <branch condition="no new matches found from either search">
+      <action>Silently skip — do not prompt the user (FR7)</action>
+    </branch>
+
+    <branch condition="new product doc matches found">
+      <action>Check if any match covers the same domain as a stub doc created earlier (in create_stub_doc).
+If so, mark the stub link for replacement with the real doc link (FR8).</action>
+      <action>Present remaining new matches via AskUserQuestion tool with:
+        - header: "New docs"
+        - question: "Full-context search found additional product docs. Which should be linked?"
+        - options: Each match as label: "{id}" with description: "Score: {score} | {tldr}"
+        - multiSelect: true
+      </action>
+      <action>Add confirmed matches to the affects field. If a stub link was marked for replacement, replace it with the real doc link (FR8).</action>
+    </branch>
+
+    <branch condition="new engineering doc matches found">
+      <action>Check if any match covers the same domain as a stub doc created earlier (in create_engineering_stub_doc).
+If so, mark the stub link for replacement with the real doc link (FR8).</action>
+      <action>Present remaining new matches via AskUserQuestion tool with:
+        - header: "New eng docs"
+        - question: "Full-context search found additional engineering docs. Which should be linked?"
+        - options: Each match as label: "{id}" with description: "Score: {score} | {tldr}"
+        - multiSelect: true
+      </action>
+      <action>Add confirmed matches to the engineering field. If a stub link was marked for replacement, replace it with the real doc link (FR8).</action>
+    </branch>
+
+    <action>Ensure no duplicate doc IDs in affects or engineering after all updates (FR9).</action>
+  </step>
+
   <step name="create_task_file">
     <warning>Write to `.festinalente/tasks/` — NOT `.festinalente/product/`</warning>
     <action>Read template from `.festinalente/templates/task.xml`</action>
@@ -452,6 +497,7 @@ And their session is established
 - Task XML has `<acceptance-criteria>` section with Gherkin format
 - If new feature: stub doc exists at `.festinalente/product/{domain}/{slug}.md` with `stub: true`
 - If new engineering pattern: stub doc exists at `.festinalente/engineering/{type}s/{slug}.md` with `stub: true`
+- If refined search found new docs: affects/engineering fields include user-confirmed matches
 - Next steps point to `/festina-scope`
 </success_criteria>
 
@@ -589,9 +635,14 @@ I think I have enough information to create this task.
 
 Is there anything else? > That's good.
 
+Refining doc links with full context...
+Full-context search found additional product docs:
+  - infra/rate-limiting (score: 0.61) | Rate limiting and throttling policies
+Which should be linked? > infra/rate-limiting
+
 Task 004 created in Backlog
 - Labels: [feature]
-- Affects: performance/api-caching (stub created)
+- Affects: performance/api-caching (stub created), infra/rate-limiting
 - Engineering: systems/api-cache (stub created)
 - Files:
   - .festinalente/tasks/004/task.xml
