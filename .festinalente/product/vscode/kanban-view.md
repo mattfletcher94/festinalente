@@ -4,12 +4,12 @@ title: "Kanban TreeView"
 type: feature
 tldr: "Sidebar TreeView showing tasks grouped by workflow status"
 summary: "The kanban TreeView displays tasks in collapsible status groups with labels, provides click-to-open navigation, and auto-refreshes when task files change."
-keywords: [kanban, treeview, sidebar, tasks, status, groups]
+keywords: [kanban, treeview, sidebar, tasks, status, groups, welcome, empty-state, init]
 aliases: [sidebar, task-tree]
 boundary: "Does not execute skills - click actions open terminals"
 references: [skills/overview]
 uses: [systems/vscode-extension, systems/cli]
-updated: 2026-03-05
+updated: 2026-03-06
 ---
 
 # Kanban TreeView
@@ -21,6 +21,21 @@ updated: 2026-03-05
 The kanban TreeView is the visual counterpart to `/festina-overview`. It shows all tasks grouped by status in a collapsible tree structure.
 
 **Summary:** See your board without leaving VSCode.
+
+## Welcome / Empty State
+
+When `.festinalente/` does not exist in the workspace, the sidebar shows a welcome state instead of the full kanban view:
+
+```
+FESTINA LENTE
+└── TASKS
+    └── Get started by initializing Festina Lente:
+        npx festinalente init
+```
+
+- Only the Tasks view is visible; Quicks, Config, Directives, Product Docs, and Engineering Docs views are hidden
+- When the user runs `npx festinalente init` and `.festinalente/` is created, the sidebar automatically refreshes to show the full kanban view (no reload required)
+- The directory watcher disposes itself after initialization
 
 ## UI Structure
 
