@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<directive name="github" version="1"
-           created="2026-03-05" updated="2026-03-05">
+<directive name="github" version="2"
+           created="2026-03-05" updated="2026-03-06">
   <description>
     Full GitHub team workflow. Replaces git.xml — owns ALL git and GitHub operations.
     Teams of 10-30: Issues for tracking, draft PRs at plan, WIP pushes, review-gated merges.
@@ -20,7 +20,12 @@
       They are deleted before merge. Main only receives implementation code.
       GitHub Issues are the team's view into task state.
     </principle>
-    <principle id="GH2">Conventional commits: type(scope): description</principle>
+    <principle id="GH2">
+      Conventional commits: type(scope): description.
+      Scope is the GitHub issue number (e.g., #26), not the festinalente task slug.
+      {issueNumber} = the number from github-issue attribute on task.xml (e.g., "#26" → use "#26").
+      The issue is created before the first commit so the number is always available.
+    </principle>
     <principle id="GH3">All merges through GitHub PRs (squash). Never merge locally to main.</principle>
     <principle id="GH4">Every task syncs to a GitHub Issue for team visibility.</principle>
     <principle id="GH5">Every save pushes. Draft PR reflects WIP automatically.</principle>
@@ -44,20 +49,19 @@
       2. Derive branch type from task label's commit-type in workflow.yaml:
          feature→feat, bug→fix, refactor→refactor, docs→docs. Default: feat.
          Branch name: {type}/{id} (e.g., feat/022-add-dark-mode, fix/023-login-bug).
-      3. Create branch:
-         git checkout -b {type}/{id}
-         Add github-branch="{type}/{id}" to task element in task.xml.
-      4. Stage and commit task.xml (and any stub docs):
-         git add .festinalente/tasks/{id}/task.xml {newDocPaths}
-         git commit -m "docs({id}): create - {title}"
-      5. Sync to GitHub Issue:
+      3. Sync to GitHub Issue FIRST (before branch/commit, so issue number is available):
          IF $ARGUMENTS is an issue number (#N):
            Fetch via mcp__GitHub__issue_read, add github-issue="#N" and github-url to task.xml.
          ELSE:
            Create via mcp__GitHub__issue_write (title: task title, body: task.xml in xml fence,
            labels: [task label mapped to GitHub label], assignees: [authenticated user]).
            Add github-issue="#N" and github-url to task.xml.
-         Amend commit: git add .festinalente/tasks/{id}/task.xml &amp;&amp; git commit --amend --no-edit
+      4. Create branch:
+         git checkout -b {type}/{id}
+         Add github-branch="{type}/{id}" to task element in task.xml.
+      5. Stage and commit task.xml (and any stub docs):
+         git add .festinalente/tasks/{id}/task.xml {newDocPaths}
+         git commit -m "docs({issueNumber}): create task"
       6. git push -u origin {type}/{id}
     </rule>
 
@@ -65,7 +69,7 @@
       1. Read github-branch from task.xml. Verify current branch matches. If not, error and exit.
       2. Commit and push:
          git add .festinalente/tasks/{id}/spec.xml .festinalente/tasks/{id}/task.xml
-         git commit -m "docs({id}): scope - {title}"
+         git commit -m "docs({issueNumber}): scope"
          git push
       3. Comment on GitHub Issue with full spec:
          mcp__GitHub__add_issue_comment — body: "## Scoped\n\nBranch: `{github-branch}`\n\n```xml\n{spec.xml contents}\n```"
@@ -75,7 +79,7 @@
       1. Read github-branch from task.xml. Verify current branch matches. If not, error and exit.
       2. Commit and push:
          git add .festinalente/tasks/{id}/plan.xml .festinalente/tasks/{id}/task.xml
-         git commit -m "docs({id}): plan - {title}"
+         git commit -m "docs({issueNumber}): plan"
          git push
       3. Comment on GitHub Issue with full plan:
          mcp__GitHub__add_issue_comment — body: "## Planned\n\n```xml\n{plan.xml contents}\n```"
@@ -83,7 +87,7 @@
          mcp__GitHub__create_pull_request — title: "{title}", head: {github-branch}, base: main,
          draft: true, body: "Closes #{github-issue}\n\n_Draft — not yet implemented._"
       5. Add github-pr="#{N}" to task.xml, commit and push:
-         git commit -m "docs({id}): draft pr created - {title}" &amp;&amp; git push
+         git commit -m "docs({issueNumber}): draft pr" &amp;&amp; git push
     </rule>
 
     <rule id="GH-IMPL" phase="implement">
@@ -96,7 +100,7 @@
       2. Check for changes: git status &amp;&amp; git diff --name-only. If none, warn and exit.
       3. Stage, commit, push:
          git add {changed files} .festinalente/tasks/{id}/plan.xml
-         git commit -m "wip({id}): {progress summary}"
+         git commit -m "wip({issueNumber}): {progress summary}"
          git push
     </rule>
 
@@ -105,20 +109,20 @@
       2. Check for uncommitted changes. Display files. If none, ask whether to proceed.
       3. Determine commit type from task label via workflow.yaml:
          bug→fix, feature→feat, docs→docs, refactor→refactor. Default: feat.
-      4. Commit: git add {files} .festinalente/ &amp;&amp; git commit -m "{type}({id}): {title}"
+      4. Commit: git add {files} .festinalente/ &amp;&amp; git commit -m "{type}({issueNumber}): {short description of changes}"
       5. If directive check failed and auto-fixed:
-         git add {files} &amp;&amp; git commit -m "docs({id}): check-retry - {title}"
+         git add {files} &amp;&amp; git commit -m "fix({issueNumber}): check auto-fix"
          Restart all checks.
       6. After doc updates, commit docs:
          git add .festinalente/product/ .festinalente/engineering/ .festinalente/glossary.yaml
-         git commit -m "docs({id}): {product|engineering|product+engineering} - {summary}"
+         git commit -m "docs({issueNumber}): update {product|engineering|product+engineering} docs"
       7. git push
     </rule>
 
     <rule id="GH-FIN-UPDATE-PR" phase="finalize">
       Update the PR title and body via mcp__GitHub__update_issue (PRs are issues in GitHub's API):
-      1. Set title to the implementation commit message: "{type}({id}): {title}"
-         (same commit type/scope/title used in GH-FIN-COMMIT step 4).
+      1. Set title to: "{type}({issueNumber}): {short description of changes}"
+         (same commit type and description used in GH-FIN-COMMIT step 4).
       2. Set body to:
          "Closes #{github-issue}\n\n## Summary\n\n{bullet list of changes}\n\n## Test plan\n\n{checklist from acceptance criteria}"
       3. Use mcp__GitHub__update_issue with issue_number={PR number from github-pr}.
@@ -146,10 +150,10 @@
     <rule id="GH-FIN-MERGE" phase="finalize">
       1. Update task status="done", add completed date.
          git add .festinalente/tasks/{id}/task.xml
-         git commit -m "docs({id}): done - {title}"
+         git commit -m "docs({issueNumber}): done"
       2. Remove task artifacts from branch:
          git rm -r .festinalente/tasks/{id}/
-         git commit -m "chore({id}): cleanup - {title}"
+         git commit -m "chore({issueNumber}): cleanup artifacts"
       3. git push
       4. Output: "Ready to merge: https://github.com/{owner}/{repo}/pull/{N}
          Publish the draft and squash-merge. Issue #{github-issue} will auto-close."
@@ -160,7 +164,7 @@
       1. Read github-branch from task.xml. Verify current branch matches. If not, error and exit.
       2. Commit and push:
          git add .festinalente/tasks/{id}/task.xml .festinalente/tasks/{id}/plan.xml
-         git commit -m "docs({id}): rework - {title}"
+         git commit -m "docs({issueNumber}): rework"
          git push
       3. If github-pr exists: comment on PR with rework reason via mcp__GitHub__add_issue_comment.
     </rule>
@@ -180,12 +184,12 @@
     <rule id="GH-QUICK" phase="quick">
       1. Verify on main. If not, error and exit.
       2. Create branch: git checkout -b quick/{id} (error if exists).
-      3. After implementation: git add . &amp;&amp; git commit -m "quick({id}): {title}"
+      3. After implementation: git add . &amp;&amp; git commit -m "quick({issueNumber}): {short description}"
       4. After quick.xml update: git add .festinalente/quick/{id}/quick.xml &amp;&amp; git commit --amend --no-edit
       5. After doc updates (if any): git add .festinalente/product/ .festinalente/engineering/ .festinalente/quick/{id}/ &amp;&amp; git commit --amend --no-edit
       6. Push: git push -u origin quick/{id}
       7. Create PR:
-         mcp__GitHub__create_pull_request — title: "quick({id}): {title}", head: quick/{id}, base: main.
+         mcp__GitHub__create_pull_request — title: "quick({issueNumber}): {short description}", head: quick/{id}, base: main.
          Output: "PR ready: https://github.com/{owner}/{repo}/pull/{N} — squash-merge in GitHub UI."
          EXIT.
     </rule>
@@ -218,7 +222,7 @@
     </check>
     <check id="V-GH2" type="checklist" severity="warning">
       <item>Branch verified at skill start</item>
-      <item>Commits use conventional format: type(scope): description</item>
+      <item>Commits use conventional format: type(#issueNumber): description</item>
       <item>No uncommitted changes remain (unless implement phase)</item>
       <item>GitHub issue linked (github-issue attribute on task)</item>
       <item>Branch name matches {type}/{id} pattern</item>
@@ -239,17 +243,43 @@
     </example>
     <example ref="GH2" type="correct">
       <code><![CDATA[
+# Task: 022-add-dark-mode, GitHub issue: #42
 # Full commit history (all on feat/022-add-dark-mode):
-docs(022-add-dark-mode): create - Add dark mode toggle
-docs(022-add-dark-mode): scope - Add dark mode toggle
-docs(022-add-dark-mode): plan - Add dark mode toggle
-docs(022-add-dark-mode): draft pr created - Add dark mode toggle
-wip(022-add-dark-mode): completed toggle and theme provider
-feat(022-add-dark-mode): Add dark mode toggle
-docs(022-add-dark-mode): product+engineering - dark mode docs
-docs(022-add-dark-mode): done - Add dark mode toggle
-chore(022-add-dark-mode): cleanup - Add dark mode toggle
+docs(#42): create task
+docs(#42): scope
+docs(#42): plan
+docs(#42): draft pr
+wip(#42): add toggle component and theme provider
+feat(#42): add dark mode toggle
+docs(#42): update product+engineering docs
+docs(#42): done
+chore(#42): cleanup artifacts
 # ↑ deletes task.xml, spec.xml, plan.xml before merge
+
+# PR title (= squash commit on main):
+# feat(#42): add dark mode toggle
+      ]]></code>
+    </example>
+    <example ref="GH2" type="violation">
+      <code><![CDATA[
+# WRONG: full slug in scope
+docs(022-add-dark-mode): create - Add dark mode toggle
+feat(022-add-dark-mode): Add dark mode toggle
+# CORRECT: GitHub issue number only
+docs(#42): create task
+feat(#42): add dark mode toggle
+
+# WRONG: festinalente task number in scope
+feat(022): add dark mode toggle
+# CORRECT: GitHub issue number
+feat(#42): add dark mode toggle
+
+# WRONG: repeating full title on every workflow commit
+docs(#42): scope - Add dark mode toggle
+docs(#42): plan - Add dark mode toggle
+# CORRECT: workflow commits are terse
+docs(#42): scope
+docs(#42): plan
       ]]></code>
     </example>
     <example ref="GH3" type="violation">
