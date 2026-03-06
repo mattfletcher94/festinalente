@@ -3689,10 +3689,6 @@ const keywordsSchema = arrayType(stringType()).min(1, "At least one keyword is r
 */
 const minScoreSchema = coerce.number().min(0).max(1).default(.3);
 /**
-* Zod schema for stale-days argument.
-*/
-const staleDaysSchema = coerce.number().positive().default(30);
-/**
 * Zod schema for doc type filter.
 */
 const docTypeSchema = enumType(["product", "engineering"]).optional();
