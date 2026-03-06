@@ -1,0 +1,40 @@
+<task id="034-welcome-empty-state-in-sidebar-when-festinalente-n" status="finalize" priority="high" created="2026-03-05" updated="2026-03-06" github-branch="feat/034-welcome-empty-state-in-sidebar-when-festinalente-n" github-issue="#26" github-url="https://github.com/mattfletcher94/festinalente/issues/26" github-pr="#27">
+  <title>Welcome empty state in sidebar when festinalente not initialized</title>
+
+  <labels>
+    <label>feature</label>
+  </labels>
+
+  <refs spec="tasks/034-welcome-empty-state-in-sidebar-when-festinalente-n/spec.xml" plan="tasks/034-welcome-empty-state-in-sidebar-when-festinalente-n/plan.xml"/>
+
+  <affects>
+    <doc id="vscode/kanban-view"/>
+  </affects>
+
+  <engineering>
+  </engineering>
+
+  <description>Add a welcome/empty state to the VSCode sidebar when the .festinalente/ directory does not exist, guiding new users to initialize with npx festinalente init.</description>
+
+  <problem>When a user opens the VSCode extension in a project that hasn't been initialized with Festina Lente (no .festinalente/ directory), the sidebar shows nothing useful. There is no guidance on how to get started, leaving users confused about what to do next.</problem>
+
+  <value>First-run experience matters. A clear welcome state reduces friction for new users, shows them exactly how to initialize the project, and makes the extension feel polished rather than broken when .festinalente/ doesn't exist yet.</value>
+
+  <acceptance-criteria>
+    Given a workspace where .festinalente/ directory does NOT exist
+    When the user opens the Festina Lente sidebar
+    Then a welcome state is displayed with a "FESTINA LENTE" heading
+    And a tree item showing "Get started: npx festinalente init"
+
+    Given a workspace where .festinalente/ directory exists
+    When the user opens the Festina Lente sidebar
+    Then the normal kanban view is displayed as usual
+
+    Given a workspace where .festinalente/ directory does NOT exist
+    And the user runs npx festinalente init (directory appears)
+    When the file system watcher detects the new directory
+    Then the sidebar automatically refreshes to show the kanban view
+  </acceptance-criteria>
+
+  <notes></notes>
+</task>
