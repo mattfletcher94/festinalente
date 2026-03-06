@@ -180,6 +180,7 @@ function initializeOrchestrators(
   context.subscriptions.push(docsOrch.createEngineeringDocsWatcher(festinalenteDir));
   context.subscriptions.push(configOrch.createFileWatcher(festinalenteDir));
   context.subscriptions.push(directivesOrch.createFileWatcher(festinalenteDir));
+  context.subscriptions.push(directivesOrch.diagnosticsDisposable);
 
   // --- Set initial context ---
 

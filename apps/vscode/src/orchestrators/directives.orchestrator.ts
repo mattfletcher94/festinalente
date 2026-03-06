@@ -9,7 +9,9 @@ import * as vscode from 'vscode';
 
 import type { Workflow } from '../types/directives-types';
 import { createDirectivesConfigComputer } from '../computers/directives-config.computer';
+import { createDirectiveValidatorComputer } from '../computers/directive-validator.computer';
 import { createDirectivesViewCapability } from '../capabilities/directives-view.capability';
+import { createDirectiveDiagnosticsCapability } from '../capabilities/directive-diagnostics.capability';
 import type { createFileSystemCapability } from '../capabilities/file-system.capability';
 import type { createTerminalOrchestrator } from './terminal.orchestrator';
 
@@ -50,6 +52,11 @@ export interface CreateDirectivesOrchestratorReturn {
    * @param context - VSCode extension context.
    */
   readonly registerCommands: (context: vscode.ExtensionContext) => void;
+
+  /**
+   * Disposable for diagnostics subscriptions and cleanup.
+   */
+  readonly diagnosticsDisposable: vscode.Disposable;
 }
 
 /**
@@ -60,6 +67,91 @@ export interface CreateDirectivesOrchestratorReturn {
  */
 export function createDirectivesOrchestrator(deps: DirectivesOrchestratorDeps): CreateDirectivesOrchestratorReturn {
   const configComputer = createDirectivesConfigComputer();
+  const validatorComputer = createDirectiveValidatorComputer();
+  const diagnosticsCap = createDirectiveDiagnosticsCapability({ validator: validatorComputer });
+
+  /**
+   * Check whether a document is a directive XML file.
+   *
+   * Matches pattern: .festinalente/directives/*.xml (not subdirectories).
+   * Supports both forward and backslash separators for cross-platform use.
+   */
+  function isDirectiveFile(document: vscode.TextDocument): boolean {
+    const fsPath = document.uri.fsPath;
+    const sep = /[\\/]/;
+    const segments = fsPath.split(sep);
+
+    const festinalenteIdx = segments.lastIndexOf('.festinalente');
+    if (festinalenteIdx === -1) {
+      return false;
+    }
+
+    // Must be exactly .festinalente/directives/<file>.xml
+    if (
+      segments.length !== festinalenteIdx + 3 ||
+      segments[festinalenteIdx + 1] !== 'directives'
+    ) {
+      return false;
+    }
+
+    return fsPath.endsWith('.xml');
+  }
+
+  // Debounce infrastructure for document change events
+  const debounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
+  // Document event subscriptions for directive diagnostics
+  const openSubscription = vscode.workspace.onDidOpenTextDocument((document) => {
+    if (isDirectiveFile(document)) {
+      diagnosticsCap.validateDocument(document);
+    }
+  });
+
+  const changeSubscription = vscode.workspace.onDidChangeTextDocument((event) => {
+    const document = event.document;
+    if (isDirectiveFile(document)) {
+      const key = document.uri.toString();
+      const existing = debounceTimers.get(key);
+      if (existing !== undefined) {
+        clearTimeout(existing);
+      }
+      debounceTimers.set(
+        key,
+        setTimeout(() => {
+          debounceTimers.delete(key);
+          diagnosticsCap.validateDocument(document);
+        }, 300)
+      );
+    }
+  });
+
+  const closeSubscription = vscode.workspace.onDidCloseTextDocument((document) => {
+    if (isDirectiveFile(document)) {
+      const key = document.uri.toString();
+      const existing = debounceTimers.get(key);
+      if (existing !== undefined) {
+        clearTimeout(existing);
+        debounceTimers.delete(key);
+      }
+      diagnosticsCap.clearDiagnostics(document.uri);
+    }
+  });
+
+  // Validate all currently open directive files
+  for (const document of vscode.workspace.textDocuments) {
+    if (isDirectiveFile(document)) {
+      diagnosticsCap.validateDocument(document);
+    }
+  }
+
+  // Composite disposable for diagnostics cleanup
+  const diagnosticsDisposable = vscode.Disposable.from(
+    { dispose: () => diagnosticsCap.dispose() },
+    openSubscription,
+    changeSubscription,
+    closeSubscription,
+    { dispose: () => { for (const timer of debounceTimers.values()) clearTimeout(timer); debounceTimers.clear(); } }
+  );
 
   /**
    * Policy: Load all workflows with directives from config.yaml.
@@ -141,6 +233,7 @@ export function createDirectivesOrchestrator(deps: DirectivesOrchestratorDeps): 
     treeDataProvider,
     refresh,
     createFileWatcher,
-    registerCommands
+    registerCommands,
+    diagnosticsDisposable
   };
 }

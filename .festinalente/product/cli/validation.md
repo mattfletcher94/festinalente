@@ -3,13 +3,13 @@ id: cli/validation
 title: "Validation Commands"
 type: feature
 tldr: "XML, YAML, and documentation quality validation"
-summary: "Validation commands check task XML structure, YAML syntax, directive format, and documentation quality standards with detailed error reporting."
-keywords: [validation, xml, yaml, docs, quality, errors]
+summary: "Validation commands check task XML structure, YAML syntax, directive format, and documentation quality standards with detailed error reporting. The VSCode extension provides real-time directive diagnostics in the editor."
+keywords: [validation, xml, yaml, docs, quality, errors, diagnostics, linter, vscode]
 aliases: [validate, validation-commands]
 boundary: "Does not auto-fix issues - only reports them"
 references: []
-uses: [systems/cli]
-updated: 2026-03-01
+uses: [systems/cli, systems/vscode-extension]
+updated: 2026-03-06
 ---
 
 # Validation Commands
@@ -42,6 +42,36 @@ Validation commands verify file structure and quality. They report issues but do
 - Required frontmatter fields
 - Summary sections present
 - Boundary field populated
+
+## VSCode Directive Diagnostics
+
+The VSCode extension validates directive XML files in real-time as you edit, surfacing errors and warnings as editor diagnostics (inline squigglies in the Problems panel).
+
+### What It Validates
+
+- **Malformed XML** — Parse errors are reported as errors on the `<directive>` element
+- **Missing root element** — Files without a `<directive>` root are flagged
+- **Required directive attributes** — `name`, `version`, `created`, `updated` must be present
+- **Name/filename mismatch** — The `name` attribute must match the filename
+- **Date format** — `created` and `updated` must use `YYYY-MM-DD` format
+- **Rule elements** — Each `<rule>` requires `id` and `phase` attributes
+- **Phase values** — Unknown phase names produce warnings (valid: scope, plan, implement, check, rework, docs, create, merge, save, finalize, delete, quick, define-product, map-product, map-engineering, directive)
+- **Check elements** — Each `<check>` requires `id`, `type`, and `severity` attributes, plus type-specific child elements
+- **Duplicate IDs** — All `id` attributes across principles, rules, and checks must be unique
+
+### Severity Mapping
+
+| Condition | Diagnostic Severity |
+|-----------|-------------------|
+| Missing required attribute or element | Error |
+| Malformed XML | Error |
+| Invalid/unknown attribute value (e.g., unknown phase) | Warning |
+
+### Behavior
+
+- Diagnostics update in real-time as the document changes
+- Diagnostics are cleared when all issues are fixed
+- Diagnostics are cleared when the file is closed
 
 ## Examples
 

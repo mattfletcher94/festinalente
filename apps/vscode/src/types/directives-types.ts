@@ -30,3 +30,27 @@ export interface Workflow {
   readonly displayName: string;
   readonly directives: readonly Directive[];
 }
+
+/**
+ * Severity level for directive validation diagnostics.
+ */
+export type DirectiveValidationSeverity = 'error' | 'warning';
+
+/**
+ * A single validation error with context for line mapping.
+ */
+export interface DirectiveValidationError {
+  readonly message: string;
+  readonly severity: DirectiveValidationSeverity;
+  readonly elementTag: string;
+  readonly elementId: string | undefined;
+  readonly elementIndex: number | undefined;
+}
+
+/**
+ * Result of validating a directive XML file.
+ */
+export interface DirectiveValidationResult {
+  readonly valid: boolean;
+  readonly errors: readonly DirectiveValidationError[];
+}
