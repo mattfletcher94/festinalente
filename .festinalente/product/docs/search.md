@@ -9,7 +9,7 @@ aliases: [search-algorithm, doc-search]
 boundary: "Does not search code files - only markdown documentation"
 references: [cli/search]
 uses: [systems/cli]
-updated: 2026-03-01
+updated: 2026-03-06
 ---
 
 # Hybrid Search Algorithm
@@ -21,6 +21,8 @@ updated: 2026-03-01
 The hybrid search algorithm finds relevant documentation by combining multiple signals: exact keyword matches, fuzzy title/body matching, and boundary violation penalties.
 
 **Summary:** Search balances precision and recall for documentation discovery.
+
+**Usage contexts:** The search algorithm is invoked both during initial title-based doc discovery (when a task is first created) and during post-QA doc link refinement (where full task context is used to find additional relevant docs). The algorithm itself is the same in both cases; only the input keywords differ.
 
 ## Scoring Formula
 
