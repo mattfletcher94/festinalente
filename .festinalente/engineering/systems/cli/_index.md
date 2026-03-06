@@ -47,7 +47,7 @@ The CLI system provides a single entry point (`dispatcher.ts`) that routes comma
 | ValidationComputer | Schema validation | `computers/validation.computer.ts` |
 | TaskResolverComputer | Prefix-based task ID resolution | `computers/task-resolver.computer.ts` |
 
-**Summary:** 8 handlers, 2 capabilities, 5 computers wired by orchestrator.
+**Summary:** 8 handlers, 1 capability, 5 computers wired by orchestrator.
 
 ## Key Patterns
 
@@ -84,7 +84,6 @@ flowchart TB
 
     subgraph Capabilities["Capabilities (I/O)"]
         FS["FileSystem"]
-        GIT["Git"]
     end
 
     subgraph Computers["Computers (Pure)"]
@@ -103,7 +102,6 @@ flowchart TB
     Handlers --> Computers
 
     FS -->|"read/write"| DB[(Files)]
-    GIT -->|"spawn"| GITCMD[("git")]
 ```
 
 The orchestrator creates all capabilities and computers, then injects them into handlers. Each handler registers its commands with the registry. The dispatcher looks up commands and executes them.

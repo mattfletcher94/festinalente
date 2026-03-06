@@ -10,7 +10,7 @@ boundary: "Does not enforce workflow transitions - skills do that"
 references: [systems/cli, systems/vscode-extension]
 uses: []
 paths: [.festinalente]
-updated: 2026-03-01
+updated: 2026-03-06
 ---
 
 # Data Model & Storage
@@ -48,6 +48,7 @@ Festina Lente uses file-based storage in the `.festinalente/` directory. Tasks a
 │   └── conventions/       # Convention documentation
 ├── directives/
 │   └── {name}.xml         # LLM instruction sets
+├── scripts/               # Build artifacts (festinalente.cjs)
 ├── templates/             # XML/YAML templates
 ├── config.yaml            # Project settings
 ├── workflow.yaml          # Workflow definitions (immutable)
@@ -176,11 +177,6 @@ labels:
 transitions:
   backlog: [scoped]
   scoped: [planned]
-  # ... etc
-
-commits:
-  create: "docs({id}): create - {title}"
-  finalize: "{commit-type}({id}): {title}"
   # ... etc
 ```
 

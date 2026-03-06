@@ -37,18 +37,26 @@ The VSCode extension provides a visual interface for Festina Lente task manageme
 | ConfigOrchestrator | Config panel | `orchestrators/config.orchestrator.ts` |
 | DirectivesOrchestrator | Directives view + diagnostics | `orchestrators/directives.orchestrator.ts` |
 | TasksViewCapability | TreeDataProvider for tasks | `capabilities/tasks-view.capability.ts` |
+| QuicksViewCapability | TreeDataProvider for quick tasks | `capabilities/quicks-view.capability.ts` |
+| DocsViewCapability | TreeDataProvider for docs | `capabilities/docs-view.capability.ts` |
+| ConfigViewCapability | TreeDataProvider for config | `capabilities/config-view.capability.ts` |
+| DirectivesViewCapability | TreeDataProvider for directives | `capabilities/directives-view.capability.ts` |
 | FileSystemCapability | File I/O (VSCode API) | `capabilities/file-system.capability.ts` |
 | TerminalCapability | Terminal execution | `capabilities/terminal.capability.ts` |
 | CodeLensCapability | CodeLens for task.xml | `capabilities/codelens.capability.ts` |
 | PlanSymbolCapability | DocumentSymbolProvider for plan.xml | `capabilities/plan-symbol.capability.ts` |
 | DirectiveDiagnosticsCapability | Maps validation errors to editor diagnostics | `capabilities/directive-diagnostics.capability.ts` |
+| ClaudeSettingsCapability | Claude settings integration | `capabilities/claude-settings.capability.ts` |
 | TaskParserComputer | Parse XML to Task objects | `computers/task-parser.computer.ts` |
 | TaskActionsComputer | Generate available actions | `computers/task-actions.computer.ts` |
 | TaskGroupingComputer | Group tasks by status | `computers/task-grouping.computer.ts` |
+| QuickParserComputer | Parse quick.xml files | `computers/quick-parser.computer.ts` |
 | PlanParserComputer | Parse plan.xml | `computers/plan-parser.computer.ts` |
 | DirectiveValidatorComputer | Validate directive XML, return errors with element context | `computers/directive-validator.computer.ts` |
+| DirectivesConfigComputer | Parse directives configuration | `computers/directives-config.computer.ts` |
+| ClaudeSettingsComputer | Parse Claude settings files | `computers/claude-settings.computer.ts` |
 
-**Summary:** 6 orchestrators, 6+ capabilities, 5+ computers.
+**Summary:** 6 orchestrators, 11 capabilities, 8 computers.
 
 ## Key Patterns
 
@@ -56,7 +64,6 @@ This system follows these patterns from `patterns/`:
 
 - [dag-architecture](../patterns/dag-architecture.md) - Orchestrators compose capabilities/computers
 - [factory-di](../patterns/factory-di.md) - Each orchestrator uses `create*Orchestrator(deps)`
-- [treeview-provider](../patterns/treeview-provider.md) - TreeDataProvider pattern for views
 
 ## Architecture
 
@@ -79,18 +86,25 @@ flowchart TB
         FS["FileSystem"]
         TV["TasksView"]
         QV["QuicksView"]
+        DOV["DocsView"]
+        COV["ConfigView"]
+        DIV["DirectivesView"]
         TER["Terminal"]
         CL["CodeLens"]
         PS["PlanSymbol"]
         DD["DirectiveDiagnostics"]
+        CS["ClaudeSettings"]
     end
 
     subgraph Computers["Computers"]
         TP["TaskParser"]
         TA["TaskActions"]
         TG["TaskGrouping"]
+        QP["QuickParser"]
         PP["PlanParser"]
         DV["DirectiveValidator"]
+        DC["DirectivesConfig"]
+        CSC["ClaudeSettingsComp"]
     end
 
     ACT --> Orchestrators
@@ -101,9 +115,16 @@ flowchart TB
     TASKS --> CL
     TASKS --> PS
     QUICKS --> QV
+    QUICKS --> QP
+    DOCS --> DOV
+    CONFIG --> COV
+    CONFIG --> CS
+    CONFIG --> CSC
     TERM --> TER
+    DIRS --> DIV
     DIRS --> DV
     DIRS --> DD
+    DIRS --> DC
     Orchestrators --> FS
 ```
 

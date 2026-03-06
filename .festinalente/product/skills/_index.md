@@ -7,10 +7,10 @@ summary: "The skills domain provides slash commands (/festina-*) that orchestrat
 keywords: [skills, slash-commands, workflow, ai-assisted, orchestration, conversational]
 aliases: [commands, slash-commands, festina-commands]
 boundary: "Does not include CLI utilities (see cli domain) or VSCode extension features (see vscode domain)"
-contains: [skills/create, skills/scope, skills/plan, skills/implement, skills/finalize, skills/quick, skills/explore, skills/overview]
-references: [cli/_index, docs/_index]
+contains: [skills/create, skills/scope, skills/plan, skills/implement, skills/finalize, skills/quick, skills/explore, skills/overview, skills/save, skills/rework, skills/delete, skills/define-product, skills/map-product, skills/map-engineering, skills/directive]
+references: [cli/_index, docs/_index, directives/_index]
 uses: [systems/cli, systems/content-build]
-updated: 2026-03-01
+updated: 2026-03-06
 ---
 
 # Skills
@@ -36,14 +36,25 @@ flowchart LR
         implement --> finalize[/festina-finalize]
     end
 
-    subgraph "Fast Path"
+    subgraph "Support"
+        save[/festina-save]
+        rework[/festina-rework]
+        delete[/festina-delete]
         quick[/festina-quick]
     end
 
-    subgraph "Discovery"
+    subgraph "Discovery & Documentation"
         explore[/festina-explore]
         overview[/festina-overview]
+        defineProduct[/festina-define-product]
+        mapProduct[/festina-map-product]
+        mapEngineering[/festina-map-engineering]
+        directive[/festina-directive]
     end
+
+    implement -.-> save
+    finalize -.-> rework
+    rework -.-> implement
 ```
 
 ## Boundaries
@@ -66,8 +77,15 @@ This domain does NOT cover CLI helper commands (use `node .festinalente/scripts/
 | [quick](./quick.md) | Fast path for simple fixes | stable |
 | [explore](./explore.md) | Explore questions through Socratic dialogue | stable |
 | [overview](./overview.md) | View board status and task details | stable |
+| [save](./save.md) | Persist partial progress when interrupted | stable |
+| [rework](./rework.md) | Return task to in-progress with issue report | stable |
+| [delete](./delete.md) | Remove backlog tasks permanently | stable |
+| [define-product](./define-product.md) | Define new product via Socratic Q&A | stable |
+| [map-product](./map-product.md) | Discover and document product features from code | stable |
+| [map-engineering](./map-engineering.md) | Discover and document engineering patterns from code | stable |
+| [directive](./directive.md) | Create directives via Q&A (see [directives domain](../directives/_index.md)) | stable |
 
-**Summary:** This domain contains 8 core skills covering the full task lifecycle.
+**Summary:** This domain contains 15 skills: 5 core workflow, 3 support, and 7 discovery/documentation.
 
 ## Key Concepts
 

@@ -9,7 +9,7 @@ aliases: [festina-implement, execute, run]
 boundary: "Does not update documentation - that happens in finalize. Git operations are directive-driven."
 references: [skills/plan, skills/finalize, cli/context]
 uses: [systems/cli, systems/data-model]
-updated: 2026-03-05
+updated: 2026-03-06
 ---
 
 # Implement Task
@@ -144,7 +144,6 @@ What this skill does NOT do:
 ## Interactions
 
 - **Smart Context**: Loads relevant docs via select-context
-- **Doc Freshness**: Warns if affected docs are stale
 - **Directives**: Applies `phase="implement"` rules
 
 ## Limitations

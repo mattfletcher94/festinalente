@@ -10,7 +10,7 @@ boundary: "Does not cover implementation details - see systems/ and patterns/"
 references: [patterns/dag-architecture, patterns/factory-di, patterns/tagged-union-errors, patterns/command-registry, systems/cli, systems/vscode-extension, systems/content-build, systems/data-model, systems/distribution, conventions/file-naming, conventions/folder-structure, conventions/error-handling]
 uses: []
 paths: [apps/festinalente, apps/vscode]
-updated: 2026-03-01
+updated: 2026-03-06
 ---
 
 # Festina Lente Engineering Overview
@@ -21,10 +21,10 @@ updated: 2026-03-01
 
 | Category | Technology |
 |----------|------------|
-| Language | TypeScript 5.9.3, Node.js 18+ |
+| Language | TypeScript 5.7, Node.js 18+ |
 | Framework | VSCode Extension API 1.85+ |
 | Templating | Handlebars 4.7.8 |
-| Parsing | fast-xml-parser 5.3.6, js-yaml 4.1.1, zod 3.25 |
+| Parsing | fast-xml-parser 5.3.6, js-yaml 4.1.1, zod 3.24 |
 | Search | fuse.js 7.1.0 (fuzzy search) |
 | Build | pnpm 9.15+, Turbo, esbuild, tsdown |
 | Database | None (file-based: XML, YAML, Markdown) |
@@ -93,8 +93,6 @@ flowchart LR
 
     subgraph Layer4["Layer 4: Capabilities"]
         FS["FileSystem"]
-        TERM["Terminal"]
-        GIT["Git"]
     end
 
     subgraph Layer5["Layer 5: Computers"]

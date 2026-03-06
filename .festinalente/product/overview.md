@@ -7,9 +7,9 @@ summary: "Festina Lente brings deliberate structure to LLM-driven development, e
 keywords: [festina-lente, task-management, spec-driven, claude-code, workflow, ai-development]
 aliases: [kanban, claude-kanban, fl]
 boundary: "Does not cover IDE setup, git workflows outside tasks, or general coding practices"
-references: [skills/_index, cli/_index, vscode/_index, docs/_index]
+references: [skills/_index, cli/_index, vscode/_index, docs/_index, directives/_index]
 uses: []
-updated: 2026-03-01
+updated: 2026-03-06
 ---
 
 # Festina Lente
@@ -28,8 +28,9 @@ Festina Lente ("Make Haste Slowly") is a spec-driven task management system that
 - **CLI**: Node.js commands for task management, documentation search, and validation
 - **VSCode Extension**: Visual kanban board with inline actions and documentation navigation
 - **Documentation System**: Product and engineering docs with smart search and context selection
+- **Directives**: User-defined rules that customize skill behavior per workflow phase
 
-**Summary:** The product provides 4 core capability domains for structured AI development.
+**Summary:** The product provides 5 core capability domains for structured AI development.
 
 ## Product Architecture
 
@@ -40,13 +41,16 @@ flowchart TB
         CLI[CLI Domain]
         VSCode[VSCode Domain]
         Docs[Docs Domain]
+        Directives[Directives Domain]
     end
 
     Developer --> Skills
     Skills --> CLI
+    Skills --> Directives
     CLI --> Docs
     VSCode --> CLI
     VSCode --> Docs
+    VSCode --> Directives
 ```
 
 ## Target Users

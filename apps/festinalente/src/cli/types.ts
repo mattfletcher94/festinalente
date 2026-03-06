@@ -148,11 +148,6 @@ export const keywordsSchema = z.array(z.string()).min(1, 'At least one keyword i
 export const minScoreSchema = z.coerce.number().min(0).max(1).default(0.3);
 
 /**
- * Zod schema for stale-days argument.
- */
-export const staleDaysSchema = z.coerce.number().positive().default(30);
-
-/**
  * Zod schema for doc type filter.
  */
 export const docTypeSchema = z.enum(['product', 'engineering']).optional();

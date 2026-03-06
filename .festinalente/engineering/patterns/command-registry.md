@@ -10,7 +10,7 @@ boundary: "Does not define command implementation - see handlers"
 references: [patterns/factory-di, patterns/tagged-union-errors]
 uses: [systems/cli]
 paths: [apps/festinalente/src/cli]
-updated: 2026-03-01
+updated: 2026-03-06
 ---
 
 # Command Registry Pattern
@@ -147,10 +147,14 @@ export function createCommandRegistry(): CommandRegistry {
   }
 
   function list(): readonly CliCommand[] {
-    return Array.from(commands.values());
+    return Array.from(commands.values()).sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  return { register, get, list, has: commands.has.bind(commands) };
+  function has(name: string): boolean {
+    return commands.has(name);
+  }
+
+  return { register, get, list, has };
 }
 
 // Handler self-registration

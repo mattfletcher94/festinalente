@@ -8,9 +8,9 @@ keywords: [vscode, extension, kanban, codelens, terminal, treeview, sidebar]
 aliases: [extension, ide, visual]
 boundary: "Does not include CLI commands (see cli domain) or AI workflows (see skills domain)"
 contains: [vscode/kanban-view, vscode/codelens, vscode/terminal, vscode/plan-outline]
-references: [skills/_index, cli/_index]
+references: [skills/_index, cli/_index, directives/_index]
 uses: [systems/vscode-extension]
-updated: 2026-03-01
+updated: 2026-03-06
 ---
 
 # VSCode Extension
@@ -56,8 +56,9 @@ This domain does NOT include the AI workflow logic. For that, see [skills](../sk
 | [codelens](./codelens.md) | Inline actions on task.xml files | stable |
 | [plan-outline](./plan-outline.md) | Outline navigation for plan.xml | stable |
 | [terminal](./terminal.md) | Fresh terminal per command, YOLO mode | stable |
+| [Directive Diagnostics](../directives/diagnostics.md) | Real-time directive XML validation | stable |
 
-**Summary:** This domain contains 4 core features for visual task management.
+**Summary:** This domain contains 4 core features plus directive diagnostics for visual task management.
 
 ## TreeView Sections
 
@@ -89,5 +90,6 @@ FESTINA LENTE
 |----------------|--------------|
 | [cli](../cli/_index.md) | Extension reads task data via CLI scripts |
 | [skills](../skills/_index.md) | Extension invokes skills via terminal |
+| [directives](../directives/_index.md) | Extension shows directives tree and validates XML |
 
-**Summary:** VSCode extension orchestrates CLI and skills through a visual interface.
+**Summary:** VSCode extension orchestrates CLI, skills, and directives through a visual interface.
