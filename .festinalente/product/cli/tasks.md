@@ -61,7 +61,7 @@ This applies to commands across multiple handlers:
 - `find-task`, `delete-task` (task handler)
 - `find-spec`, `find-plan` (spec handler)
 - `validate-xml` (validation handler)
-- `get-plan-task`, `get-plan-task-context` (spec handler)
+- `get-plan-task`, `get-plan-task-context` (task handler)
 
 Full task IDs remain fully supported for backward compatibility.
 
