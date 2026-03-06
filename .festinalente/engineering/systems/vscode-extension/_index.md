@@ -2,30 +2,30 @@
 id: "systems/vscode-extension"
 title: "VSCode Extension"
 type: system
-tldr: "IDE integration with tree views, file watchers, and terminal execution"
-summary: "Visual interface for task management with 6 domain orchestrators and TreeDataProviders"
-keywords: [vscode, extension, treeview, orchestrator, terminal, codelens]
+tldr: "IDE integration with tree views, file watchers, diagnostics, and terminal execution"
+summary: "Visual interface for task management with 6 domain orchestrators, TreeDataProviders, and directive diagnostics"
+keywords: [vscode, extension, treeview, orchestrator, terminal, codelens, diagnostics]
 aliases: [extension, ide-integration]
 boundary: "Does not execute commands directly - spawns CLI via terminal"
 references: [patterns/dag-architecture, patterns/factory-di, systems/cli, systems/data-model, systems/content-build]
 uses: []
 paths: [apps/vscode/src]
-updated: 2026-03-01
-verified: 2026-03-01
-code_refs: [apps/vscode/src/extension.ts]
+updated: 2026-03-06
+verified: 2026-03-06
+code_refs: [apps/vscode/src/extension.ts, apps/vscode/src/orchestrators/directives.orchestrator.ts, apps/vscode/src/capabilities/directive-diagnostics.capability.ts, apps/vscode/src/computers/directive-validator.computer.ts, apps/vscode/src/types/directives-types.ts]
 ---
 
 # VSCode Extension
 
-> **TL;DR:** IDE integration with tree views, file watchers, and terminal execution
+> **TL;DR:** IDE integration with tree views, file watchers, diagnostics, and terminal execution
 
 ## Overview
 
 The VSCode extension provides a visual interface for Festina Lente task management. It uses 6 domain orchestrators (tasks, quicks, docs, config, directives, terminal) that compose capabilities and computers following the DAG architecture.
 
-**Why it exists:** Developers need visual task management within their IDE. The extension provides tree views, CodeLens, and one-click command execution without leaving VSCode.
+**Why it exists:** Developers need visual task management within their IDE. The extension provides tree views, CodeLens, directive diagnostics, and one-click command execution without leaving VSCode.
 
-**Summary:** Extension → Orchestrators → Capabilities/Computers → TreeViews + Terminal
+**Summary:** Extension → Orchestrators → Capabilities/Computers → TreeViews + Terminal + Diagnostics
 
 ## Components
 
@@ -37,18 +37,20 @@ The VSCode extension provides a visual interface for Festina Lente task manageme
 | QuicksOrchestrator | Quick task view | `orchestrators/quicks.orchestrator.ts` |
 | DocsOrchestrator | Product/engineering docs view | `orchestrators/docs.orchestrator.ts` |
 | ConfigOrchestrator | Config panel | `orchestrators/config.orchestrator.ts` |
-| DirectivesOrchestrator | Directives view | `orchestrators/directives.orchestrator.ts` |
+| DirectivesOrchestrator | Directives view + diagnostics | `orchestrators/directives.orchestrator.ts` |
 | TasksViewCapability | TreeDataProvider for tasks | `capabilities/tasks-view.capability.ts` |
 | FileSystemCapability | File I/O (VSCode API) | `capabilities/file-system.capability.ts` |
 | TerminalCapability | Terminal execution | `capabilities/terminal.capability.ts` |
 | CodeLensCapability | CodeLens for task.xml | `capabilities/codelens.capability.ts` |
 | PlanSymbolCapability | DocumentSymbolProvider for plan.xml | `capabilities/plan-symbol.capability.ts` |
+| DirectiveDiagnosticsCapability | Maps validation errors to editor diagnostics | `capabilities/directive-diagnostics.capability.ts` |
 | TaskParserComputer | Parse XML to Task objects | `computers/task-parser.computer.ts` |
 | TaskActionsComputer | Generate available actions | `computers/task-actions.computer.ts` |
 | TaskGroupingComputer | Group tasks by status | `computers/task-grouping.computer.ts` |
 | PlanParserComputer | Parse plan.xml | `computers/plan-parser.computer.ts` |
+| DirectiveValidatorComputer | Validate directive XML, return errors with element context | `computers/directive-validator.computer.ts` |
 
-**Summary:** 6 orchestrators, 5+ capabilities, 4+ computers.
+**Summary:** 6 orchestrators, 6+ capabilities, 5+ computers.
 
 ## Key Patterns
 
@@ -82,6 +84,7 @@ flowchart TB
         TER["Terminal"]
         CL["CodeLens"]
         PS["PlanSymbol"]
+        DD["DirectiveDiagnostics"]
     end
 
     subgraph Computers["Computers"]
@@ -89,6 +92,7 @@ flowchart TB
         TA["TaskActions"]
         TG["TaskGrouping"]
         PP["PlanParser"]
+        DV["DirectiveValidator"]
     end
 
     ACT --> Orchestrators
@@ -100,10 +104,12 @@ flowchart TB
     TASKS --> PS
     QUICKS --> QV
     TERM --> TER
+    DIRS --> DV
+    DIRS --> DD
     Orchestrators --> FS
 ```
 
-The extension activates, finds `.festinalente/` folder, creates orchestrators with shared capabilities, and registers TreeViews, commands, and file watchers.
+The extension activates, finds `.festinalente/` folder, creates orchestrators with shared capabilities, and registers TreeViews, commands, file watchers, and diagnostic collections.
 
 ## Data Flow
 
@@ -122,6 +128,26 @@ flowchart LR
 3. Computers parse and group tasks
 4. TreeDataProvider returns tree items
 5. VSCode re-renders the view
+
+## Directive Diagnostics Flow
+
+```mermaid
+flowchart LR
+    A["Document Event<br/>open/change/close"] --> B["isDirectiveFile()<br/>policy check"]
+    B --> C["DirectiveValidatorComputer<br/>validate()"]
+    C --> D["DirectiveDiagnosticsCapability<br/>mapToDiagnostics()"]
+    D --> E["DiagnosticCollection<br/>set()"]
+    E --> F["Editor<br/>squiggly underlines"]
+```
+
+1. Document open, change, or close event fires
+2. `isDirectiveFile()` filters to directive XML files only
+3. DirectiveValidatorComputer validates XML structure (missing attributes, invalid phases, duplicate IDs, etc.)
+4. DirectiveDiagnosticsCapability maps errors to `vscode.Diagnostic[]` with line-level positioning via `findLineForElement()`
+5. DiagnosticCollection updates editor with inline warnings/errors
+6. Document close clears diagnostics for that file
+
+Events are debounced at 300ms. Open directive files are validated on orchestrator creation.
 
 ## Terminal Execution Flow
 
