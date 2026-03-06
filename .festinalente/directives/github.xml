@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<directive name="github" version="2"
+<directive name="github" version="3"
            created="2026-03-05" updated="2026-03-06">
   <description>
     Full GitHub team workflow. Owns ALL git and GitHub operations.
-    Issues for tracking, draft PRs at plan, WIP pushes, review-gated merges.
+    Issues for tracking, WIP pushes, review-gated squash merges.
     Task artifacts (.festinalente/tasks/, .festinalente/quick/) are gitignored — never committed.
     Spec and plan content is posted to GitHub Issues for team visibility.
     Requires GitHub MCP server.
@@ -25,9 +25,12 @@
       The PR title (conventional commit format) becomes the single commit on main.
     </principle>
     <principle id="GH4">Every task syncs to a GitHub Issue for team visibility.</principle>
-    <principle id="GH5">Every save pushes. Draft PR reflects WIP automatically.</principle>
+    <principle id="GH5">Every save pushes to keep the remote branch up to date.</principle>
     <principle id="GH6">PR body includes "Closes #N" to auto-close the linked issue.</principle>
-    <principle id="GH7">Draft PR at plan phase. User marks ready on GitHub at finalize.</principle>
+    <principle id="GH7">
+      PR is created at finalize (not before). No draft PRs.
+      The PR is created ready for review with a proper title and summary.
+    </principle>
     <principle id="GH8">
       Task artifacts are gitignored — never committed, pushed, or deleted by git.
     </principle>
@@ -36,7 +39,7 @@
       mcp__github__add_issue_comment, mcp__github__{create,get}_pull_request,
       mcp__github__get_pull_request_{status,comments,reviews}, mcp__github__merge_pull_request.
       No update_pull_request tool exists. Use update_issue for PR title/body
-      (PRs are issues in GitHub's API). Draft status must be changed manually on GitHub.
+      (PRs are issues in GitHub's API).
     </principle>
   </context>
 
@@ -60,18 +63,20 @@
 
     <rule id="GH-SCOPE" phase="scope">
       1. VERIFY BRANCH.
-      2. Comment on GitHub Issue with spec:
-         mcp__github__add_issue_comment — "## Scoped\n\n```xml\n{spec.xml}\n```"
+      2. Read the ENTIRE contents of spec.xml from disk.
+      3. Comment on GitHub Issue with the COMPLETE, UNMODIFIED spec.xml:
+         mcp__github__add_issue_comment — body is: "## Scoped\n\n```xml\n" + FULL FILE CONTENTS + "\n```"
+         CRITICAL: Post the raw file content exactly as-is. Do NOT summarize, truncate, or simplify.
     </rule>
 
     <rule id="GH-PLAN" phase="plan">
       1. VERIFY BRANCH.
-      2. Comment on GitHub Issue with plan:
-         mcp__github__add_issue_comment — "## Planned\n\n```xml\n{plan.xml}\n```"
-      3. Create Draft PR:
-         mcp__github__create_pull_request (title: "{title}", head: {github-branch},
-         base: main, draft: true, body: "Closes #{issueNumber}\n\n_Draft — not yet implemented._")
-      4. Add github-pr="#{N}" to task.xml.
+      2. Read the ENTIRE contents of plan.xml from disk.
+      3. Comment on GitHub Issue with the COMPLETE, UNMODIFIED plan.xml:
+         mcp__github__add_issue_comment — body is: "## Planned\n\n```xml\n" + FULL FILE CONTENTS + "\n```"
+         CRITICAL: Post the raw file content exactly as-is. Do NOT summarize, truncate, or simplify.
+         The plan may be large (hundreds of lines) — post ALL of it.
+      Note: No PR yet — PR is created at finalize when code is ready for review.
     </rule>
 
     <rule id="GH-IMPL" phase="implement">
@@ -105,11 +110,12 @@
     <rule id="GH-FIN-PR" phase="finalize">
       Read github-pr from task.xml:
 
-      NO github-pr (plan was skipped):
+      NO github-pr:
         Create PR via mcp__github__create_pull_request (not draft).
         Title: "{type}(#{issueNumber}): {title}".
         Body: "Closes #{issueNumber}\n\n## Summary\n{brief description}".
-        Add github-pr to task.xml. Continue below.
+        Add github-pr to task.xml.
+        Output: "PR created. Awaiting review. Re-run finalize after approval." EXIT.
 
       HAS github-pr — check via mcp__github__get_pull_request:
         state="merged"  → Go to GH-FIN-CLEANUP.
@@ -117,12 +123,11 @@
         mergeable=false  → git fetch origin main &amp;&amp; git rebase origin/main &amp;&amp; git push --force-with-lease.
                            Re-check PR state.
 
-      Update PR via mcp__github__update_issue:
+      Update PR title/body via mcp__github__update_issue:
         title: "{type}(#{issueNumber}): {title}"
         body: "Closes #{issueNumber}\n\n## Summary\n{brief description}"
 
       Check via mcp__github__get_pull_request_status:
-        draft=true              → "PR updated. Mark ready on GitHub, re-run finalize after approval." EXIT.
         reviewDecision="CHANGES_REQUESTED" → "Address PR feedback first." EXIT.
         reviewDecision="APPROVED" or (null AND mergeable_state="clean") → Go to GH-FIN-MERGE.
         else                    → "Awaiting review or checks." EXIT.
@@ -158,7 +163,7 @@
             Pre-populate from PR comments where possible.
          c. After rework report is created, comment on PR:
             mcp__github__add_issue_comment — "## Rework\n\n{issue summary and planned actions}"
-         d. Output: "If the PR is marked ready, convert it back to draft on GitHub."
+         d. Output: "PR comment posted with rework plan."
     </rule>
 
     <rule id="GH-DELETE" phase="delete">
@@ -216,6 +221,27 @@
     </rule>
   </process>
 
+  <override phase="finalize">
+    <reason>
+      The directive controls task completion status. The skill must NOT mark the task
+      as "done" — only the directive does this when a PR is actually merged.
+      Finalize may exit early (PR is draft, awaiting review, changes requested)
+      and the task must stay in "finalize" status so rework can be run later.
+    </reason>
+    <skip>phase3_complete</skip>
+    <skip>output_result</skip>
+    <instead>
+      After Phase 2 (documentation), execute these rules in order:
+      1. GH-FIN-COMMIT — commit code + docs, push.
+      2. GH-FIN-PR — check PR state. May EXIT early (task stays in "finalize").
+      3. GH-FIN-MERGE — only reached if PR approved. Only here is status set to "done".
+
+      If any rule EXITs, do NOT mark the task as done. Do NOT output "Task completed."
+      Instead output the EXIT message from the rule and stop.
+      The user will re-run /festina-finalize later when the PR state changes.
+    </instead>
+  </override>
+
   <validation>
     <check id="V-GH1" type="checklist" severity="error">
       <item>GitHub MCP server is connected (mcp__github__* tools available)</item>
@@ -259,6 +285,18 @@ git checkout main && git merge feat/022-add-dark-mode --no-ff
 # CORRECT: artifacts gitignored, issue number scope, merge via MCP
 feat(#42): Add dark mode toggle
 mcp__github__merge_pull_request
+      ]]></code>
+    </example>
+    <example ref="GH-FIN" type="correct">
+      <code><![CDATA[
+# Finalize flow (first run — creates PR):
+# Phase 1: validate ✓
+# Phase 2: docs ✓
+# GH-FIN-COMMIT: commit + push ✓
+# GH-FIN-PR: no PR yet → create PR → EXIT (task stays in "finalize")
+# Reviewer approves PR on GitHub
+# User re-runs /festina-finalize
+# GH-FIN-PR: PR approved → GH-FIN-MERGE → squash merge → status="done"
       ]]></code>
     </example>
   </examples>
