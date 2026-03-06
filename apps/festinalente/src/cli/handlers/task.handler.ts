@@ -8,6 +8,7 @@ import type { CliCommand, CliResult } from '../types';
 import { error, getStringFlag, parseArgs, success } from '../types';
 import type { FileSystemCapability } from '../capabilities/file-system.capability';
 import type { XmlParserComputer } from '../computers/xml-parser.computer';
+import type { TaskResolverComputer } from '../computers/task-resolver.computer';
 import { defineCommand } from '../registry';
 import slugify from 'slugify';
 
@@ -84,6 +85,7 @@ export interface PlanTaskContextResult {
 export interface TaskHandlerDeps {
   readonly fs: FileSystemCapability;
   readonly xmlParser: XmlParserComputer;
+  readonly taskResolver: TaskResolverComputer;
 }
 
 /**
@@ -106,38 +108,20 @@ export interface TaskHandler {
  * @returns A TaskHandler instance.
  */
 export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
-  const { fs, xmlParser } = deps;
+  const { fs, xmlParser, taskResolver } = deps;
 
   /**
    * Find task file by numeric prefix.
    */
   function findTaskFile(id: string): { path: string; folderId: string } | null {
-    const numericMatch = id.match(/^(\d+)/);
-    if (!numericMatch) {
-      return null;
-    }
-    const numericPrefix = numericMatch[1];
-
-    if (!fs.exists(TASKS_DIR)) {
-      return null;
-    }
-
+    if (!fs.exists(TASKS_DIR)) return null;
     const result = fs.listDirectories(TASKS_DIR);
-    if (!result.ok) {
-      return null;
-    }
-
-    for (const folder of result.value) {
-      const folderMatch = folder.match(/^(\d+)/);
-      if (folderMatch && folderMatch[1] === numericPrefix) {
-        const taskPath = fs.joinPath(TASKS_DIR, folder, 'task.xml');
-        if (fs.exists(taskPath)) {
-          return { path: taskPath.replace(/\\/g, '/'), folderId: folder };
-        }
-      }
-    }
-
-    return null;
+    if (!result.ok) return null;
+    const folder = taskResolver.resolveTaskFolder(result.value, id);
+    if (!folder) return null;
+    const taskPath = fs.joinPath(TASKS_DIR, folder, 'task.xml');
+    if (!fs.exists(taskPath)) return null;
+    return { path: taskPath.replace(/\\/g, '/'), folderId: folder };
   }
 
   /**
@@ -249,13 +233,12 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
       return error(`${TASKS_DIR}/ directory not found. Run npx festinalente first.`);
     }
 
-    const taskPath = fs.joinPath(TASKS_DIR, id, 'task.xml').replace(/\\/g, '/');
-
-    if (!fs.exists(taskPath)) {
-      return error(`Task ${id} not found in ${TASKS_DIR}/${id}/`);
+    const found = findTaskFile(id);
+    if (!found) {
+      return error(`No task found matching prefix ${id}`);
     }
 
-    const readResult = fs.readFile(taskPath);
+    const readResult = fs.readFile(found.path);
     if (!readResult.ok) {
       return error(`Failed to read task file: ${readResult.error.message}`);
     }
@@ -272,9 +255,9 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
     // For now, return success and let the caller handle the actual deletion via shell
     return success({
       success: true,
-      id,
+      id: found.folderId,
       title: parsed.title,
-      path: taskPath
+      path: found.path
     });
   }
 

@@ -18,6 +18,7 @@ import { createSearchComputer } from './computers/search.computer';
 import { createSearchHandler } from './handlers/search.handler';
 import { createSpecHandler } from './handlers/spec.handler';
 import { createTaskHandler } from './handlers/task.handler';
+import { createTaskResolverComputer } from './computers/task-resolver.computer';
 import { createValidationComputer } from './computers/validation.computer';
 import { createValidationHandler } from './handlers/validation.handler';
 import { createXmlParserComputer } from './computers/xml-parser.computer';
@@ -44,15 +45,16 @@ export function createCliOrchestrator(): CliOrchestrator {
   const xmlParser = createXmlParserComputer();
   const yamlParser = createYamlParserComputer();
   const search = createSearchComputer();
+  const taskResolver = createTaskResolverComputer();
   const validation = createValidationComputer();
 
   // Create handlers with injected dependencies
-  const taskHandler = createTaskHandler({ fs, xmlParser });
-  const specHandler = createSpecHandler({ fs, xmlParser });
+  const taskHandler = createTaskHandler({ fs, xmlParser, taskResolver });
+  const specHandler = createSpecHandler({ fs, xmlParser, taskResolver });
   const quickHandler = createQuickHandler({ fs, xmlParser });
   const searchHandler = createSearchHandler({ fs, yamlParser, search });
   const docsHandler = createDocsHandler({ fs, yamlParser });
-  const validationHandler = createValidationHandler({ fs, yamlParser, validation });
+  const validationHandler = createValidationHandler({ fs, yamlParser, validation, taskResolver });
   const configHandler = createConfigHandler({ fs, yamlParser });
   const queryHandler = createQueryHandler({ fs, git, yamlParser, xmlParser });
 

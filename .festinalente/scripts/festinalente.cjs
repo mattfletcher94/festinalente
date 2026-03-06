@@ -6336,7 +6336,16 @@ const TASKS_DIR$2 = ".festinalente/tasks";
 * @returns A SpecHandler instance.
 */
 function createSpecHandler(deps) {
-	const { fs: fs$3, xmlParser } = deps;
+	const { fs: fs$3, xmlParser, taskResolver } = deps;
+	/**
+	* Resolve a task ID (prefix or full) to the actual folder name.
+	*/
+	function resolveTaskId(id) {
+		if (!fs$3.exists(TASKS_DIR$2)) return null;
+		const result = fs$3.listDirectories(TASKS_DIR$2);
+		if (!result.ok) return null;
+		return taskResolver.resolveTaskFolder(result.value, id);
+	}
 	/**
 	* Find spec command.
 	*/
@@ -6344,16 +6353,17 @@ function createSpecHandler(deps) {
 		if (args.length === 0) return error("Usage: find-spec <id>");
 		const id = args[0];
 		if (!fs$3.exists(TASKS_DIR$2)) return error(`${TASKS_DIR$2}/ directory not found. Run npx festinalente first.`);
-		const specPath = fs$3.joinPath(TASKS_DIR$2, id, "spec.xml").replace(/\\/g, "/");
-		if (!fs$3.exists(specPath)) return error(`Spec for task ${id} not found in ${TASKS_DIR$2}/${id}/`);
+		const resolvedId = resolveTaskId(id) ?? id;
+		const specPath = fs$3.joinPath(TASKS_DIR$2, resolvedId, "spec.xml").replace(/\\/g, "/");
+		if (!fs$3.exists(specPath)) return error(`No task found matching '${id}'`);
 		const readResult = fs$3.readFile(specPath);
 		if (!readResult.ok) return error(`Failed to read spec file: ${readResult.error.message}`);
 		const parsed = xmlParser.parseSpecXml(readResult.value);
 		return success({
-			id,
+			id: resolvedId,
 			filename: "spec.xml",
 			path: specPath,
-			task: parsed.task || id,
+			task: parsed.task || resolvedId,
 			created: parsed.created,
 			updated: parsed.updated
 		});
@@ -6365,16 +6375,17 @@ function createSpecHandler(deps) {
 		if (args.length === 0) return error("Usage: find-plan <id>");
 		const id = args[0];
 		if (!fs$3.exists(TASKS_DIR$2)) return error(`${TASKS_DIR$2}/ directory not found. Run npx festinalente first.`);
-		const planPath = fs$3.joinPath(TASKS_DIR$2, id, "plan.xml").replace(/\\/g, "/");
-		if (!fs$3.exists(planPath)) return error(`Plan for task ${id} not found in ${TASKS_DIR$2}/${id}/`);
+		const resolvedId = resolveTaskId(id) ?? id;
+		const planPath = fs$3.joinPath(TASKS_DIR$2, resolvedId, "plan.xml").replace(/\\/g, "/");
+		if (!fs$3.exists(planPath)) return error(`No task found matching '${id}'`);
 		const readResult = fs$3.readFile(planPath);
 		if (!readResult.ok) return error(`Failed to read plan file: ${readResult.error.message}`);
 		const parsed = xmlParser.parsePlanXml(readResult.value);
 		return success({
-			id,
+			id: resolvedId,
 			filename: "plan.xml",
 			path: planPath,
-			task: parsed.task || id,
+			task: parsed.task || resolvedId,
 			spec: parsed.spec,
 			status: parsed.status,
 			iteration: parsed.iteration
@@ -6443,28 +6454,22 @@ const MAX_SLUG_LENGTH = 50;
 * @returns A TaskHandler instance.
 */
 function createTaskHandler(deps) {
-	const { fs: fs$3, xmlParser } = deps;
+	const { fs: fs$3, xmlParser, taskResolver } = deps;
 	/**
 	* Find task file by numeric prefix.
 	*/
 	function findTaskFile(id) {
-		const numericMatch = id.match(/^(\d+)/);
-		if (!numericMatch) return null;
-		const numericPrefix = numericMatch[1];
 		if (!fs$3.exists(TASKS_DIR$1)) return null;
 		const result = fs$3.listDirectories(TASKS_DIR$1);
 		if (!result.ok) return null;
-		for (const folder of result.value) {
-			const folderMatch = folder.match(/^(\d+)/);
-			if (folderMatch && folderMatch[1] === numericPrefix) {
-				const taskPath = fs$3.joinPath(TASKS_DIR$1, folder, "task.xml");
-				if (fs$3.exists(taskPath)) return {
-					path: taskPath.replace(/\\/g, "/"),
-					folderId: folder
-				};
-			}
-		}
-		return null;
+		const folder = taskResolver.resolveTaskFolder(result.value, id);
+		if (!folder) return null;
+		const taskPath = fs$3.joinPath(TASKS_DIR$1, folder, "task.xml");
+		if (!fs$3.exists(taskPath)) return null;
+		return {
+			path: taskPath.replace(/\\/g, "/"),
+			folderId: folder
+		};
 	}
 	/**
 	* Find task command.
@@ -6535,17 +6540,17 @@ function createTaskHandler(deps) {
 		if (args.length === 0) return error("Usage: delete-task <id>");
 		const id = args[0];
 		if (!fs$3.exists(TASKS_DIR$1)) return error(`${TASKS_DIR$1}/ directory not found. Run npx festinalente first.`);
-		const taskPath = fs$3.joinPath(TASKS_DIR$1, id, "task.xml").replace(/\\/g, "/");
-		if (!fs$3.exists(taskPath)) return error(`Task ${id} not found in ${TASKS_DIR$1}/${id}/`);
-		const readResult = fs$3.readFile(taskPath);
+		const found = findTaskFile(id);
+		if (!found) return error(`No task found matching prefix ${id}`);
+		const readResult = fs$3.readFile(found.path);
 		if (!readResult.ok) return error(`Failed to read task file: ${readResult.error.message}`);
 		const parsed = xmlParser.parseTaskXml(readResult.value);
 		if (parsed.status !== "backlog") return error(`Cannot delete task in ${parsed.status} status. Only backlog allowed.`);
 		return success({
 			success: true,
-			id,
+			id: found.folderId,
 			title: parsed.title,
-			path: taskPath
+			path: found.path
 		});
 	}
 	/**
@@ -6671,6 +6676,27 @@ function createTaskHandler(deps) {
 		getPlanTaskContext,
 		getCommands
 	};
+}
+
+//#endregion
+//#region src/cli/computers/task-resolver.computer.ts
+/**
+* Create a task resolver computer.
+*
+* @returns A TaskResolverComputer instance.
+*/
+function createTaskResolverComputer() {
+	function resolveTaskFolder(folders, id) {
+		const numericMatch = id.match(/^(\d+)/);
+		if (!numericMatch) return null;
+		const numericPrefix = numericMatch[1];
+		for (const folder of folders) {
+			const folderMatch = folder.match(/^(\d+)/);
+			if (folderMatch && folderMatch[1] === numericPrefix) return folder;
+		}
+		return null;
+	}
+	return { resolveTaskFolder };
 }
 
 //#endregion
@@ -8008,7 +8034,15 @@ const VALID_PHASES = [
 	"rework",
 	"docs",
 	"create",
-	"merge"
+	"merge",
+	"save",
+	"finalize",
+	"delete",
+	"quick",
+	"define-product",
+	"map-product",
+	"map-engineering",
+	"directive"
 ];
 /**
 * Directive validation severities.
@@ -8252,7 +8286,7 @@ const DIRECTIVES_DIR = ".festinalente/directives";
 * @returns A ValidationHandler instance.
 */
 function createValidationHandler(deps) {
-	const { fs: fs$3, yamlParser, validation } = deps;
+	const { fs: fs$3, yamlParser, validation, taskResolver } = deps;
 	/**
 	* Get XML files for a quick task.
 	*/
@@ -8272,7 +8306,9 @@ function createValidationHandler(deps) {
 			const quickId = taskId.slice(6);
 			return getXmlFilesForQuick(quickId);
 		}
-		const taskDir = fs$3.joinPath(TASKS_DIR, taskId);
+		const dirsResult = fs$3.listDirectories(TASKS_DIR);
+		const resolvedId = dirsResult.ok ? taskResolver.resolveTaskFolder(dirsResult.value, taskId) ?? taskId : taskId;
+		const taskDir = fs$3.joinPath(TASKS_DIR, resolvedId);
 		if (!fs$3.exists(taskDir) || !fs$3.isDirectory(taskDir)) return null;
 		const files = [];
 		const xmlFiles = [
@@ -13652,14 +13688,17 @@ function createCliOrchestrator() {
 	const xmlParser = createXmlParserComputer();
 	const yamlParser = createYamlParserComputer();
 	const search$1 = createSearchComputer();
+	const taskResolver = createTaskResolverComputer();
 	const validation = createValidationComputer();
 	const taskHandler = createTaskHandler({
 		fs: fs$3,
-		xmlParser
+		xmlParser,
+		taskResolver
 	});
 	const specHandler = createSpecHandler({
 		fs: fs$3,
-		xmlParser
+		xmlParser,
+		taskResolver
 	});
 	const quickHandler = createQuickHandler({
 		fs: fs$3,
@@ -13677,7 +13716,8 @@ function createCliOrchestrator() {
 	const validationHandler = createValidationHandler({
 		fs: fs$3,
 		yamlParser,
-		validation
+		validation,
+		taskResolver
 	});
 	const configHandler = createConfigHandler({
 		fs: fs$3,
