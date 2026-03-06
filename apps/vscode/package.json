@@ -11,13 +11,6 @@
     "url": "https://github.com/mattfletcher94/festinalente"
   },
   "publisher": "festinalente",
-  "bin": {
-    "festinalente-vscode": "bin/install.cjs"
-  },
-  "files": [
-    "bin",
-    "festinalente-vscode.vsix"
-  ],
   "main": "./dist/extension.js",
   "publishConfig": {
     "access": "public",
@@ -75,30 +68,35 @@
         },
         {
           "id": "festinalenteQuicks",
-          "name": "Quicks"
+          "name": "Quicks",
+          "when": "festinalente.hasFestinalenteFolder"
         },
         {
           "id": "festinalenteConfig",
-          "name": "Config"
+          "name": "Config",
+          "when": "festinalente.hasFestinalenteFolder"
         },
         {
           "id": "festinalenteDirectives",
-          "name": "Directives"
+          "name": "Directives",
+          "when": "festinalente.hasFestinalenteFolder"
         },
         {
           "id": "festinalenteProductDocs",
-          "name": "Product Docs"
+          "name": "Product Docs",
+          "when": "festinalente.hasFestinalenteFolder"
         },
         {
           "id": "festinalenteEngineeringDocs",
-          "name": "Engineering Docs"
+          "name": "Engineering Docs",
+          "when": "festinalente.hasFestinalenteFolder"
         }
       ]
     },
     "viewsWelcome": [
       {
         "view": "festinalenteTasks",
-        "contents": "No .festinalente folder found in this workspace.\n\nOpen a folder containing a .festinalente directory to see tasks.",
+        "contents": "Get started by initializing Festina Lente:\n\nnpx festinalente init",
         "when": "!festinalente.hasFestinalenteFolder"
       },
       {
@@ -218,5 +216,12 @@
   ],
   "engines": {
     "vscode": "^1.85.0"
+  },
+  "files": [
+    "bin",
+    "festinalente-vscode.vsix"
+  ],
+  "bin": {
+    "festinalente-vscode": "bin/install.cjs"
   }
 }

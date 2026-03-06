@@ -41,24 +41,17 @@ function findFestinalenteFolder(
 }
 
 /**
- * Extension activation - composes and wires domain orchestrators.
+ * Initialize all domain orchestrators, register TreeViews, commands, watchers, and set context.
  *
  * @param context - VSCode extension context.
+ * @param festinalenteDir - Path to the .festinalente directory.
+ * @param fs - File system capability.
  */
-export function activate(context: vscode.ExtensionContext): void {
-  // Initialize shared file system capability
-  const fs = createFileSystemCapability();
-
-  // Find festinalente folder
-  const festinalenteDir = findFestinalenteFolder(vscode.workspace.workspaceFolders, fs);
-
-  if (!festinalenteDir) {
-    vscode.commands.executeCommand('setContext', 'festinalente.hasFestinalenteFolder', false);
-    return;
-  }
-
-  vscode.commands.executeCommand('setContext', 'festinalente.hasFestinalenteFolder', true);
-
+function initializeOrchestrators(
+  context: vscode.ExtensionContext,
+  festinalenteDir: string,
+  fs: ReturnType<typeof createFileSystemCapability>
+): void {
   const workspaceRoot = path.dirname(festinalenteDir);
 
   // --- Create domain orchestrators ---
@@ -210,6 +203,46 @@ export function activate(context: vscode.ExtensionContext): void {
   );
 
   console.log('Festina Lente extension activated');
+}
+
+/**
+ * Extension activation - composes and wires domain orchestrators.
+ *
+ * @param context - VSCode extension context.
+ */
+export function activate(context: vscode.ExtensionContext): void {
+  // Initialize shared file system capability
+  const fs = createFileSystemCapability();
+
+  // Find festinalente folder
+  const festinalenteDir = findFestinalenteFolder(vscode.workspace.workspaceFolders, fs);
+
+  if (festinalenteDir) {
+    vscode.commands.executeCommand('setContext', 'festinalente.hasFestinalenteFolder', true);
+    initializeOrchestrators(context, festinalenteDir, fs);
+    return;
+  }
+
+  // No .festinalente folder found - set context to false and watch for its creation
+  vscode.commands.executeCommand('setContext', 'festinalente.hasFestinalenteFolder', false);
+
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+  if (workspaceFolder) {
+    const dirWatcher = vscode.workspace.createFileSystemWatcher(
+      new vscode.RelativePattern(workspaceFolder, '.festinalente/**')
+    );
+
+    dirWatcher.onDidCreate(() => {
+      const detectedDir = findFestinalenteFolder(vscode.workspace.workspaceFolders, fs);
+      if (detectedDir) {
+        vscode.commands.executeCommand('setContext', 'festinalente.hasFestinalenteFolder', true);
+        initializeOrchestrators(context, detectedDir, fs);
+        dirWatcher.dispose();
+      }
+    });
+
+    context.subscriptions.push(dirWatcher);
+  }
 }
 
 /**
