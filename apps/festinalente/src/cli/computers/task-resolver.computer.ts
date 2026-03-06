@@ -10,12 +10,17 @@
  */
 export interface TaskResolverComputer {
   /**
-   * Resolve a task folder name from a list of folders by matching
-   * the numeric prefix of the given identifier.
+   * Resolve a task folder name from a list of folders using three-tier resolution:
+   *
+   * 1. **Exact match** - If `id` exactly matches a folder name, return it immediately.
+   * 2. **Prefix-only resolution** - If `id` is digits-only (`/^\d+$/`), find the first
+   *    folder whose numeric prefix matches.
+   * 3. **No match** - Otherwise return `null`. This prevents mistyped full IDs
+   *    (e.g. `"001-wrong-name"`) from silently resolving to an unrelated task.
    *
    * @param folders - The list of folder names to search.
-   * @param id - The task identifier (or prefix) to resolve.
-   * @returns The first matching folder name, or null if none match.
+   * @param id - The task identifier (full folder name or numeric prefix) to resolve.
+   * @returns The matching folder name, or null if none match.
    */
   readonly resolveTaskFolder: (folders: readonly string[], id: string) => string | null;
 }
@@ -27,19 +32,22 @@ export interface TaskResolverComputer {
  */
 export function createTaskResolverComputer(): TaskResolverComputer {
   function resolveTaskFolder(folders: readonly string[], id: string): string | null {
-    const numericMatch = id.match(/^(\d+)/);
-    if (!numericMatch) {
-      return null;
+    // Tier 1: Exact folder match
+    if (folders.includes(id)) {
+      return id;
     }
-    const numericPrefix = numericMatch[1];
 
-    for (const folder of folders) {
-      const folderMatch = folder.match(/^(\d+)/);
-      if (folderMatch && folderMatch[1] === numericPrefix) {
-        return folder;
+    // Tier 2: Prefix-only resolution (digits-only input)
+    if (/^\d+$/.test(id)) {
+      for (const folder of folders) {
+        const folderMatch = folder.match(/^(\d+)/);
+        if (folderMatch && folderMatch[1] === id) {
+          return folder;
+        }
       }
     }
 
+    // Tier 3: No match
     return null;
   }
 

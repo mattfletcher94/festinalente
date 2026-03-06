@@ -6687,12 +6687,10 @@ function createTaskHandler(deps) {
 */
 function createTaskResolverComputer() {
 	function resolveTaskFolder(folders, id) {
-		const numericMatch = id.match(/^(\d+)/);
-		if (!numericMatch) return null;
-		const numericPrefix = numericMatch[1];
-		for (const folder of folders) {
+		if (folders.includes(id)) return id;
+		if (/^\d+$/.test(id)) for (const folder of folders) {
 			const folderMatch = folder.match(/^(\d+)/);
-			if (folderMatch && folderMatch[1] === numericPrefix) return folder;
+			if (folderMatch && folderMatch[1] === id) return folder;
 		}
 		return null;
 	}
