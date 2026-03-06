@@ -10,9 +10,9 @@ boundary: "Does not handle UI - see vscode-extension"
 references: [patterns/dag-architecture, patterns/factory-di, patterns/command-registry, patterns/tagged-union-errors, systems/vscode-extension, systems/data-model, systems/content-build]
 uses: []
 paths: [apps/festinalente/src/cli]
-updated: 2026-03-01
-verified: 2026-03-01
-code_refs: [apps/festinalente/src/cli/dispatcher.ts, apps/festinalente/src/cli/orchestrator.ts]
+updated: 2026-03-06
+verified: 2026-03-06
+code_refs: [apps/festinalente/src/cli/dispatcher.ts, apps/festinalente/src/cli/orchestrator.ts, apps/festinalente/src/cli/computers/task-resolver.computer.ts]
 ---
 
 # CLI System
@@ -48,8 +48,9 @@ The CLI system provides a single entry point (`dispatcher.ts`) that routes comma
 | YamlParserComputer | YAML parsing | `computers/yaml-parser.computer.ts` |
 | SearchComputer | Fuzzy search with Fuse.js | `computers/search.computer.ts` |
 | ValidationComputer | Schema validation | `computers/validation.computer.ts` |
+| TaskResolverComputer | Prefix-based task ID resolution | `computers/task-resolver.computer.ts` |
 
-**Summary:** 8 handlers, 2 capabilities, 4 computers wired by orchestrator.
+**Summary:** 8 handlers, 2 capabilities, 5 computers wired by orchestrator.
 
 ## Key Patterns
 
@@ -94,6 +95,7 @@ flowchart TB
         YAML["YamlParser"]
         SRCH["Search"]
         VAL["Validation"]
+        TRES["TaskResolver"]
     end
 
     DISP -->|"createCliOrchestrator()"| ORCH
