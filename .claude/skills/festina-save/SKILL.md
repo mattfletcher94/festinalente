@@ -95,7 +95,7 @@ Save partial implementation progress when interrupted. Task stays in In Progress
       <action>Read the directive XML file at `path`</action>
       <action>Parse and apply:</action>
       <action>- `<context>` principles: Maintain as ongoing mindset</action>
-      <action>- `<process>` rules where phase="save": Follow as requirements</action>
+      <action>- `<process>` rules where phase contains "save" (phase may be comma-separated, e.g. phase="plan,implement" applies to both): Follow as requirements</action>
       <action>- `<override>` sections where phase="save": Apply step replacements</action>
       <action>- `<verification>` commands: Note for use in task `<verify>` elements</action>
     

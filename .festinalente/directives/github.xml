@@ -10,31 +10,31 @@
   </description>
 
   <context>
-    <principle id="GH1">
+    <principle id="GH1" keywords="branch,name,type,feat,fix,refactor,docs">
       Branch names: {type}/{id} where type is derived from task label's commit-type
       in workflow.yaml (feature→feat, bug→fix, refactor→refactor, docs→docs, default: feat).
       Quick tasks use quick/{id}.
     </principle>
-    <principle id="GH2">
+    <principle id="GH2" keywords="commit,conventional,format,scope,issue,number">
       Conventional commits: type(#{issueNumber}): description.
       Scope is the GitHub issue number (e.g., #26), not the task slug.
       The issue is always created before the first commit so the number is available.
     </principle>
-    <principle id="GH3">
+    <principle id="GH3" keywords="merge,squash,pr,pull,request,main">
       All merges through GitHub PRs via squash merge. Never merge locally to main.
       The PR title (conventional commit format) becomes the single commit on main.
     </principle>
-    <principle id="GH4">Every task syncs to a GitHub Issue for team visibility.</principle>
-    <principle id="GH5">Every save pushes to keep the remote branch up to date.</principle>
-    <principle id="GH6">PR body includes "Closes #N" to auto-close the linked issue.</principle>
-    <principle id="GH7">
+    <principle id="GH4" keywords="issue,sync,tracking,visibility">Every task syncs to a GitHub Issue for team visibility.</principle>
+    <principle id="GH5" keywords="push,save,remote,upstream">Every save pushes to keep the remote branch up to date.</principle>
+    <principle id="GH6" keywords="closes,auto,close,link">PR body includes "Closes #N" to auto-close the linked issue.</principle>
+    <principle id="GH7" keywords="pr,create,finalize,draft">
       PR is created at finalize (not before). No draft PRs.
       The PR is created ready for review with a proper title and summary.
     </principle>
-    <principle id="GH8">
+    <principle id="GH8" keywords="artifact,gitignore,task,local">
       Task artifacts are gitignored — never committed, pushed, or deleted by git.
     </principle>
-    <principle id="GH9">
+    <principle id="GH9" keywords="mcp,tool,api,github">
       MCP tools (all lowercase): mcp__github__{create,get,update}_issue,
       mcp__github__add_issue_comment, mcp__github__{create,get}_pull_request,
       mcp__github__get_pull_request_{status,comments,reviews}, mcp__github__merge_pull_request.

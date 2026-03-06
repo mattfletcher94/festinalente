@@ -124,7 +124,7 @@ See `.festinalente/workflow.yaml` for column definitions and valid transitions.
       <action>Read the directive XML file at `path`</action>
       <action>Parse and apply:</action>
       <action>- `<context>` principles: Maintain as ongoing mindset</action>
-      <action>- `<process>` rules where phase="rework": Follow as requirements</action>
+      <action>- `<process>` rules where phase contains "rework" (phase may be comma-separated, e.g. phase="plan,implement" applies to both): Follow as requirements</action>
       <action>- `<override>` sections where phase="rework": Apply step replacements</action>
       <action>- `<verification>` commands: Note for use in task `<verify>` elements</action>
     

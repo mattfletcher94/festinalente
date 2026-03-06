@@ -13,7 +13,6 @@ directives:
     - design
   festina-plan:
     - github
-    - planning
     - coding
   festina-implement:
     - github

@@ -98,7 +98,7 @@ Create and refine a new task through conversational Q&A, then add to Backlog. Ca
       <action>Read the directive XML file at `path`</action>
       <action>Parse and apply:</action>
       <action>- `<context>` principles: Maintain as ongoing mindset</action>
-      <action>- `<process>` rules where phase="create": Follow as requirements</action>
+      <action>- `<process>` rules where phase contains "create" (phase may be comma-separated, e.g. phase="plan,implement" applies to both): Follow as requirements</action>
       <action>- `<override>` sections where phase="create": Apply step replacements</action>
       <action>- `<verification>` commands: Note for use in task `<verify>` elements</action>
     

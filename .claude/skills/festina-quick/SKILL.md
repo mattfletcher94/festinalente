@@ -97,7 +97,7 @@ implementation, optional review, optional doc updates.
       <action>Read the directive XML file at `path`</action>
       <action>Parse and apply:</action>
       <action>- `<context>` principles: Maintain as ongoing mindset</action>
-      <action>- `<process>` rules where phase="quick": Follow as requirements</action>
+      <action>- `<process>` rules where phase contains "quick" (phase may be comma-separated, e.g. phase="plan,implement" applies to both): Follow as requirements</action>
       <action>- `<override>` sections where phase="quick": Apply step replacements</action>
       <action>- `<verification>` commands: Note for use in task `<verify>` elements</action>
     
