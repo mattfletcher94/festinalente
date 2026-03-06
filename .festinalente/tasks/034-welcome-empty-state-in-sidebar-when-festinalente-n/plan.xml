@@ -206,8 +206,8 @@
         </reproduce>
       </issue>
       <actions>
-        <action status="pending">Add a guard variable (let initialized = false) checked at the start of the onDidCreate callback</action>
-        <action status="pending">Set the guard to true before calling initializeOrchestrators to ensure it only runs once</action>
+        <action status="done">Add a guard variable (let initialized = false) checked at the start of the onDidCreate callback</action>
+        <action status="done">Set the guard to true before calling initializeOrchestrators to ensure it only runs once</action>
       </actions>
     </iteration>
   </iterations>

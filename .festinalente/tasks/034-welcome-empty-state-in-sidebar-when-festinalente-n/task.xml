@@ -1,4 +1,4 @@
-<task id="034-welcome-empty-state-in-sidebar-when-festinalente-n" status="in-progress" priority="high" created="2026-03-05" updated="2026-03-06" github-branch="feat/034-welcome-empty-state-in-sidebar-when-festinalente-n" github-issue="#26" github-url="https://github.com/mattfletcher94/festinalente/issues/26" github-pr="#27">
+<task id="034-welcome-empty-state-in-sidebar-when-festinalente-n" status="finalize" priority="high" created="2026-03-05" updated="2026-03-06" github-branch="feat/034-welcome-empty-state-in-sidebar-when-festinalente-n" github-issue="#26" github-url="https://github.com/mattfletcher94/festinalente/issues/26" github-pr="#27">
   <title>Welcome empty state in sidebar when festinalente not initialized</title>
 
   <labels>

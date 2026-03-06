@@ -232,9 +232,16 @@ export function activate(context: vscode.ExtensionContext): void {
       new vscode.RelativePattern(workspaceFolder, '.festinalente/**')
     );
 
+    let initialized = false;
+
     dirWatcher.onDidCreate(() => {
+      if (initialized) {
+        return;
+      }
+
       const detectedDir = findFestinalenteFolder(vscode.workspace.workspaceFolders, fs);
       if (detectedDir) {
+        initialized = true;
         vscode.commands.executeCommand('setContext', 'festinalente.hasFestinalenteFolder', true);
         initializeOrchestrators(context, detectedDir, fs);
         dirWatcher.dispose();
