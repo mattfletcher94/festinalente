@@ -11,7 +11,6 @@ import { type CommandRegistry, createCommandRegistry } from './registry';
 import { createConfigHandler } from './handlers/config.handler';
 import { createDocsHandler } from './handlers/docs.handler';
 import { createFileSystemCapability } from './capabilities/file-system.capability';
-import { createGitCapability } from './capabilities/git.capability';
 import { createQueryHandler } from './handlers/query.handler';
 import { createQuickHandler } from './handlers/quick.handler';
 import { createSearchComputer } from './computers/search.computer';
@@ -39,7 +38,6 @@ export interface CliOrchestrator {
 export function createCliOrchestrator(): CliOrchestrator {
   // Create capabilities (I/O operations)
   const fs = createFileSystemCapability();
-  const git = createGitCapability();
 
   // Create computers (pure logic)
   const xmlParser = createXmlParserComputer();
@@ -56,7 +54,7 @@ export function createCliOrchestrator(): CliOrchestrator {
   const docsHandler = createDocsHandler({ fs, yamlParser });
   const validationHandler = createValidationHandler({ fs, yamlParser, validation, taskResolver });
   const configHandler = createConfigHandler({ fs, yamlParser });
-  const queryHandler = createQueryHandler({ fs, git, yamlParser, xmlParser });
+  const queryHandler = createQueryHandler({ fs, yamlParser, xmlParser });
 
   // Create command registry
   const registry = createCommandRegistry();

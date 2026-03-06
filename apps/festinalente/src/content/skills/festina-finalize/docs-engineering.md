@@ -84,8 +84,6 @@ Fill ALL of these (same as product docs):
 | `aliases` | Alternative names | [api cache, response cache, redis cache] |
 | `boundary` | What this does NOT cover | "Does not handle database query caching" |
 | `updated` | Current date | 2026-02-27 |
-| `verified` | Current date | 2026-02-27 |
-| `code_refs` | Files touched by this task | [src/cache/api-cache.ts] |
 
 ### Required Content Sections by Type
 

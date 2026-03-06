@@ -117,47 +117,6 @@ Move task from Planned to In Progress and execute the plan.
     <note>Implementation should maintain or extend documented behavior</note>
   </step>
 
-  <step name="check_doc_freshness">
-    <note>**Freshness Check:** Warn if relevant docs may be outdated</note>
-    <command>node .festinalente/scripts/festinalente.cjs check-freshness --stale-days=30</command>
-    <action>Parse JSON output</action>
-    <action>Check if any docs from affects or engineering field are in staleDocs list</action>
-
-    <branch condition="any affected docs are stale">
-      <output>
-Warning: Some relevant docs may be outdated:
-      </output>
-      <action>For each stale doc related to this task:</action>
-      <output>- {doc.id}: verified {doc.verifiedDate} ({doc.daysSinceVerified} days ago)</output>
-      <output>  Code changed: {doc.modifiedCodeRefs}</output>
-
-      <action>Use AskUserQuestion with:
-        - header: "Stale docs"
-        - question: "Some docs may be outdated. How should I proceed?"
-        - options:
-          - label: "Continue anyway (Recommended)", description: "Proceed with implementation, update docs later"
-          - label: "Review docs first", description: "Read the stale docs before implementing"
-        - multiSelect: false
-      </action>
-
-      <branch condition="user selects review first">
-        <action>For each stale doc, read and present content</action>
-        <action>Use AskUserQuestion tool with:
-          - header: "Accurate?"
-          - question: "Is this doc still accurate enough to guide implementation?"
-          - options:
-            - label: "Yes", description: "Doc is accurate, proceed"
-            - label: "No", description: "Doc is outdated, note discrepancies"
-          - multiSelect: false
-        </action>
-      </branch>
-    </branch>
-
-    <branch condition="no stale docs">
-      <note>All relevant docs are fresh</note>
-    </branch>
-  </step>
-
   <step name="load_directives">
     <note>**Orchestrator-only step:** Directive loading and compliance checking runs in orchestrator only.
     Subagents do not receive directive context - they focus purely on task execution.</note>

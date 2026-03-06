@@ -92,16 +92,10 @@ For docs that already exist and need updating:
      - label: "Needs correction", description: "Some parts need to be fixed"
    - multiSelect: false
 
-4. If "Yes":
-   - Run: node .festinalente/scripts/festinalente.cjs get-date-time
-   - Update `verified: {YYYY-MM-DD}` in frontmatter
-   - Update `code_refs` with files touched by this task
-
-5. If "Needs correction":
+4. If "Needs correction":
    - Ask user what needs correction
    - Make corrections
    - Re-verify with user
-   - Update verified date
 ```
 
 ### Diagram Updates
@@ -135,8 +129,6 @@ Fill ALL of these:
 | `aliases` | Alternative names users might use | [skip permissions, dangerous mode] |
 | `boundary` | What this does NOT cover | "Does not affect Claude's internal safety checks" |
 | `updated` | Current date | 2026-02-27 |
-| `verified` | Current date | 2026-02-27 |
-| `code_refs` | Files touched by this task | [src/settings.ts, electron/main.ts] |
 
 ### Required Content Sections
 
@@ -214,8 +206,6 @@ Fill ALL frontmatter:
 - `references:` IDs of docs this one mentions
 - `uses:` IDs of systems/patterns this depends on
 - `updated:` Current date
-- `verified:` Current date
-- `code_refs:` Files implementing this
 
 Fill sections: Overview, How It Works, Examples, Boundaries, Limitations
 

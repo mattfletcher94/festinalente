@@ -408,7 +408,7 @@ For each issue, provide:
     <command description="Get current date">node .festinalente/scripts/festinalente.cjs get-date-time</command>
     <action>Create `.festinalente/engineering/systems/{system}/_index.md`</action>
     <action>Use template from `.festinalente/templates/engineering-system.md`</action>
-    <action>Fill frontmatter: `id`, `type: system`, `title`, `tldr`, `summary`, `keywords`, `aliases`, `boundary`, `paths`, `verified`, `code_refs`</action>
+    <action>Fill frontmatter: `id`, `type: system`, `title`, `tldr`, `summary`, `keywords`, `aliases`, `boundary`, `paths`</action>
 
     <note>**Diagram Generation:**</note>
     <action>For each system doc, generate:</action>
@@ -582,7 +582,7 @@ terms:
     <note>Validate documentation quality and completeness</note>
 
     <action>Check all `references` and `uses` fields resolve to existing docs</action>
-    <action>Check all `paths` and `code_refs` fields point to existing files</action>
+    <action>Check all `paths` fields point to existing files</action>
     <action>Check for orphan docs (not referenced anywhere)</action>
     <action>Verify each doc has required fields: tldr, summary, keywords, boundary</action>
 
@@ -656,7 +656,7 @@ Risks documented: {count} from Risk Identifier
 <success_criteria>
 - `.festinalente/engineering/` directory exists
 - At least `overview.md` was created
-- Each doc has valid frontmatter (id, type, title, tldr, summary, keywords, boundary, paths, verified, updated)
+- Each doc has valid frontmatter (id, type, title, tldr, summary, keywords, boundary, paths, updated)
 - `.festinalente/glossary.yaml` updated with technical terms
 - Validation phase completed without errors
 - Next steps shown to user

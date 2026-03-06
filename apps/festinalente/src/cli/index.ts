@@ -38,8 +38,6 @@ export { createCommandRegistry, defineCommand, executeCommand } from './registry
 // Capabilities
 export type { FileSystemCapability, Result, DirEntry } from './capabilities/file-system.capability';
 export { createFileSystemCapability, ok, err } from './capabilities/file-system.capability';
-export type { GitCapability } from './capabilities/git.capability';
-export { createGitCapability } from './capabilities/git.capability';
 
 // Computers
 export type {
@@ -121,9 +119,7 @@ export { createConfigHandler } from './handlers/config.handler';
 export type {
   QueryHandler,
   DocContent,
-  SelectContextOutput,
-  StaleDoc,
-  FreshnessOutput
+  SelectContextOutput
 } from './handlers/query.handler';
 export { createQueryHandler } from './handlers/query.handler';
 

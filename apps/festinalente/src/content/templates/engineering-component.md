@@ -9,8 +9,6 @@ aliases: []
 boundary: "{What this component does NOT handle}"
 paths: []
 updated: YYYY-MM-DD
-verified: YYYY-MM-DD
-code_refs: []
 ---
 
 # {Component Name}

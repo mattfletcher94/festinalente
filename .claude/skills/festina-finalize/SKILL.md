@@ -554,7 +554,7 @@ Read docs-product.md for detailed guidance on:
 
 **Your Instructions:**
 1. For stub docs: Remove stub:true, fill ALL frontmatter fields, fill ALL content sections
-2. For existing docs: Make minimal focused updates, update verified date and code_refs
+2. For existing docs: Make minimal focused updates
 3. For new docs: Create using templates, fill ALL fields, keep scope focused
 4. Write all doc changes to disk using Write tool
 5. Do NOT update domain _index.md or glossary.yaml (orchestrator handles these)
