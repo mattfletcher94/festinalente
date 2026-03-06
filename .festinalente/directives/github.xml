@@ -17,7 +17,9 @@
     </principle>
     <principle id="GH9">
       Task artifacts (task.xml, spec.xml, plan.xml) live only on the task branch.
-      They are deleted before merge. Main only receives implementation code.
+      They are deleted ONLY after PR is approved and ready to merge (not before).
+      This ensures /festina-rework can function if review feedback is received.
+      With squash merge, artifacts net to zero on main once deleted from branch tip.
       GitHub Issues are the team's view into task state.
     </principle>
     <principle id="GH2">
@@ -129,25 +131,43 @@
     </rule>
 
     <rule id="GH-FIN-PR" phase="finalize">
+      TWO-PASS FINALIZE — this rule runs on every finalize. Behavior depends on PR state.
+
       STATE CHECK — read github-pr from task.xml:
 
       NO github-pr (plan was skipped):
         Create PR via mcp__GitHub__create_pull_request (not draft), head: {github-branch}.
         Add github-pr to task.xml, commit, push.
+        Output: "PR created. Awaiting review. Re-run /festina-finalize after approval."
+        EXIT.
 
       HAS github-pr — check via mcp__GitHub__pull_request_read:
-        state="merged"  → Output "PR already merged. Task complete." EXIT.
-        state="closed"  → Prompt "PR closed. Create new?" then create.
-        mergeable=false  → Rebase onto main and push:
-                           git fetch origin main
-                           git rebase origin/main
-                           git push --force-with-lease
-                           Then re-check PR state.
 
-      THEN proceed to GH-FIN-MERGE (delete artifacts, push, instruct user).
+        state="merged" → Go to GH-FIN-CLEANUP.
+
+        state="closed" → Prompt "PR closed. Create new?" then create.
+
+        mergeable=false → Rebase onto main and push:
+                          git fetch origin main
+                          git rebase origin/main
+                          git push --force-with-lease
+                          Then re-check PR state.
+
+        FIRST PASS (PR is draft or not yet reviewed):
+          Output: "PR #{N} pushed and ready for review.
+                   Re-run /festina-finalize {id} after approval."
+          EXIT.
+
+        CHANGES REQUESTED:
+          Output: "PR has requested changes. Address feedback with /festina-rework."
+          EXIT.
+
+        APPROVED (or no review required and mergeable):
+          → Go to GH-FIN-MERGE.
     </rule>
 
     <rule id="GH-FIN-MERGE" phase="finalize">
+      SECOND PASS — PR is approved, safe to delete artifacts and merge.
       1. Update task status="done", add completed date.
          git add .festinalente/tasks/{id}/task.xml
          git commit -m "docs({issueNumber}): done"
@@ -156,8 +176,16 @@
          git commit -m "chore({issueNumber}): cleanup artifacts"
       3. git push
       4. Output: "Ready to merge: https://github.com/{owner}/{repo}/pull/{N}
-         Publish the draft and squash-merge. Issue #{github-issue} will auto-close."
+         Squash-merge in GitHub UI. Issue #{github-issue} will auto-close."
       5. EXIT.
+    </rule>
+
+    <rule id="GH-FIN-CLEANUP" phase="finalize">
+      PR was already merged externally (e.g., merged in GitHub UI before second finalize pass).
+      1. git checkout main &amp;&amp; git fetch origin &amp;&amp; git reset --hard origin/main
+      2. git branch -D {github-branch} (delete local branch)
+      3. Output: "PR was already merged. Task complete."
+      4. EXIT.
     </rule>
 
     <rule id="GH-REWORK" phase="rework">
@@ -245,16 +273,29 @@
       <code><![CDATA[
 # Task: 022-add-dark-mode, GitHub issue: #42
 # Full commit history (all on feat/022-add-dark-mode):
+
+# === Create/Scope/Plan phase ===
 docs(#42): create task
 docs(#42): scope
 docs(#42): plan
 docs(#42): draft pr
+
+# === Implement/Save phase ===
 wip(#42): add toggle component and theme provider
+
+# === Finalize pass 1 (checks, docs, push for review) ===
 feat(#42): add dark mode toggle
 docs(#42): update product+engineering docs
+# → EXIT: "Awaiting review. Re-run /festina-finalize after approval."
+
+# === (optional) Rework if reviewer requests changes ===
+# /festina-rework works because artifacts still exist
+
+# === Finalize pass 2 (after PR approved) ===
 docs(#42): done
 chore(#42): cleanup artifacts
-# ↑ deletes task.xml, spec.xml, plan.xml before merge
+# ↑ deletes task.xml, spec.xml, plan.xml — only after approval
+# → User squash-merges in GitHub UI
 
 # PR title (= squash commit on main):
 # feat(#42): add dark mode toggle
