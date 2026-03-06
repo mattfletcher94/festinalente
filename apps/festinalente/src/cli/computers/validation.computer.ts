@@ -18,7 +18,24 @@ export interface ValidationResult {
 /**
  * Directive validation phases.
  */
-const VALID_PHASES = ['scope', 'plan', 'implement', 'check', 'rework', 'docs', 'create', 'merge'];
+const VALID_PHASES = [
+  'scope',
+  'plan',
+  'implement',
+  'check',
+  'rework',
+  'docs',
+  'create',
+  'merge',
+  'save',
+  'finalize',
+  'delete',
+  'quick',
+  'define-product',
+  'map-product',
+  'map-engineering',
+  'directive'
+];
 
 /**
  * Directive validation severities.
