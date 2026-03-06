@@ -1,6 +1,6 @@
 <plan task="034-welcome-empty-state-in-sidebar-when-festinalente-n" spec="tasks/034-welcome-empty-state-in-sidebar-when-festinalente-n/spec.xml" status="approved"
       complexity="medium" created="2026-03-05" updated="2026-03-05"
-      generated-by="claude" model="claude-opus-4-6" version="1" iteration="1">
+      generated-by="claude" model="claude-opus-4-6" version="1" iteration="2">
   <title>Welcome empty state in sidebar when festinalente not initialized</title>
 
   <overview>
@@ -192,7 +192,25 @@
     <pitfall issue="Extension.ts stays thin">initializeOrchestrators is an extracted function, not a new module. Extension.ts remains the composition root with no policy logic added.</pitfall>
   </pitfalls>
 
-  <iterations></iterations>
+  <iterations>
+    <iteration number="2" phase="finalize" result="failed" date="2026-03-06">
+      <issue type="Bug" severity="Blocker">
+        <summary>Race condition in onDidCreate callback can cause duplicate initialization</summary>
+        <expected>initializeOrchestrators should only be called once, regardless of how many file creation events fire</expected>
+        <actual>The onDidCreate callback fires multiple times in rapid succession (once per file created inside .festinalente/) before dirWatcher.dispose() takes effect. This causes initializeOrchestrators to be called more than once, registering duplicate commands and TreeViews, causing VS Code errors.</actual>
+        <reproduce>
+1. Open extension in a workspace without .festinalente/
+2. Run npx festinalente init (creates multiple files inside .festinalente/)
+3. Multiple onDidCreate events fire before dispose() takes effect
+4. Duplicate commands/TreeViews are registered, causing VS Code errors
+        </reproduce>
+      </issue>
+      <actions>
+        <action status="pending">Add a guard variable (let initialized = false) checked at the start of the onDidCreate callback</action>
+        <action status="pending">Set the guard to true before calling initializeOrchestrators to ensure it only runs once</action>
+      </actions>
+    </iteration>
+  </iterations>
   <wip></wip>
   <completeness></completeness>
 </plan>
