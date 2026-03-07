@@ -44,7 +44,8 @@ flowchart LR
     end
 
     Checks --> Fix
-    Fix --> Analyze
+    Fix --> Review[Spec Review]
+    Review --> Analyze
     Analyze --> Agents
     Agents --> Done
     Done --> Directives
@@ -55,6 +56,7 @@ flowchart LR
 1. **Verify plan completion** - All tasks marked complete
 2. **Run directive checks** - TypeScript, tests, linting
 3. **Auto-fix loop** - Fix issues, log to iterations, retry
+4. **Spec compliance review** - Independent agent verifies implementation against spec
 
 ### Phase 2: Documentation
 
@@ -69,7 +71,7 @@ flowchart LR
 1. **Mark done** - Update task status
 2. **Run directive rules** - Git operations, PR creation, etc. (directive-driven)
 
-**Summary:** Three distinct phases, each resumable independently. Git operations (committing, merging, branch cleanup) are handled by directives, not the skill itself.
+**Summary:** Three distinct phases, each resumable independently. Phase 1 includes an independent spec compliance review after directive checks. Git operations (committing, merging, branch cleanup) are handled by directives, not the skill itself.
 
 ## Examples
 
@@ -115,6 +117,7 @@ What this skill does NOT do:
 ## Interactions
 
 - **Directives**: Runs all configured checks in Phase 1; git/PR operations in Phase 3 are directive-driven
+- **Spec Review**: Independent Explore agent verifies implementation against spec requirements
 - **Product Docs**: Spawns agent if task has `affects` field
 - **Engineering Docs**: Spawns agent if task has `engineering` field
 - **Glossary**: Updates with new terms from doc agents
