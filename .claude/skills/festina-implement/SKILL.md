@@ -127,6 +127,7 @@ Move task from Planned to In Progress and execute the plan.
   <step name="read_spec">
     <action>Get `spec` path from plan XML</action>
     <action>Read spec file for full context on requirements and patterns</action>
+    <action>Extract boundaries from spec if present (always, ask-first, never sections)</action>
   </step>
 
   <step name="load_smart_context">
@@ -251,6 +252,12 @@ Execute task {task.id}: "{task.name}"
 
 **Spec reference:** .festinalente/tasks/{taskId}/spec.xml
 (Read if you need functional requirements or additional context)
+
+{If spec has &lt;boundaries&gt; element:}
+**Boundaries:**
+- ALWAYS: {always items — proceed without asking}
+- ASK FIRST: {ask-first items — if you encounter these, report FAILURE with details instead of proceeding}
+- NEVER: {never items — do NOT do these under any circumstances}
 
 When complete, report:
 - SUCCESS: {summary of what was done}

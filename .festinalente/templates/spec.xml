@@ -12,6 +12,20 @@
     </out-of-scope>
   </scope>
 
+  <!-- Optional: only for brownfield tasks -->
+  <delta>
+    <current>{what exists today, from product docs}</current>
+    <changing>{what this task modifies}</changing>
+    <unchanged>{what explicitly stays the same}</unchanged>
+  </delta>
+
+  <!-- Optional: autonomy boundaries for implementation agent -->
+  <boundaries>
+    <always>{proceed without asking}</always>
+    <ask-first>{needs user approval}</ask-first>
+    <never>{hard stop}</never>
+  </boundaries>
+
   <requirements>
     <requirement id="FR1">{requirement}</requirement>
   </requirements>

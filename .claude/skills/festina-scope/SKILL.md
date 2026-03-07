@@ -174,6 +174,33 @@ Create a functional specification through iterative conversational Q&A focused o
     </action>
   </step>
 
+  <step name="detect_brownfield" outputs="specFormat">
+    <note>Detect whether task affects existing product docs (brownfield) or is entirely new (greenfield).</note>
+
+    <branch condition="task has affects field with product doc references">
+      <action>Check if any affected product docs exist and contain substantive content (not stubs)</action>
+      <branch condition="existing non-stub product docs found">
+        <action>Use AskUserQuestion tool with:
+          - header: "Spec Format"
+          - question: "This task affects existing features ({list affected doc IDs}). Use delta spec format (documents what's changing vs staying the same) or full spec format?"
+          - options:
+            - label: "Delta spec (Recommended)", description: "Focuses on what's changing. Includes current state, changes, and unchanged sections from product docs."
+            - label: "Full spec", description: "Standard full specification. Better for tasks that substantially rework a feature."
+          - multiSelect: false
+        </action>
+        <action>Set specFormat based on user choice</action>
+      </branch>
+      <branch condition="all affected docs are stubs or missing">
+        <action>Set specFormat = "full"</action>
+        <output>Affected docs are stubs or missing. Using full spec format.</output>
+      </branch>
+    </branch>
+
+    <branch condition="task has no affects field">
+      <action>Set specFormat = "full"</action>
+    </branch>
+  </step>
+
   <step name="structured_research" outputs="researchFindings">
     <branch condition="researchDepth is 'Quick'">
       <note>Sequential research - faster, fewer tokens</note>
@@ -652,6 +679,24 @@ The Q&A phase is the natural place to challenge any assumption made during synth
         - multiSelect: false
       </action>
       <note>User can select "Other" to describe constraints</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Boundaries"
+        - question: "Are there boundaries for the implementation agent? Things it should always do, ask about first, or never touch?"
+        - options:
+          - label: "None needed", description: "No specific autonomy boundaries"
+          - label: "Yes", description: "I want to define always/ask-first/never rules"
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe boundaries directly</note>
+      <branch condition="user selects 'Yes' or provides boundaries via 'Other'">
+        <action>Capture boundaries into three categories:
+          - always: Things the agent should always do without asking (e.g., "run tests", "preserve existing API")
+          - ask-first: Things that need user approval before proceeding (e.g., "changing public interfaces", "modifying shared config")
+          - never: Hard stops the agent must not cross (e.g., "delete user data", "modify auth logic")
+        </action>
+      </branch>
     </questions>
 
     <note>Perform research when requested or beneficial:</note>
@@ -705,11 +750,79 @@ The Q&A phase is the natural place to challenge any assumption made during synth
 - Don't rush - thoroughness now saves time during implementation</note>
   </step>
 
+  <step name="validate_gaps">
+    <note>Check the draft requirements for gaps and conflicts before creating the spec file.</note>
+
+    <action>Review all requirements gathered during Q&amp;A for:</action>
+
+    <action name="check_conflicts">
+      <note>Look for requirements that contradict each other</note>
+      <action>Compare each pair of requirements for logical conflicts</action>
+      <action>Flag any where satisfying one would prevent satisfying another</action>
+    </action>
+
+    <action name="check_error_handling">
+      <note>Look for requirements that imply error scenarios but don't address them</note>
+      <action>For each requirement involving external input, file I/O, or network: verify error case is covered</action>
+    </action>
+
+    <action name="check_dangling_references">
+      <note>Look for references to components, files, or features that don't exist</note>
+      <action>Verify each referenced file, function, or component exists in the codebase</action>
+    </action>
+
+    <action name="check_acceptance_coverage">
+      <note>Verify every acceptance criterion from the task has at least one requirement addressing it</note>
+      <action>Map each acceptance criterion to its covering requirement(s)</action>
+      <action>Flag any acceptance criteria with no matching requirement</action>
+    </action>
+
+    <branch condition="any gaps or conflicts found">
+      <output>
+**Gap Validation Results**
+
+{For each issue found:}
+- **{type}**: {description}
+      </output>
+      <action>Use AskUserQuestion tool with:
+        - header: "Gaps Found"
+        - question: "Found {n} gap(s) in requirements. Address them now or proceed?"
+        - options:
+          - label: "Address now (Recommended)", description: "Discuss and resolve each gap before creating spec"
+          - label: "Proceed anyway", description: "Acknowledge gaps and create spec as-is"
+        - multiSelect: false
+      </action>
+      <branch condition="user selects 'Address now'">
+        <action>For each gap, discuss with user and update requirements accordingly</action>
+      </branch>
+    </branch>
+
+    <branch condition="no gaps found">
+      <output>Gap validation passed. No conflicts, missing error handling, dangling references, or uncovered acceptance criteria found.</output>
+    </branch>
+  </step>
+
   <step name="create_spec_file" outputs="specPath">
     <action>Create at `.festinalente/tasks/{taskId}/spec.xml`</action>
     <action>Follow template at `.festinalente/templates/spec.xml`</action>
     <action>Link to spec in XML attributes</action>
     <action>Fill ALL sections</action>
+
+    <branch condition="specFormat is 'delta'">
+      <action>Include delta section in spec XML:
+        - current: Summarize current behavior from affected product docs (what exists today)
+        - changing: What this task modifies (derived from requirements and Q&amp;A)
+        - unchanged: What explicitly stays the same (important for implementation agent to know what NOT to touch)
+      </action>
+    </branch>
+
+    <branch condition="boundaries were captured during Q&amp;A">
+      <action>Include boundaries section in spec XML:
+        - always: Items from always category, each as an item element
+        - ask-first: Items from ask-first category, each as an item element
+        - never: Items from never category, each as an item element
+      </action>
+    </branch>
 
     <example_code lang="xml">
 <spec task="{taskId}" created="{YYYY-MM-DD}" updated="{YYYY-MM-DD}">
@@ -728,6 +841,26 @@ The Q&A phase is the natural place to challenge any assumption made during synth
       <item>{Explicit boundaries}</item>
     </out-of-scope>
   </scope>
+
+    <!-- Conditional: only when specFormat is "delta" -->
+    <delta>
+      <current>{what exists today, from product docs}</current>
+      <changing>{what this task modifies}</changing>
+      <unchanged>{what explicitly stays the same}</unchanged>
+    </delta>
+
+    <!-- Conditional: only when boundaries were captured during Q&A -->
+    <boundaries>
+      <always>
+        <item>{always do this without asking}</item>
+      </always>
+      <ask-first>
+        <item>{ask user before doing this}</item>
+      </ask-first>
+      <never>
+        <item>{never do this}</item>
+      </never>
+    </boundaries>
 
   <requirements>
     <requirement id="FR1">The system shall...</requirement>
@@ -791,6 +924,46 @@ The Q&A phase is the natural place to challenge any assumption made during synth
     <note>- If user raised a concern during Q&A that wasn't fully resolved → add as open question</note>
     <note>- Do NOT write "None - all resolved" if there are genuine uncertainties</note>
     <note>- Empty open-questions section is fine if everything was actually resolved</note>
+  </step>
+
+  <step name="check_leakage">
+    <note>Review each requirement in the spec for implementation leakage — requirements should describe WHAT (outcomes) not HOW (implementation details).</note>
+
+    <action>For each requirement in the spec:</action>
+    <action>Check if it prescribes specific:
+      - Function names, class names, or variable names
+      - Exact code patterns or algorithms
+      - Specific library APIs or method calls
+      - File structure or directory layout (beyond what's in the files section)
+    </action>
+    <action>A requirement should describe the observable outcome, not the code structure.</action>
+
+    <branch condition="leakage found in any requirements">
+      <output>
+**Implementation Leakage Check**
+
+The following requirements prescribe HOW instead of WHAT:
+{For each leaking requirement:}
+- **{FR id}**: "{requirement text}"
+  Issue: {what's leaking — e.g., "specifies function name 'handleAuth'"}
+  Suggested: {rewrite focusing on outcome}
+      </output>
+      <action>Use AskUserQuestion tool with:
+        - header: "Leakage"
+        - question: "Found {n} requirement(s) with implementation leakage. Rewrite them to focus on outcomes?"
+        - options:
+          - label: "Rewrite (Recommended)", description: "Update flagged requirements to describe outcomes instead of implementation"
+          - label: "Keep as-is", description: "Requirements are intentionally specific (e.g., matching existing API names)"
+        - multiSelect: false
+      </action>
+      <branch condition="user selects 'Rewrite'">
+        <action>Update the spec file with rewritten requirements</action>
+      </branch>
+    </branch>
+
+    <branch condition="no leakage found">
+      <output>Leakage check passed. All requirements describe outcomes, not implementation details.</output>
+    </branch>
   </step>
 
   <step name="update_task_xml">
