@@ -143,5 +143,10 @@ Exit the skill
        ├─ Skip → continue to next
        └─ Abort → exit
 
-4. Proceed to Phase 2 (Documentation)
+4. Spec compliance review (independent Explore agent)
+   ├─ PASS → continue
+   ├─ PASS WITH NOTES → Acknowledge / Fix / Rework
+   └─ FAIL → Fix / Acknowledge / Rework
+
+5. Proceed to Phase 2 (Documentation)
 ```

@@ -409,6 +409,189 @@ Print "All automated checks passed!"
     </note>
   </step>
 
+  <step name="spec_compliance_review" when="resumeFrom is phase1">
+    <output>
+Running spec compliance review...
+    </output>
+
+    <note>
+**Independent Spec Compliance Review**
+
+This step spawns a read-only Explore agent to verify the implementation against the spec
+from a fresh context — separate from the implementer. The reviewer reports findings but
+never modifies code.
+    </note>
+
+    <action>Read spec.xml:</action>
+    <command>node .festinalente/scripts/festinalente.cjs find-spec {taskId}</command>
+    <action>Read the spec file at the returned path</action>
+    <action>Extract the list of files from spec's `&lt;files&gt;` section</action>
+    <action>Read plan.xml (already loaded from verify_plan_completion step)</action>
+    <action>Read task.xml (already loaded from read_task_file step)</action>
+
+    <action>Spawn an Explore subagent for the review:</action>
+
+    <agent name="Spec Compliance Reviewer" subagent_type="Explore">
+      <description>Independent spec compliance review — verifies implementation against spec</description>
+      <prompt>
+You are an independent spec compliance reviewer. Your job is to verify that the implementation
+matches the spec. You are in a SEPARATE context from the implementer — provide a fresh perspective.
+
+**Read these files first:**
+- Spec: {specPath}
+- Plan: {planPath}
+- Task: {taskPath}
+- Every file listed in spec's `&lt;files&gt;` section
+
+Then perform these checks:
+
+**1. REQUIREMENTS CHECK**
+For each `&lt;requirement&gt;` in spec, search the implementation files for evidence.
+Report each as:
+- MET: with file:line reference showing the implementation
+- UNMET: with explanation of what's missing
+
+**2. SCOPE CREEP CHECK**
+Identify significant code additions not traceable to any spec requirement.
+Do NOT flag minor supporting code (imports, type definitions, helper utilities
+directly serving a requirement) — only flag substantial additions beyond scope.
+
+**3. SPEC DRIFT CHECK**
+Compare actual implementation approach to what the spec described.
+Flag deviations in approach, files used, or patterns followed.
+
+**4. FILE COVERAGE CHECK**
+For each file in spec's `&lt;files&gt;` section:
+- action="create": verify file exists
+- action="modify": verify file was changed (check content matches spec description)
+- action="delete": verify file no longer exists
+Also check for orphaned files — files created but not imported/wired into the codebase.
+If spec has no `&lt;files&gt;` section, report FILE COVERAGE as N/A.
+
+**5. ACCEPTANCE CRITERIA CHECK**
+Read acceptance criteria from task.xml's `&lt;acceptance-criteria&gt;` element.
+Assess each criterion's satisfaction status.
+If no acceptance criteria exist, report as N/A.
+
+**Output this exact format:**
+
+## Requirements
+- FR1: MET | {file:line evidence}
+- FR2: UNMET | {explanation}
+
+## Scope Creep
+- None found | OR list of additions
+
+## Spec Drift
+- None found | OR list of deviations
+
+## File Coverage
+- path/file.ts (create): EXISTS | MISSING
+- path/file.ts (modify): CHANGED | UNCHANGED
+- path/file.ts (delete): REMOVED | STILL EXISTS
+- Orphaned: None | OR list
+
+## Acceptance Criteria
+- Criterion 1: SATISFIED | {explanation}
+- Criterion 2: NOT SATISFIED | {explanation}
+
+## Verdict: PASS | PASS WITH NOTES | FAIL
+
+**Verdict logic:**
+- PASS: All requirements MET, no scope creep, no drift, full file coverage, all criteria satisfied
+- PASS WITH NOTES: All requirements MET but minor notes (acceptable scope additions, minor drift)
+- FAIL: Any requirement UNMET, significant scope creep, missing files, or criteria not satisfied
+      </prompt>
+    </agent>
+
+    <action>Wait for agent to complete</action>
+    <action>Parse the verdict from the agent's output (look for "## Verdict:" line)</action>
+
+    <branch condition="agent fails to complete (error or timeout)">
+      <output>Warning: Spec compliance reviewer failed to complete.</output>
+      <action>Use AskUserQuestion tool with:
+        - header: "Review"
+        - question: "Spec compliance reviewer failed. How should I proceed?"
+        - options:
+          - label: "Retry", description: "Spawn the reviewer agent again"
+          - label: "Skip", description: "Continue to Phase 2 without review"
+        - multiSelect: false
+      </action>
+      <branch condition="user selects Retry">
+        <action>Re-spawn the reviewer agent</action>
+      </branch>
+      <branch condition="user selects Skip">
+        <output>Skipping spec compliance review.</output>
+        <action>Continue to Phase 2</action>
+      </branch>
+    </branch>
+
+    <branch condition="verdict is PASS">
+      <output>Spec compliance review: **PASS**</output>
+      <action>Continue to Phase 2</action>
+    </branch>
+
+    <branch condition="verdict is PASS WITH NOTES">
+      <output>Spec compliance review: **PASS WITH NOTES**</output>
+      <output>{Display the full review report from the agent}</output>
+      <action>Use AskUserQuestion tool with:
+        - header: "Review"
+        - question: "Spec review passed with notes. How would you like to proceed?"
+        - options:
+          - label: "Acknowledge (Recommended)", description: "Notes are acceptable, continue to Phase 2"
+          - label: "Fix", description: "Address the noted issues before continuing"
+          - label: "Rework", description: "Send back to implementation via /festina-rework"
+        - multiSelect: false
+      </action>
+      <branch condition="user selects Acknowledge">
+        <action>Continue to Phase 2</action>
+      </branch>
+      <branch condition="user selects Fix">
+        <action>Make code changes to address the noted issues</action>
+        <action>Log fix to plan.xml iterations:
+          &lt;iteration phase="finalize" date="{YYYY-MM-DD}"&gt;
+            &lt;fix directive="spec-review"&gt;{description of fix}&lt;/fix&gt;
+          &lt;/iteration&gt;
+        </action>
+        <action>Restart from run_checks step</action>
+      </branch>
+      <branch condition="user selects Rework">
+        <output>Exiting. Run `/festina-rework {taskId}` to capture issues and return to implementation.</output>
+        <action>Exit</action>
+      </branch>
+    </branch>
+
+    <branch condition="verdict is FAIL">
+      <output>Spec compliance review: **FAIL**</output>
+      <output>{Display the full review report from the agent}</output>
+      <action>Use AskUserQuestion tool with:
+        - header: "Review"
+        - question: "Spec compliance review failed. How would you like to proceed?"
+        - options:
+          - label: "Fix (Recommended)", description: "Address unmet requirements now"
+          - label: "Acknowledge", description: "Issues are acceptable, continue anyway"
+          - label: "Rework", description: "Send back to implementation via /festina-rework"
+        - multiSelect: false
+      </action>
+      <branch condition="user selects Fix">
+        <action>Make code changes to address unmet requirements</action>
+        <action>Log fix to plan.xml iterations:
+          &lt;iteration phase="finalize" date="{YYYY-MM-DD}"&gt;
+            &lt;fix directive="spec-review"&gt;{description of fix}&lt;/fix&gt;
+          &lt;/iteration&gt;
+        </action>
+        <action>Restart from run_checks step</action>
+      </branch>
+      <branch condition="user selects Acknowledge">
+        <action>Continue to Phase 2</action>
+      </branch>
+      <branch condition="user selects Rework">
+        <output>Exiting. Run `/festina-rework {taskId}` to capture issues and return to implementation.</output>
+        <action>Exit</action>
+      </branch>
+    </branch>
+  </step>
+
   <!-- ═══════════════════════════════════════════════════════════════════════════
        PHASE 2: DOCUMENTATION
        Reference: docs-product.md, docs-engineering.md
