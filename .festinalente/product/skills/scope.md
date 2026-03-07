@@ -3,13 +3,13 @@ id: skills/scope
 title: "Scope Task"
 type: feature
 tldr: "Research codebase and create functional specification through parallel exploration"
-summary: "The /festina-scope skill researches the codebase using parallel agents, resolves pitfalls through structured Q&A, and creates a spec.xml with affected files, patterns, and requirements."
-keywords: [scope, spec, research, parallel-agents, pitfalls, functional-requirements]
+summary: "The /festina-scope skill researches the codebase using parallel agents, detects brownfield changes, resolves pitfalls through structured Q&A with autonomy boundaries, validates specs for gaps and implementation leakage, and creates a spec.xml with affected files, patterns, and requirements."
+keywords: [scope, spec, research, parallel-agents, pitfalls, functional-requirements, brownfield, boundaries, validation]
 aliases: [festina-scope, specification, research]
 boundary: "Does not create implementation plans - only produces functional specification"
 references: [skills/create, skills/plan, docs/product, docs/engineering]
 uses: [systems/cli, systems/data-model]
-updated: 2026-03-01
+updated: 2026-03-07
 ---
 
 # Scope Task
@@ -18,11 +18,11 @@ updated: 2026-03-01
 
 ## Overview
 
-The `/festina-scope` skill transforms a backlog task into a scoped task with a functional specification. It researches the codebase using parallel exploration agents, identifies pitfalls, and captures technical decisions through Q&A.
+The `/festina-scope` skill transforms a backlog task into a scoped task with a functional specification. It detects brownfield changes against existing product docs, researches the codebase using parallel exploration agents, identifies pitfalls, captures technical decisions and autonomy boundaries through Q&A, and validates the resulting spec for gaps and implementation leakage.
 
-**Why it exists:** To ensure implementation is informed by actual codebase patterns rather than assumptions.
+**Why it exists:** To ensure implementation is informed by actual codebase patterns rather than assumptions, and to produce specs that are precise, conflict-free, and outcome-focused.
 
-**Summary:** Scope produces the technical blueprint that planning and implementation will follow.
+**Summary:** Scope produces the technical blueprint that planning and implementation will follow, including delta context for brownfield changes and autonomy boundaries for the implementation agent.
 
 ## How It Works
 
@@ -30,6 +30,7 @@ The `/festina-scope` skill transforms a backlog task into a scoped task with a f
 flowchart LR
     subgraph "Research Phase"
         Recon[Reconnaissance]
+        Delta[Delta Detection]
         Agents[Parallel Agents]
         Synthesis[Synthesize]
     end
@@ -37,13 +38,18 @@ flowchart LR
     subgraph "Decision Phase"
         Pitfalls[Resolve Pitfalls]
         QA[Technical Q&A]
+        GapVal[Gap Validation]
+        Leakage[Leakage Check]
     end
 
-    Recon --> Agents
+    Recon --> Delta
+    Delta --> Agents
     Agents --> Synthesis
     Synthesis --> Pitfalls
     Pitfalls --> QA
-    QA --> Spec[spec.xml]
+    QA --> GapVal
+    GapVal --> Leakage
+    Leakage --> Spec[spec.xml]
 ```
 
 ### Research Depth Options
@@ -78,6 +84,41 @@ How should we handle this?
 [Operational transform] Complex but preserves intent
 > Use CRDTs
 ```
+
+### Brownfield Detection
+
+When a task has an `affects` field referencing existing product docs, the scope skill detects this as a brownfield change. The user is offered a choice between a **delta spec format** and a full spec format before research begins.
+
+The delta spec format documents three aspects of the change:
+- **Current**: What exists today, drawn from the referenced product docs
+- **Changing**: What this task modifies or adds
+- **Unchanged**: What explicitly stays the same, providing clear boundaries for the implementation agent
+
+This distinction prevents the implementation agent from accidentally rewriting or breaking functionality that should remain untouched.
+
+### Autonomy Boundaries
+
+During the Q&A phase, the scope skill asks the user about implementation boundaries, capturing three tiers of autonomy:
+
+| Tier | Meaning | Example |
+|------|---------|---------|
+| **Always** | Agent should do this without asking | "Preserve existing Handlebars partials" |
+| **Ask-first** | Agent should ask before proceeding | "Changes to step ordering" |
+| **Never** | Agent must not do this under any circumstances | "Delete existing steps" |
+
+Boundaries are recorded in the `spec.xml` and injected into implementation subagent prompts, where ask-first items instruct subagents to report FAILURE with details rather than proceeding on their own.
+
+### Spec Validation
+
+After Q&A confirmation and before final spec creation, two validation passes run:
+
+**Gap Validation** checks the assembled requirements for:
+- Conflicting requirements that contradict each other
+- Missing error handling for failure cases
+- Dangling references to files or docs that do not exist
+- Uncovered acceptance criteria with no backing requirement
+
+**Leakage Check** reviews each requirement to flag any that prescribe **how** something should be implemented rather than **what** outcome is expected. Requirements that leak implementation details are surfaced for the user to rephrase as outcome-focused statements.
 
 ## Examples
 
@@ -137,9 +178,10 @@ What this skill does NOT do:
 
 ## Interactions
 
-- **Product Docs**: Reads docs listed in task's `affects` field
+- **Product Docs**: Reads docs listed in task's `affects` field (also used for brownfield detection)
 - **Engineering Docs**: Reads docs listed in task's `engineering` field
 - **Directives**: Applies any `phase="scope"` rules
+- **Implement Skill**: Autonomy boundaries from spec.xml are injected into implementation subagent prompts
 
 ## Limitations
 
