@@ -77,17 +77,6 @@ Create a functional specification through iterative conversational Q&A focused o
     {{> load-directives skill="scope"}}
   </step>
 
-  <step name="choose_research_depth" outputs="researchDepth">
-    <action>Use AskUserQuestion tool with:
-      - header: "Research"
-      - question: "How thorough should the codebase research be?"
-      - options:
-        - label: "Quick", description: "For simple, well-understood changes. Faster, uses fewer tokens."
-        - label: "Deep", description: "For complex or unfamiliar areas. Parallel exploration, more thorough."
-      - multiSelect: false
-    </action>
-  </step>
-
   <step name="detect_brownfield" outputs="specFormat">
     <note>Detect whether task affects existing product docs (brownfield) or is entirely new (greenfield).</note>
 
@@ -115,42 +104,107 @@ Create a functional specification through iterative conversational Q&A focused o
     </branch>
   </step>
 
+  <step name="run_reconnaissance" outputs="reconFindings">
+    <note>Always run recon first — read referenced docs before any depth decision</note>
+    <note>Recon runs in main context (not as agent) because subagents cannot spawn subagents</note>
+
+    <action name="read_product_context">
+      <branch condition="task has `affects` field">
+        <action>For each ID in `affects`: Read `.festinalente/product/{id}.md`</action>
+        <action>Extract: current behavior, constraints, user flows, feature interactions</action>
+      </branch>
+    </action>
+
+    <action name="read_engineering_context">
+      <branch condition="task has `engineering` field">
+        <action>For each ID: Read engineering doc using ID to path rules</action>
+        <action>Extract: patterns to follow, conventions, system interactions</action>
+      </branch>
+    </action>
+
+    <action name="identify_focus_areas">
+      <action>Based on docs read, determine which areas need deeper exploration:</action>
+      <action>- If product docs exist: productFocus = {docIds, keyTerms, relatedFeatures}</action>
+      <action>- If engineering docs exist: engineeringFocus = {patterns, fileRefs, systemBoundaries}</action>
+    </action>
+
+    <branch condition="no affects AND no engineering docs were read">
+      <note>Fallback: extract focus areas from task content</note>
+      <action>Extract keywords from task title, description, acceptance criteria</action>
+      <action>Use Grep to find related files based on keywords</action>
+      <action>Build initial focusAreas from grep results</action>
+    </branch>
+
+    <output_variable>reconFindings: {
+      productContext: {docs read, key insights},
+      engineeringContext: {patterns found, file references},
+      focusAreas: [{area, reason, grepPatterns, filePaths}]
+    }</output_variable>
+  </step>
+
+  <step name="recommend_depth" outputs="researchDepth">
+    <note>Assess recon findings and recommend Quick or Deep research depth</note>
+
+    <action name="assess_signals">
+      <note>Evaluate observable signals from reconnaissance:</note>
+      <action>Count files likely affected (from focusAreas file paths and grep results)</action>
+      <action>Count distinct systems/modules touched</action>
+      <action>Assess pattern clarity (are existing patterns obvious or unclear?)</action>
+      <action>Check for cross-cutting concerns (does the change span multiple domains?)</action>
+    </action>
+
+    <action name="determine_recommendation">
+      <note>Recommend Quick when:</note>
+      <action>- Few affected files (1-3) in a single module/system</action>
+      <action>- Clear existing patterns to follow (found specific file:line references)</action>
+      <action>- No cross-cutting concerns</action>
+      <action>- Task description is well-understood from recon alone</action>
+
+      <note>Recommend Deep when:</note>
+      <action>- Many affected files (4+) or multiple systems/modules</action>
+      <action>- Unclear patterns (no obvious reference implementations found)</action>
+      <action>- Cross-cutting concerns (change spans auth + UI + API, etc.)</action>
+      <action>- Large surface area of change or unfamiliar codebase area</action>
+    </action>
+
+    <action>Use AskUserQuestion tool with:
+      - header: "Research"
+      - question: "Based on recon, I recommend {Quick|Deep} research. Rationale: {1-2 sentence summary of signals found — e.g., 'Single file change in a well-understood module with clear patterns to follow' or 'Multiple systems affected with unclear interaction patterns'}. Accept or override?"
+      - options:
+        - label: "{recommended} (Recommended)", description: "{rationale summary}"
+        - label: "{other option}", description: "{what this option means for this task}"
+      - multiSelect: false
+    </action>
+  </step>
+
   <step name="structured_research" outputs="researchFindings">
     <branch condition="researchDepth is 'Quick'">
       <note>Sequential research - faster, fewer tokens</note>
 
       <substep name="research_product_context">
-        <note>Understand existing product behavior that may constrain implementation.</note>
-        <branch condition="task has `affects` field">
-          <action>For each ID in `affects`: Read `.festinalente/product/{id}.md`</action>
-          <action>Note: current behavior, constraints, user flows, feature interactions</action>
-        </branch>
-        <action>Search for additional relevant product docs</action>
+        <note>Recon already read affected product docs. Search for additional docs only.</note>
+        <action>Search for additional relevant product docs not already in reconFindings</action>
         <command>node .festinalente/scripts/festinalente.cjs search-product {keywords from title and description}</command>
         <note>Search results include `relatedDocs` with tldr previews of connected docs.
 Only read full content of related docs if their tldr suggests relevance to this task.
 Avoid loading more than 2-3 related docs to preserve context window.</note>
-        <branch condition="docs with score ≥ 0.3 found">
-          <action>Read top matches not already read</action>
+        <branch condition="docs with score ≥ 0.3 found that are NOT in reconFindings.productContext">
+          <action>Read top matches not already read during recon</action>
         </branch>
-        <output_variable>productFindings: list of {docId, keyInsight}</output_variable>
+        <output_variable>productFindings: reconFindings.productContext + any additional docs</output_variable>
       </substep>
 
       <substep name="research_engineering_patterns">
-        <note>Find established patterns and conventions to follow.</note>
-        <branch condition="task has `engineering` field">
-          <action>For each ID: Read engineering doc using ID→path rules</action>
-          <action>Note: patterns to follow, conventions, system interactions</action>
-        </branch>
-        <action>Search for additional relevant engineering docs</action>
+        <note>Recon already read referenced engineering docs. Search for additional patterns only.</note>
+        <action>Search for additional relevant engineering docs not already in reconFindings</action>
         <command>node .festinalente/scripts/festinalente.cjs search-engineering {technical keywords}</command>
         <note>Search results include `relatedDocs` with tldr previews of connected docs.
 Only read full content of related docs if their tldr suggests relevance to this task.
 Avoid loading more than 2-3 related docs to preserve context window.</note>
-        <branch condition="docs with score ≥ 0.3 found">
-          <action>Read top matches not already read</action>
+        <branch condition="docs with score ≥ 0.3 found that are NOT in reconFindings.engineeringContext">
+          <action>Read top matches not already read during recon</action>
         </branch>
-        <output_variable>engineeringFindings: list of {docId, pattern, reference}</output_variable>
+        <output_variable>engineeringFindings: reconFindings.engineeringContext + any additional patterns</output_variable>
       </substep>
 
       <substep name="research_codebase_architecture">
@@ -179,45 +233,6 @@ Avoid loading more than 2-3 related docs to preserve context window.</note>
     </branch>
 
     <branch condition="researchDepth is 'Deep'">
-      <substep name="reconnaissance">
-        <note>Sequential recon phase - read referenced docs before spawning agents</note>
-        <note>Recon runs in main context (not as agent) because subagents cannot spawn subagents</note>
-
-        <action name="read_product_context">
-          <branch condition="task has `affects` field">
-            <action>For each ID in `affects`: Read `.festinalente/product/{id}.md`</action>
-            <action>Extract: current behavior, constraints, user flows, feature interactions</action>
-          </branch>
-        </action>
-
-        <action name="read_engineering_context">
-          <branch condition="task has `engineering` field">
-            <action>For each ID: Read engineering doc using ID to path rules</action>
-            <action>Extract: patterns to follow, conventions, system interactions</action>
-          </branch>
-        </action>
-
-        <action name="identify_focus_areas">
-          <action>Based on docs read, determine which areas need deeper exploration:</action>
-          <action>- If product docs exist: productFocus = {docIds, keyTerms, relatedFeatures}</action>
-          <action>- If engineering docs exist: engineeringFocus = {patterns, fileRefs, systemBoundaries}</action>
-        </action>
-
-        <branch condition="no affects AND no engineering docs were read">
-          <note>Fallback: extract focus areas from task content</note>
-          <action>Extract keywords from task title, description, acceptance criteria</action>
-          <action>Use Grep to find related files based on keywords</action>
-          <action>Build initial focusAreas from grep results</action>
-          <action>All 4 agents will be spawned but with keyword-based focus</action>
-        </branch>
-
-        <output_variable>reconFindings: {
-          productContext: {docs read, key insights},
-          engineeringContext: {patterns found, file references},
-          focusAreas: [{area, reason, grepPatterns, filePaths}]
-        }</output_variable>
-      </substep>
-
       <substep name="determine_agents">
         <note>Spawn only the agents needed based on recon findings</note>
         <action>agentsToSpawn = []</action>
@@ -413,6 +428,7 @@ Output as a structured list.
     </branch>
 
     <branch condition="researchDepth is 'Quick'">
+      <action>Include reconFindings as base context</action>
       <action>Consolidate findings from all sequential research substeps</action>
     </branch>
 

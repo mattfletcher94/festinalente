@@ -31,7 +31,9 @@ flowchart LR
     subgraph "Research Phase"
         Recon[Reconnaissance]
         Delta[Delta Detection]
-        Agents[Parallel Agents]
+        Recommend{Recommend Depth}
+        Quick[Quick Path]
+        Deep[Deep Path]
         Synthesis[Synthesize]
     end
 
@@ -43,8 +45,11 @@ flowchart LR
     end
 
     Recon --> Delta
-    Delta --> Agents
-    Agents --> Synthesis
+    Delta --> Recommend
+    Recommend --> Quick
+    Recommend --> Deep
+    Quick --> Synthesis
+    Deep --> Synthesis
     Synthesis --> Pitfalls
     Pitfalls --> QA
     QA --> GapVal
@@ -54,14 +59,16 @@ flowchart LR
 
 ### Research Depth Options
 
-| Depth | When to Use | Agents Spawned |
-|-------|-------------|----------------|
-| Quick | Simple, well-understood changes | Sequential research |
-| Deep | Complex or unfamiliar areas | 4 parallel agents |
+Reconnaissance always runs first: it reads the affected product and engineering docs referenced by the task, identifies focus areas, and assesses observable signals (file count, module count, pattern clarity, cross-cutting concerns). After recon, the skill recommends Quick or Deep research based on those signals, and the user can accept or override the recommendation.
+
+| Depth | When Recommended | Agents Spawned |
+|-------|------------------|----------------|
+| Quick | Few files (1-3), single module, clear patterns, no cross-cutting concerns | Sequential research |
+| Deep | Many files (4+), multiple modules, unclear patterns, or cross-cutting concerns | 4 parallel agents |
 
 ### Parallel Research Agents
 
-When using Deep research:
+When using Deep research (after reconnaissance has already run):
 
 1. **Product Context Researcher** - Finds related product docs and constraints
 2. **Pattern Finder** - Identifies engineering patterns to follow
@@ -127,10 +134,16 @@ After Q&A confirmation and before final spec creation, two validation passes run
 ```
 /festina-scope 001
 
-How thorough should the research be?
-> Quick
+Running reconnaissance...
+Read: product/ui/buttons.md, engineering/patterns/responsive.md
+Focus areas: Button component, mobile styles
 
-Researching (sequential)...
+Based on recon, I recommend Quick research.
+Rationale: Single file change in a well-understood module with clear patterns to follow.
+Accept or override?
+> Quick (Recommended)
+
+Researching (sequential, skipping already-read docs)...
 Found: src/components/Button.tsx, src/styles/mobile.css
 
 Research Synthesis:
@@ -144,11 +157,17 @@ Research Synthesis:
 ```
 /festina-scope 002
 
-How thorough should the research be?
-> Deep
+Running reconnaissance...
+Read: product/data/sync.md, engineering/systems/api.md
+Focus areas: Sync engine, API layer, auth middleware, state management
 
-Launching parallel research agents...
-[Product Context Researcher] Finding docs...
+Based on recon, I recommend Deep research.
+Rationale: Multiple systems affected (sync, API, auth) with unclear interaction patterns.
+Accept or override?
+> Deep (Recommended)
+
+Launching parallel research agents (recon context forwarded)...
+[Product Context Researcher] Finding additional docs...
 [Pattern Finder] Finding patterns...
 [Codebase Analyzer] Analyzing structure...
 [Pitfall Detector] Finding issues...
@@ -159,7 +178,7 @@ Decisions needed:
 - Race conditions: How should we handle concurrent edits?
 ```
 
-**Summary:** Deep research provides comprehensive coverage for complex tasks.
+**Summary:** Reconnaissance always runs first, then recommends Quick or Deep based on signals found. Deep research provides comprehensive coverage for complex tasks.
 
 ## Boundaries
 
@@ -173,7 +192,7 @@ What this skill does NOT do:
 
 | Setting | Description | Default |
 |---------|-------------|---------|
-| Research depth | Quick or Deep | User choice |
+| Research depth | Quick or Deep | Adaptive recommendation (recon-based, user can override) |
 | Agent count | Number of parallel agents | 4 (Deep mode) |
 
 ## Interactions
