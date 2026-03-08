@@ -18,6 +18,9 @@ columns:
   - id: finalize
     name: Finalize
     description: Validation, documentation, and completion
+  - id: awaiting-completion
+    name: Awaiting Completion
+    description: Passed review, awaiting task closure
   - id: done
     name: Done
     description: Task complete, merged to main
@@ -54,4 +57,5 @@ transitions:
   scoped: [planned]
   planned: [in-progress]
   in-progress: [finalize]
-  finalize: [done, in-progress] # complete or rework
+  finalize: [awaiting-completion, in-progress] # complete or rework
+  awaiting-completion: [done, in-progress] # close or rework

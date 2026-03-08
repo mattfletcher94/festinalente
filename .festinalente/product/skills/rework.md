@@ -3,13 +3,13 @@ id: skills/rework
 title: "Rework Task"
 type: feature
 tldr: "Return a task to in-progress with a structured issue report"
-summary: "The /festina-rework skill gathers structured issue details (type, severity, reproduction steps), adds an iteration entry to the plan, and moves the task from finalize back to in-progress."
+summary: "The /festina-rework skill gathers structured issue details (type, severity, reproduction steps), adds an iteration entry to the plan, and moves the task from finalize or awaiting-completion back to in-progress."
 keywords: [rework, issue, bug, feedback, iteration, review]
 aliases: [festina-rework, fix, redo, review-feedback]
 boundary: "Does not fix the issue - only captures it and returns the task for re-implementation"
-references: [skills/finalize, skills/implement]
+references: [skills/finalize, skills/complete, skills/implement]
 uses: []
-updated: 2026-03-06
+updated: 2026-03-08
 ---
 
 # Rework Task
@@ -18,7 +18,7 @@ updated: 2026-03-06
 
 ## Overview
 
-The `/festina-rework` skill handles the case when human review finds issues after implementation. It gathers structured issue details through Q&A — type (bug, incomplete, design change, performance), severity, reproduction steps — then adds an iteration entry to the plan and moves the task back to in-progress.
+The `/festina-rework` skill handles the case when review finds issues after implementation. It gathers structured issue details through Q&A — type (bug, incomplete, design change, performance), severity, reproduction steps — then adds an iteration entry to the plan and moves the task back to in-progress. Works from both `finalize` and `awaiting-completion` columns.
 
 **Why it exists:** Review feedback needs to be captured in a structured, actionable way so the next implementation cycle addresses it precisely.
 
@@ -39,7 +39,7 @@ flowchart LR
 3. **Gather details** — Type-specific questions (actual/expected for bugs, missing items for incomplete, etc.)
 4. **Synthesize** — Create structured report with actionable items
 5. **Add iteration** — Append to plan's `<iterations>` section with pending actions
-6. **Move task** — Status from `finalize` to `in-progress`
+6. **Move task** — Status from `finalize` or `awaiting-completion` to `in-progress`
 
 **Summary:** From review feedback to actionable iteration in the plan.
 
@@ -68,7 +68,7 @@ Next: /festina-implement 007
 What this skill does NOT do:
 
 - **Does NOT:** Fix the issue → See [implement](./implement.md)
-- **Does NOT:** Work from any status other than finalize (warns otherwise)
+- **Does NOT:** Work from statuses other than finalize or awaiting-completion (warns otherwise)
 - **Does NOT:** Skip issue gathering
 
 ## Interactions
@@ -78,5 +78,5 @@ What this skill does NOT do:
 
 ## Limitations
 
-- Designed for tasks in `finalize` status (warns if different)
+- Designed for tasks in `finalize` or `awaiting-completion` status (warns if different)
 - Cannot capture multiple distinct issues in one rework (run again if needed)

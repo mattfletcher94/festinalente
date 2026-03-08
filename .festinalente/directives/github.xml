@@ -115,25 +115,29 @@
         Title: "{type}(#{issueNumber}): {title}".
         Body: "Closes #{issueNumber}\n\n## Summary\n{brief description}".
         Add github-pr to task.xml.
-        Output: "PR created. Awaiting review. Re-run finalize after approval." EXIT.
+        Update task status to "awaiting-completion".
+        Output: "PR created. Awaiting review. Run /festina-complete after approval." EXIT.
 
-      HAS github-pr — check via mcp__github__get_pull_request:
-        state="merged"  → Go to GH-FIN-CLEANUP.
-        state="closed"  → Prompt "PR closed. Create new?" then create.
-        mergeable=false  → git fetch origin main &amp;&amp; git rebase origin/main &amp;&amp; git push --force-with-lease.
-                           Re-check PR state.
-
-      Update PR title/body via mcp__github__update_issue:
-        title: "{type}(#{issueNumber}): {title}"
-        body: "Closes #{issueNumber}\n\n## Summary\n{brief description}"
-
-      Check via mcp__github__get_pull_request_status:
-        reviewDecision="CHANGES_REQUESTED" → "Address PR feedback first." EXIT.
-        reviewDecision="APPROVED" or (null AND mergeable_state="clean") → Go to GH-FIN-MERGE.
-        else                    → "Awaiting review or checks." EXIT.
+      HAS github-pr:
+        Output: "PR #{N} already exists. Run /festina-complete to check status and merge." EXIT.
     </rule>
 
-    <rule id="GH-FIN-MERGE" phase="finalize">
+    <!-- COMPLETE PHASE -->
+    <rule id="GH-COMPLETE" phase="complete">
+      1. VERIFY BRANCH.
+      2. Read github-pr from task.xml. If no PR, error and exit.
+      3. Check PR via mcp__github__get_pull_request:
+         state="merged"  → Go to GH-COMPLETE-CLEANUP.
+         state="closed"  → "PR was closed. Create new PR via /festina-finalize." EXIT.
+         mergeable=false  → git fetch origin main &amp;&amp; git rebase origin/main &amp;&amp; git push --force-with-lease.
+                            Re-check PR state.
+      4. Check via mcp__github__get_pull_request_status:
+         reviewDecision="CHANGES_REQUESTED" → "Address PR feedback first. Run /festina-rework." EXIT.
+         reviewDecision="APPROVED" or (null AND mergeable_state="clean") → Go to GH-COMPLETE-MERGE.
+         else → "Awaiting review or checks." EXIT.
+    </rule>
+
+    <rule id="GH-COMPLETE-MERGE" phase="complete">
       1. Prompt: "PR #{N} approved. Merge now or wait?"
       2. If merge:
          a. Update task status="done", add completed date (local only).
@@ -144,7 +148,7 @@
       3. If wait: EXIT.
     </rule>
 
-    <rule id="GH-FIN-CLEANUP" phase="finalize">
+    <rule id="GH-COMPLETE-CLEANUP" phase="complete">
       PR already merged externally:
       1. git checkout main &amp;&amp; git fetch origin &amp;&amp; git reset --hard origin/main
       2. git branch -D {github-branch}
@@ -153,6 +157,7 @@
     </rule>
 
     <rule id="GH-REWORK" phase="rework">
+      Works from both finalize and awaiting-completion states.
       1. VERIFY BRANCH.
       2. If github-pr exists:
          a. Gather unresolved PR feedback:
@@ -223,22 +228,38 @@
 
   <override phase="finalize">
     <reason>
-      The directive controls task completion status. The skill must NOT mark the task
-      as "done" — only the directive does this when a PR is actually merged.
-      Finalize may exit early (PR is draft, awaiting review, changes requested)
-      and the task must stay in "finalize" status so rework can be run later.
+      The directive controls task status transitions. Finalize moves to awaiting-completion
+      (not done) after creating a PR. The skill must NOT mark the task as "done" — only
+      the complete phase does this when a PR is actually merged.
     </reason>
     <skip>phase3_complete</skip>
     <skip>output_result</skip>
     <instead>
       After Phase 2 (documentation), execute these rules in order:
       1. GH-FIN-COMMIT — commit code + docs, push.
-      2. GH-FIN-PR — check PR state. May EXIT early (task stays in "finalize").
-      3. GH-FIN-MERGE — only reached if PR approved. Only here is status set to "done".
+      2. GH-FIN-PR — create PR if needed, then EXIT (task moves to "awaiting-completion").
 
       If any rule EXITs, do NOT mark the task as done. Do NOT output "Task completed."
       Instead output the EXIT message from the rule and stop.
-      The user will re-run /festina-finalize later when the PR state changes.
+      The user should run /festina-complete after PR approval.
+    </instead>
+  </override>
+
+  <override phase="complete">
+    <reason>
+      The directive controls merge operations. The skill's default complete_task step
+      just marks done — the directive replaces it with PR status check and merge.
+    </reason>
+    <skip>complete_task</skip>
+    <skip>output_result</skip>
+    <instead>
+      Execute GH-COMPLETE rules in order:
+      1. GH-COMPLETE — check PR state, handle rebase if needed.
+      2. GH-COMPLETE-MERGE — if approved, squash merge via MCP.
+      3. GH-COMPLETE-CLEANUP — if already merged externally, clean up.
+
+      If any rule EXITs, the task stays in awaiting-completion.
+      Only GH-COMPLETE-MERGE and GH-COMPLETE-CLEANUP set status to "done".
     </instead>
   </override>
 
@@ -289,14 +310,14 @@ mcp__github__merge_pull_request
     </example>
     <example ref="GH-FIN" type="correct">
       <code><![CDATA[
-# Finalize flow (first run — creates PR):
-# Phase 1: validate ✓
-# Phase 2: docs ✓
-# GH-FIN-COMMIT: commit + push ✓
-# GH-FIN-PR: no PR yet → create PR → EXIT (task stays in "finalize")
-# Reviewer approves PR on GitHub
-# User re-runs /festina-finalize
-# GH-FIN-PR: PR approved → GH-FIN-MERGE → squash merge → status="done"
+# Finalize flow (creates PR, moves to awaiting-completion):
+# Phase 1: validate
+# Phase 2: docs
+# GH-FIN-COMMIT: commit + push
+# GH-FIN-PR: create PR → EXIT (task in "awaiting-completion")
+# User waits for PR approval
+# User runs /festina-complete
+# GH-COMPLETE: PR approved → GH-COMPLETE-MERGE → squash merge → status="done"
       ]]></code>
     </example>
   </examples>
