@@ -416,13 +416,18 @@ And their session is established
 (system names, domain terms, technical concepts) than the title alone. Re-search to catch docs
 the initial title-based search may have missed.</note>
 
-    <action>Extract keywords from the combined problem, value, and acceptance criteria text.
-Focus on nouns, verbs, domain terms, and technical terms — skip stopwords and generic phrases.</action>
+    <action>Extract 10-20 keywords from the combined problem, value, and acceptance criteria text.
+Cover all categories: nouns, verbs, domain terms, technical terms, and system names — not just a selective handful.
+Skip only stopwords and generic phrases. Aim for comprehensive coverage of the ticket's vocabulary.</action>
 
-    <command description="Search product docs with full-context keywords">node .festinalente/scripts/festinalente.cjs search-product {keyword1} {keyword2} ...</command>
+    <command description="Expand keywords with glossary synonyms">node .festinalente/scripts/festinalente.cjs expand-query {keyword1} {keyword2} ...</command>
+    <action>Use the `expanded` array from the JSON output as the keyword set for subsequent searches.
+This is a superset of the original keywords, ensuring no regression in doc discovery.</action>
+
+    <command description="Search product docs with expanded keywords">node .festinalente/scripts/festinalente.cjs search-product {expanded-keyword1} {expanded-keyword2} ...</command>
     <action>Filter results to score &gt;= 0.5. Remove any doc IDs already present in the affects field (from the earlier title-based search).</action>
 
-    <command description="Search engineering docs with full-context keywords">node .festinalente/scripts/festinalente.cjs search-engineering {keyword1} {keyword2} ...</command>
+    <command description="Search engineering docs with expanded keywords">node .festinalente/scripts/festinalente.cjs search-engineering {expanded-keyword1} {expanded-keyword2} ...</command>
     <action>Filter results to score &gt;= 0.5. Remove any doc IDs already present in the engineering field (from the earlier title-based search).</action>
 
     <branch condition="no new matches found from either search">
