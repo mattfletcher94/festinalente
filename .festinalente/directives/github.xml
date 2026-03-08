@@ -119,6 +119,7 @@
         Output: "PR created. Awaiting review. Run /festina-complete after approval." EXIT.
 
       HAS github-pr:
+        Update task status to "awaiting-completion".
         Output: "PR #{N} already exists. Run /festina-complete to check status and merge." EXIT.
     </rule>
 
@@ -128,7 +129,6 @@
       2. Read github-pr from task.xml. If no PR, error and exit.
       3. Check PR via mcp__github__get_pull_request:
          state="merged"  → Go to GH-COMPLETE-CLEANUP.
-         state="closed"  → "PR was closed. Create new PR via /festina-finalize." EXIT.
          mergeable=false  → git fetch origin main &amp;&amp; git rebase origin/main &amp;&amp; git push --force-with-lease.
                             Re-check PR state.
       4. Check via mcp__github__get_pull_request_status:

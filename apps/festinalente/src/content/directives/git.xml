@@ -1,27 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<directive name="git" version="1"
-           created="2026-03-05" updated="2026-03-05">
+<directive name="git" version="2"
+           created="2026-03-05" updated="2026-03-08">
   <description>
-    Git workflow for festina lente tasks: branching, committing, merging, and cleanup.
+    Git workflow for festina lente tasks: committing and pushing on main.
     This directive owns ALL git operations. Skills have permission (allowed-tools) but
     no instructions to use git — this directive provides the instructions.
   </description>
 
   <context>
-    <principle id="G1" keywords="branch,isolation,task,feature">
-      Each task gets its own branch (task/{id}). Work is isolated until merge.
+    <principle id="G1" keywords="main,branch,linear">
+      All work happens on main. No feature branches by default.
     </principle>
     <principle id="G2" keywords="commit,conventional,format,message">
       All commits follow conventional commit format: type(scope): description
     </principle>
-    <principle id="G3" keywords="merge,no-ff,history,preserve">
-      Merges to main use --no-ff to preserve branch history in the commit graph.
-    </principle>
-    <principle id="G4" keywords="clean,working,tree,merge">
-      Working tree must be clean before merging. All changes committed first.
-    </principle>
-    <principle id="G5" keywords="quick,branch,amend">
-      Quick tasks use quick/{id} branches. Updates to quick.xml and docs amend the initial commit.
+    <principle id="G3" keywords="implement,no-commit">
+      Implementation phase does not commit. Code stays uncommitted until finalize.
     </principle>
   </context>
 
@@ -51,8 +45,7 @@
       If NOT on main/master, output error and exit.
     </rule>
     <rule id="G-SCOPE-2" phase="scope">
-      After writing the spec and updated task file, create the task branch and commit:
-      - git checkout -b task/{id}
+      After writing the spec and updated task file, stage and commit:
       - git add .festinalente/tasks/{id}/spec.xml .festinalente/tasks/{id}/task.xml
       - git commit -m "docs({id}): scope - {title}"
     </rule>
@@ -61,9 +54,9 @@
          PLAN PHASE
          ═══════════════════════════════════════════════════════════════ -->
     <rule id="G-PLAN-1" phase="plan">
-      Before starting, verify you are on the task/{id} branch:
+      Before starting, verify you are on the main (or master) branch:
       Run: git branch --show-current
-      If NOT on task/{id}, output error and exit.
+      If NOT on main/master, output error and exit.
     </rule>
     <rule id="G-PLAN-2" phase="plan">
       After writing the plan and updated task file, stage and commit:
@@ -75,9 +68,9 @@
          IMPLEMENT PHASE
          ═══════════════════════════════════════════════════════════════ -->
     <rule id="G-IMPL-1" phase="implement">
-      Before starting, verify you are on the task/{id} branch:
+      Before starting, verify you are on the main (or master) branch:
       Run: git branch --show-current
-      If NOT on task/{id}, output error and exit.
+      If NOT on main/master, output error and exit.
     </rule>
     <rule id="G-IMPL-2" phase="implement">
       Do NOT commit during implementation. Code stays uncommitted until the finalize phase.
@@ -87,9 +80,9 @@
          SAVE PHASE (WIP commit)
          ═══════════════════════════════════════════════════════════════ -->
     <rule id="G-SAVE-1" phase="save">
-      Before starting, verify you are on the task/{id} branch:
+      Before starting, verify you are on the main (or master) branch:
       Run: git branch --show-current
-      If NOT on task/{id}, output error and exit.
+      If NOT on main/master, output error and exit.
     </rule>
     <rule id="G-SAVE-2" phase="save">
       Check for uncommitted changes:
@@ -109,9 +102,9 @@
          FINALIZE PHASE
          ═══════════════════════════════════════════════════════════════ -->
     <rule id="G-FIN-1" phase="finalize">
-      Before starting, verify you are on the task/{id} branch:
+      Before starting, verify you are on the main (or master) branch:
       Run: git branch --show-current
-      If NOT on task/{id}, output error and exit.
+      If NOT on main/master, output error and exit.
     </rule>
     <rule id="G-FIN-2" phase="finalize">
       After directive checks pass, check for uncommitted changes:
@@ -155,43 +148,34 @@
         git commit -m "docs({id}): engineering - {summary}"
     </rule>
     <rule id="G-FIN-7" phase="finalize">
-      Push branch:
-      1. Check if already pushed: git log origin/task/{id}..HEAD --oneline 2>/dev/null || echo "no-remote"
-      2. If not pushed or has new commits: git push -u origin task/{id}
-      3. Update task status to "awaiting-completion", commit:
-         - git add .festinalente/tasks/{id}/task.xml
-         - git commit -m "docs({id}): awaiting-completion - {title}"
+      Update task status to "awaiting-completion", commit and push:
+      - git add .festinalente/tasks/{id}/task.xml
+      - git commit -m "docs({id}): awaiting-completion - {title}"
+      - git push
     </rule>
 
     <!-- ═══════════════════════════════════════════════════════════════
          COMPLETE PHASE
          ═══════════════════════════════════════════════════════════════ -->
     <rule id="G-COMPLETE-1" phase="complete">
-      Before starting, verify you are on the task/{id} branch:
+      Before starting, verify you are on the main (or master) branch:
       Run: git branch --show-current
-      If NOT on task/{id}, output error and exit.
+      If NOT on main/master, output error and exit.
     </rule>
     <rule id="G-COMPLETE-2" phase="complete">
-      Verify working tree is clean: git status
-      Show commits to merge: git log main..HEAD --oneline
-      Ask user to confirm merge.
-    </rule>
-    <rule id="G-COMPLETE-3" phase="complete">
-      Update task status to "done", add completed date, commit:
+      Update task status to "done", add completed date, commit and push:
       - git add .festinalente/tasks/{id}/task.xml
       - git commit -m "docs({id}): done - {title}"
-      Merge to main: git checkout main &amp;&amp; git merge task/{id} --no-ff -m "Merge branch 'task/{id}'"
-      Push main: git push
-      Delete task branch: git branch -d task/{id}
+      - git push
     </rule>
 
     <!-- ═══════════════════════════════════════════════════════════════
          REWORK PHASE
          ═══════════════════════════════════════════════════════════════ -->
     <rule id="G-REWORK-1" phase="rework">
-      Before starting, verify you are on the task/{id} branch:
+      Before starting, verify you are on the main (or master) branch:
       Run: git branch --show-current
-      If NOT on task/{id}, output error and exit.
+      If NOT on main/master, output error and exit.
     </rule>
     <rule id="G-REWORK-2" phase="rework">
       After updating the plan with the rework report and moving task back to in-progress, commit:
@@ -223,31 +207,21 @@
       If NOT on main/master, output error and exit.
     </rule>
     <rule id="G-QUICK-2" phase="quick">
-      Create the quick branch:
-      - Check branch doesn't already exist: git branch --list "quick/{id}"
-      - If exists, output error and exit
-      - git checkout -b quick/{id}
-    </rule>
-    <rule id="G-QUICK-3" phase="quick">
       After implementation and user confirms commit:
       - git add .
       - git commit -m "quick({id}): {title}"
     </rule>
-    <rule id="G-QUICK-4" phase="quick">
+    <rule id="G-QUICK-3" phase="quick">
       After updating quick.xml with completion details (status, files, commit, summary):
       - git add .festinalente/quick/{id}/quick.xml
       - git commit --amend --no-edit
     </rule>
-    <rule id="G-QUICK-5" phase="quick">
+    <rule id="G-QUICK-4" phase="quick">
       If user requested doc updates and docs were changed:
       - git add .festinalente/product/ .festinalente/engineering/ .festinalente/quick/{id}/
       - git commit --amend --no-edit
     </rule>
-    <rule id="G-QUICK-6" phase="quick">
-      Ask user if they want to merge to main:
-      - If yes: git checkout main && git merge quick/{id}
-      - If no: keep changes on quick/{id} branch
-    </rule>
+
     <!-- ═══════════════════════════════════════════════════════════════
          DEFINE-PRODUCT PHASE
          ═══════════════════════════════════════════════════════════════ -->
@@ -296,7 +270,6 @@
       <item>All file changes were committed with correct message format</item>
       <item>Commit messages follow conventional commit format: type(scope): description</item>
       <item>No uncommitted changes remain after skill completion (unless implement phase)</item>
-      <item>Complete phase merges to main, pushes, and deletes the task branch</item>
     </check>
   </validation>
 
