@@ -9,7 +9,7 @@ aliases: [festina-create, new-task, add-task]
 boundary: "Does not scope or plan tasks - only captures requirements and creates task.xml"
 references: [skills/scope, skills/plan, docs/product, docs/engineering]
 uses: [systems/cli, systems/data-model]
-updated: 2026-03-06
+updated: 2026-03-08
 ---
 
 # Create Task
@@ -46,7 +46,7 @@ sequenceDiagram
 2. **Doc search** - Find related product/engineering docs
 3. **Priority/label** - Auto-detect from keywords, user confirms
 4. **Q&A dialogue** - Propose understanding, user validates
-5. **Doc link refinement** - Re-searches docs using full task context (problem + value + criteria), deduplicates against already-linked docs, and prompts user only if new high-scoring matches (score >= 0.5) are found; silently skips otherwise
+5. **Doc link refinement** - Extracts 10-20 keywords (nouns, verbs, domain terms, technical terms, system names) from full task context, expands them via glossary synonyms (`expand-query`), then re-searches docs with the expanded set. Deduplicates against already-linked docs and prompts user only if new high-scoring matches (score >= 0.5) are found; silently skips otherwise
 6. **Task creation** - Write task.xml with Gherkin acceptance criteria
 7. **Directive rules** - Git commit, issue sync, etc. (directive-driven)
 
