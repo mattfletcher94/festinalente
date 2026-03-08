@@ -10,7 +10,10 @@
       "Bash(code *)",
       "WebFetch",
       "WebSearch",
-      "mcp__github__get_file_contents"
+      "mcp__github__get_file_contents",
+      "Skill(festina-create)",
+      "Skill(festina-create:*)",
+      "Bash(cmd.exe /c \"where gh\")"
     ],
     "defaultMode": "bypassPermissions"
   },

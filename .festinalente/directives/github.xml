@@ -45,6 +45,7 @@
 
   <process>
     <!-- Common: VERIFY BRANCH = read github-branch from task.xml, confirm current branch matches, error and exit if not. -->
+    <!-- Common: .festinalente/tasks/ and .festinalente/quick/ are gitignored. NEVER git add any file under these directories. All task.xml / quick.xml / spec.xml / plan.xml updates are local-only. -->
 
     <rule id="GH-CREATE" phase="create">
       1. Verify on main. If not, error and exit.
@@ -55,10 +56,10 @@
          ELSE:
            Create via mcp__github__create_issue (title, body, labels, assignees).
          Add github-issue="#N" and github-url to task.xml.
-      4. Create branch and push:
+      4. Create branch:
          git checkout -b {type}/{id}
-         Add github-branch="{type}/{id}" to task.xml.
-         git push -u origin {type}/{id}
+         Add github-branch="{type}/{id}" to task.xml (local only — task files are gitignored, never staged or committed).
+         Do NOT push yet — there are no commits. The first push happens at save or finalize.
     </rule>
 
     <rule id="GH-SCOPE" phase="scope">
@@ -188,10 +189,10 @@
       2. Create GitHub Issue:
          mcp__github__create_issue (title, body, labels: ["quick"], assignees).
          Add github-issue="#N" to quick.xml.
-      3. Create branch and push:
+      3. Create branch:
          git checkout -b quick/{id} (error if exists).
-         Add github-branch="quick/{id}" to quick.xml.
-         git push -u origin quick/{id}
+         Add github-branch="quick/{id}" to quick.xml (local only — task files are gitignored, never staged or committed).
+         Do NOT push yet — the first push happens with the code commit below.
       4. Commit code: git add {files} &amp;&amp; git commit -m "quick(#{issueNumber}): {title}"
       5. If docs updated: git add .festinalente/product/ .festinalente/engineering/ &amp;&amp; git commit --amend --no-edit
       6. git push
