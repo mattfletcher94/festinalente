@@ -2,27 +2,27 @@
 id: skills/finalize
 title: "Finalize Task"
 type: feature
-tldr: "Validate, document, and complete a task in three phases"
-summary: "The /festina-finalize skill runs directive checks, spawns parallel agents to update documentation, and marks tasks as done. Git operations (committing, merging) are handled by the git.xml directive if mapped."
-keywords: [finalize, docs, validation, completion]
-aliases: [festina-finalize, complete, finish]
-boundary: "Does not implement code - only validates and completes existing work. Git operations are directive-driven, not built into the skill."
-references: [skills/implement, docs/product, docs/engineering]
+tldr: "Validate, document, and move a task to awaiting-completion"
+summary: "The /festina-finalize skill runs directive checks, spawns parallel agents to update documentation, and moves tasks to awaiting-completion. Git operations (committing, PR creation) are handled by directives. Task closure is handled by /festina-complete."
+keywords: [finalize, docs, validation, awaiting-completion]
+aliases: [festina-finalize, finish]
+boundary: "Does not implement code or close tasks - only validates, documents, and transitions to awaiting-completion. Task closure is handled by /festina-complete."
+references: [skills/implement, skills/complete, docs/product, docs/engineering]
 uses: [systems/cli, systems/data-model]
-updated: 2026-03-01
+updated: 2026-03-08
 ---
 
 # Finalize Task
 
-> **TL;DR:** Validate, document, and complete a task in three phases
+> **TL;DR:** Validate, document, and move a task to awaiting-completion
 
 ## Overview
 
-The `/festina-finalize` skill is a three-phase orchestrator that completes a task: validate implementation, update documentation, then mark the task as done. It's resumable - you can stop and restart from any phase. Git operations (committing, merging, branch cleanup) are handled by the `git.xml` directive if mapped — the skill itself is git-agnostic.
+The `/festina-finalize` skill is a three-phase orchestrator that moves a task through quality gates: validate implementation, update documentation, then transition to awaiting-completion. It's resumable - you can stop and restart from any phase. Git operations (committing, PR creation) are handled by directives — the skill itself is git-agnostic. Task closure (marking done) is handled separately by `/festina-complete`.
 
-**Why it exists:** To ensure code quality and documentation before completion.
+**Why it exists:** To ensure code quality and documentation before task closure.
 
-**Summary:** Finalize is the quality gate between implementation and done.
+**Summary:** Finalize is the quality gate between implementation and awaiting-completion.
 
 ## How It Works
 
@@ -38,8 +38,8 @@ flowchart LR
         Agents[Spawn Doc Agents]
     end
 
-    subgraph "Phase 3: Complete"
-        Done[Mark Done]
+    subgraph "Phase 3: Transition"
+        Await[Move to Awaiting Completion]
         Directives[Run Directive Rules]
     end
 
@@ -47,8 +47,8 @@ flowchart LR
     Fix --> Review[Spec Review]
     Review --> Analyze
     Analyze --> Agents
-    Agents --> Done
-    Done --> Directives
+    Agents --> Await
+    Await --> Directives
 ```
 
 ### Phase 1: Validate
@@ -66,12 +66,12 @@ flowchart LR
 4. **Validate outputs** - Check agent results
 5. **Update glossary/indexes** - Orchestrator handles these
 
-### Phase 3: Complete
+### Phase 3: Transition
 
-1. **Mark done** - Update task status
-2. **Run directive rules** - Git operations, PR creation, etc. (directive-driven)
+1. **Move to awaiting-completion** - Update task status
+2. **Run directive rules** - Git commit, push, PR creation (directive-driven)
 
-**Summary:** Three distinct phases, each resumable independently. Phase 1 includes an independent spec compliance review after directive checks. Git operations (committing, merging, branch cleanup) are handled by directives, not the skill itself.
+**Summary:** Three distinct phases, each resumable independently. Phase 1 includes an independent spec compliance review after directive checks. Git operations (committing, PR creation) are handled by directives, not the skill itself. Task closure is handled by `/festina-complete`.
 
 ## Examples
 
@@ -98,10 +98,12 @@ Spawning agents...
 ✓ Product Docs Agent completed
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-PHASE 3: COMPLETE
+PHASE 3: TRANSITION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Task 001 completed!
+Task 001 moved to Awaiting Completion!
+
+Next: /festina-complete 001
 ```
 
 **Summary:** Each phase shows clear progress and outputs.
@@ -111,12 +113,13 @@ Task 001 completed!
 What this skill does NOT do:
 
 - **Does NOT:** Write implementation code → See [implement](./implement.md)
-- **Does NOT:** Handle git operations directly (branching, committing, merging are directive-driven)
-- **Does NOT:** Create PRs directly (use a directive like `github.xml` for PR workflows)
+- **Does NOT:** Close tasks (mark as done) → See [complete](./complete.md)
+- **Does NOT:** Handle git operations directly (committing, PR creation are directive-driven)
 
 ## Interactions
 
 - **Directives**: Runs all configured checks in Phase 1; git/PR operations in Phase 3 are directive-driven
+- **Complete**: After finalize, run `/festina-complete` to close the task
 - **Spec Review**: Independent Explore agent verifies implementation against spec requirements
 - **Product Docs**: Spawns agent if task has `affects` field
 - **Engineering Docs**: Spawns agent if task has `engineering` field
@@ -125,4 +128,5 @@ What this skill does NOT do:
 ## Limitations
 
 - Task should be in `finalize` status
-- Git-related requirements (branch verification, clean working tree) are enforced by the `git.xml` directive, not the skill
+- Moves to `awaiting-completion`, not `done` — run `/festina-complete` to close
+- Git-related requirements (branch verification, clean working tree) are enforced by directives, not the skill
