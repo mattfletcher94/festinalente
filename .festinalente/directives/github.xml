@@ -89,7 +89,7 @@
       2. Check for changes: git status &amp;&amp; git diff --name-only. If none, warn and exit.
       3. git add {changed code files}
          git commit -m "wip(#{issueNumber}): {progress summary}"
-         git push
+         git push -u origin HEAD (use -u on first push to set upstream tracking; plain git push thereafter).
     </rule>
 
     <rule id="GH-FIN-COMMIT" phase="finalize">
@@ -105,7 +105,7 @@
       6. If docs were updated:
          git add .festinalente/product/ .festinalente/engineering/ .festinalente/glossary.yaml
          git commit -m "docs(#{issueNumber}): {product|engineering|product+engineering} - {summary}"
-      7. git push
+      7. git push -u origin HEAD (use -u on first push to set upstream tracking; plain git push thereafter).
     </rule>
 
     <rule id="GH-FIN-PR" phase="finalize">
