@@ -73,6 +73,20 @@ export function createTaskActionsComputer(): CreateTaskActionsComputerReturn {
           }
         ];
 
+      case 'awaiting-completion':
+        return [
+          {
+            label: 'Complete',
+            command: buildCommand('complete', id),
+            description: 'Check PR and merge to done'
+          },
+          {
+            label: 'Rework',
+            command: buildCommand('rework', id),
+            description: 'Send back for fixes'
+          }
+        ];
+
       case 'done':
         return [];
 

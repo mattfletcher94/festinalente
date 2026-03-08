@@ -4,7 +4,7 @@
 
 export type TaskId = string & { readonly __brand: unique symbol };
 
-export type TaskStatus = 'backlog' | 'scoped' | 'planned' | 'in-progress' | 'finalize' | 'done';
+export type TaskStatus = 'backlog' | 'scoped' | 'planned' | 'in-progress' | 'finalize' | 'awaiting-completion' | 'done';
 
 export type TaskPriority = 'critical' | 'high' | 'medium' | 'low';
 

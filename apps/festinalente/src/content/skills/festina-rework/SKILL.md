@@ -1,6 +1,6 @@
 ---
 name: festina-rework
-description: Return task to In Progress with structured issue report. Works from Finalize column.
+description: Return task to In Progress with structured issue report. Works from Finalize or Awaiting Completion columns.
 allowed-tools: Read, Write, Bash(ls *, node *)
 argument-hint: "[task-id]"
 disable-model-invocation: true
@@ -20,6 +20,7 @@ Return a task to In Progress when human review finds issues. Gather structured i
 <note>Column Transitions:
 ```
 finalize → in-progress
+awaiting-completion → in-progress
 ```
 See `.festinalente/workflow.yaml` for column definitions and valid transitions.
 </note>
@@ -39,13 +40,13 @@ See `.festinalente/workflow.yaml` for column definitions and valid transitions.
       <action>Use $ARGUMENTS as taskId</action>
     </branch>
     <branch condition="$ARGUMENTS not provided">
-      <action>List tasks in `finalize` status from `.festinalente/tasks/`</action>
+      <action>List tasks in `finalize` and `awaiting-completion` status from `.festinalente/tasks/`</action>
       <action>Use AskUserQuestion tool with:
         - header: "Task"
         - question: "Which task needs rework?"
-        - options: Build from task list (up to 4 tasks in finalize status), each with:
+        - options: Build from task list (up to 4 tasks in finalize or awaiting-completion status), each with:
           - label: "{taskId}: {short title}" (truncate title if needed)
-          - description: "Status: finalize | Ready for rework"
+          - description: "Status: {status} | Ready for rework"
         - multiSelect: false
       </action>
       <note>User can select "Other" to type a task ID directly</note>
@@ -56,11 +57,11 @@ See `.festinalente/workflow.yaml` for column definitions and valid transitions.
     <command>node .festinalente/scripts/festinalente.cjs find-task {taskId}</command>
     <action>Read the file at the `path` from JSON output</action>
     <action>Parse XML</action>
-    <validate>Verify current status is `finalize`</validate>
-    <branch condition="status is not finalize">
+    <validate>Verify current status is `finalize` or `awaiting-completion`</validate>
+    <branch condition="status is not finalize or awaiting-completion">
       <action>Use AskUserQuestion tool with:
         - header: "Continue?"
-        - question: "Task is in {status} status. Expected: finalize. Continue with rework anyway?"
+        - question: "Task is in {status} status. Expected: finalize or awaiting-completion. Continue with rework anyway?"
         - options:
           - label: "Yes", description: "Proceed with rework despite unexpected status"
           - label: "No", description: "Cancel and check task status first"
@@ -216,7 +217,7 @@ Let me gather the details needed for a proper issue report.
   <step name="update_plan_with_iteration">
     <note>Following template at `.festinalente/templates/plan.xml`</note>
     <action>Increment `iteration` attribute in plan XML</action>
-    <action>Set phase name to "Finalize"</action>
+    <action>Set phase name dynamically: "Finalize" if task was in finalize status, "Awaiting Completion" if task was in awaiting-completion status</action>
     <action>Add to `<iterations>` section</action>
 
     <example_code lang="xml">
@@ -239,7 +240,7 @@ Let me gather the details needed for a proper issue report.
   </step>
 
   <step name="move_to_in_progress">
-    <action>Change `status: finalize` to `status: in-progress`</action>
+    <action>Change current status (`finalize` or `awaiting-completion`) to `status: in-progress`</action>
     <action>Add `updated: {YYYY-MM-DD}`</action>
     <action>Write updated task file</action>
   </step>
@@ -442,6 +443,65 @@ Does this capture the issue correctly?
 - Issue type: Design change
 - Severity: Minor
 - Actions: 3 items to address
+```
+</example>
+
+<example label="Rework from awaiting-completion">
+User: `/festina-rework 010`
+
+```
+Task: 010 - Add export to CSV
+Status: awaiting-completion
+
+What type of issue was found?
+> Bug
+
+How severe is this issue?
+> Blocker
+
+What's happening? (the actual behavior)
+> The CSV export drops special characters. Names with accents come out garbled.
+
+What should happen instead?
+> CSV should be UTF-8 encoded so special characters display correctly
+
+How do you reproduce it?
+> Export any dataset that includes names with accents or non-ASCII characters
+
+**Issue Report**
+
+**Type:** Bug
+**Severity:** Blocker
+
+**Summary:** CSV export corrupts non-ASCII characters
+
+**Actual behavior:** Special characters (accents, umlauts) are garbled in exported CSV
+**Expected behavior:** CSV is UTF-8 encoded, all characters display correctly
+**Reproduction steps:**
+1. Add data with non-ASCII characters (e.g., "José", "Müller")
+2. Click Export to CSV
+3. Open CSV file
+4. Observe: characters are corrupted
+
+**Actions to address:**
+- [ ] Set UTF-8 BOM header in CSV output
+- [ ] Ensure stream encoding is set to utf-8
+- [ ] Add test with non-ASCII characters
+
+---
+Does this capture the issue correctly?
+> Yes
+
+**Task 010 returned to In Progress**
+
+- Iteration: 3
+- Issue type: Bug
+- Severity: Blocker
+- Actions: 3 items to address
+
+Next:
+/clear
+/festina-implement 010
 ```
 </example>
 

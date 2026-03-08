@@ -22,6 +22,9 @@ directives:
   festina-finalize:
     - github
     - coding
+  festina-complete:
+    - github
+    - coding
   festina-rework:
     - github
     - coding

@@ -33,13 +33,13 @@ Run directive checks, update documentation, and complete the task. This skill co
 
 <note>**Glossary:** `.festinalente/glossary.yaml` - Project terminology (update when introducing new terms)</note>
 
-{{> column-transition from="finalize" to="done"}}
+{{> column-transition from="finalize" to="awaiting-completion"}}
 
 <note>
 **This skill is an orchestrator with three phases:**
 - **Phase 1 (Validate):** Run directive checks, auto-fix if needed
 - **Phase 2 (Document):** Update product/engineering docs based on task's affects/engineering fields
-- **Phase 3 (Complete):** Move task to done
+- **Phase 3 (Complete):** Move task to awaiting-completion
 </note>
 
 ## Reference Files
@@ -767,18 +767,18 @@ PHASE 3: COMPLETE
   <step name="output_result">
     <output>
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Task {taskId} completed!
+Task {taskId} moved to Awaiting Completion!
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-- Status: done
-- Completed: {date}
+- Status: awaiting-completion
+- Updated: {date}
 
-Congratulations! Task complete.
+Task has passed validation and documentation. Ready for completion.
 
-**Ready for next task:**
+**Next: Complete the task**
 ```
 /clear
-/festina-overview
+/festina-complete {taskId}
 ```
     </output>
     {{> skill-complete}}
@@ -787,11 +787,10 @@ Congratulations! Task complete.
 
 <success_criteria>
 - Task file exists at `.festinalente/tasks/{taskId}/task.xml`
-- Task XML has `status="done"`
-- Task XML has `completed` attribute with date
+- Task XML has `status="awaiting-completion"`
 - All directive checks passed (or skipped with user approval)
 - Documentation updated (or skipped for internal changes)
-- Next steps shown to user
+- Next steps shown to user directing to /festina-complete
 </success_criteria>
 
 <example>
@@ -850,17 +849,17 @@ PHASE 3: COMPLETE
 [User confirms merge]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Task 001 completed!
+Task 001 moved to Awaiting Completion!
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-- Status: done
-- Completed: 2026-02-27
+- Status: awaiting-completion
+- Updated: 2026-02-27
 
-Congratulations! Task complete.
+Task has passed validation and documentation. Ready for completion.
 
-Ready for next task:
+Next: Complete the task
 /clear
-/festina-overview
+/festina-complete 001
 ```
 </example>
 
@@ -931,20 +930,14 @@ PHASE 3: COMPLETE
 
 [Completion flow continues...]
 
-Task 003 completed!
+Task 003 moved to Awaiting Completion!
 ```
 </example>
 
 <next_steps>
-Task complete! To start a new task:
+Task has passed validation and documentation. Complete it:
 ```
 /clear
-/festina-create "Task title"
-```
-
-Or view the board:
-```
-/clear
-/festina-overview
+/festina-complete {taskId}
 ```
 </next_steps>
