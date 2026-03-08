@@ -19,6 +19,8 @@ directives:
     - git
   festina-finalize:
     - git
+  festina-complete:
+    - git
   festina-rework:
     - git
   festina-delete:
