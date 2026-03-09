@@ -9,7 +9,7 @@ aliases: [directive-format, directive-loading, rule-system]
 boundary: "Does not define skill workflow steps - only modifies them via rules and overrides"
 references: [skills/_index, cli/validation]
 uses: []
-updated: 2026-03-06
+updated: 2026-03-09
 ---
 
 # Directive System
@@ -95,6 +95,8 @@ directives:
   festina-plan: [coding]
   festina-implement: [coding, git]
   festina-finalize: [coding, git, github]
+  festina-map-product: [github]
+  festina-map-engineering: [github]
 ```
 
 ### Phase Matching

@@ -39,6 +39,10 @@ Analyze existing codebase and create engineering documentation through parallel 
     {{> workflow-load}}
   </step>
 
+  <step name="load_directives">
+    {{> load-directives skill="map-engineering"}}
+  </step>
+
   <step name="preflight_check">
     <action>Check if `.festinalente/engineering/` has files OTHER than `overview.md`</action>
     <command>node .festinalente/scripts/festinalente.cjs list-engineering</command>
@@ -511,6 +515,8 @@ Risks documented: {count} from Risk Identifier
     <action>Add any high-severity risks to relevant system docs</action>
   </step>
 
+
+  {{> directive-compliance}}
 
   <step name="output_result">
     <output>Engineering documentation mapped!</output>

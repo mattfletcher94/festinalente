@@ -9,7 +9,7 @@ aliases: [festina-map-product, discover-product]
 boundary: "For existing codebases - use /festina-define-product for new products without code"
 references: [docs/product, skills/define-product]
 uses: []
-updated: 2026-03-06
+updated: 2026-03-09
 ---
 
 # Map Product
@@ -66,6 +66,7 @@ What this skill does NOT do:
 
 - **Product Docs**: Creates/updates overview.md, domain indexes, and feature docs
 - **Glossary**: Generates `.festinalente/glossary.yaml`
+- **Directives**: Loads and enforces mapped directives (e.g., git workflow rules)
 - **CLI**: Uses `list-product` to check existing docs
 
 ## Limitations

@@ -1,234 +1,183 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<directive name="git" version="1"
-           created="2026-03-05" updated="2026-03-05">
+<directive name="git" version="2"
+           created="2026-03-05" updated="2026-03-09">
   <description>
-    Git workflow for festina lente tasks: branching, committing, merging, and cleanup.
-    This directive owns ALL git operations. Skills have permission (allowed-tools) but
-    no instructions to use git — this directive provides the instructions.
+    Simple git workflow: everything on main, conventional commits as we go.
+    No branching, no merging. Task artifacts are committed alongside code.
+    This directive owns ALL git operations.
   </description>
 
   <context>
-    <principle id="G1" keywords="branch,isolation,task,feature">
-      Each task gets its own branch (task/{id}). Work is isolated until merge.
+    <principle id="G1" keywords="main,branch,no-branching">
+      All work happens on main. No feature branches.
     </principle>
-    <principle id="G2" keywords="commit,conventional,format,message">
-      All commits follow conventional commit format: type(scope): description
+    <principle id="G2" keywords="commit,conventional,format,message,scope,number">
+      All commits follow conventional commit format: type(#NNN): description.
+      The scope is the task's numeric prefix only (e.g., #022 from id "022-add-dark-mode").
+      Valid types: feat, fix, docs, refactor, chore.
+      Use "chore" for task scaffolding (create, scope, plan, save, done, rework, delete).
+      Use "docs" only for actual product/engineering documentation.
+      Use feat/fix/refactor/docs for implementation commits (derived from task label).
     </principle>
-    <principle id="G3" keywords="merge,no-ff,history,preserve">
-      Merges to main use --no-ff to preserve branch history in the commit graph.
-    </principle>
-    <principle id="G4" keywords="clean,working,tree,merge">
-      Working tree must be clean before merging. All changes committed first.
-    </principle>
-    <principle id="G5" keywords="quick,branch,amend">
-      Quick tasks use quick/{id} branches. Updates to quick.xml and docs amend the initial commit.
+    <principle id="G3" keywords="task,artifacts,committed">
+      Task artifacts (.festinalente/tasks/, .festinalente/quick/) are committed to git.
     </principle>
   </context>
 
   <process>
-    <rule id="G-CREATE-1" phase="create">
-      Before starting, verify you are on the main (or master) branch:
-      Run: git branch --show-current
-      If NOT on main/master, output error and exit.
-    </rule>
-    <rule id="G-CREATE-2" phase="create">
+    <!-- ═══════════════════════════════════════════════════════════
+         TASK LIFECYCLE: create → scope → plan → implement → save → finalize → complete
+         ═══════════════════════════════════════════════════════════ -->
+
+    <rule id="G-CREATE" phase="create">
       After creating the task file (and any stub docs), stage and commit:
       - git add .festinalente/tasks/{id}/task.xml
       - If product stub doc was created: git add {newDocPath}
       - If engineering stub doc was created: git add {newEngDocPath}
-      - git commit -m "docs({id}): create - {title}"
+      - git commit -m "chore(#{number}): create - {title}"
     </rule>
-    <rule id="G-SCOPE-1" phase="scope">
-      Before starting, verify you are on the main (or master) branch:
-      Run: git branch --show-current
-      If NOT on main/master, output error and exit.
-    </rule>
-    <rule id="G-SCOPE-2" phase="scope">
-      After writing the spec and updated task file, create the task branch and commit:
-      - git checkout -b task/{id}
+
+    <rule id="G-SCOPE" phase="scope">
+      After writing the spec and updated task file, stage and commit:
       - git add .festinalente/tasks/{id}/spec.xml .festinalente/tasks/{id}/task.xml
-      - git commit -m "docs({id}): scope - {title}"
+      - git commit -m "chore(#{number}): scope - {title}"
     </rule>
-    <rule id="G-PLAN-1" phase="plan">
-      Before starting, verify you are on the task/{id} branch:
-      Run: git branch --show-current
-      If NOT on task/{id}, output error and exit.
-    </rule>
-    <rule id="G-PLAN-2" phase="plan">
+
+    <rule id="G-PLAN" phase="plan">
       After writing the plan and updated task file, stage and commit:
       - git add .festinalente/tasks/{id}/plan.xml .festinalente/tasks/{id}/task.xml
-      - git commit -m "docs({id}): plan - {title}"
+      - git commit -m "chore(#{number}): plan - {title}"
     </rule>
-    <rule id="G-IMPL-1" phase="implement">
-      Before starting, verify you are on the task/{id} branch:
-      Run: git branch --show-current
-      If NOT on task/{id}, output error and exit.
+
+    <rule id="G-IMPL" phase="implement">
+      Do NOT commit during implementation. Code stays uncommitted until save or finalize.
     </rule>
-    <rule id="G-IMPL-2" phase="implement">
-      Do NOT commit during implementation. Code stays uncommitted until the finalize phase.
-    </rule>
+
     <rule id="G-SAVE-1" phase="save">
-      Before starting, verify you are on the task/{id} branch:
-      Run: git branch --show-current
-      If NOT on task/{id}, output error and exit.
-    </rule>
-    <rule id="G-SAVE-2" phase="save">
       Check for uncommitted changes:
       - Run: git status
       - Run: git diff --name-only
       If no changes found, warn the user and exit early (still update plan if needed).
     </rule>
-    <rule id="G-SAVE-3" phase="save">
+    <rule id="G-SAVE-2" phase="save">
       Stage and commit all relevant files:
-      - git add {changed files}
-      - git add .festinalente/tasks/{id}/plan.xml
-      - git commit -m "wip({id}): {progress summary}"
-      The summary should briefly describe what was completed (e.g., "completed auth routes and login endpoint").
+      - git add {changed code files}
+      - git add .festinalente/tasks/{id}/
+      - git commit -m "chore(#{number}): save - {progress summary}"
+      The summary should briefly describe what was completed.
     </rule>
-    <rule id="G-FIN-1" phase="finalize">
-      Before starting, verify you are on the task/{id} branch:
-      Run: git branch --show-current
-      If NOT on task/{id}, output error and exit.
-    </rule>
-    <rule id="G-FIN-2" phase="finalize">
-      After directive checks pass, check for uncommitted changes:
-      - Run: git status
-      - Run: git diff --name-only
-      Display files that will be committed.
-      If no changes found, warn the user and ask whether to proceed.
-    </rule>
-    <rule id="G-FIN-3" phase="finalize">
-      Determine commit type from the task's label using the commit-type field in workflow.yaml labels:
-      - Label "bug" -> commit type "fix"
-      - Label "feature" -> commit type "feat"
-      - Label "docs" -> commit type "docs"
-      - Label "refactor" -> commit type "refactor"
-      - Default (no matching label) -> commit type "feat"
-      Valid commit types are ONLY: feat, fix, refactor, docs.
-    </rule>
-    <rule id="G-FIN-4" phase="finalize">
-      Commit implementation:
-      - git add {implementation files}
-      - git add .festinalente/
-      - git commit -m "{commitType}({id}): {title}"
-      ALWAYS include .festinalente/ files — they track task state and plan changes.
-    </rule>
-    <rule id="G-FIN-5" phase="finalize">
-      When a directive check fails and auto-fix is applied, commit the fix:
-      - git add {changed files}
-      - git commit -m "docs({id}): check-retry - {title}"
+
+    <!-- Finalize has 3 phases: Phase 1 (validate), Phase 2 (docs), Phase 3 (complete).
+         Rules are ordered by when they fire. -->
+
+    <rule id="G-FIN-FIX" phase="finalize">
+      During Phase 1: when a directive check fails and auto-fix is applied, commit the fix:
+      - git add {files changed by the fix}
+      - git commit -m "fix(#{number}): check-retry - {title}"
       Then restart all checks from the beginning.
     </rule>
-    <rule id="G-FIN-6" phase="finalize">
-      After documentation updates are complete, commit docs:
-      - git add .festinalente/product/
-      - git add .festinalente/engineering/
-      - git add .festinalente/glossary.yaml
+
+    <rule id="G-FIN-COMMIT" phase="finalize">
+      After all three phases are complete (validation passed, docs written, status set to
+      awaiting-completion), commit the implementation:
+      1. Check for uncommitted changes: git status &amp;&amp; git diff --name-only
+         Display files that will be committed. If none, warn user and ask whether to proceed.
+      2. Determine commit type from the task's label using the commit-type field in workflow.yaml:
+         bug→fix, feature→feat, docs→docs, refactor→refactor. Default: feat.
+      3. Stage and commit code + task artifacts:
+         - git add {implementation code files}
+         - git add .festinalente/tasks/{id}/
+         - git commit -m "{commitType}(#{number}): {title}"
+    </rule>
+
+    <rule id="G-FIN-DOCS" phase="finalize">
+      After G-FIN-COMMIT, if Phase 2 updated documentation, commit docs separately:
+      - git add .festinalente/product/ .festinalente/engineering/ .festinalente/glossary.yaml
       - If both product AND engineering docs updated:
-        git commit -m "docs({id}): product+engineering - {summary}"
+        git commit -m "docs(#{number}): product+engineering - {summary}"
       - If only product docs updated:
-        git commit -m "docs({id}): product - {summary}"
+        git commit -m "docs(#{number}): product - {summary}"
       - If only engineering docs updated:
-        git commit -m "docs({id}): engineering - {summary}"
+        git commit -m "docs(#{number}): engineering - {summary}"
     </rule>
-    <rule id="G-FIN-7" phase="finalize">
-      Push branch and merge:
-      1. Check if already pushed: git log origin/task/{id}..HEAD --oneline 2>/dev/null || echo "no-remote"
-      2. If not pushed: git push -u origin task/{id}
-      3. Verify working tree is clean: git status
-      4. Show commits to merge: git log main..HEAD --oneline
-      5. Ask user to confirm merge
-      6. Update task status to "done", add completed date, commit:
-         - git add .festinalente/tasks/{id}/task.xml
-         - git commit -m "docs({id}): done - {title}"
-      7. Merge to main: git checkout main && git merge task/{id} --no-ff -m "Merge branch 'task/{id}'"
-      8. Push main: git push
-      9. Delete task branch: git branch -d task/{id}
+
+    <rule id="G-COMPLETE" phase="complete">
+      After festina-complete marks the task as done, commit:
+      - git add .festinalente/tasks/{id}/task.xml
+      - git commit -m "chore(#{number}): done - {title}"
     </rule>
-    <rule id="G-REWORK-1" phase="rework">
-      Before starting, verify you are on the task/{id} branch:
-      Run: git branch --show-current
-      If NOT on task/{id}, output error and exit.
-    </rule>
-    <rule id="G-REWORK-2" phase="rework">
+
+    <rule id="G-REWORK" phase="rework">
       After updating the plan with the rework report and moving task back to in-progress, commit:
       - git add .festinalente/tasks/{id}/task.xml
       - git add .festinalente/tasks/{id}/plan.xml
-      - git commit -m "docs({id}): rework - {title}"
+      - git commit -m "chore(#{number}): rework - {title}"
     </rule>
-    <rule id="G-DELETE-1" phase="delete">
-      Before starting, verify you are on the main (or master) branch:
-      Run: git branch --show-current
-      If NOT on main/master, output error and exit.
-    </rule>
-    <rule id="G-DELETE-2" phase="delete">
-      After deleting the task folder, stage and commit:
+
+    <rule id="G-DELETE" phase="delete">
+      After deleting the task folder, stage and commit the deletion:
       - git add -A .festinalente/tasks/{id}/
-      - git commit -m "docs({id}): delete - {title}"
+      - git commit -m "chore(#{number}): delete - {title}"
     </rule>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         QUICK TASKS
+         ═══════════════════════════════════════════════════════════ -->
+
     <rule id="G-QUICK-1" phase="quick">
-      Before starting, verify you are on the main (or master) branch:
-      Run: git branch --show-current
-      If NOT on main/master, output error and exit.
+      After implementation and user confirms (pause_for_review), determine commit type from
+      the quick task's label using the commit-type field in workflow.yaml.
+      Default: feat. Stage and commit:
+      - git add {changed code files}
+      - git add .festinalente/quick/{id}/quick.xml
+      - git commit -m "{commitType}(#{number}): {title}"
     </rule>
     <rule id="G-QUICK-2" phase="quick">
-      Create the quick branch:
-      - Check branch doesn't already exist: git branch --list "quick/{id}"
-      - If exists, output error and exit
-      - git checkout -b quick/{id}
-    </rule>
-    <rule id="G-QUICK-3" phase="quick">
-      After implementation and user confirms commit:
-      - git add .
-      - git commit -m "quick({id}): {title}"
-    </rule>
-    <rule id="G-QUICK-4" phase="quick">
-      After updating quick.xml with completion details (status, files, commit, summary):
+      After quick.xml is updated with completion details (status, files, commit hash, summary),
+      amend the commit to include the updated quick.xml:
       - git add .festinalente/quick/{id}/quick.xml
       - git commit --amend --no-edit
     </rule>
-    <rule id="G-QUICK-5" phase="quick">
-      If user requested doc updates and docs were changed:
+    <rule id="G-QUICK-3" phase="quick">
+      If docs were updated, amend the commit to include doc changes:
       - git add .festinalente/product/ .festinalente/engineering/ .festinalente/quick/{id}/
       - git commit --amend --no-edit
     </rule>
-    <rule id="G-QUICK-6" phase="quick">
-      Ask user if they want to merge to main:
-      - If yes: git checkout main && git merge quick/{id}
-      - If no: keep changes on quick/{id} branch
-    </rule>
-    <rule id="G-DEFPROD-1" phase="define-product">
+
+    <!-- ═══════════════════════════════════════════════════════════
+         NON-TASK SKILLS
+         Note: these skills do not currently load directives.
+         Rules kept for documentation and future compatibility.
+         ═══════════════════════════════════════════════════════════ -->
+
+    <rule id="G-DEFPROD" phase="define-product">
       After creating product documentation files, stage and commit:
       - git add .festinalente/product/
       - git commit -m "docs: define-product - {brief product description}"
-      Example: docs: define-product - task management app with projects, tasks, collaboration
     </rule>
-    <rule id="G-MAPPROD-1" phase="map-product">
+    <rule id="G-MAPPROD" phase="map-product">
       After creating/updating product documentation and glossary, stage and commit:
-      - git add .festinalente/product/
-      - git add .festinalente/glossary.yaml
+      - git add .festinalente/product/ .festinalente/glossary.yaml
       - git commit -m "docs: map-product - {brief summary listing main features}"
-      Example: docs: map-product - authentication, user management, notifications, search
     </rule>
-    <rule id="G-MAPENG-1" phase="map-engineering">
+    <rule id="G-MAPENG" phase="map-engineering">
       After creating/updating engineering documentation and glossary, stage and commit:
-      - git add .festinalente/engineering/
-      - git add .festinalente/glossary.yaml
+      - git add .festinalente/engineering/ .festinalente/glossary.yaml
       - git commit -m "docs: map-engineering - {systems, patterns listed}"
-      Example: docs: map-engineering - auth system, api system, middleware pattern
     </rule>
-    <rule id="G-DIRECTIVE-1" phase="directive">
+    <rule id="G-DIRECTIVE" phase="directive">
       After creating the directive file and updating config.yaml, stage and commit:
       - git add .festinalente/directives/{name}.xml .festinalente/config.yaml
-      - git commit -m "docs: create directive - {name}"
+      - git commit -m "chore: create directive - {name}"
     </rule>
   </process>
 
   <validation>
     <check id="V-G1" type="checklist" severity="warning">
-      <item>Branch verification was performed at the start of the skill</item>
       <item>All file changes were committed with correct message format</item>
-      <item>Commit messages follow conventional commit format: type(scope): description</item>
+      <item>Commit messages follow conventional commit format: type(#NNN): description</item>
+      <item>Scope uses numeric prefix only (e.g., #022), not the full slug</item>
+      <item>"chore" used for task scaffolding, "docs" reserved for actual documentation</item>
       <item>No uncommitted changes remain after skill completion (unless implement phase)</item>
     </check>
   </validation>
@@ -236,47 +185,63 @@
   <examples>
     <example ref="G2" type="correct">
       <code><![CDATA[
-# Correct commit messages:
-docs(022-add-dark-mode): create - Add dark mode toggle
-docs(022-add-dark-mode): scope - Add dark mode toggle
-docs(022-add-dark-mode): plan - Add dark mode toggle
-wip(022-add-dark-mode): completed toggle component and theme provider
-feat(022-add-dark-mode): Add dark mode toggle
-docs(022-add-dark-mode): product - complete dark mode documentation
-docs(022-add-dark-mode): done - Add dark mode toggle
+# Full task lifecycle (task id: 022-add-dark-mode, label: feature):
+chore(#022): create - Add dark mode toggle                     # /festina-create
+chore(#022): scope - Add dark mode toggle                      # /festina-scope
+chore(#022): plan - Add dark mode toggle                       # /festina-plan
+                                                                # /festina-implement (no commit)
+chore(#022): save - completed toggle and theme provider        # /festina-save (optional, repeatable)
+feat(#022): Add dark mode toggle                               # /festina-finalize (code + task artifacts)
+docs(#022): product - dark mode documentation                  # /festina-finalize (docs, if any)
+chore(#022): done - Add dark mode toggle                       # /festina-complete
       ]]></code>
-      <explanation>Each phase has a specific commit format. The scope is the task ID, type matches the phase.</explanation>
+      <explanation>"chore" for task scaffolding, "docs" only for actual documentation, "feat" for the implementation. Scope is always #NNN.</explanation>
     </example>
-    <example ref="G-FIN-3" type="correct">
+    <example ref="G-FIN-COMMIT" type="correct">
       <code><![CDATA[
 # Commit type determination from task labels:
 # Task has label "bug" with commit-type "fix" in workflow.yaml
-#   -> fix(001-fix-login): Fix login redirect bug
+#   -> fix(#001): Fix login redirect bug
 
 # Task has label "feature" with commit-type "feat" in workflow.yaml
-#   -> feat(002-add-auth): Add user authentication
+#   -> feat(#002): Add user authentication
 
 # Task has label "refactor" with commit-type "refactor" in workflow.yaml
-#   -> refactor(003-cleanup-db): Simplify database queries
+#   -> refactor(#003): Simplify database queries
       ]]></code>
       <explanation>The commit type comes from the label's commit-type field in workflow.yaml, not from guessing.</explanation>
     </example>
-    <example ref="G-IMPL-2" type="violation">
+    <example ref="G2" type="violation">
+      <code><![CDATA[
+# WRONG: Using "docs" for task scaffolding
+docs(#022): create - Add dark mode toggle
+docs(#022): done - Add dark mode toggle
+
+# CORRECT: "chore" for scaffolding, "docs" for actual documentation
+chore(#022): create - Add dark mode toggle
+chore(#022): done - Add dark mode toggle
+docs(#022): product - dark mode documentation
+      ]]></code>
+      <explanation>"docs" is reserved for actual product/engineering documentation updates. Task lifecycle commits use "chore".</explanation>
+    </example>
+    <example ref="G-IMPL" type="violation">
       <code><![CDATA[
 # WRONG: Committing during implement phase
 git add src/auth.ts
-git commit -m "feat(001): partial implementation"
+git commit -m "feat(#001): partial implementation"
       ]]></code>
       <explanation>Implementation phase does NOT commit. Use /festina-save for WIP commits, or wait for /festina-finalize.</explanation>
     </example>
-    <example ref="G-FIN-3" type="violation">
+    <example ref="G-FIN-COMMIT" type="violation">
       <code><![CDATA[
 # WRONG: Using invented commit types
-git commit -m "festina(001): Add user authentication"
-git commit -m "task(001): Add user authentication"
-git commit -m "wip(001): Add user authentication"  # wip is only for save phase
+git commit -m "wip(#001): Add user authentication"
+git commit -m "quick(#001): Add user authentication"
+
+# CORRECT: Valid types are feat, fix, refactor, docs, chore
+git commit -m "feat(#001): Add user authentication"
       ]]></code>
-      <explanation>Valid finalize commit types are ONLY: feat, fix, refactor, docs. Derived from task label.</explanation>
+      <explanation>Valid commit types: feat, fix, refactor, docs, chore. No invented types.</explanation>
     </example>
   </examples>
 </directive>

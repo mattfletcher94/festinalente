@@ -39,6 +39,10 @@ Analyze existing codebase and create product documentation through parallel expl
     {{> workflow-load}}
   </step>
 
+  <step name="load_directives">
+    {{> load-directives skill="map-product"}}
+  </step>
+
   <step name="preflight_check">
     <action>Check if `.festinalente/product/` has files OTHER than `overview.md`</action>
     <command>node .festinalente/scripts/festinalente.cjs list-product</command>
@@ -632,6 +636,8 @@ Coverage: {percentage} of discovered features documented
     <action>Ensure all docs have proper `id` with domain prefix (e.g., `auth/login`)</action>
   </step>
 
+
+  {{> directive-compliance}}
 
   <step name="output_result">
     <output>Product documentation mapped!</output>
