@@ -193,11 +193,12 @@
          git checkout -b quick/{id} (error if exists).
          Add github-branch="quick/{id}" to quick.xml (local only — task files are gitignored, never staged or committed).
          Do NOT push yet — the first push happens with the code commit below.
-      4. Commit code: git add {files} &amp;&amp; git commit -m "quick(#{issueNumber}): {title}"
-      5. If docs updated: git add .festinalente/product/ .festinalente/engineering/ &amp;&amp; git commit --amend --no-edit
-      6. git push
-      7. Create PR:
-         mcp__github__create_pull_request (title: "quick(#{issueNumber}): {title}",
+      4. Determine commit type from quick task's label via workflow.yaml. Default: feat.
+      5. Commit code: git add {files} &amp;&amp; git commit -m "{type}(#{issueNumber}): {title}"
+      6. If docs updated: git add .festinalente/product/ .festinalente/engineering/ &amp;&amp; git commit --amend --no-edit
+      7. git push
+      8. Create PR:
+         mcp__github__create_pull_request (title: "{type}(#{issueNumber}): {title}",
          head: quick/{id}, base: main, body: "Closes #{issueNumber}\n\n## Summary\n{brief description}").
          Add github-pr="#{N}" to quick.xml.
          Ask: "Merge now or wait for review?"
@@ -223,7 +224,7 @@
 
     <rule id="GH-DIRECTIVE" phase="directive">
       Verify on main.
-      git add .festinalente/directives/{name}.xml .festinalente/config.yaml &amp;&amp; git commit -m "docs: create directive - {name}" &amp;&amp; git push
+      git add .festinalente/directives/{name}.xml .festinalente/config.yaml &amp;&amp; git commit -m "chore: create directive - {name}" &amp;&amp; git push
     </rule>
   </process>
 
