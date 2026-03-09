@@ -9,7 +9,7 @@ aliases: [festina-map-engineering, discover-engineering]
 boundary: "Creates engineering docs (how things work) not product docs (what things do)"
 references: [docs/engineering, skills/map-product]
 uses: []
-updated: 2026-03-06
+updated: 2026-03-09
 ---
 
 # Map Engineering
@@ -62,6 +62,7 @@ What this skill does NOT do:
 ## Interactions
 
 - **Engineering Docs**: Creates/updates systems, patterns, and conventions docs
+- **Directives**: Loads and enforces mapped directives (e.g., git workflow rules)
 - **CLI**: Uses `list-engineering` to check existing docs
 
 ## Limitations
