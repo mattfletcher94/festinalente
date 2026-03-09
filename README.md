@@ -143,7 +143,7 @@ This repository is built with Festina Lente, and its directives demonstrate what
 | `/festina-explore` | Explore ideas before committing to a task |
 | `/festina-map-product` | Document product features |
 | `/festina-map-engineering` | Document technical architecture |
-| `/festina-define-product` | Define a new product from scratch |
+| `/festina-define` | Define a new product and engineering docs from scratch |
 
 ---
 

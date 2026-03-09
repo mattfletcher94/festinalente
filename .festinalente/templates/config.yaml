@@ -35,5 +35,5 @@ directives:
     - git
   festina-map-engineering:
     - git
-  festina-define-product:
+  festina-define:
     - git

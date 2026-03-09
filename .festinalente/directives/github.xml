@@ -207,9 +207,9 @@
          Wait: EXIT.
     </rule>
 
-    <rule id="GH-DEFPROD" phase="define-product">
+    <rule id="GH-DEFPROD" phase="define">
       Verify on main.
-      git add .festinalente/product/ &amp;&amp; git commit -m "docs: define-product - {description}" &amp;&amp; git push
+      git add .festinalente/product/ .festinalente/engineering/ .festinalente/glossary.yaml &amp;&amp; git commit -m "docs: define - {description}" &amp;&amp; git push
     </rule>
 
     <rule id="GH-MAPPROD" phase="map-product">

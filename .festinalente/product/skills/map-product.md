@@ -6,7 +6,7 @@ tldr: "Analyze existing codebase with parallel agents and generate product docs"
 summary: "The /festina-map-product skill launches 4 parallel exploration agents to scan the codebase for features, domains, relationships, and gaps, then generates product documentation through Socratic Q&A."
 keywords: [map, product, parallel, agents, exploration, codebase, documentation]
 aliases: [festina-map-product, discover-product]
-boundary: "For existing codebases - use /festina-define-product for new products without code"
+boundary: "For existing codebases - use /festina-define for new products without code"
 references: [docs/product, skills/define-product]
 uses: []
 updated: 2026-03-09
