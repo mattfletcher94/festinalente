@@ -47,7 +47,7 @@ flowchart LR
     subgraph "Discovery & Documentation"
         explore[/festina-explore]
         overview[/festina-overview]
-        defineProduct[/festina-define-product]
+        defineProduct[/festina-define]
         mapProduct[/festina-map-product]
         mapEngineering[/festina-map-engineering]
         directive[/festina-directive]
