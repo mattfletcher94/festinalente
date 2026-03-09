@@ -12,8 +12,15 @@
       "WebSearch",
       "mcp__github__get_file_contents",
       "Skill(festina-create)",
-      "Skill(festina-create:*)",
-      "Bash(cmd.exe /c \"where gh\")"
+      "Skill(festina-create:*)"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(**/secrets/*)",
+      "Read(**/*credential*)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)"
     ],
     "defaultMode": "bypassPermissions"
   },
