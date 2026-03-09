@@ -317,7 +317,7 @@ ${colors.bright}Options:${colors.reset}
   -v, --version   Show version number
 
 ${colors.bright}After installation:${colors.reset}
-  Run /festina-define-product or /festina-map-product in Claude Code
+  Run /festina-define or /festina-map-product in Claude Code
   Optionally run /festina-map-engineering to document codebase architecture
 `);
 }
@@ -491,7 +491,7 @@ async function main() {
   const runtimeName = selectedRuntimes.includes('opencode') ? 'OpenCode' : 'Claude Code';
   console.log(`  1. Open ${runtimeName} in your project`);
   console.log(
-    `  2. Run ${colors.cyan}/festina-define-product${colors.reset} (new projects) or ${colors.cyan}/festina-map-product${colors.reset} (existing code)`
+    `  2. Run ${colors.cyan}/festina-define${colors.reset} (new projects) or ${colors.cyan}/festina-map-product${colors.reset} (existing code)`
   );
   console.log(`  3. Optionally run ${colors.cyan}/festina-map-engineering${colors.reset} to document architecture`);
   console.log();

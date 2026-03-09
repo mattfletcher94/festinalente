@@ -178,6 +178,44 @@ Analyze implemented code to generate appropriate diagrams:
    - If models exist → erDiagram
 ```
 
+## 4b. Transform Intent Docs
+
+For docs that have Intent/Requirements/Boundaries body structure (created by /festina-define):
+
+### Detect Intent Sections
+
+```
+1. For each doc in the affects list:
+   - Read the doc file
+   - Check if it contains an "## Intent" heading
+   - If yes: this is a greenfield-defined doc that needs transformation
+```
+
+### Rewrite Intent to Overview/How It Works
+
+```
+1. Read the implemented code for features described in the doc
+2. Transform the body sections:
+   - "## Intent" → "## Overview" (rewrite based on what was actually built, not what was planned)
+   - "## Requirements" → "## How It Works" (describe actual behavior from implementation)
+   - "## Boundaries" → Keep as-is (boundaries should still be accurate)
+3. Preserve all frontmatter fields unchanged
+4. Verify rewritten content matches the implementation, not just the original intent
+```
+
+### Verification
+
+```
+1. Use AskUserQuestion:
+   - header: "Intent Rewrite"
+   - question: "Does this rewrite accurately reflect the implementation?"
+   - options:
+     - label: "Yes", description: "Rewrite is accurate"
+     - label: "Needs correction", description: "Some parts need fixing"
+   - multiSelect: false
+2. If needs correction: ask what, fix, re-verify
+```
+
 ## 5. Create New Docs
 
 For docs that don't exist and aren't stubs:
@@ -324,6 +362,8 @@ After creating or updating docs:
    ├─ Existing: minimal updates + verify
    ├─ Stub: complete all fields/sections
    └─ Missing: create from template
+
+6b. Intent docs: rewrite Intent→Overview/How-It-Works from implementation
 
 7. Update domain _index.md
 
