@@ -10,7 +10,7 @@ boundary: "Does not enforce workflow transitions - skills do that"
 references: [systems/cli, systems/vscode-extension]
 uses: []
 paths: [.festinalente]
-updated: 2026-03-06
+updated: 2026-03-16
 ---
 
 # Data Model & Storage
@@ -29,6 +29,9 @@ Festina Lente uses file-based storage in the `.festinalente/` directory. Tasks a
 
 ```
 .festinalente/
+├── projects/
+│   └── {id}/
+│       └── project.xml    # Project metadata and task grouping
 ├── tasks/
 │   └── {id}/
 │       ├── task.xml       # Task metadata
@@ -102,6 +105,50 @@ stateDiagram-v2
 | problem | text | Problem statement |
 | value | text | Value proposition |
 | acceptance-criteria | text | Markdown list of criteria |
+
+### project.xml
+
+```xml
+<project
+  id="001"
+  status="open"
+  created="2026-03-01"
+  updated="2026-03-01">
+  <title>Project title</title>
+  <description>Project description</description>
+  <problem>What problem this solves</problem>
+  <value>Why it matters</value>
+  <scope>
+    <in-scope><item>Scope item</item></in-scope>
+    <out-of-scope><item>Exclusion</item></out-of-scope>
+  </scope>
+  <requirements>
+    <requirement id="R1">Requirement text</requirement>
+  </requirements>
+  <acceptance-criteria>
+    <criterion>Given ... When ... Then ...</criterion>
+  </acceptance-criteria>
+  <tasks></tasks>
+  <notes></notes>
+  <affects></affects>
+  <engineering></engineering>
+</project>
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| id | string | Unique project ID (e.g., "001") |
+| status | enum | open, in-progress, done |
+| title | text | Short project title |
+| description | text | Project description |
+| problem | text | Problem statement |
+| value | text | Value proposition |
+| scope | element | In-scope and out-of-scope items |
+| requirements | element | Numbered requirements |
+| acceptance-criteria | element | Given/When/Then criteria |
+| tasks | text | References to child task IDs |
+
+> **Note:** Project status can derive from child task progress. Use `get-project-progress` to compute completion percentage from task statuses.
 
 ### spec.xml
 

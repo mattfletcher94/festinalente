@@ -47,8 +47,9 @@ sequenceDiagram
 3. **Priority/label** - Auto-detect from keywords, user confirms
 4. **Q&A dialogue** - Propose understanding, user validates
 5. **Doc link refinement** - Extracts 10-20 keywords (nouns, verbs, domain terms, technical terms, system names) from full task context, expands them via glossary synonyms (`expand-query`), then re-searches docs with the expanded set. Deduplicates against already-linked docs and prompts user only if new high-scoring matches (score >= 0.5) are found; silently skips otherwise
-6. **Task creation** - Write task.xml with Gherkin acceptance criteria
-7. **Directive rules** - Git commit, issue sync, etc. (directive-driven)
+6. **Project attachment** (optional) - When open projects exist, offers to attach the task to a project. If attached, the user selects which project requirements the task addresses, and sibling context is included in the task description. Skipped entirely when no open projects exist (zero additional friction)
+7. **Task creation** - Write task.xml with Gherkin acceptance criteria
+8. **Directive rules** - Git commit, issue sync, etc. (directive-driven)
 
 **Summary:** Create follows a propose-then-validate pattern to minimize user effort.
 
@@ -117,6 +118,7 @@ What this skill does NOT do:
 
 - **Product Docs**: Searches for related docs, creates stubs if new feature
 - **Engineering Docs**: Searches for related patterns, creates stubs if needed
+- **Projects**: When open projects exist, offers optional attachment. Attached tasks get a `project-id` attribute and `project-requirements` mapping, and a task-ref is added to the project.xml
 - **Directives**: Applies any `phase="create"` directive rules
 
 ## Limitations

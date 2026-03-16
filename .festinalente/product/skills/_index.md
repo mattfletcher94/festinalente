@@ -7,7 +7,7 @@ summary: "The skills domain provides slash commands (/festina-*) that orchestrat
 keywords: [skills, slash-commands, workflow, ai-assisted, orchestration, conversational]
 aliases: [commands, slash-commands, festina-commands]
 boundary: "Does not include CLI utilities (see cli domain) or VSCode extension features (see vscode domain)"
-contains: [skills/create, skills/scope, skills/plan, skills/implement, skills/finalize, skills/complete, skills/quick, skills/explore, skills/overview, skills/save, skills/rework, skills/delete, skills/define-product, skills/map-product, skills/map-engineering, skills/directive]
+contains: [skills/create, skills/scope, skills/plan, skills/implement, skills/finalize, skills/complete, skills/quick, skills/explore, skills/overview, skills/save, skills/rework, skills/delete, skills/define-product, skills/map-product, skills/map-engineering, skills/directive, skills/create-project, skills/complete-project]
 references: [cli/_index, docs/_index, directives/_index]
 uses: [systems/cli, systems/content-build]
 updated: 2026-03-08
@@ -42,6 +42,11 @@ flowchart LR
         rework[/festina-rework]
         delete[/festina-delete]
         quick[/festina-quick]
+    end
+
+    subgraph "Project Workflow"
+        createProject[/festina-create-project] --> scope
+        completeProject[/festina-complete-project]
     end
 
     subgraph "Discovery & Documentation"
@@ -86,8 +91,10 @@ This domain does NOT cover CLI helper commands (use `node .festinalente/scripts/
 | [map-product](./map-product.md) | Discover and document product features from code | stable |
 | [map-engineering](./map-engineering.md) | Discover and document engineering patterns from code | stable |
 | [directive](./directive.md) | Create directives via Q&A (see [directives domain](../directives/_index.md)) | stable |
+| [create-project](./create-project.md) | Create projects through Q&A with auto-decomposition into tasks | stable |
+| [complete-project](./complete-project.md) | Verify all tasks done, evaluate project acceptance criteria | stable |
 
-**Summary:** This domain contains 16 skills: 6 core workflow, 3 support, and 7 discovery/documentation.
+**Summary:** This domain contains 18 skills: 6 core workflow, 2 project workflow, 3 support, and 7 discovery/documentation.
 
 ## Key Concepts
 

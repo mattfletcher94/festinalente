@@ -10,7 +10,7 @@ boundary: "Does not handle UI - see vscode-extension"
 references: [patterns/dag-architecture, patterns/factory-di, patterns/command-registry, patterns/tagged-union-errors, systems/vscode-extension, systems/data-model, systems/content-build]
 uses: []
 paths: [apps/festinalente/src/cli]
-updated: 2026-03-06
+updated: 2026-03-16
 ---
 
 # CLI System
@@ -40,6 +40,7 @@ The CLI system provides a single entry point (`dispatcher.ts`) that routes comma
 | ConfigHandler | Configuration utilities | `handlers/config.handler.ts` |
 | ValidationHandler | XML/YAML validation | `handlers/validation.handler.ts` |
 | QueryHandler | Query operations | `handlers/query.handler.ts` |
+| ProjectHandler | Project CRUD and progress | `handlers/project.handler.ts` |
 | FileSystemCapability | File I/O operations | `capabilities/file-system.capability.ts` |
 | XmlParserComputer | XML parsing | `computers/xml-parser.computer.ts` |
 | YamlParserComputer | YAML parsing | `computers/yaml-parser.computer.ts` |
@@ -47,7 +48,7 @@ The CLI system provides a single entry point (`dispatcher.ts`) that routes comma
 | ValidationComputer | Schema validation | `computers/validation.computer.ts` |
 | TaskResolverComputer | Prefix-based task ID resolution | `computers/task-resolver.computer.ts` |
 
-**Summary:** 8 handlers, 1 capability, 5 computers wired by orchestrator.
+**Summary:** 9 handlers, 1 capability, 5 computers wired by orchestrator.
 
 ## Key Patterns
 
@@ -80,6 +81,7 @@ flowchart TB
         CONFIG["ConfigHandler"]
         VALID["ValidationHandler"]
         QUERY["QueryHandler"]
+        PROJECT["ProjectHandler"]
     end
 
     subgraph Capabilities["Capabilities (I/O)"]
