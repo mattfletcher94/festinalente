@@ -17,6 +17,7 @@ export interface Task {
   created: string;
   updated: string;
   taskPath: string;
+  projectId?: string;
 }
 
 export interface TaskColumn {

@@ -1,4 +1,4 @@
-<task id="{id}" status="{status}" priority="{priority}" created="{created}" updated="{updated}">
+<task id="{id}" project-id="" status="{status}" priority="{priority}" created="{created}" updated="{updated}">
   <title>{title}</title>
 
   <labels>
@@ -20,6 +20,8 @@
 
   <acceptance-criteria>
   </acceptance-criteria>
+
+  <project-requirements></project-requirements>
 
   <notes></notes>
 </task>

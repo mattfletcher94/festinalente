@@ -11,6 +11,7 @@ import { createConfigOrchestrator } from './orchestrators/config.orchestrator';
 import { createDirectivesOrchestrator } from './orchestrators/directives.orchestrator';
 import { createDocsOrchestrator } from './orchestrators/docs.orchestrator';
 import { createFileSystemCapability } from './capabilities/file-system.capability';
+import { createProjectsOrchestrator } from './orchestrators/projects.orchestrator';
 import { createQuicksOrchestrator } from './orchestrators/quicks.orchestrator';
 import { createTasksOrchestrator } from './orchestrators/tasks.orchestrator';
 import { createTerminalOrchestrator } from './orchestrators/terminal.orchestrator';
@@ -69,6 +70,13 @@ function initializeOrchestrators(
     terminal: terminalOrch
   });
 
+  // Projects orchestrator
+  const projectsOrch = createProjectsOrchestrator({
+    fs,
+    festinalenteDir,
+    terminal: terminalOrch
+  });
+
   // Quicks orchestrator
   const quicksOrch = createQuicksOrchestrator({
     fs,
@@ -97,6 +105,13 @@ function initializeOrchestrators(
   });
 
   // --- Register TreeViews ---
+
+  // Projects TreeView
+  const projectsTreeView = vscode.window.createTreeView('festinalenteProjects', {
+    treeDataProvider: projectsOrch.treeDataProvider,
+    showCollapseAll: true
+  });
+  context.subscriptions.push(projectsTreeView);
 
   // Tasks TreeView
   const tasksTreeView = vscode.window.createTreeView('festinalenteTasks', {
@@ -167,6 +182,7 @@ function initializeOrchestrators(
   );
 
   // Domain-specific commands
+  projectsOrch.registerCommands(context);
   tasksOrch.registerCommands(context, tasksTreeView);
   quicksOrch.registerCommands(context, quicksTreeView);
   docsOrch.registerCommands(context);
@@ -174,6 +190,7 @@ function initializeOrchestrators(
 
   // --- Register File Watchers ---
 
+  context.subscriptions.push(projectsOrch.createFileWatcher(festinalenteDir));
   context.subscriptions.push(tasksOrch.createFileWatcher(festinalenteDir));
   context.subscriptions.push(quicksOrch.createFileWatcher(festinalenteDir));
   context.subscriptions.push(docsOrch.createProductDocsWatcher(festinalenteDir));

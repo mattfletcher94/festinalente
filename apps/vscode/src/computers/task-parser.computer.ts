@@ -19,6 +19,7 @@ export interface ParsedTask {
   labels: string[];
   created: string;
   updated: string;
+  projectId?: string;
 }
 
 export interface CreateTaskParserComputerReturn {
@@ -30,6 +31,7 @@ export function createTaskParserComputer(): CreateTaskParserComputerReturn {
   function parseTaskXml(content: string): ParsedTask {
     const result = parser.parse(content);
     const task = result.task;
+    const projectId = task['project-id'] ? String(task['project-id']).trim() : undefined;
     return {
       id: task.id || '',
       status: task.status || '',
@@ -37,7 +39,8 @@ export function createTaskParserComputer(): CreateTaskParserComputerReturn {
       title: task.title || '',
       labels: Array.isArray(task.labels?.label) ? task.labels.label : task.labels?.label ? [task.labels.label] : [],
       created: task.created || '',
-      updated: task.updated || ''
+      updated: task.updated || '',
+      ...(projectId !== undefined && projectId !== '' ? { projectId } : {})
     };
   }
 

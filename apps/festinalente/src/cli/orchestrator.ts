@@ -9,6 +9,7 @@
 
 import { type CommandRegistry, createCommandRegistry } from './registry';
 import { createConfigHandler } from './handlers/config.handler';
+import { createProjectHandler } from './handlers/project.handler';
 import { createDocsHandler } from './handlers/docs.handler';
 import { createFileSystemCapability } from './capabilities/file-system.capability';
 import { createQueryHandler } from './handlers/query.handler';
@@ -55,6 +56,7 @@ export function createCliOrchestrator(): CliOrchestrator {
   const validationHandler = createValidationHandler({ fs, yamlParser, validation, taskResolver });
   const configHandler = createConfigHandler({ fs, yamlParser });
   const queryHandler = createQueryHandler({ fs, yamlParser, xmlParser });
+  const projectHandler = createProjectHandler({ fs, xmlParser });
 
   // Create command registry
   const registry = createCommandRegistry();
@@ -89,6 +91,10 @@ export function createCliOrchestrator(): CliOrchestrator {
   }
 
   for (const command of queryHandler.getCommands()) {
+    registry.register(command);
+  }
+
+  for (const command of projectHandler.getCommands()) {
     registry.register(command);
   }
 

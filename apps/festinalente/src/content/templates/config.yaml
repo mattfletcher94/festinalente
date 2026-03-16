@@ -37,3 +37,7 @@ directives:
     - git
   festina-define:
     - git
+  festina-create-project:
+    - git
+  festina-complete-project:
+    - git

@@ -33,7 +33,7 @@ FESTINA LENTE
         npx festinalente init
 ```
 
-- Only the Tasks view is visible; Quicks, Config, Directives, Product Docs, and Engineering Docs views are hidden
+- Only the Tasks view is visible; Projects, Quicks, Config, Directives, Product Docs, and Engineering Docs views are hidden
 - When the user runs `npx festinalente init` and `.festinalente/` is created, the sidebar automatically refreshes to show the full kanban view (no reload required)
 - The directory watcher disposes itself after initialization
 
@@ -41,6 +41,10 @@ FESTINA LENTE
 
 ```
 FESTINA LENTE
+├── PROJECTS
+│   ├── ▼ Open (1)
+│   │   └── P001: User authentication system (2/3 tasks done)
+│   └── ▶ Done (1)
 ├── TASKS
 │   ├── ▼ In Progress (1)
 │   │   └── 007: Add auth ! #feature [SP] 3/5 → Implement
@@ -53,6 +57,10 @@ FESTINA LENTE
 ├── ENGINEERING DOCS
 └── DIRECTIVES
 ```
+
+### PROJECTS Section
+
+The PROJECTS section appears above TASKS when projects exist. Projects are grouped by status (open, done) and each entry shows a progress summary (e.g., "2/3 tasks done"). Clicking a project opens the `project.xml` file. The section is hidden when no projects exist.
 
 ## Features
 

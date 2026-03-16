@@ -25,12 +25,13 @@ Festina Lente ("Make Haste Slowly") is a spec-driven task management system that
 ## Key Capabilities
 
 - **Skills**: AI-assisted workflows that guide you through task creation, scoping, planning, and implementation
+- **Projects**: Lightweight grouping layer that decomposes multi-task work into vertically-sliced tasks with requirement traceability
 - **CLI**: Node.js commands for task management, documentation search, and validation
-- **VSCode Extension**: Visual kanban board with inline actions and documentation navigation
+- **VSCode Extension**: Visual kanban board with project progress tracking, inline actions, and documentation navigation
 - **Documentation System**: Product and engineering docs with smart search and context selection
 - **Directives**: User-defined rules that customize skill behavior per workflow phase
 
-**Summary:** The product provides 5 core capability domains for structured AI development.
+**Summary:** The product provides 5 core capability domains for structured AI development, with Projects as a cross-cutting grouping concept.
 
 ## Product Architecture
 

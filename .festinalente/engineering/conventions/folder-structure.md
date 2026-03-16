@@ -10,7 +10,7 @@ boundary: "Does not apply to build output (dist/) or external configs"
 references: [patterns/dag-architecture]
 uses: [systems/cli, systems/vscode-extension]
 paths: [apps/festinalente/src/cli, apps/vscode/src]
-updated: 2026-03-01
+updated: 2026-03-16
 ---
 
 # Folder Structure Convention
@@ -55,6 +55,7 @@ apps/festinalente/src/cli/
 │   └── validation.computer.ts
 ├── handlers/                     ✅ All command handlers
 │   ├── task.handler.ts
+│   ├── project.handler.ts
 │   ├── spec.handler.ts
 │   ├── config.handler.ts
 │   └── search.handler.ts
@@ -71,17 +72,21 @@ apps/vscode/src/
 │   ├── file-system.capability.ts
 │   ├── terminal.capability.ts
 │   ├── tasks-view.capability.ts
+│   ├── projects-view.capability.ts
 │   └── codelens.capability.ts
 ├── computers/                    ✅ Parsing and logic
 │   ├── task-parser.computer.ts
 │   ├── task-actions.computer.ts
+│   ├── project-parser.computer.ts
 │   └── plan-parser.computer.ts
 ├── orchestrators/                ✅ Domain coordinators
 │   ├── terminal.orchestrator.ts
 │   ├── tasks.orchestrator.ts
+│   ├── projects.orchestrator.ts
 │   └── docs.orchestrator.ts
 ├── types/                        ✅ Type folder when many types
 │   ├── task-types.ts
+│   ├── project-types.ts
 │   └── directives-types.ts
 └── extension.ts                  ✅ Entry point
 ```

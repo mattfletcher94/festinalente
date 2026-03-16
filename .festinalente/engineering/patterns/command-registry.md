@@ -10,7 +10,7 @@ boundary: "Does not define command implementation - see handlers"
 references: [patterns/factory-di, patterns/tagged-union-errors]
 uses: [systems/cli]
 paths: [apps/festinalente/src/cli]
-updated: 2026-03-06
+updated: 2026-03-16
 ---
 
 # Command Registry Pattern
@@ -235,7 +235,7 @@ What this pattern does NOT apply to:
 
 ## Systems Using This Pattern
 
-- [cli](../systems/cli/_index.md) - Central registry for all CLI commands
+- [cli](../systems/cli/_index.md) - Central registry for all CLI commands (TaskHandler, ProjectHandler, SearchHandler, ConfigHandler, etc.)
 
 ## Common Violations
 

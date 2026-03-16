@@ -34,7 +34,9 @@ const VALID_PHASES = [
   'define-product',
   'map-product',
   'map-engineering',
-  'directive'
+  'directive',
+  'create-project',
+  'complete-project'
 ];
 
 /**
@@ -154,6 +156,14 @@ export interface ValidationComputer {
    * @returns Validation result.
    */
   readonly validateDirective: (content: string, expectedName: string) => ValidationResult;
+
+  /**
+   * Validate a project XML file.
+   *
+   * @param content - The project XML content.
+   * @returns Validation result.
+   */
+  readonly validateProject: (content: string) => ValidationResult;
 
   /**
    * Validate documentation quality.
@@ -361,6 +371,136 @@ export function createValidationComputer(): ValidationComputer {
     return { valid: errors.length === 0, errors, warnings };
   }
 
+  /**
+   * Valid project statuses.
+   */
+  const VALID_PROJECT_STATUSES = ['open', 'in-progress', 'done'];
+
+  function validateProject(content: string): ValidationResult {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    let parsed: Record<string, unknown>;
+    try {
+      parsed = parser.parse(content);
+    } catch (err) {
+      return {
+        valid: false,
+        errors: [`XML parse error: ${err instanceof Error ? err.message : String(err)}`],
+        warnings: []
+      };
+    }
+
+    const project = parsed.project as Record<string, unknown> | undefined;
+    if (!project) {
+      return { valid: false, errors: ['Missing root <project> element'], warnings: [] };
+    }
+
+    // Validate required root attributes
+    const id = project.id as string | undefined;
+    const status = project.status as string | undefined;
+    const created = project.created as string | undefined;
+    const updated = project.updated as string | undefined;
+
+    if (!id) {
+      errors.push('Missing required attribute: id');
+    } else if (!/^P/.test(id)) {
+      errors.push(`Project id must start with "P", got "${id}"`);
+    }
+
+    if (!status) {
+      errors.push('Missing required attribute: status');
+    } else if (!VALID_PROJECT_STATUSES.includes(status)) {
+      errors.push(`Invalid status "${status}". Valid: ${VALID_PROJECT_STATUSES.join(', ')}`);
+    }
+
+    if (!created) {
+      errors.push('Missing required attribute: created');
+    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(created)) {
+      errors.push(`Invalid created date format: "${created}" (expected YYYY-MM-DD)`);
+    }
+
+    if (!updated) {
+      errors.push('Missing required attribute: updated');
+    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(updated)) {
+      errors.push(`Invalid updated date format: "${updated}" (expected YYYY-MM-DD)`);
+    }
+
+    // Validate required child elements
+    const requiredChildren = [
+      'title',
+      'description',
+      'problem',
+      'value',
+      'scope',
+      'requirements',
+      'acceptance-criteria',
+      'tasks'
+    ] as const;
+
+    for (const child of requiredChildren) {
+      if (project[child] === undefined || project[child] === null) {
+        errors.push(`Missing required element: <${child}>`);
+      }
+    }
+
+    // Validate scope has in-scope and out-of-scope children
+    const scope = project.scope as Record<string, unknown> | undefined;
+    if (scope) {
+      if (scope['in-scope'] === undefined || scope['in-scope'] === null) {
+        errors.push('Missing required element: <scope><in-scope>');
+      }
+      if (scope['out-of-scope'] === undefined || scope['out-of-scope'] === null) {
+        errors.push('Missing required element: <scope><out-of-scope>');
+      }
+    }
+
+    // Validate requirements have unique, R-prefixed id attributes
+    const requirements = project.requirements as Record<string, unknown> | undefined;
+    if (requirements) {
+      const req = requirements.requirement;
+      const reqList = Array.isArray(req) ? req : req ? [req] : [];
+      const seenIds = new Set<string>();
+
+      for (const r of reqList) {
+        const rObj = r as Record<string, unknown>;
+        const reqId = rObj.id as string | undefined;
+        if (!reqId) {
+          errors.push('Requirement missing required id attribute');
+        } else {
+          if (!/^R\d+$/.test(reqId)) {
+            errors.push(`Requirement id must match R-prefix pattern (e.g. R1, R2), got "${reqId}"`);
+          }
+          if (seenIds.has(reqId)) {
+            errors.push(`Duplicate requirement id: "${reqId}"`);
+          }
+          seenIds.add(reqId);
+        }
+      }
+
+      if (reqList.length === 0) {
+        warnings.push('No <requirement> elements found inside <requirements>');
+      }
+    }
+
+    // Validate tasks/task elements have ref attributes
+    const tasks = project.tasks as Record<string, unknown> | undefined;
+    if (tasks) {
+      const task = tasks.task;
+      const taskList = Array.isArray(task) ? task : task ? [task] : [];
+
+      for (const t of taskList) {
+        const tObj = t as Record<string, unknown>;
+        const ref = tObj.ref as string | undefined;
+        if (!ref) {
+          errors.push('Task element missing required ref attribute');
+        }
+      }
+    }
+
+    return { valid: errors.length === 0, errors, warnings };
+  }
+
   function validateDocQuality(
     frontmatter: Record<string, unknown>,
     body: string,
@@ -401,6 +541,7 @@ export function createValidationComputer(): ValidationComputer {
   return {
     validateXml,
     validateDirective,
+    validateProject,
     validateDocQuality,
     getQualityChecks
   };

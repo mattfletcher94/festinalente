@@ -15,7 +15,7 @@ Create and refine a new task through conversational Q&A, then add to Backlog. Ca
 <context>
 {{> directory-reference}}
 
-{{> helper-scripts show_next_id=true show_get_date_time=true}}
+{{> helper-scripts show_next_id=true show_get_date_time=true show_list_projects=true show_find_project=true show_get_project_tasks=true}}
 
 {{> product-docs-scripts show_search_product=true}}
 
@@ -63,6 +63,56 @@ Create and refine a new task through conversational Q&A, then add to Backlog. Ca
       <note>User can select "Other" to type the task title</note>
     </branch>
     <action>Ensure title follows best practices (suggest improvements if needed)</action>
+  </step>
+
+  <step name="attach_to_project" outputs="projectId, projectRequirements, selectedRequirements, siblingContext">
+    <note>AC-H4: Only show project attachment when open projects exist. Zero additional friction when none exist.</note>
+
+    <command description="Check for open projects">node .festinalente/scripts/festinalente.cjs list-projects --status=open</command>
+
+    <branch condition="count is 0 or .festinalente/projects/ does not exist">
+      <action>Skip entirely — no open projects, zero friction (AC-H4)</action>
+    </branch>
+
+    <branch condition="open projects exist (count > 0)">
+      <action>Use AskUserQuestion tool with:
+        - header: "Project"
+        - question: "Attach this task to a project?"
+        - options: Build from open projects list, each with:
+          - label: "{project-id}: {project-title}", description: "{taskCount} tasks"
+          Plus one final option:
+          - label: "No — standalone task", description: "Create as an independent task"
+        - multiSelect: false
+      </action>
+
+      <branch condition="user selects a project (AC-H2)">
+        <action>Set projectId = selected project ID</action>
+        <command description="Read project details">node .festinalente/scripts/festinalente.cjs find-project {projectId}</command>
+        <action>Read the project.xml file at the returned path</action>
+        <action>Extract project requirements list</action>
+
+        <action>Use AskUserQuestion tool with:
+          - header: "Requirements"
+          - question: "Which project requirements does this task address? (AC-H3)"
+          - options: Build from project requirements, each with:
+            - label: "{requirement-id}: {short requirement text}", description: "{full requirement text}"
+          - multiSelect: true
+        </action>
+        <note>User can select "Other" to skip or specify custom mapping</note>
+
+        <action>Set selectedRequirements = user's chosen requirement IDs</action>
+        <action>Set projectId on the task (will be written as project-id attribute in task XML)</action>
+        <action>Note: task ref will be added to project.xml tasks element in create_task_file step</action>
+
+        <action>AC-H5: Read sibling tasks from project to build context for task description</action>
+        <command description="Get existing sibling tasks">node .festinalente/scripts/festinalente.cjs get-project-tasks {projectId}</command>
+        <action>Set siblingContext = summary of existing sibling tasks (id, title, status) for inclusion in task description</action>
+      </branch>
+
+      <branch condition="user selects 'No — standalone task'">
+        <action>Skip — no project attachment</action>
+      </branch>
+    </branch>
   </step>
 
   <step name="get_next_id" outputs="nextId">
@@ -468,6 +518,12 @@ If so, mark the stub link for replacement with the real doc link (FR8).</action>
     <action>Create file at `.festinalente/tasks/{nextId}/task.xml`</action>
     <note>`{nextId}` = the nextId from step get_next_id (e.g., "022-add-dark-mode-toggle")</note>
     <action>Fill XML attributes: `id`, `title`, `status: backlog`, `priority`, `labels`, `created`, `affects`, `engineering`</action>
+    <branch condition="projectId was set (task attached to a project)">
+      <action>Set `project-id="{projectId}"` attribute on task element</action>
+      <action>Set `project-requirements="{comma-separated selectedRequirements}"` attribute (e.g., "R1,R3")</action>
+      <action>Add task ref to project.xml: append `<task id="{nextId}"/>` to the tasks element in `.festinalente/projects/{projectId}/project.xml`</action>
+      <action>AC-H5: Include sibling context in description (e.g., "Part of project {projectTitle}. Related tasks: {sibling summaries}")</action>
+    </branch>
     <action>Fill `<description>` with initial description</action>
     <action>Fill `<problem>` with problem statement from Q&A</action>
     <action>Fill `<value>` with value statement from Q&A</action>
@@ -503,6 +559,7 @@ If so, mark the stub link for replacement with the real doc link (FR8).</action>
 - If new feature: stub doc exists at `.festinalente/product/{domain}/{slug}.md` with `stub: true`
 - If new engineering pattern: stub doc exists at `.festinalente/engineering/{type}s/{slug}.md` with `stub: true`
 - If refined search found new docs: affects/engineering fields include user-confirmed matches
+- If attached to project: task XML has `project-id` attribute, `project-requirements` attribute, and project.xml tasks element updated
 - Next steps point to `/festina-scope`
 </success_criteria>
 
