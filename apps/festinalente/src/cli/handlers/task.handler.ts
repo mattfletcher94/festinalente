@@ -26,6 +26,7 @@ export interface TaskInfo {
   readonly status: string;
   readonly priority: string;
   readonly labels: readonly string[];
+  readonly projectId: string | null;
 }
 
 /**
@@ -157,7 +158,8 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
       title: parsed.title,
       status: parsed.status,
       priority: parsed.priority,
-      labels: parsed.labels
+      labels: parsed.labels,
+      projectId: parsed.projectId ?? null
     });
   }
 
@@ -189,6 +191,8 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
 
       const parsedTask = xmlParser.parseTaskXml(readResult.value);
 
+      const taskProjectId = parsedTask.projectId ?? null;
+
       const task: TaskInfo = {
         id: folderId,
         filename: 'task.xml',
@@ -196,7 +200,8 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
         title: parsedTask.title,
         status: parsedTask.status,
         priority: parsedTask.priority,
-        labels: parsedTask.labels
+        labels: parsedTask.labels,
+        projectId: taskProjectId
       };
 
       // Apply filters
@@ -204,11 +209,13 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
       const excludeStatus = getStringFlag(parsed.flags, 'exclude-status');
       const priorityFilter = getStringFlag(parsed.flags, 'priority');
       const labelFilter = getStringFlag(parsed.flags, 'label');
+      const projectFilter = getStringFlag(parsed.flags, 'project');
 
       if (statusFilter && task.status !== statusFilter) continue;
       if (excludeStatus && task.status === excludeStatus) continue;
       if (priorityFilter && task.priority !== priorityFilter) continue;
       if (labelFilter && !task.labels.includes(labelFilter)) continue;
+      if (projectFilter && task.projectId !== projectFilter) continue;
 
       tasks.push(task);
     }
@@ -428,7 +435,7 @@ export function createTaskHandler(deps: TaskHandlerDeps): TaskHandler {
       defineCommand(
         'list-tasks',
         'List all tasks with optional filtering',
-        'list-tasks [--status=X] [--exclude-status=X] [--label=X] [--priority=X]',
+        'list-tasks [--status=X] [--exclude-status=X] [--label=X] [--priority=X] [--project=X]',
         listTasks
       ),
       defineCommand('delete-task', 'Delete a task (backlog status only)', 'delete-task <id>', deleteTask),

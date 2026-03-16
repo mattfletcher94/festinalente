@@ -17,6 +17,16 @@ export type TaskId = string & { readonly __brand: 'TaskId' };
 export type QuickId = string & { readonly __brand: 'QuickId' };
 
 /**
+ * Branded type for Project IDs.
+ */
+export type ProjectId = string & { readonly __brand: 'ProjectId' };
+
+/**
+ * Status of a project.
+ */
+export type ProjectStatus = 'open' | 'in-progress' | 'done';
+
+/**
  * Branded type for Doc IDs.
  */
 export type DocId = string & { readonly __brand: 'DocId' };
@@ -39,6 +49,16 @@ export function createTaskId(id: string): TaskId {
  */
 export function createQuickId(id: string): QuickId {
   return id as QuickId;
+}
+
+/**
+ * Create a ProjectId from a string.
+ *
+ * @param id - The string to brand as ProjectId.
+ * @returns The branded ProjectId.
+ */
+export function createProjectId(id: string): ProjectId {
+  return id as ProjectId;
 }
 
 /**

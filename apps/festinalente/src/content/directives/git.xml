@@ -37,6 +37,38 @@
     </rule>
 
     <!-- ═══════════════════════════════════════════════════════════════
+         CREATE-PROJECT PHASE
+         ═══════════════════════════════════════════════════════════════ -->
+    <rule id="G-CREATEPROJ-1" phase="create-project">
+      Before starting, verify you are on the main (or master) branch:
+      Run: git branch --show-current
+      If NOT on main/master, output error and exit.
+    </rule>
+    <rule id="G-CREATEPROJ-2" phase="create-project">
+      After creating the project file, task files, and any stub docs, stage and commit:
+      - git add .festinalente/projects/{projectId}/project.xml
+      - For each created task: git add .festinalente/tasks/{taskId}/task.xml
+      - If product stub doc was created: git add {newDocPath}
+      - If engineering stub doc was created: git add {newEngDocPath}
+      - git commit -m "docs({projectId}): create-project - {title}"
+    </rule>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         COMPLETE-PROJECT PHASE
+         ═══════════════════════════════════════════════════════════════ -->
+    <rule id="G-COMPLETEPROJ-1" phase="complete-project">
+      Before starting, verify you are on the main (or master) branch:
+      Run: git branch --show-current
+      If NOT on main/master, output error and exit.
+    </rule>
+    <rule id="G-COMPLETEPROJ-2" phase="complete-project">
+      After updating project status to done, stage, commit, and push:
+      - git add .festinalente/projects/{projectId}/project.xml
+      - git commit -m "docs({projectId}): complete-project - {title}"
+      - git push
+    </rule>
+
+    <!-- ═══════════════════════════════════════════════════════════════
          SCOPE PHASE
          ═══════════════════════════════════════════════════════════════ -->
     <rule id="G-SCOPE-1" phase="scope">

@@ -17,6 +17,7 @@ const QUICK_DIR = '.festinalente/quick';
 const PRODUCT_DIR = '.festinalente/product';
 const ENGINEERING_DIR = '.festinalente/engineering';
 const DIRECTIVES_DIR = '.festinalente/directives';
+const PROJECTS_DIR = '.festinalente/projects';
 
 /**
  * XML validation error.
@@ -113,6 +114,23 @@ export function createValidationHandler(deps: ValidationHandlerDeps): Validation
   const { fs, yamlParser, validation, taskResolver } = deps;
 
   /**
+   * Get XML files for a project.
+   */
+  function getXmlFilesForProject(projectId: string): readonly string[] | null {
+    const projectDir = fs.joinPath(PROJECTS_DIR, projectId);
+    if (!fs.exists(projectDir) || !fs.isDirectory(projectDir)) {
+      return null;
+    }
+
+    const files: string[] = [];
+    const projectXml = fs.joinPath(projectDir, 'project.xml');
+    if (fs.exists(projectXml)) {
+      files.push(projectXml);
+    }
+    return files;
+  }
+
+  /**
    * Get XML files for a quick task.
    */
   function getXmlFilesForQuick(quickId: string): readonly string[] | null {
@@ -194,12 +212,22 @@ export function createValidationHandler(deps: ValidationHandlerDeps): Validation
     let files: readonly string[];
 
     if (parsed.positional.length > 0) {
-      const taskId = parsed.positional[0];
-      const taskFiles = getXmlFilesForTask(taskId);
-      if (taskFiles === null) {
-        return error(`Task not found: ${taskId}`);
+      const id = parsed.positional[0];
+
+      // Auto-detect project vs task by P-prefix
+      if (id.startsWith('P')) {
+        const projectFiles = getXmlFilesForProject(id);
+        if (projectFiles === null) {
+          return error(`Project not found: ${id}`);
+        }
+        files = projectFiles;
+      } else {
+        const taskFiles = getXmlFilesForTask(id);
+        if (taskFiles === null) {
+          return error(`Task not found: ${id}`);
+        }
+        files = taskFiles;
       }
-      files = taskFiles;
     } else {
       files = getAllXmlFiles();
     }
@@ -224,7 +252,12 @@ export function createValidationHandler(deps: ValidationHandlerDeps): Validation
         continue;
       }
 
-      const validationResult = validation.validateXml(readResult.value);
+      // Use project-specific validation for project.xml files
+      const isProjectXml = file.replace(/\\/g, '/').endsWith('/project.xml');
+      const validationResult = isProjectXml
+        ? validation.validateProject(readResult.value)
+        : validation.validateXml(readResult.value);
+
       if (!validationResult.valid) {
         for (const errMsg of validationResult.errors) {
           errors.push({

@@ -20,6 +20,32 @@ export interface ParsedTask {
   readonly engineering: readonly string[];
   readonly created: string;
   readonly updated: string;
+  readonly projectId?: string;
+  readonly projectRequirements?: readonly string[];
+}
+
+/**
+ * Parsed project metadata.
+ */
+export interface ParsedProject {
+  readonly id: string;
+  readonly status: 'open' | 'in-progress' | 'done';
+  readonly title: string;
+  readonly description: string;
+  readonly problem: string;
+  readonly value: string;
+  readonly scope: {
+    readonly inScope: readonly string[];
+    readonly outOfScope: readonly string[];
+  };
+  readonly requirements: readonly { readonly id: string; readonly text: string }[];
+  readonly acceptanceCriteria: string;
+  readonly tasks: readonly string[];
+  readonly notes: string;
+  readonly affects: readonly string[];
+  readonly engineering: readonly string[];
+  readonly created: string;
+  readonly updated: string;
 }
 
 /**
@@ -81,6 +107,14 @@ export interface ParsedPlanTaskContext {
  * XML parser computer interface.
  */
 export interface XmlParserComputer {
+  /**
+   * Parse a project.xml file.
+   *
+   * @param content - The XML content to parse.
+   * @returns Parsed project metadata.
+   */
+  readonly parseProjectXml: (content: string) => ParsedProject;
+
   /**
    * Parse a task.xml file.
    *
@@ -181,9 +215,228 @@ export function createXmlParserComputer(): XmlParserComputer {
     return [];
   }
 
+  /**
+   * Parse doc elements to extract id attributes.
+   *
+   * @param section - The section containing doc elements.
+   * @returns Array of doc id strings.
+   */
+  function parseDocIds(section: unknown): readonly string[] {
+    if (!section) return [];
+    const sectionObj = section as Record<string, unknown>;
+    const doc = sectionObj.doc;
+
+    if (Array.isArray(doc)) {
+      return doc
+        .map((d) => {
+          if (typeof d === 'string') return d.trim();
+          if (typeof d === 'object' && d && 'id' in d) return String((d as Record<string, unknown>).id).trim();
+          if (typeof d === 'object' && d && '_text' in d) return String((d as Record<string, unknown>)._text).trim();
+          return '';
+        })
+        .filter(Boolean);
+    }
+
+    if (typeof doc === 'string') {
+      return [doc.trim()];
+    }
+
+    if (typeof doc === 'object' && doc && 'id' in doc) {
+      return [String((doc as Record<string, unknown>).id).trim()];
+    }
+
+    if (typeof doc === 'object' && doc && '_text' in doc) {
+      return [String((doc as Record<string, unknown>)._text).trim()];
+    }
+
+    return [];
+  }
+
+  /**
+   * Parse item elements from a section.
+   *
+   * @param section - The section containing item elements.
+   * @returns Array of item text strings.
+   */
+  function parseItems(section: unknown): readonly string[] {
+    if (!section) return [];
+    const sectionObj = section as Record<string, unknown>;
+    const item = sectionObj.item;
+
+    if (Array.isArray(item)) {
+      return item.map((i) => extractText(i)).filter(Boolean);
+    }
+
+    if (item !== undefined && item !== null) {
+      const text = extractText(item);
+      return text ? [text] : [];
+    }
+
+    return [];
+  }
+
+  /**
+   * Parse requirement elements with id and text content.
+   *
+   * @param section - The section containing requirement elements.
+   * @returns Array of requirement objects with id and text.
+   */
+  function parseRequirements(section: unknown): readonly { readonly id: string; readonly text: string }[] {
+    if (!section) return [];
+    const sectionObj = section as Record<string, unknown>;
+    const req = sectionObj.requirement;
+
+    if (!req) return [];
+
+    const reqList = Array.isArray(req) ? req : [req];
+    return reqList
+      .map((r) => {
+        if (typeof r === 'object' && r) {
+          const rObj = r as Record<string, unknown>;
+          return {
+            id: String(rObj.id || '').trim(),
+            text: extractText(r)
+          };
+        }
+        return { id: '', text: extractText(r) };
+      })
+      .filter((r) => r.id || r.text);
+  }
+
+  /**
+   * Parse task ref elements from a tasks section.
+   *
+   * @param section - The section containing task elements.
+   * @returns Array of task ref strings.
+   */
+  function parseTaskRefs(section: unknown): readonly string[] {
+    if (!section) return [];
+    const sectionObj = section as Record<string, unknown>;
+    const task = sectionObj.task;
+
+    if (Array.isArray(task)) {
+      return task
+        .map((t) => {
+          if (typeof t === 'string') return t.trim();
+          if (typeof t === 'object' && t && 'ref' in t) return String((t as Record<string, unknown>).ref).trim();
+          if (typeof t === 'object' && t && '_text' in t) return String((t as Record<string, unknown>)._text).trim();
+          return '';
+        })
+        .filter(Boolean);
+    }
+
+    if (typeof task === 'string') {
+      return [task.trim()];
+    }
+
+    if (typeof task === 'object' && task && 'ref' in task) {
+      return [String((task as Record<string, unknown>).ref).trim()];
+    }
+
+    if (typeof task === 'object' && task && '_text' in task) {
+      return [String((task as Record<string, unknown>)._text).trim()];
+    }
+
+    return [];
+  }
+
+  /**
+   * Parse acceptance criteria elements into a single string.
+   *
+   * @param section - The section containing criterion elements.
+   * @returns Concatenated acceptance criteria string.
+   */
+  function parseAcceptanceCriteria(section: unknown): string {
+    if (!section) return '';
+    if (typeof section === 'string') return section.trim();
+
+    const sectionObj = section as Record<string, unknown>;
+    const criterion = sectionObj.criterion;
+
+    if (!criterion) return extractText(section);
+
+    if (Array.isArray(criterion)) {
+      return criterion.map((c) => extractText(c)).filter(Boolean).join('\n');
+    }
+
+    return extractText(criterion);
+  }
+
+  /**
+   * Parse req ref elements from a project-requirements section.
+   *
+   * @param section - The section containing req elements.
+   * @returns Array of requirement ref strings.
+   */
+  function parseReqRefs(section: unknown): readonly string[] {
+    if (!section) return [];
+    const sectionObj = section as Record<string, unknown>;
+    const req = sectionObj.req;
+
+    if (Array.isArray(req)) {
+      return req
+        .map((r) => {
+          if (typeof r === 'string') return r.trim();
+          if (typeof r === 'object' && r && 'ref' in r) return String((r as Record<string, unknown>).ref).trim();
+          if (typeof r === 'object' && r && '_text' in r) return String((r as Record<string, unknown>)._text).trim();
+          return '';
+        })
+        .filter(Boolean);
+    }
+
+    if (typeof req === 'string') {
+      return [req.trim()];
+    }
+
+    if (typeof req === 'object' && req && 'ref' in req) {
+      return [String((req as Record<string, unknown>).ref).trim()];
+    }
+
+    if (typeof req === 'object' && req && '_text' in req) {
+      return [String((req as Record<string, unknown>)._text).trim()];
+    }
+
+    return [];
+  }
+
+  /**
+   * Parse a project.xml file into structured metadata.
+   *
+   * @param content - The XML content to parse.
+   * @returns Parsed project metadata.
+   */
+  function parseProjectXml(content: string): ParsedProject {
+    const result = parser.parse(content);
+    const project = result.project;
+    return {
+      id: project.id || '',
+      status: (project.status || 'open') as 'open' | 'in-progress' | 'done',
+      title: extractText(project.title),
+      description: extractText(project.description),
+      problem: extractText(project.problem),
+      value: extractText(project.value),
+      scope: {
+        inScope: parseItems(project.scope?.['in-scope']),
+        outOfScope: parseItems(project.scope?.['out-of-scope'])
+      },
+      requirements: parseRequirements(project.requirements),
+      acceptanceCriteria: parseAcceptanceCriteria(project['acceptance-criteria']),
+      tasks: parseTaskRefs(project.tasks),
+      notes: extractText(project.notes),
+      affects: parseDocIds(project.affects),
+      engineering: parseDocIds(project.engineering),
+      created: project.created || '',
+      updated: project.updated || ''
+    };
+  }
+
   function parseTaskXml(content: string): ParsedTask {
     const result = parser.parse(content);
     const task = result.task;
+    const projectId = task['project-id'] ? String(task['project-id']).trim() : undefined;
+    const projectRequirements = task['project-requirements']
+      ? parseReqRefs(task['project-requirements'])
+      : undefined;
     return {
       id: task.id || '',
       status: task.status || '',
@@ -194,7 +447,9 @@ export function createXmlParserComputer(): XmlParserComputer {
       affects: parseRefs(task.affects),
       engineering: parseRefs(task.engineering),
       created: task.created || '',
-      updated: task.updated || ''
+      updated: task.updated || '',
+      ...(projectId !== undefined ? { projectId } : {}),
+      ...(projectRequirements !== undefined ? { projectRequirements } : {})
     };
   }
 
@@ -323,6 +578,7 @@ export function createXmlParserComputer(): XmlParserComputer {
   }
 
   return {
+    parseProjectXml,
     parseTaskXml,
     parseSpecXml,
     parsePlanXml,

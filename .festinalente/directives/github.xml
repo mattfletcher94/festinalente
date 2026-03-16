@@ -207,6 +207,32 @@
          Wait: EXIT.
     </rule>
 
+    <rule id="GH-CREATEPROJ" phase="create-project">
+      1. Verify on main. If not, error and exit.
+      2. Create GitHub Issue for the project:
+         mcp__github__create_issue (title: "[Project] {title}", body: project description with requirements, labels: ["project"]).
+         Add github-issue="#N" to project.xml.
+      3. After creating the project file, task files, and any stub docs:
+         git add .festinalente/projects/{projectId}/project.xml
+         For each created task: git add .festinalente/tasks/{taskId}/task.xml
+         If product stub doc: git add {newDocPath}
+         If engineering stub doc: git add {newEngDocPath}
+         git commit -m "docs({projectId}): create-project - {title}"
+         git push
+    </rule>
+
+    <rule id="GH-COMPLETEPROJ" phase="complete-project">
+      1. Verify on main. If not, error and exit.
+      2. Read github-issue from project.xml.
+      3. Comment on GitHub Issue with completion summary:
+         mcp__github__add_issue_comment — body: "## Project Completed\n\n{completion summary with acceptance criteria results}"
+      4. Close the GitHub Issue:
+         mcp__github__update_issue (state: "closed").
+      5. git add .festinalente/projects/{projectId}/project.xml
+         git commit -m "docs({projectId}): complete-project - {title}"
+         git push
+    </rule>
+
     <rule id="GH-DEFPROD" phase="define">
       Verify on main.
       git add .festinalente/product/ .festinalente/engineering/ .festinalente/glossary.yaml &amp;&amp; git commit -m "docs: define - {description}" &amp;&amp; git push

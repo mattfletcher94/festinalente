@@ -12,7 +12,7 @@ Show the current state of the board or specific tasks. Starts by asking what the
 </purpose>
 
 <context>
-{{> helper-scripts show_list_tasks=true show_find_task=true show_find_plan=true}}
+{{> helper-scripts show_list_tasks=true show_find_task=true show_find_plan=true show_list_projects=true show_get_project_progress=true show_get_project_tasks=true}}
 </context>
 
 <prohibited>
@@ -35,6 +35,18 @@ No tasks found.
 ```
       </output>
       {{> skill-complete}}
+    </branch>
+  </step>
+
+  <step name="load_projects" outputs="projects">
+    <note>AC-F4: If no projects exist, skip entirely and behave exactly as before.</note>
+    <command>node .festinalente/scripts/festinalente.cjs list-projects</command>
+    <branch condition="count is 0">
+      <action>Skip — no projects exist, proceed without project data (AC-F4)</action>
+    </branch>
+    <branch condition="projects exist (count > 0)">
+      <action>For each project, call: node .festinalente/scripts/festinalente.cjs get-project-progress {project-id}</action>
+      <action>Store project list with progress data for display in views</action>
     </branch>
   </step>
 
@@ -84,6 +96,19 @@ No tasks in progress.
 - Next: {appropriate command for status}
 
     </output>
+
+    <branch condition="projects were loaded (count > 0)">
+      <note>AC-F3: Show Projects section. Order: in-progress first, then open, then done.</note>
+      <output>
+## Projects
+
+{For each project, ordered: in-progress first, then open, then done (AC-F3):}
+**{project-id}: {project-title}** ({status})
+- Progress: {done}/{total} tasks complete
+- Tasks: {comma-separated child task IDs}
+      </output>
+    </branch>
+
     {{> skill-complete}}
   </step>
 
@@ -124,6 +149,19 @@ No tasks in progress.
 **Done ({count})**
 - {id}: {title}
     </output>
+
+    <branch condition="projects were loaded (count > 0)">
+      <note>AC-F3: Show Projects section. Order: in-progress first, then open, then done.</note>
+      <output>
+## Projects
+
+{For each project, ordered: in-progress first, then open, then done (AC-F3):}
+**{project-id}: {project-title}** ({status})
+- Progress: {done}/{total} tasks complete
+- Tasks: {comma-separated child task IDs}
+      </output>
+    </branch>
+
     {{> skill-complete}}
   </step>
 
@@ -164,6 +202,18 @@ No tasks in progress.
 
 Done ({count} tasks)
     </output>
+
+    <branch condition="projects were loaded (count > 0)">
+      <note>AC-F3: Show Projects section below the board. Order: in-progress first, then open, then done.</note>
+      <output>
+## Projects
+
+{For each project, ordered: in-progress first, then open, then done (AC-F3):}
+**{project-id}: {project-title}** ({status}) — {done}/{total} tasks complete
+  Tasks: {comma-separated child task IDs}
+      </output>
+    </branch>
+
     {{> skill-complete}}
   </step>
 

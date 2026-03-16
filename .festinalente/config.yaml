@@ -42,5 +42,9 @@ directives:
     - github
   festina-map-engineering:
     - github
+  festina-create-project:
+    - github
+  festina-complete-project:
+    - github
   festina-define:
     - github

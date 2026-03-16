@@ -45,3 +45,28 @@
 {{#if show_find_quick}}
 <command description="Find quick task by ID (returns JSON with path and metadata)">node .festinalente/scripts/festinalente.cjs find-quick {id}</command>
 {{/if}}
+
+{{#if show_next_project_id}}
+<command description="Get next project ID (returns JSON with nextId, currentHighest, slug using P-prefixed IDs)">node .festinalente/scripts/festinalente.cjs next-project-id --title="{title}"</command>
+{{/if}}
+
+{{#if show_find_project}}
+<command description="Find project by ID (returns JSON with path, id, title, status, taskCount)">node .festinalente/scripts/festinalente.cjs find-project {id}</command>
+{{/if}}
+
+{{#if show_list_projects}}
+<command description="List all projects (returns JSON with count and projects array)">node .festinalente/scripts/festinalente.cjs list-projects</command>
+<command description="List projects filtered by status">node .festinalente/scripts/festinalente.cjs list-projects --status=open</command>
+{{/if}}
+
+{{#if show_get_project_tasks}}
+<command description="Get all tasks belonging to a project (returns JSON with count and tasks array)">node .festinalente/scripts/festinalente.cjs get-project-tasks {project-id}</command>
+{{/if}}
+
+{{#if show_get_project_progress}}
+<command description="Get task progress counts by status for a project">node .festinalente/scripts/festinalente.cjs get-project-progress {project-id}</command>
+{{/if}}
+
+{{#if show_get_project_siblings}}
+<command description="Get sibling tasks for a task in its project (returns compact JSON: projectId, projectTitle, siblings[])">node .festinalente/scripts/festinalente.cjs get-project-siblings {task-id}</command>
+{{/if}}

@@ -63,6 +63,11 @@
     "views": {
       "festinalente": [
         {
+          "id": "festinalenteProjects",
+          "name": "Projects",
+          "when": "festinalente.hasFestinalenteFolder"
+        },
+        {
           "id": "festinalenteTasks",
           "name": "Tasks"
         },
@@ -162,6 +167,11 @@
         "command": "festinalente.createDirective",
         "title": "Festina Lente: Create Directive",
         "icon": "$(add)"
+      },
+      {
+        "command": "festinalente.refreshProjects",
+        "title": "Festina Lente: Refresh Projects",
+        "icon": "$(refresh)"
       }
     ],
     "menus": {
@@ -199,6 +209,11 @@
         {
           "command": "festinalente.createDirective",
           "when": "view == festinalenteDirectives && festinalente.hasFestinalenteFolder",
+          "group": "navigation@1"
+        },
+        {
+          "command": "festinalente.refreshProjects",
+          "when": "view == festinalenteProjects",
           "group": "navigation@1"
         }
       ],
