@@ -36,6 +36,12 @@ Create a new directive through conversational Q&A. Captures context principles, 
 
 
 
+
+
+
+
+
+
 <note>Directives are stored at `.festinalente/directives/{name}.xml`</note>
 <note>Directives are linked to skills via `.festinalente/config.yaml`</note>
 </context>

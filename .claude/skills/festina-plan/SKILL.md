@@ -47,6 +47,12 @@ Create a plan file in `.festinalente/tasks/{id}/` and move task from Scoped to P
 
 
 
+
+
+
+
+
+
 <note>Use these scripts to work with product documentation:</note>
 
 <command description="List all product docs (returns JSON with count and docs array)">node .festinalente/scripts/festinalente.cjs list-product</command>

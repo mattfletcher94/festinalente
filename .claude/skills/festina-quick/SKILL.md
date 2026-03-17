@@ -39,6 +39,12 @@ implementation, optional review, optional doc updates.
 
 <command description="Find quick task by ID (returns JSON with path and metadata)">node .festinalente/scripts/festinalente.cjs find-quick {id}</command>
 
+
+
+
+
+
+
 <note>Quick tasks are stored in `.festinalente/quick/{id}/` — separate from the full workflow.</note>
 
 <note>Use these scripts to work with product documentation:</note>

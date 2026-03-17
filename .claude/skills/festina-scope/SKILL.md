@@ -46,6 +46,14 @@ Create a functional specification through iterative conversational Q&A focused o
 
 
 
+
+<command description="Find project by ID (returns JSON with path, id, title, status, taskCount)">node .festinalente/scripts/festinalente.cjs find-project {id}</command>
+
+
+
+
+<command description="Get sibling tasks for a task in its project (returns compact JSON: projectId, projectTitle, siblings[])">node .festinalente/scripts/festinalente.cjs get-project-siblings {task-id}</command>
+
 <note>Use these scripts to work with engineering documentation:</note>
 
 
@@ -115,6 +123,33 @@ Create a functional specification through iterative conversational Q&A focused o
     <branch condition="task not found">
       <output>Error: Task not found</output>
       <action>Exit</action>
+    </branch>
+  </step>
+
+  <step name="load_project_context" outputs="projectContext, siblingTasks" when="task has non-empty project-id attribute">
+    <note>AC-D7: This step only executes when the task belongs to a project. Skip entirely for standalone tasks.</note>
+
+    <branch condition="task has non-empty project-id attribute">
+      <command description="Find parent project">node .festinalente/scripts/festinalente.cjs find-project {project-id}</command>
+      <action>Read the project.xml file at the returned path to understand the broader goal, requirements, and scope</action>
+      <action>Store project requirements list for later traceability (AC-D4)</action>
+
+      <command description="Get sibling tasks (compact data, AC-D6)">node .festinalente/scripts/festinalente.cjs get-project-siblings {taskId}</command>
+      <action>Store sibling task list: id, title, status, description for each sibling</action>
+      <action>This provides awareness of what other tasks in the project handle (AC-D3)</action>
+
+      <output_variable>projectContext: {
+        projectId: {project-id},
+        projectTitle: {title from project.xml},
+        projectGoal: {goal from project.xml},
+        projectRequirements: [{id, text} from project.xml requirements],
+        projectScope: {scope from project.xml}
+      }</output_variable>
+      <output_variable>siblingTasks: [{id, title, status, description}]</output_variable>
+    </branch>
+
+    <branch condition="task has no project-id or project-id is empty">
+      <action>Skip — standalone task, no project context needed (AC-D7)</action>
     </branch>
   </step>
 
@@ -840,6 +875,15 @@ The Q&A phase is the natural place to challenge any assumption made during synth
       </action>
     </branch>
 
+    <note>Project-aware spec sections (only when projectContext exists):</note>
+    <branch condition="projectContext exists (task belongs to a project)">
+      <action>AC-D3: In out-of-scope, reference what sibling tasks handle.
+        e.g., "Session management is handled by task 004-session-mgmt"</action>
+      <action>AC-D4: In requirements, map each FR to BOTH the spec-level requirement AND the project requirement ID it traces to.
+        e.g., FR1 traces to R2 (from project requirements)</action>
+      <action>AC-D5: In dependencies type="internal", reference sibling tasks if this task depends on or is blocked by them</action>
+    </branch>
+
     <example_code lang="xml">
 <spec task="{taskId}" created="{YYYY-MM-DD}" updated="{YYYY-MM-DD}">
   <title>{title}</title>
@@ -855,6 +899,8 @@ The Q&A phase is the natural place to challenge any assumption made during synth
     </in-scope>
     <out-of-scope>
       <item>{Explicit boundaries}</item>
+      <!-- AC-D3: When task belongs to a project, reference sibling tasks here -->
+      <item>{sibling task area} is handled by task {sibling-task-id}</item>
     </out-of-scope>
   </scope>
 
@@ -879,8 +925,10 @@ The Q&A phase is the natural place to challenge any assumption made during synth
     </boundaries>
 
   <requirements>
-    <requirement id="FR1">The system shall...</requirement>
-    <requirement id="FR2">The system shall...</requirement>
+    <!-- AC-D4: When task belongs to a project, add traces-to attribute linking to project requirement IDs -->
+    <requirement id="FR1" traces-to="{project-requirement-id, e.g. R2}">The system shall...</requirement>
+    <requirement id="FR2" traces-to="{project-requirement-id}">The system shall...</requirement>
+    <!-- Omit traces-to for standalone tasks or FRs that don't map to a project requirement -->
   </requirements>
 
   <files>
@@ -916,7 +964,8 @@ The Q&A phase is the natural place to challenge any assumption made during synth
 
   <dependencies>
     <dependency type="external">{Libraries/APIs - include any researched/chosen packages}</dependency>
-    <dependency type="internal">{Other features/tasks}</dependency>
+    <!-- AC-D5: When task belongs to a project, reference sibling tasks if needed -->
+    <dependency type="internal">{Other features/tasks or sibling task IDs from project}</dependency>
   </dependencies>
 
   <risks>

@@ -47,6 +47,12 @@ Move task from Planned to In Progress and execute the plan.
 
 
 
+
+
+
+
+
+
 <note>Column transition: planned → in-progress</note>
 <note>See `.festinalente/workflow.yaml` for column definitions and valid transitions</note>
 </context>

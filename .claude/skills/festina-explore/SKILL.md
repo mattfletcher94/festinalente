@@ -47,6 +47,12 @@ Explore a question, idea, or topic through Socratic dialogue. Research the codeb
 
 
 
+
+
+
+
+
+
 <note>Use these scripts to work with product documentation:</note>
 
 

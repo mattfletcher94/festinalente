@@ -24,6 +24,12 @@ Analyze existing codebase and create engineering documentation through parallel 
 
 
 
+
+
+
+
+
+
 <note>Use these scripts to work with engineering documentation:</note>
 
 <command description="List all engineering docs (returns JSON with count and docs array)">node .festinalente/scripts/festinalente.cjs list-engineering</command>

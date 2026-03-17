@@ -39,6 +39,12 @@ Permanently delete a task from the festina board. Only tasks in Backlog status c
 
 
 
+
+
+
+
+
+
 <note>Column transition: backlog → [Deleted]</note>
 <note>See `.festinalente/workflow.yaml` for column definitions and valid transitions</note>
 </context>

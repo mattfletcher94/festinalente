@@ -47,6 +47,12 @@ Move a task from awaiting-completion to done. Lightweight by default, extensible
 
 
 
+
+
+
+
+
+
 <note>Column transition: awaiting-completion → done</note>
 <note>See `.festinalente/workflow.yaml` for column definitions and valid transitions</note>
 </context>

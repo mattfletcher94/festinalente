@@ -47,6 +47,12 @@ Return a task to In Progress when human review finds issues. Gather structured i
 
 
 
+
+
+
+
+
+
 <note>Column Transitions:
 ```
 finalize → in-progress

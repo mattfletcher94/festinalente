@@ -47,6 +47,12 @@ Run directive checks, update documentation, and complete the task. This skill co
 
 
 
+
+
+
+
+
+
 <note>Use these scripts to work with product documentation:</note>
 
 

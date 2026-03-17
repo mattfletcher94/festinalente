@@ -3940,6 +3940,328 @@ function createConfigHandler(deps) {
 }
 
 //#endregion
+//#region ../../node_modules/.pnpm/slugify@1.6.6/node_modules/slugify/slugify.js
+var require_slugify = __commonJS({ "../../node_modules/.pnpm/slugify@1.6.6/node_modules/slugify/slugify.js"(exports, module) {
+	(function(name, root, factory) {
+		if (typeof exports === "object") {
+			module.exports = factory();
+			module.exports["default"] = factory();
+		} else if (typeof define === "function" && define.amd) define(factory);
+		else root[name] = factory();
+	})("slugify", void 0, function() {
+		var charMap = JSON.parse("{\"$\":\"dollar\",\"%\":\"percent\",\"&\":\"and\",\"<\":\"less\",\">\":\"greater\",\"|\":\"or\",\"¢\":\"cent\",\"£\":\"pound\",\"¤\":\"currency\",\"¥\":\"yen\",\"©\":\"(c)\",\"ª\":\"a\",\"®\":\"(r)\",\"º\":\"o\",\"À\":\"A\",\"Á\":\"A\",\"Â\":\"A\",\"Ã\":\"A\",\"Ä\":\"A\",\"Å\":\"A\",\"Æ\":\"AE\",\"Ç\":\"C\",\"È\":\"E\",\"É\":\"E\",\"Ê\":\"E\",\"Ë\":\"E\",\"Ì\":\"I\",\"Í\":\"I\",\"Î\":\"I\",\"Ï\":\"I\",\"Ð\":\"D\",\"Ñ\":\"N\",\"Ò\":\"O\",\"Ó\":\"O\",\"Ô\":\"O\",\"Õ\":\"O\",\"Ö\":\"O\",\"Ø\":\"O\",\"Ù\":\"U\",\"Ú\":\"U\",\"Û\":\"U\",\"Ü\":\"U\",\"Ý\":\"Y\",\"Þ\":\"TH\",\"ß\":\"ss\",\"à\":\"a\",\"á\":\"a\",\"â\":\"a\",\"ã\":\"a\",\"ä\":\"a\",\"å\":\"a\",\"æ\":\"ae\",\"ç\":\"c\",\"è\":\"e\",\"é\":\"e\",\"ê\":\"e\",\"ë\":\"e\",\"ì\":\"i\",\"í\":\"i\",\"î\":\"i\",\"ï\":\"i\",\"ð\":\"d\",\"ñ\":\"n\",\"ò\":\"o\",\"ó\":\"o\",\"ô\":\"o\",\"õ\":\"o\",\"ö\":\"o\",\"ø\":\"o\",\"ù\":\"u\",\"ú\":\"u\",\"û\":\"u\",\"ü\":\"u\",\"ý\":\"y\",\"þ\":\"th\",\"ÿ\":\"y\",\"Ā\":\"A\",\"ā\":\"a\",\"Ă\":\"A\",\"ă\":\"a\",\"Ą\":\"A\",\"ą\":\"a\",\"Ć\":\"C\",\"ć\":\"c\",\"Č\":\"C\",\"č\":\"c\",\"Ď\":\"D\",\"ď\":\"d\",\"Đ\":\"DJ\",\"đ\":\"dj\",\"Ē\":\"E\",\"ē\":\"e\",\"Ė\":\"E\",\"ė\":\"e\",\"Ę\":\"e\",\"ę\":\"e\",\"Ě\":\"E\",\"ě\":\"e\",\"Ğ\":\"G\",\"ğ\":\"g\",\"Ģ\":\"G\",\"ģ\":\"g\",\"Ĩ\":\"I\",\"ĩ\":\"i\",\"Ī\":\"i\",\"ī\":\"i\",\"Į\":\"I\",\"į\":\"i\",\"İ\":\"I\",\"ı\":\"i\",\"Ķ\":\"k\",\"ķ\":\"k\",\"Ļ\":\"L\",\"ļ\":\"l\",\"Ľ\":\"L\",\"ľ\":\"l\",\"Ł\":\"L\",\"ł\":\"l\",\"Ń\":\"N\",\"ń\":\"n\",\"Ņ\":\"N\",\"ņ\":\"n\",\"Ň\":\"N\",\"ň\":\"n\",\"Ō\":\"O\",\"ō\":\"o\",\"Ő\":\"O\",\"ő\":\"o\",\"Œ\":\"OE\",\"œ\":\"oe\",\"Ŕ\":\"R\",\"ŕ\":\"r\",\"Ř\":\"R\",\"ř\":\"r\",\"Ś\":\"S\",\"ś\":\"s\",\"Ş\":\"S\",\"ş\":\"s\",\"Š\":\"S\",\"š\":\"s\",\"Ţ\":\"T\",\"ţ\":\"t\",\"Ť\":\"T\",\"ť\":\"t\",\"Ũ\":\"U\",\"ũ\":\"u\",\"Ū\":\"u\",\"ū\":\"u\",\"Ů\":\"U\",\"ů\":\"u\",\"Ű\":\"U\",\"ű\":\"u\",\"Ų\":\"U\",\"ų\":\"u\",\"Ŵ\":\"W\",\"ŵ\":\"w\",\"Ŷ\":\"Y\",\"ŷ\":\"y\",\"Ÿ\":\"Y\",\"Ź\":\"Z\",\"ź\":\"z\",\"Ż\":\"Z\",\"ż\":\"z\",\"Ž\":\"Z\",\"ž\":\"z\",\"Ə\":\"E\",\"ƒ\":\"f\",\"Ơ\":\"O\",\"ơ\":\"o\",\"Ư\":\"U\",\"ư\":\"u\",\"ǈ\":\"LJ\",\"ǉ\":\"lj\",\"ǋ\":\"NJ\",\"ǌ\":\"nj\",\"Ș\":\"S\",\"ș\":\"s\",\"Ț\":\"T\",\"ț\":\"t\",\"ə\":\"e\",\"˚\":\"o\",\"Ά\":\"A\",\"Έ\":\"E\",\"Ή\":\"H\",\"Ί\":\"I\",\"Ό\":\"O\",\"Ύ\":\"Y\",\"Ώ\":\"W\",\"ΐ\":\"i\",\"Α\":\"A\",\"Β\":\"B\",\"Γ\":\"G\",\"Δ\":\"D\",\"Ε\":\"E\",\"Ζ\":\"Z\",\"Η\":\"H\",\"Θ\":\"8\",\"Ι\":\"I\",\"Κ\":\"K\",\"Λ\":\"L\",\"Μ\":\"M\",\"Ν\":\"N\",\"Ξ\":\"3\",\"Ο\":\"O\",\"Π\":\"P\",\"Ρ\":\"R\",\"Σ\":\"S\",\"Τ\":\"T\",\"Υ\":\"Y\",\"Φ\":\"F\",\"Χ\":\"X\",\"Ψ\":\"PS\",\"Ω\":\"W\",\"Ϊ\":\"I\",\"Ϋ\":\"Y\",\"ά\":\"a\",\"έ\":\"e\",\"ή\":\"h\",\"ί\":\"i\",\"ΰ\":\"y\",\"α\":\"a\",\"β\":\"b\",\"γ\":\"g\",\"δ\":\"d\",\"ε\":\"e\",\"ζ\":\"z\",\"η\":\"h\",\"θ\":\"8\",\"ι\":\"i\",\"κ\":\"k\",\"λ\":\"l\",\"μ\":\"m\",\"ν\":\"n\",\"ξ\":\"3\",\"ο\":\"o\",\"π\":\"p\",\"ρ\":\"r\",\"ς\":\"s\",\"σ\":\"s\",\"τ\":\"t\",\"υ\":\"y\",\"φ\":\"f\",\"χ\":\"x\",\"ψ\":\"ps\",\"ω\":\"w\",\"ϊ\":\"i\",\"ϋ\":\"y\",\"ό\":\"o\",\"ύ\":\"y\",\"ώ\":\"w\",\"Ё\":\"Yo\",\"Ђ\":\"DJ\",\"Є\":\"Ye\",\"І\":\"I\",\"Ї\":\"Yi\",\"Ј\":\"J\",\"Љ\":\"LJ\",\"Њ\":\"NJ\",\"Ћ\":\"C\",\"Џ\":\"DZ\",\"А\":\"A\",\"Б\":\"B\",\"В\":\"V\",\"Г\":\"G\",\"Д\":\"D\",\"Е\":\"E\",\"Ж\":\"Zh\",\"З\":\"Z\",\"И\":\"I\",\"Й\":\"J\",\"К\":\"K\",\"Л\":\"L\",\"М\":\"M\",\"Н\":\"N\",\"О\":\"O\",\"П\":\"P\",\"Р\":\"R\",\"С\":\"S\",\"Т\":\"T\",\"У\":\"U\",\"Ф\":\"F\",\"Х\":\"H\",\"Ц\":\"C\",\"Ч\":\"Ch\",\"Ш\":\"Sh\",\"Щ\":\"Sh\",\"Ъ\":\"U\",\"Ы\":\"Y\",\"Ь\":\"\",\"Э\":\"E\",\"Ю\":\"Yu\",\"Я\":\"Ya\",\"а\":\"a\",\"б\":\"b\",\"в\":\"v\",\"г\":\"g\",\"д\":\"d\",\"е\":\"e\",\"ж\":\"zh\",\"з\":\"z\",\"и\":\"i\",\"й\":\"j\",\"к\":\"k\",\"л\":\"l\",\"м\":\"m\",\"н\":\"n\",\"о\":\"o\",\"п\":\"p\",\"р\":\"r\",\"с\":\"s\",\"т\":\"t\",\"у\":\"u\",\"ф\":\"f\",\"х\":\"h\",\"ц\":\"c\",\"ч\":\"ch\",\"ш\":\"sh\",\"щ\":\"sh\",\"ъ\":\"u\",\"ы\":\"y\",\"ь\":\"\",\"э\":\"e\",\"ю\":\"yu\",\"я\":\"ya\",\"ё\":\"yo\",\"ђ\":\"dj\",\"є\":\"ye\",\"і\":\"i\",\"ї\":\"yi\",\"ј\":\"j\",\"љ\":\"lj\",\"њ\":\"nj\",\"ћ\":\"c\",\"ѝ\":\"u\",\"џ\":\"dz\",\"Ґ\":\"G\",\"ґ\":\"g\",\"Ғ\":\"GH\",\"ғ\":\"gh\",\"Қ\":\"KH\",\"қ\":\"kh\",\"Ң\":\"NG\",\"ң\":\"ng\",\"Ү\":\"UE\",\"ү\":\"ue\",\"Ұ\":\"U\",\"ұ\":\"u\",\"Һ\":\"H\",\"һ\":\"h\",\"Ә\":\"AE\",\"ә\":\"ae\",\"Ө\":\"OE\",\"ө\":\"oe\",\"Ա\":\"A\",\"Բ\":\"B\",\"Գ\":\"G\",\"Դ\":\"D\",\"Ե\":\"E\",\"Զ\":\"Z\",\"Է\":\"E'\",\"Ը\":\"Y'\",\"Թ\":\"T'\",\"Ժ\":\"JH\",\"Ի\":\"I\",\"Լ\":\"L\",\"Խ\":\"X\",\"Ծ\":\"C'\",\"Կ\":\"K\",\"Հ\":\"H\",\"Ձ\":\"D'\",\"Ղ\":\"GH\",\"Ճ\":\"TW\",\"Մ\":\"M\",\"Յ\":\"Y\",\"Ն\":\"N\",\"Շ\":\"SH\",\"Չ\":\"CH\",\"Պ\":\"P\",\"Ջ\":\"J\",\"Ռ\":\"R'\",\"Ս\":\"S\",\"Վ\":\"V\",\"Տ\":\"T\",\"Ր\":\"R\",\"Ց\":\"C\",\"Փ\":\"P'\",\"Ք\":\"Q'\",\"Օ\":\"O''\",\"Ֆ\":\"F\",\"և\":\"EV\",\"ء\":\"a\",\"آ\":\"aa\",\"أ\":\"a\",\"ؤ\":\"u\",\"إ\":\"i\",\"ئ\":\"e\",\"ا\":\"a\",\"ب\":\"b\",\"ة\":\"h\",\"ت\":\"t\",\"ث\":\"th\",\"ج\":\"j\",\"ح\":\"h\",\"خ\":\"kh\",\"د\":\"d\",\"ذ\":\"th\",\"ر\":\"r\",\"ز\":\"z\",\"س\":\"s\",\"ش\":\"sh\",\"ص\":\"s\",\"ض\":\"dh\",\"ط\":\"t\",\"ظ\":\"z\",\"ع\":\"a\",\"غ\":\"gh\",\"ف\":\"f\",\"ق\":\"q\",\"ك\":\"k\",\"ل\":\"l\",\"م\":\"m\",\"ن\":\"n\",\"ه\":\"h\",\"و\":\"w\",\"ى\":\"a\",\"ي\":\"y\",\"ً\":\"an\",\"ٌ\":\"on\",\"ٍ\":\"en\",\"َ\":\"a\",\"ُ\":\"u\",\"ِ\":\"e\",\"ْ\":\"\",\"٠\":\"0\",\"١\":\"1\",\"٢\":\"2\",\"٣\":\"3\",\"٤\":\"4\",\"٥\":\"5\",\"٦\":\"6\",\"٧\":\"7\",\"٨\":\"8\",\"٩\":\"9\",\"پ\":\"p\",\"چ\":\"ch\",\"ژ\":\"zh\",\"ک\":\"k\",\"گ\":\"g\",\"ی\":\"y\",\"۰\":\"0\",\"۱\":\"1\",\"۲\":\"2\",\"۳\":\"3\",\"۴\":\"4\",\"۵\":\"5\",\"۶\":\"6\",\"۷\":\"7\",\"۸\":\"8\",\"۹\":\"9\",\"฿\":\"baht\",\"ა\":\"a\",\"ბ\":\"b\",\"გ\":\"g\",\"დ\":\"d\",\"ე\":\"e\",\"ვ\":\"v\",\"ზ\":\"z\",\"თ\":\"t\",\"ი\":\"i\",\"კ\":\"k\",\"ლ\":\"l\",\"მ\":\"m\",\"ნ\":\"n\",\"ო\":\"o\",\"პ\":\"p\",\"ჟ\":\"zh\",\"რ\":\"r\",\"ს\":\"s\",\"ტ\":\"t\",\"უ\":\"u\",\"ფ\":\"f\",\"ქ\":\"k\",\"ღ\":\"gh\",\"ყ\":\"q\",\"შ\":\"sh\",\"ჩ\":\"ch\",\"ც\":\"ts\",\"ძ\":\"dz\",\"წ\":\"ts\",\"ჭ\":\"ch\",\"ხ\":\"kh\",\"ჯ\":\"j\",\"ჰ\":\"h\",\"Ṣ\":\"S\",\"ṣ\":\"s\",\"Ẁ\":\"W\",\"ẁ\":\"w\",\"Ẃ\":\"W\",\"ẃ\":\"w\",\"Ẅ\":\"W\",\"ẅ\":\"w\",\"ẞ\":\"SS\",\"Ạ\":\"A\",\"ạ\":\"a\",\"Ả\":\"A\",\"ả\":\"a\",\"Ấ\":\"A\",\"ấ\":\"a\",\"Ầ\":\"A\",\"ầ\":\"a\",\"Ẩ\":\"A\",\"ẩ\":\"a\",\"Ẫ\":\"A\",\"ẫ\":\"a\",\"Ậ\":\"A\",\"ậ\":\"a\",\"Ắ\":\"A\",\"ắ\":\"a\",\"Ằ\":\"A\",\"ằ\":\"a\",\"Ẳ\":\"A\",\"ẳ\":\"a\",\"Ẵ\":\"A\",\"ẵ\":\"a\",\"Ặ\":\"A\",\"ặ\":\"a\",\"Ẹ\":\"E\",\"ẹ\":\"e\",\"Ẻ\":\"E\",\"ẻ\":\"e\",\"Ẽ\":\"E\",\"ẽ\":\"e\",\"Ế\":\"E\",\"ế\":\"e\",\"Ề\":\"E\",\"ề\":\"e\",\"Ể\":\"E\",\"ể\":\"e\",\"Ễ\":\"E\",\"ễ\":\"e\",\"Ệ\":\"E\",\"ệ\":\"e\",\"Ỉ\":\"I\",\"ỉ\":\"i\",\"Ị\":\"I\",\"ị\":\"i\",\"Ọ\":\"O\",\"ọ\":\"o\",\"Ỏ\":\"O\",\"ỏ\":\"o\",\"Ố\":\"O\",\"ố\":\"o\",\"Ồ\":\"O\",\"ồ\":\"o\",\"Ổ\":\"O\",\"ổ\":\"o\",\"Ỗ\":\"O\",\"ỗ\":\"o\",\"Ộ\":\"O\",\"ộ\":\"o\",\"Ớ\":\"O\",\"ớ\":\"o\",\"Ờ\":\"O\",\"ờ\":\"o\",\"Ở\":\"O\",\"ở\":\"o\",\"Ỡ\":\"O\",\"ỡ\":\"o\",\"Ợ\":\"O\",\"ợ\":\"o\",\"Ụ\":\"U\",\"ụ\":\"u\",\"Ủ\":\"U\",\"ủ\":\"u\",\"Ứ\":\"U\",\"ứ\":\"u\",\"Ừ\":\"U\",\"ừ\":\"u\",\"Ử\":\"U\",\"ử\":\"u\",\"Ữ\":\"U\",\"ữ\":\"u\",\"Ự\":\"U\",\"ự\":\"u\",\"Ỳ\":\"Y\",\"ỳ\":\"y\",\"Ỵ\":\"Y\",\"ỵ\":\"y\",\"Ỷ\":\"Y\",\"ỷ\":\"y\",\"Ỹ\":\"Y\",\"ỹ\":\"y\",\"–\":\"-\",\"‘\":\"'\",\"’\":\"'\",\"“\":\"\\\"\",\"”\":\"\\\"\",\"„\":\"\\\"\",\"†\":\"+\",\"•\":\"*\",\"…\":\"...\",\"₠\":\"ecu\",\"₢\":\"cruzeiro\",\"₣\":\"french franc\",\"₤\":\"lira\",\"₥\":\"mill\",\"₦\":\"naira\",\"₧\":\"peseta\",\"₨\":\"rupee\",\"₩\":\"won\",\"₪\":\"new shequel\",\"₫\":\"dong\",\"€\":\"euro\",\"₭\":\"kip\",\"₮\":\"tugrik\",\"₯\":\"drachma\",\"₰\":\"penny\",\"₱\":\"peso\",\"₲\":\"guarani\",\"₳\":\"austral\",\"₴\":\"hryvnia\",\"₵\":\"cedi\",\"₸\":\"kazakhstani tenge\",\"₹\":\"indian rupee\",\"₺\":\"turkish lira\",\"₽\":\"russian ruble\",\"₿\":\"bitcoin\",\"℠\":\"sm\",\"™\":\"tm\",\"∂\":\"d\",\"∆\":\"delta\",\"∑\":\"sum\",\"∞\":\"infinity\",\"♥\":\"love\",\"元\":\"yuan\",\"円\":\"yen\",\"﷼\":\"rial\",\"ﻵ\":\"laa\",\"ﻷ\":\"laa\",\"ﻹ\":\"lai\",\"ﻻ\":\"la\"}");
+		var locales = JSON.parse("{\"bg\":{\"Й\":\"Y\",\"Ц\":\"Ts\",\"Щ\":\"Sht\",\"Ъ\":\"A\",\"Ь\":\"Y\",\"й\":\"y\",\"ц\":\"ts\",\"щ\":\"sht\",\"ъ\":\"a\",\"ь\":\"y\"},\"de\":{\"Ä\":\"AE\",\"ä\":\"ae\",\"Ö\":\"OE\",\"ö\":\"oe\",\"Ü\":\"UE\",\"ü\":\"ue\",\"ß\":\"ss\",\"%\":\"prozent\",\"&\":\"und\",\"|\":\"oder\",\"∑\":\"summe\",\"∞\":\"unendlich\",\"♥\":\"liebe\"},\"es\":{\"%\":\"por ciento\",\"&\":\"y\",\"<\":\"menor que\",\">\":\"mayor que\",\"|\":\"o\",\"¢\":\"centavos\",\"£\":\"libras\",\"¤\":\"moneda\",\"₣\":\"francos\",\"∑\":\"suma\",\"∞\":\"infinito\",\"♥\":\"amor\"},\"fr\":{\"%\":\"pourcent\",\"&\":\"et\",\"<\":\"plus petit\",\">\":\"plus grand\",\"|\":\"ou\",\"¢\":\"centime\",\"£\":\"livre\",\"¤\":\"devise\",\"₣\":\"franc\",\"∑\":\"somme\",\"∞\":\"infini\",\"♥\":\"amour\"},\"pt\":{\"%\":\"porcento\",\"&\":\"e\",\"<\":\"menor\",\">\":\"maior\",\"|\":\"ou\",\"¢\":\"centavo\",\"∑\":\"soma\",\"£\":\"libra\",\"∞\":\"infinito\",\"♥\":\"amor\"},\"uk\":{\"И\":\"Y\",\"и\":\"y\",\"Й\":\"Y\",\"й\":\"y\",\"Ц\":\"Ts\",\"ц\":\"ts\",\"Х\":\"Kh\",\"х\":\"kh\",\"Щ\":\"Shch\",\"щ\":\"shch\",\"Г\":\"H\",\"г\":\"h\"},\"vi\":{\"Đ\":\"D\",\"đ\":\"d\"},\"da\":{\"Ø\":\"OE\",\"ø\":\"oe\",\"Å\":\"AA\",\"å\":\"aa\",\"%\":\"procent\",\"&\":\"og\",\"|\":\"eller\",\"$\":\"dollar\",\"<\":\"mindre end\",\">\":\"større end\"},\"nb\":{\"&\":\"og\",\"Å\":\"AA\",\"Æ\":\"AE\",\"Ø\":\"OE\",\"å\":\"aa\",\"æ\":\"ae\",\"ø\":\"oe\"},\"it\":{\"&\":\"e\"},\"nl\":{\"&\":\"en\"},\"sv\":{\"&\":\"och\",\"Å\":\"AA\",\"Ä\":\"AE\",\"Ö\":\"OE\",\"å\":\"aa\",\"ä\":\"ae\",\"ö\":\"oe\"}}");
+		function replace(string, options) {
+			if (typeof string !== "string") throw new Error("slugify: string argument expected");
+			options = typeof options === "string" ? { replacement: options } : options || {};
+			var locale = locales[options.locale] || {};
+			var replacement = options.replacement === void 0 ? "-" : options.replacement;
+			var trim = options.trim === void 0 ? true : options.trim;
+			var slug = string.normalize().split("").reduce(function(result, ch) {
+				var appendChar = locale[ch];
+				if (appendChar === void 0) appendChar = charMap[ch];
+				if (appendChar === void 0) appendChar = ch;
+				if (appendChar === replacement) appendChar = " ";
+				return result + appendChar.replace(options.remove || /[^\w\s$*_+~.()'"!\-:@]+/g, "");
+			}, "");
+			if (options.strict) slug = slug.replace(/[^A-Za-z0-9\s]/g, "");
+			if (trim) slug = slug.trim();
+			slug = slug.replace(/\s+/g, replacement);
+			if (options.lower) slug = slug.toLowerCase();
+			return slug;
+		}
+		replace.extend = function(customMap) {
+			Object.assign(charMap, customMap);
+		};
+		return replace;
+	});
+} });
+
+//#endregion
+//#region src/cli/handlers/project.handler.ts
+var import_slugify$1 = __toESM(require_slugify(), 1);
+const PROJECTS_DIR$1 = ".festinalente/projects";
+const TASKS_DIR$4 = ".festinalente/tasks";
+const MAX_SLUG_LENGTH$1 = 50;
+/**
+* Create a project handler with injected dependencies.
+*
+* @param deps - The dependencies for the project handler.
+* @returns A ProjectHandler instance.
+*/
+function createProjectHandler(deps) {
+	const { fs: fs$3, xmlParser } = deps;
+	/**
+	* Status-to-progress-key mapping for counting tasks by status.
+	*/
+	const statusKeyMap = {
+		"backlog": "backlog",
+		"scoped": "scoped",
+		"planned": "planned",
+		"in-progress": "inProgress",
+		"finalize": "finalize",
+		"awaiting-completion": "awaitingCompletion",
+		"done": "done"
+	};
+	/**
+	* Resolve a project folder by ID (exact match or P-prefix-only match).
+	*
+	* @param id - The project ID or prefix to resolve.
+	* @returns The matching folder name and project.xml path, or null.
+	*/
+	function resolveProjectFolder(id) {
+		if (!fs$3.exists(PROJECTS_DIR$1)) return null;
+		const dirsResult = fs$3.listDirectories(PROJECTS_DIR$1);
+		if (!dirsResult.ok) return null;
+		const folders = dirsResult.value;
+		const exact = folders.find((f) => f === id);
+		if (exact) {
+			const projectPath = fs$3.joinPath(PROJECTS_DIR$1, exact, "project.xml").replace(/\\/g, "/");
+			if (fs$3.exists(projectPath)) return {
+				folder: exact,
+				projectPath
+			};
+		}
+		const prefixMatch = folders.find((f) => f.startsWith(id + "-") || f === id);
+		if (prefixMatch) {
+			const projectPath = fs$3.joinPath(PROJECTS_DIR$1, prefixMatch, "project.xml").replace(/\\/g, "/");
+			if (fs$3.exists(projectPath)) return {
+				folder: prefixMatch,
+				projectPath
+			};
+		}
+		return null;
+	}
+	/**
+	* Scan all tasks for those matching a given project ID.
+	*
+	* @param projectId - The project ID to match against task project-id attributes.
+	* @returns Array of project task info objects.
+	*/
+	function scanTasksForProject(projectId) {
+		if (!fs$3.exists(TASKS_DIR$4)) return [];
+		const dirsResult = fs$3.listDirectories(TASKS_DIR$4);
+		if (!dirsResult.ok) return [];
+		return dirsResult.value.map((folder) => {
+			const taskPath = fs$3.joinPath(TASKS_DIR$4, folder, "task.xml").replace(/\\/g, "/");
+			if (!fs$3.exists(taskPath)) return null;
+			const readResult = fs$3.readFile(taskPath);
+			if (!readResult.ok) return null;
+			const parsed = xmlParser.parseTaskXml(readResult.value);
+			if (parsed.projectId !== projectId) return null;
+			return {
+				id: folder,
+				title: parsed.title,
+				status: parsed.status,
+				priority: parsed.priority,
+				requirements: parsed.projectRequirements ?? []
+			};
+		}).filter((t) => t !== null);
+	}
+	/**
+	* Get the next available project ID.
+	*
+	* @param args - Command arguments with --title flag.
+	* @returns The next project ID result.
+	*/
+	function nextProjectId(args) {
+		const parsed = parseArgs(args);
+		const title = getStringFlag(parsed.flags, "title");
+		if (!title) return error("Usage: next-project-id --title=\"Project title\"");
+		const slug = (0, import_slugify$1.default)(title, {
+			lower: true,
+			strict: true
+		}).slice(0, MAX_SLUG_LENGTH$1);
+		const padding = 3;
+		if (!fs$3.exists(PROJECTS_DIR$1)) return success({
+			nextId: `P${"1".padStart(padding, "0")}-${slug}`,
+			currentHighest: 0,
+			slug
+		});
+		const dirsResult = fs$3.listDirectories(PROJECTS_DIR$1);
+		if (!dirsResult.ok || dirsResult.value.length === 0) return success({
+			nextId: `P${"1".padStart(padding, "0")}-${slug}`,
+			currentHighest: 0,
+			slug
+		});
+		const highest = dirsResult.value.reduce((max, folderName) => {
+			const match = folderName.match(/^P(\d+)/);
+			if (!match) return max;
+			const num = parseInt(match[1], 10);
+			return isNaN(num) ? max : Math.max(max, num);
+		}, 0);
+		const paddedNumber = (highest + 1).toString().padStart(padding, "0");
+		return success({
+			nextId: `P${paddedNumber}-${slug}`,
+			currentHighest: highest,
+			slug
+		});
+	}
+	/**
+	* Find a project by ID.
+	*
+	* @param args - Command arguments with project ID.
+	* @returns The project info result.
+	*/
+	function findProject(args) {
+		if (args.length === 0) return error("Usage: find-project <id>");
+		const id = args[0];
+		if (!fs$3.exists(PROJECTS_DIR$1)) return error(`${PROJECTS_DIR$1}/ directory not found.`);
+		const resolved = resolveProjectFolder(id);
+		if (!resolved) return error(`Project ${id} not found in ${PROJECTS_DIR$1}/`);
+		const readResult = fs$3.readFile(resolved.projectPath);
+		if (!readResult.ok) return error(`Failed to read project file: ${readResult.error.message}`);
+		const parsed = xmlParser.parseProjectXml(readResult.value);
+		return success({
+			id: resolved.folder,
+			path: resolved.projectPath,
+			title: parsed.title,
+			status: parsed.status,
+			taskCount: parsed.tasks.length
+		});
+	}
+	/**
+	* List all projects with optional status filter.
+	*
+	* @param args - Command arguments with optional --status flag.
+	* @returns The list projects result.
+	*/
+	function listProjects(args) {
+		const parsed = parseArgs(args);
+		const statusFilter = getStringFlag(parsed.flags, "status");
+		if (!fs$3.exists(PROJECTS_DIR$1)) return success({
+			count: 0,
+			projects: []
+		});
+		const dirsResult = fs$3.listDirectories(PROJECTS_DIR$1);
+		if (!dirsResult.ok) return error(`Failed to read projects directory: ${dirsResult.error.message}`);
+		const projects = dirsResult.value.sort().map((folder) => {
+			const projectPath = fs$3.joinPath(PROJECTS_DIR$1, folder, "project.xml").replace(/\\/g, "/");
+			if (!fs$3.exists(projectPath)) return null;
+			const readResult = fs$3.readFile(projectPath);
+			if (!readResult.ok) return null;
+			const parsedProject = xmlParser.parseProjectXml(readResult.value);
+			if (statusFilter && parsedProject.status !== statusFilter) return null;
+			return {
+				id: folder,
+				path: projectPath,
+				title: parsedProject.title,
+				status: parsedProject.status,
+				taskCount: parsedProject.tasks.length
+			};
+		}).filter((p) => p !== null);
+		return success({
+			count: projects.length,
+			projects
+		});
+	}
+	/**
+	* Get all tasks belonging to a project.
+	*
+	* @param args - Command arguments with project ID.
+	* @returns The project tasks result.
+	*/
+	function getProjectTasks(args) {
+		if (args.length === 0) return error("Usage: get-project-tasks <project-id>");
+		const projectId = args[0];
+		const resolved = resolveProjectFolder(projectId);
+		if (!resolved) return error(`Project ${projectId} not found in ${PROJECTS_DIR$1}/`);
+		const tasks = scanTasksForProject(resolved.folder);
+		return success({
+			count: tasks.length,
+			tasks
+		});
+	}
+	/**
+	* Get progress counts for a project.
+	*
+	* @param args - Command arguments with project ID.
+	* @returns The project progress result with counts by status.
+	*/
+	function getProjectProgress(args) {
+		if (args.length === 0) return error("Usage: get-project-progress <project-id>");
+		const projectId = args[0];
+		const resolved = resolveProjectFolder(projectId);
+		if (!resolved) return error(`Project ${projectId} not found in ${PROJECTS_DIR$1}/`);
+		const tasks = scanTasksForProject(resolved.folder);
+		const counts = {
+			total: tasks.length,
+			backlog: 0,
+			scoped: 0,
+			planned: 0,
+			inProgress: 0,
+			finalize: 0,
+			awaitingCompletion: 0,
+			done: 0
+		};
+		for (const task of tasks) {
+			const key = statusKeyMap[task.status];
+			if (key && key !== "total") counts[key]++;
+		}
+		return success(counts);
+	}
+	/**
+	* Get sibling tasks for a given task within its project.
+	*
+	* @param args - Command arguments with task ID.
+	* @returns The project siblings result.
+	*/
+	function getProjectSiblings(args) {
+		if (args.length === 0) return error("Usage: get-project-siblings <task-id>");
+		const taskId = args[0];
+		if (!fs$3.exists(TASKS_DIR$4)) return error(`${TASKS_DIR$4}/ directory not found.`);
+		const dirsResult = fs$3.listDirectories(TASKS_DIR$4);
+		if (!dirsResult.ok) return error(`Failed to read tasks directory: ${dirsResult.error.message}`);
+		const taskFolder = dirsResult.value.find((f) => f === taskId || f.startsWith(taskId + "-") || f.match(/^(\d+)/) && f.match(/^(\d+)/)?.[1] === taskId);
+		if (!taskFolder) return error(`Task ${taskId} not found in ${TASKS_DIR$4}/`);
+		const taskPath = fs$3.joinPath(TASKS_DIR$4, taskFolder, "task.xml").replace(/\\/g, "/");
+		if (!fs$3.exists(taskPath)) return error(`Task file not found at ${taskPath}`);
+		const readResult = fs$3.readFile(taskPath);
+		if (!readResult.ok) return error(`Failed to read task file: ${readResult.error.message}`);
+		const parsedTask = xmlParser.parseTaskXml(readResult.value);
+		if (!parsedTask.projectId) return error("Task is not part of a project");
+		const resolved = resolveProjectFolder(parsedTask.projectId);
+		if (!resolved) return error(`Project ${parsedTask.projectId} not found in ${PROJECTS_DIR$1}/`);
+		const projectReadResult = fs$3.readFile(resolved.projectPath);
+		if (!projectReadResult.ok) return error(`Failed to read project file: ${projectReadResult.error.message}`);
+		const parsedProject = xmlParser.parseProjectXml(projectReadResult.value);
+		const allTasks = scanTasksForProject(resolved.folder);
+		const siblings = allTasks.filter((t) => t.id !== taskFolder).map((t) => {
+			const siblingPath = fs$3.joinPath(TASKS_DIR$4, t.id, "task.xml").replace(/\\/g, "/");
+			const siblingRead = fs$3.readFile(siblingPath);
+			const description = siblingRead.ok ? xmlParser.parseTaskXml(siblingRead.value).description : "";
+			return {
+				id: t.id,
+				title: t.title,
+				status: t.status,
+				description
+			};
+		});
+		return success({
+			projectId: resolved.folder,
+			projectTitle: parsedProject.title,
+			siblings
+		});
+	}
+	/**
+	* Get all command definitions for this handler.
+	*
+	* @returns Array of CLI command definitions.
+	*/
+	function getCommands() {
+		return [
+			defineCommand("next-project-id", "Get the next available project ID", "next-project-id --title=\"Project title\"", nextProjectId),
+			defineCommand("find-project", "Find a project by ID", "find-project <id>", findProject),
+			defineCommand("list-projects", "List all projects with optional filtering", "list-projects [--status=X]", listProjects),
+			defineCommand("get-project-tasks", "Get all tasks belonging to a project", "get-project-tasks <project-id>", getProjectTasks),
+			defineCommand("get-project-progress", "Get progress counts for a project", "get-project-progress <project-id>", getProjectProgress),
+			defineCommand("get-project-siblings", "Get sibling tasks for a task within its project", "get-project-siblings <task-id>", getProjectSiblings)
+		];
+	}
+	return { getCommands };
+}
+
+//#endregion
 //#region src/cli/handlers/docs.handler.ts
 const PRODUCT_DIR$3 = ".festinalente/product";
 const ENGINEERING_DIR$3 = ".festinalente/engineering";
@@ -6225,44 +6547,6 @@ function createSpecHandler(deps) {
 }
 
 //#endregion
-//#region ../../node_modules/.pnpm/slugify@1.6.6/node_modules/slugify/slugify.js
-var require_slugify = __commonJS({ "../../node_modules/.pnpm/slugify@1.6.6/node_modules/slugify/slugify.js"(exports, module) {
-	(function(name, root, factory) {
-		if (typeof exports === "object") {
-			module.exports = factory();
-			module.exports["default"] = factory();
-		} else if (typeof define === "function" && define.amd) define(factory);
-		else root[name] = factory();
-	})("slugify", void 0, function() {
-		var charMap = JSON.parse("{\"$\":\"dollar\",\"%\":\"percent\",\"&\":\"and\",\"<\":\"less\",\">\":\"greater\",\"|\":\"or\",\"¢\":\"cent\",\"£\":\"pound\",\"¤\":\"currency\",\"¥\":\"yen\",\"©\":\"(c)\",\"ª\":\"a\",\"®\":\"(r)\",\"º\":\"o\",\"À\":\"A\",\"Á\":\"A\",\"Â\":\"A\",\"Ã\":\"A\",\"Ä\":\"A\",\"Å\":\"A\",\"Æ\":\"AE\",\"Ç\":\"C\",\"È\":\"E\",\"É\":\"E\",\"Ê\":\"E\",\"Ë\":\"E\",\"Ì\":\"I\",\"Í\":\"I\",\"Î\":\"I\",\"Ï\":\"I\",\"Ð\":\"D\",\"Ñ\":\"N\",\"Ò\":\"O\",\"Ó\":\"O\",\"Ô\":\"O\",\"Õ\":\"O\",\"Ö\":\"O\",\"Ø\":\"O\",\"Ù\":\"U\",\"Ú\":\"U\",\"Û\":\"U\",\"Ü\":\"U\",\"Ý\":\"Y\",\"Þ\":\"TH\",\"ß\":\"ss\",\"à\":\"a\",\"á\":\"a\",\"â\":\"a\",\"ã\":\"a\",\"ä\":\"a\",\"å\":\"a\",\"æ\":\"ae\",\"ç\":\"c\",\"è\":\"e\",\"é\":\"e\",\"ê\":\"e\",\"ë\":\"e\",\"ì\":\"i\",\"í\":\"i\",\"î\":\"i\",\"ï\":\"i\",\"ð\":\"d\",\"ñ\":\"n\",\"ò\":\"o\",\"ó\":\"o\",\"ô\":\"o\",\"õ\":\"o\",\"ö\":\"o\",\"ø\":\"o\",\"ù\":\"u\",\"ú\":\"u\",\"û\":\"u\",\"ü\":\"u\",\"ý\":\"y\",\"þ\":\"th\",\"ÿ\":\"y\",\"Ā\":\"A\",\"ā\":\"a\",\"Ă\":\"A\",\"ă\":\"a\",\"Ą\":\"A\",\"ą\":\"a\",\"Ć\":\"C\",\"ć\":\"c\",\"Č\":\"C\",\"č\":\"c\",\"Ď\":\"D\",\"ď\":\"d\",\"Đ\":\"DJ\",\"đ\":\"dj\",\"Ē\":\"E\",\"ē\":\"e\",\"Ė\":\"E\",\"ė\":\"e\",\"Ę\":\"e\",\"ę\":\"e\",\"Ě\":\"E\",\"ě\":\"e\",\"Ğ\":\"G\",\"ğ\":\"g\",\"Ģ\":\"G\",\"ģ\":\"g\",\"Ĩ\":\"I\",\"ĩ\":\"i\",\"Ī\":\"i\",\"ī\":\"i\",\"Į\":\"I\",\"į\":\"i\",\"İ\":\"I\",\"ı\":\"i\",\"Ķ\":\"k\",\"ķ\":\"k\",\"Ļ\":\"L\",\"ļ\":\"l\",\"Ľ\":\"L\",\"ľ\":\"l\",\"Ł\":\"L\",\"ł\":\"l\",\"Ń\":\"N\",\"ń\":\"n\",\"Ņ\":\"N\",\"ņ\":\"n\",\"Ň\":\"N\",\"ň\":\"n\",\"Ō\":\"O\",\"ō\":\"o\",\"Ő\":\"O\",\"ő\":\"o\",\"Œ\":\"OE\",\"œ\":\"oe\",\"Ŕ\":\"R\",\"ŕ\":\"r\",\"Ř\":\"R\",\"ř\":\"r\",\"Ś\":\"S\",\"ś\":\"s\",\"Ş\":\"S\",\"ş\":\"s\",\"Š\":\"S\",\"š\":\"s\",\"Ţ\":\"T\",\"ţ\":\"t\",\"Ť\":\"T\",\"ť\":\"t\",\"Ũ\":\"U\",\"ũ\":\"u\",\"Ū\":\"u\",\"ū\":\"u\",\"Ů\":\"U\",\"ů\":\"u\",\"Ű\":\"U\",\"ű\":\"u\",\"Ų\":\"U\",\"ų\":\"u\",\"Ŵ\":\"W\",\"ŵ\":\"w\",\"Ŷ\":\"Y\",\"ŷ\":\"y\",\"Ÿ\":\"Y\",\"Ź\":\"Z\",\"ź\":\"z\",\"Ż\":\"Z\",\"ż\":\"z\",\"Ž\":\"Z\",\"ž\":\"z\",\"Ə\":\"E\",\"ƒ\":\"f\",\"Ơ\":\"O\",\"ơ\":\"o\",\"Ư\":\"U\",\"ư\":\"u\",\"ǈ\":\"LJ\",\"ǉ\":\"lj\",\"ǋ\":\"NJ\",\"ǌ\":\"nj\",\"Ș\":\"S\",\"ș\":\"s\",\"Ț\":\"T\",\"ț\":\"t\",\"ə\":\"e\",\"˚\":\"o\",\"Ά\":\"A\",\"Έ\":\"E\",\"Ή\":\"H\",\"Ί\":\"I\",\"Ό\":\"O\",\"Ύ\":\"Y\",\"Ώ\":\"W\",\"ΐ\":\"i\",\"Α\":\"A\",\"Β\":\"B\",\"Γ\":\"G\",\"Δ\":\"D\",\"Ε\":\"E\",\"Ζ\":\"Z\",\"Η\":\"H\",\"Θ\":\"8\",\"Ι\":\"I\",\"Κ\":\"K\",\"Λ\":\"L\",\"Μ\":\"M\",\"Ν\":\"N\",\"Ξ\":\"3\",\"Ο\":\"O\",\"Π\":\"P\",\"Ρ\":\"R\",\"Σ\":\"S\",\"Τ\":\"T\",\"Υ\":\"Y\",\"Φ\":\"F\",\"Χ\":\"X\",\"Ψ\":\"PS\",\"Ω\":\"W\",\"Ϊ\":\"I\",\"Ϋ\":\"Y\",\"ά\":\"a\",\"έ\":\"e\",\"ή\":\"h\",\"ί\":\"i\",\"ΰ\":\"y\",\"α\":\"a\",\"β\":\"b\",\"γ\":\"g\",\"δ\":\"d\",\"ε\":\"e\",\"ζ\":\"z\",\"η\":\"h\",\"θ\":\"8\",\"ι\":\"i\",\"κ\":\"k\",\"λ\":\"l\",\"μ\":\"m\",\"ν\":\"n\",\"ξ\":\"3\",\"ο\":\"o\",\"π\":\"p\",\"ρ\":\"r\",\"ς\":\"s\",\"σ\":\"s\",\"τ\":\"t\",\"υ\":\"y\",\"φ\":\"f\",\"χ\":\"x\",\"ψ\":\"ps\",\"ω\":\"w\",\"ϊ\":\"i\",\"ϋ\":\"y\",\"ό\":\"o\",\"ύ\":\"y\",\"ώ\":\"w\",\"Ё\":\"Yo\",\"Ђ\":\"DJ\",\"Є\":\"Ye\",\"І\":\"I\",\"Ї\":\"Yi\",\"Ј\":\"J\",\"Љ\":\"LJ\",\"Њ\":\"NJ\",\"Ћ\":\"C\",\"Џ\":\"DZ\",\"А\":\"A\",\"Б\":\"B\",\"В\":\"V\",\"Г\":\"G\",\"Д\":\"D\",\"Е\":\"E\",\"Ж\":\"Zh\",\"З\":\"Z\",\"И\":\"I\",\"Й\":\"J\",\"К\":\"K\",\"Л\":\"L\",\"М\":\"M\",\"Н\":\"N\",\"О\":\"O\",\"П\":\"P\",\"Р\":\"R\",\"С\":\"S\",\"Т\":\"T\",\"У\":\"U\",\"Ф\":\"F\",\"Х\":\"H\",\"Ц\":\"C\",\"Ч\":\"Ch\",\"Ш\":\"Sh\",\"Щ\":\"Sh\",\"Ъ\":\"U\",\"Ы\":\"Y\",\"Ь\":\"\",\"Э\":\"E\",\"Ю\":\"Yu\",\"Я\":\"Ya\",\"а\":\"a\",\"б\":\"b\",\"в\":\"v\",\"г\":\"g\",\"д\":\"d\",\"е\":\"e\",\"ж\":\"zh\",\"з\":\"z\",\"и\":\"i\",\"й\":\"j\",\"к\":\"k\",\"л\":\"l\",\"м\":\"m\",\"н\":\"n\",\"о\":\"o\",\"п\":\"p\",\"р\":\"r\",\"с\":\"s\",\"т\":\"t\",\"у\":\"u\",\"ф\":\"f\",\"х\":\"h\",\"ц\":\"c\",\"ч\":\"ch\",\"ш\":\"sh\",\"щ\":\"sh\",\"ъ\":\"u\",\"ы\":\"y\",\"ь\":\"\",\"э\":\"e\",\"ю\":\"yu\",\"я\":\"ya\",\"ё\":\"yo\",\"ђ\":\"dj\",\"є\":\"ye\",\"і\":\"i\",\"ї\":\"yi\",\"ј\":\"j\",\"љ\":\"lj\",\"њ\":\"nj\",\"ћ\":\"c\",\"ѝ\":\"u\",\"џ\":\"dz\",\"Ґ\":\"G\",\"ґ\":\"g\",\"Ғ\":\"GH\",\"ғ\":\"gh\",\"Қ\":\"KH\",\"қ\":\"kh\",\"Ң\":\"NG\",\"ң\":\"ng\",\"Ү\":\"UE\",\"ү\":\"ue\",\"Ұ\":\"U\",\"ұ\":\"u\",\"Һ\":\"H\",\"һ\":\"h\",\"Ә\":\"AE\",\"ә\":\"ae\",\"Ө\":\"OE\",\"ө\":\"oe\",\"Ա\":\"A\",\"Բ\":\"B\",\"Գ\":\"G\",\"Դ\":\"D\",\"Ե\":\"E\",\"Զ\":\"Z\",\"Է\":\"E'\",\"Ը\":\"Y'\",\"Թ\":\"T'\",\"Ժ\":\"JH\",\"Ի\":\"I\",\"Լ\":\"L\",\"Խ\":\"X\",\"Ծ\":\"C'\",\"Կ\":\"K\",\"Հ\":\"H\",\"Ձ\":\"D'\",\"Ղ\":\"GH\",\"Ճ\":\"TW\",\"Մ\":\"M\",\"Յ\":\"Y\",\"Ն\":\"N\",\"Շ\":\"SH\",\"Չ\":\"CH\",\"Պ\":\"P\",\"Ջ\":\"J\",\"Ռ\":\"R'\",\"Ս\":\"S\",\"Վ\":\"V\",\"Տ\":\"T\",\"Ր\":\"R\",\"Ց\":\"C\",\"Փ\":\"P'\",\"Ք\":\"Q'\",\"Օ\":\"O''\",\"Ֆ\":\"F\",\"և\":\"EV\",\"ء\":\"a\",\"آ\":\"aa\",\"أ\":\"a\",\"ؤ\":\"u\",\"إ\":\"i\",\"ئ\":\"e\",\"ا\":\"a\",\"ب\":\"b\",\"ة\":\"h\",\"ت\":\"t\",\"ث\":\"th\",\"ج\":\"j\",\"ح\":\"h\",\"خ\":\"kh\",\"د\":\"d\",\"ذ\":\"th\",\"ر\":\"r\",\"ز\":\"z\",\"س\":\"s\",\"ش\":\"sh\",\"ص\":\"s\",\"ض\":\"dh\",\"ط\":\"t\",\"ظ\":\"z\",\"ع\":\"a\",\"غ\":\"gh\",\"ف\":\"f\",\"ق\":\"q\",\"ك\":\"k\",\"ل\":\"l\",\"م\":\"m\",\"ن\":\"n\",\"ه\":\"h\",\"و\":\"w\",\"ى\":\"a\",\"ي\":\"y\",\"ً\":\"an\",\"ٌ\":\"on\",\"ٍ\":\"en\",\"َ\":\"a\",\"ُ\":\"u\",\"ِ\":\"e\",\"ْ\":\"\",\"٠\":\"0\",\"١\":\"1\",\"٢\":\"2\",\"٣\":\"3\",\"٤\":\"4\",\"٥\":\"5\",\"٦\":\"6\",\"٧\":\"7\",\"٨\":\"8\",\"٩\":\"9\",\"پ\":\"p\",\"چ\":\"ch\",\"ژ\":\"zh\",\"ک\":\"k\",\"گ\":\"g\",\"ی\":\"y\",\"۰\":\"0\",\"۱\":\"1\",\"۲\":\"2\",\"۳\":\"3\",\"۴\":\"4\",\"۵\":\"5\",\"۶\":\"6\",\"۷\":\"7\",\"۸\":\"8\",\"۹\":\"9\",\"฿\":\"baht\",\"ა\":\"a\",\"ბ\":\"b\",\"გ\":\"g\",\"დ\":\"d\",\"ე\":\"e\",\"ვ\":\"v\",\"ზ\":\"z\",\"თ\":\"t\",\"ი\":\"i\",\"კ\":\"k\",\"ლ\":\"l\",\"მ\":\"m\",\"ნ\":\"n\",\"ო\":\"o\",\"პ\":\"p\",\"ჟ\":\"zh\",\"რ\":\"r\",\"ს\":\"s\",\"ტ\":\"t\",\"უ\":\"u\",\"ფ\":\"f\",\"ქ\":\"k\",\"ღ\":\"gh\",\"ყ\":\"q\",\"შ\":\"sh\",\"ჩ\":\"ch\",\"ც\":\"ts\",\"ძ\":\"dz\",\"წ\":\"ts\",\"ჭ\":\"ch\",\"ხ\":\"kh\",\"ჯ\":\"j\",\"ჰ\":\"h\",\"Ṣ\":\"S\",\"ṣ\":\"s\",\"Ẁ\":\"W\",\"ẁ\":\"w\",\"Ẃ\":\"W\",\"ẃ\":\"w\",\"Ẅ\":\"W\",\"ẅ\":\"w\",\"ẞ\":\"SS\",\"Ạ\":\"A\",\"ạ\":\"a\",\"Ả\":\"A\",\"ả\":\"a\",\"Ấ\":\"A\",\"ấ\":\"a\",\"Ầ\":\"A\",\"ầ\":\"a\",\"Ẩ\":\"A\",\"ẩ\":\"a\",\"Ẫ\":\"A\",\"ẫ\":\"a\",\"Ậ\":\"A\",\"ậ\":\"a\",\"Ắ\":\"A\",\"ắ\":\"a\",\"Ằ\":\"A\",\"ằ\":\"a\",\"Ẳ\":\"A\",\"ẳ\":\"a\",\"Ẵ\":\"A\",\"ẵ\":\"a\",\"Ặ\":\"A\",\"ặ\":\"a\",\"Ẹ\":\"E\",\"ẹ\":\"e\",\"Ẻ\":\"E\",\"ẻ\":\"e\",\"Ẽ\":\"E\",\"ẽ\":\"e\",\"Ế\":\"E\",\"ế\":\"e\",\"Ề\":\"E\",\"ề\":\"e\",\"Ể\":\"E\",\"ể\":\"e\",\"Ễ\":\"E\",\"ễ\":\"e\",\"Ệ\":\"E\",\"ệ\":\"e\",\"Ỉ\":\"I\",\"ỉ\":\"i\",\"Ị\":\"I\",\"ị\":\"i\",\"Ọ\":\"O\",\"ọ\":\"o\",\"Ỏ\":\"O\",\"ỏ\":\"o\",\"Ố\":\"O\",\"ố\":\"o\",\"Ồ\":\"O\",\"ồ\":\"o\",\"Ổ\":\"O\",\"ổ\":\"o\",\"Ỗ\":\"O\",\"ỗ\":\"o\",\"Ộ\":\"O\",\"ộ\":\"o\",\"Ớ\":\"O\",\"ớ\":\"o\",\"Ờ\":\"O\",\"ờ\":\"o\",\"Ở\":\"O\",\"ở\":\"o\",\"Ỡ\":\"O\",\"ỡ\":\"o\",\"Ợ\":\"O\",\"ợ\":\"o\",\"Ụ\":\"U\",\"ụ\":\"u\",\"Ủ\":\"U\",\"ủ\":\"u\",\"Ứ\":\"U\",\"ứ\":\"u\",\"Ừ\":\"U\",\"ừ\":\"u\",\"Ử\":\"U\",\"ử\":\"u\",\"Ữ\":\"U\",\"ữ\":\"u\",\"Ự\":\"U\",\"ự\":\"u\",\"Ỳ\":\"Y\",\"ỳ\":\"y\",\"Ỵ\":\"Y\",\"ỵ\":\"y\",\"Ỷ\":\"Y\",\"ỷ\":\"y\",\"Ỹ\":\"Y\",\"ỹ\":\"y\",\"–\":\"-\",\"‘\":\"'\",\"’\":\"'\",\"“\":\"\\\"\",\"”\":\"\\\"\",\"„\":\"\\\"\",\"†\":\"+\",\"•\":\"*\",\"…\":\"...\",\"₠\":\"ecu\",\"₢\":\"cruzeiro\",\"₣\":\"french franc\",\"₤\":\"lira\",\"₥\":\"mill\",\"₦\":\"naira\",\"₧\":\"peseta\",\"₨\":\"rupee\",\"₩\":\"won\",\"₪\":\"new shequel\",\"₫\":\"dong\",\"€\":\"euro\",\"₭\":\"kip\",\"₮\":\"tugrik\",\"₯\":\"drachma\",\"₰\":\"penny\",\"₱\":\"peso\",\"₲\":\"guarani\",\"₳\":\"austral\",\"₴\":\"hryvnia\",\"₵\":\"cedi\",\"₸\":\"kazakhstani tenge\",\"₹\":\"indian rupee\",\"₺\":\"turkish lira\",\"₽\":\"russian ruble\",\"₿\":\"bitcoin\",\"℠\":\"sm\",\"™\":\"tm\",\"∂\":\"d\",\"∆\":\"delta\",\"∑\":\"sum\",\"∞\":\"infinity\",\"♥\":\"love\",\"元\":\"yuan\",\"円\":\"yen\",\"﷼\":\"rial\",\"ﻵ\":\"laa\",\"ﻷ\":\"laa\",\"ﻹ\":\"lai\",\"ﻻ\":\"la\"}");
-		var locales = JSON.parse("{\"bg\":{\"Й\":\"Y\",\"Ц\":\"Ts\",\"Щ\":\"Sht\",\"Ъ\":\"A\",\"Ь\":\"Y\",\"й\":\"y\",\"ц\":\"ts\",\"щ\":\"sht\",\"ъ\":\"a\",\"ь\":\"y\"},\"de\":{\"Ä\":\"AE\",\"ä\":\"ae\",\"Ö\":\"OE\",\"ö\":\"oe\",\"Ü\":\"UE\",\"ü\":\"ue\",\"ß\":\"ss\",\"%\":\"prozent\",\"&\":\"und\",\"|\":\"oder\",\"∑\":\"summe\",\"∞\":\"unendlich\",\"♥\":\"liebe\"},\"es\":{\"%\":\"por ciento\",\"&\":\"y\",\"<\":\"menor que\",\">\":\"mayor que\",\"|\":\"o\",\"¢\":\"centavos\",\"£\":\"libras\",\"¤\":\"moneda\",\"₣\":\"francos\",\"∑\":\"suma\",\"∞\":\"infinito\",\"♥\":\"amor\"},\"fr\":{\"%\":\"pourcent\",\"&\":\"et\",\"<\":\"plus petit\",\">\":\"plus grand\",\"|\":\"ou\",\"¢\":\"centime\",\"£\":\"livre\",\"¤\":\"devise\",\"₣\":\"franc\",\"∑\":\"somme\",\"∞\":\"infini\",\"♥\":\"amour\"},\"pt\":{\"%\":\"porcento\",\"&\":\"e\",\"<\":\"menor\",\">\":\"maior\",\"|\":\"ou\",\"¢\":\"centavo\",\"∑\":\"soma\",\"£\":\"libra\",\"∞\":\"infinito\",\"♥\":\"amor\"},\"uk\":{\"И\":\"Y\",\"и\":\"y\",\"Й\":\"Y\",\"й\":\"y\",\"Ц\":\"Ts\",\"ц\":\"ts\",\"Х\":\"Kh\",\"х\":\"kh\",\"Щ\":\"Shch\",\"щ\":\"shch\",\"Г\":\"H\",\"г\":\"h\"},\"vi\":{\"Đ\":\"D\",\"đ\":\"d\"},\"da\":{\"Ø\":\"OE\",\"ø\":\"oe\",\"Å\":\"AA\",\"å\":\"aa\",\"%\":\"procent\",\"&\":\"og\",\"|\":\"eller\",\"$\":\"dollar\",\"<\":\"mindre end\",\">\":\"større end\"},\"nb\":{\"&\":\"og\",\"Å\":\"AA\",\"Æ\":\"AE\",\"Ø\":\"OE\",\"å\":\"aa\",\"æ\":\"ae\",\"ø\":\"oe\"},\"it\":{\"&\":\"e\"},\"nl\":{\"&\":\"en\"},\"sv\":{\"&\":\"och\",\"Å\":\"AA\",\"Ä\":\"AE\",\"Ö\":\"OE\",\"å\":\"aa\",\"ä\":\"ae\",\"ö\":\"oe\"}}");
-		function replace(string, options) {
-			if (typeof string !== "string") throw new Error("slugify: string argument expected");
-			options = typeof options === "string" ? { replacement: options } : options || {};
-			var locale = locales[options.locale] || {};
-			var replacement = options.replacement === void 0 ? "-" : options.replacement;
-			var trim = options.trim === void 0 ? true : options.trim;
-			var slug = string.normalize().split("").reduce(function(result, ch) {
-				var appendChar = locale[ch];
-				if (appendChar === void 0) appendChar = charMap[ch];
-				if (appendChar === void 0) appendChar = ch;
-				if (appendChar === replacement) appendChar = " ";
-				return result + appendChar.replace(options.remove || /[^\w\s$*_+~.()'"!\-:@]+/g, "");
-			}, "");
-			if (options.strict) slug = slug.replace(/[^A-Za-z0-9\s]/g, "");
-			if (trim) slug = slug.trim();
-			slug = slug.replace(/\s+/g, replacement);
-			if (options.lower) slug = slug.toLowerCase();
-			return slug;
-		}
-		replace.extend = function(customMap) {
-			Object.assign(charMap, customMap);
-		};
-		return replace;
-	});
-} });
-
-//#endregion
 //#region src/cli/handlers/task.handler.ts
 var import_slugify = __toESM(require_slugify(), 1);
 const TASKS_DIR$1 = ".festinalente/tasks";
@@ -6310,7 +6594,8 @@ function createTaskHandler(deps) {
 			title: parsed.title,
 			status: parsed.status,
 			priority: parsed.priority,
-			labels: parsed.labels
+			labels: parsed.labels,
+			projectId: parsed.projectId ?? null
 		});
 	}
 	/**
@@ -6329,6 +6614,7 @@ function createTaskHandler(deps) {
 			const readResult = fs$3.readFile(filePath);
 			if (!readResult.ok) continue;
 			const parsedTask = xmlParser.parseTaskXml(readResult.value);
+			const taskProjectId = parsedTask.projectId ?? null;
 			const task = {
 				id: folderId,
 				filename: "task.xml",
@@ -6336,16 +6622,19 @@ function createTaskHandler(deps) {
 				title: parsedTask.title,
 				status: parsedTask.status,
 				priority: parsedTask.priority,
-				labels: parsedTask.labels
+				labels: parsedTask.labels,
+				projectId: taskProjectId
 			};
 			const statusFilter = getStringFlag(parsed.flags, "status");
 			const excludeStatus = getStringFlag(parsed.flags, "exclude-status");
 			const priorityFilter = getStringFlag(parsed.flags, "priority");
 			const labelFilter = getStringFlag(parsed.flags, "label");
+			const projectFilter = getStringFlag(parsed.flags, "project");
 			if (statusFilter && task.status !== statusFilter) continue;
 			if (excludeStatus && task.status === excludeStatus) continue;
 			if (priorityFilter && task.priority !== priorityFilter) continue;
 			if (labelFilter && !task.labels.includes(labelFilter)) continue;
+			if (projectFilter && task.projectId !== projectFilter) continue;
 			tasks.push(task);
 		}
 		return success({
@@ -6480,7 +6769,7 @@ function createTaskHandler(deps) {
 	function getCommands() {
 		return [
 			defineCommand("find-task", "Find a task by ID", "find-task <id>", findTask),
-			defineCommand("list-tasks", "List all tasks with optional filtering", "list-tasks [--status=X] [--exclude-status=X] [--label=X] [--priority=X]", listTasks),
+			defineCommand("list-tasks", "List all tasks with optional filtering", "list-tasks [--status=X] [--exclude-status=X] [--label=X] [--priority=X] [--project=X]", listTasks),
 			defineCommand("delete-task", "Delete a task (backlog status only)", "delete-task <id>", deleteTask),
 			defineCommand("next-id", "Get the next available task ID", "next-id --title=\"Task title\"", nextId),
 			defineCommand("get-plan-task", "Get a single task from plan.xml by task ID", "get-plan-task <festina-task-id> <plan-task-id>", getPlanTask),
@@ -7860,7 +8149,9 @@ const VALID_PHASES = [
 	"define-product",
 	"map-product",
 	"map-engineering",
-	"directive"
+	"directive",
+	"create-project",
+	"complete-project"
 ];
 /**
 * Directive validation severities.
@@ -8057,6 +8348,94 @@ function createValidationComputer() {
 			warnings
 		};
 	}
+	/**
+	* Valid project statuses.
+	*/
+	const VALID_PROJECT_STATUSES = [
+		"open",
+		"in-progress",
+		"done"
+	];
+	function validateProject(content) {
+		const errors = [];
+		const warnings = [];
+		let parsed;
+		try {
+			parsed = parser.parse(content);
+		} catch (err$1) {
+			return {
+				valid: false,
+				errors: [`XML parse error: ${err$1 instanceof Error ? err$1.message : String(err$1)}`],
+				warnings: []
+			};
+		}
+		const project = parsed.project;
+		if (!project) return {
+			valid: false,
+			errors: ["Missing root <project> element"],
+			warnings: []
+		};
+		const id = project.id;
+		const status = project.status;
+		const created = project.created;
+		const updated = project.updated;
+		if (!id) errors.push("Missing required attribute: id");
+		else if (!/^P/.test(id)) errors.push(`Project id must start with "P", got "${id}"`);
+		if (!status) errors.push("Missing required attribute: status");
+		else if (!VALID_PROJECT_STATUSES.includes(status)) errors.push(`Invalid status "${status}". Valid: ${VALID_PROJECT_STATUSES.join(", ")}`);
+		if (!created) errors.push("Missing required attribute: created");
+		else if (!/^\d{4}-\d{2}-\d{2}$/.test(created)) errors.push(`Invalid created date format: "${created}" (expected YYYY-MM-DD)`);
+		if (!updated) errors.push("Missing required attribute: updated");
+		else if (!/^\d{4}-\d{2}-\d{2}$/.test(updated)) errors.push(`Invalid updated date format: "${updated}" (expected YYYY-MM-DD)`);
+		const requiredChildren = [
+			"title",
+			"description",
+			"problem",
+			"value",
+			"scope",
+			"requirements",
+			"acceptance-criteria",
+			"tasks"
+		];
+		for (const child of requiredChildren) if (project[child] === void 0 || project[child] === null) errors.push(`Missing required element: <${child}>`);
+		const scope = project.scope;
+		if (scope) {
+			if (scope["in-scope"] === void 0 || scope["in-scope"] === null) errors.push("Missing required element: <scope><in-scope>");
+			if (scope["out-of-scope"] === void 0 || scope["out-of-scope"] === null) errors.push("Missing required element: <scope><out-of-scope>");
+		}
+		const requirements = project.requirements;
+		if (requirements) {
+			const req = requirements.requirement;
+			const reqList = Array.isArray(req) ? req : req ? [req] : [];
+			const seenIds = new Set();
+			for (const r of reqList) {
+				const rObj = r;
+				const reqId = rObj.id;
+				if (!reqId) errors.push("Requirement missing required id attribute");
+				else {
+					if (!/^R\d+$/.test(reqId)) errors.push(`Requirement id must match R-prefix pattern (e.g. R1, R2), got "${reqId}"`);
+					if (seenIds.has(reqId)) errors.push(`Duplicate requirement id: "${reqId}"`);
+					seenIds.add(reqId);
+				}
+			}
+			if (reqList.length === 0) warnings.push("No <requirement> elements found inside <requirements>");
+		}
+		const tasks = project.tasks;
+		if (tasks) {
+			const task = tasks.task;
+			const taskList = Array.isArray(task) ? task : task ? [task] : [];
+			for (const t of taskList) {
+				const tObj = t;
+				const ref = tObj.ref;
+				if (!ref) errors.push("Task element missing required ref attribute");
+			}
+		}
+		return {
+			valid: errors.length === 0,
+			errors,
+			warnings
+		};
+	}
 	function validateDocQuality(frontmatter, body, id, path$2) {
 		const checks = [];
 		let hasError = false;
@@ -8085,6 +8464,7 @@ function createValidationComputer() {
 	return {
 		validateXml,
 		validateDirective,
+		validateProject,
 		validateDocQuality,
 		getQualityChecks
 	};
@@ -8097,6 +8477,7 @@ const QUICK_DIR = ".festinalente/quick";
 const PRODUCT_DIR = ".festinalente/product";
 const ENGINEERING_DIR = ".festinalente/engineering";
 const DIRECTIVES_DIR = ".festinalente/directives";
+const PROJECTS_DIR = ".festinalente/projects";
 /**
 * Create a validation handler.
 *
@@ -8105,6 +8486,17 @@ const DIRECTIVES_DIR = ".festinalente/directives";
 */
 function createValidationHandler(deps) {
 	const { fs: fs$3, yamlParser, validation, taskResolver } = deps;
+	/**
+	* Get XML files for a project.
+	*/
+	function getXmlFilesForProject(projectId) {
+		const projectDir = fs$3.joinPath(PROJECTS_DIR, projectId);
+		if (!fs$3.exists(projectDir) || !fs$3.isDirectory(projectDir)) return null;
+		const files = [];
+		const projectXml = fs$3.joinPath(projectDir, "project.xml");
+		if (fs$3.exists(projectXml)) files.push(projectXml);
+		return files;
+	}
 	/**
 	* Get XML files for a quick task.
 	*/
@@ -8169,10 +8561,16 @@ function createValidationHandler(deps) {
 		const parsed = parseArgs(args);
 		let files;
 		if (parsed.positional.length > 0) {
-			const taskId = parsed.positional[0];
-			const taskFiles = getXmlFilesForTask(taskId);
-			if (taskFiles === null) return error(`Task not found: ${taskId}`);
-			files = taskFiles;
+			const id = parsed.positional[0];
+			if (id.startsWith("P")) {
+				const projectFiles = getXmlFilesForProject(id);
+				if (projectFiles === null) return error(`Project not found: ${id}`);
+				files = projectFiles;
+			} else {
+				const taskFiles = getXmlFilesForTask(id);
+				if (taskFiles === null) return error(`Task not found: ${id}`);
+				files = taskFiles;
+			}
 		} else files = getAllXmlFiles();
 		if (files.length === 0) return success({
 			valid: true,
@@ -8189,7 +8587,8 @@ function createValidationHandler(deps) {
 				});
 				continue;
 			}
-			const validationResult = validation.validateXml(readResult.value);
+			const isProjectXml = file.replace(/\\/g, "/").endsWith("/project.xml");
+			const validationResult = isProjectXml ? validation.validateProject(readResult.value) : validation.validateXml(readResult.value);
 			if (!validationResult.valid) for (const errMsg of validationResult.errors) errors.push({
 				file: file.replace(/\\/g, "/"),
 				message: errMsg
@@ -8411,9 +8810,162 @@ function createXmlParserComputer() {
 		if (typeof ref === "object" && ref && "_text" in ref) return [String(ref._text).trim()];
 		return [];
 	}
+	/**
+	* Parse doc elements to extract id attributes.
+	*
+	* @param section - The section containing doc elements.
+	* @returns Array of doc id strings.
+	*/
+	function parseDocIds(section) {
+		if (!section) return [];
+		const sectionObj = section;
+		const doc = sectionObj.doc;
+		if (Array.isArray(doc)) return doc.map((d) => {
+			if (typeof d === "string") return d.trim();
+			if (typeof d === "object" && d && "id" in d) return String(d.id).trim();
+			if (typeof d === "object" && d && "_text" in d) return String(d._text).trim();
+			return "";
+		}).filter(Boolean);
+		if (typeof doc === "string") return [doc.trim()];
+		if (typeof doc === "object" && doc && "id" in doc) return [String(doc.id).trim()];
+		if (typeof doc === "object" && doc && "_text" in doc) return [String(doc._text).trim()];
+		return [];
+	}
+	/**
+	* Parse item elements from a section.
+	*
+	* @param section - The section containing item elements.
+	* @returns Array of item text strings.
+	*/
+	function parseItems(section) {
+		if (!section) return [];
+		const sectionObj = section;
+		const item = sectionObj.item;
+		if (Array.isArray(item)) return item.map((i$2) => extractText(i$2)).filter(Boolean);
+		if (item !== void 0 && item !== null) {
+			const text = extractText(item);
+			return text ? [text] : [];
+		}
+		return [];
+	}
+	/**
+	* Parse requirement elements with id and text content.
+	*
+	* @param section - The section containing requirement elements.
+	* @returns Array of requirement objects with id and text.
+	*/
+	function parseRequirements(section) {
+		if (!section) return [];
+		const sectionObj = section;
+		const req = sectionObj.requirement;
+		if (!req) return [];
+		const reqList = Array.isArray(req) ? req : [req];
+		return reqList.map((r) => {
+			if (typeof r === "object" && r) {
+				const rObj = r;
+				return {
+					id: String(rObj.id || "").trim(),
+					text: extractText(r)
+				};
+			}
+			return {
+				id: "",
+				text: extractText(r)
+			};
+		}).filter((r) => r.id || r.text);
+	}
+	/**
+	* Parse task ref elements from a tasks section.
+	*
+	* @param section - The section containing task elements.
+	* @returns Array of task ref strings.
+	*/
+	function parseTaskRefs(section) {
+		if (!section) return [];
+		const sectionObj = section;
+		const task = sectionObj.task;
+		if (Array.isArray(task)) return task.map((t) => {
+			if (typeof t === "string") return t.trim();
+			if (typeof t === "object" && t && "ref" in t) return String(t.ref).trim();
+			if (typeof t === "object" && t && "_text" in t) return String(t._text).trim();
+			return "";
+		}).filter(Boolean);
+		if (typeof task === "string") return [task.trim()];
+		if (typeof task === "object" && task && "ref" in task) return [String(task.ref).trim()];
+		if (typeof task === "object" && task && "_text" in task) return [String(task._text).trim()];
+		return [];
+	}
+	/**
+	* Parse acceptance criteria elements into a single string.
+	*
+	* @param section - The section containing criterion elements.
+	* @returns Concatenated acceptance criteria string.
+	*/
+	function parseAcceptanceCriteria(section) {
+		if (!section) return "";
+		if (typeof section === "string") return section.trim();
+		const sectionObj = section;
+		const criterion = sectionObj.criterion;
+		if (!criterion) return extractText(section);
+		if (Array.isArray(criterion)) return criterion.map((c) => extractText(c)).filter(Boolean).join("\n");
+		return extractText(criterion);
+	}
+	/**
+	* Parse req ref elements from a project-requirements section.
+	*
+	* @param section - The section containing req elements.
+	* @returns Array of requirement ref strings.
+	*/
+	function parseReqRefs(section) {
+		if (!section) return [];
+		const sectionObj = section;
+		const req = sectionObj.req;
+		if (Array.isArray(req)) return req.map((r) => {
+			if (typeof r === "string") return r.trim();
+			if (typeof r === "object" && r && "ref" in r) return String(r.ref).trim();
+			if (typeof r === "object" && r && "_text" in r) return String(r._text).trim();
+			return "";
+		}).filter(Boolean);
+		if (typeof req === "string") return [req.trim()];
+		if (typeof req === "object" && req && "ref" in req) return [String(req.ref).trim()];
+		if (typeof req === "object" && req && "_text" in req) return [String(req._text).trim()];
+		return [];
+	}
+	/**
+	* Parse a project.xml file into structured metadata.
+	*
+	* @param content - The XML content to parse.
+	* @returns Parsed project metadata.
+	*/
+	function parseProjectXml(content) {
+		const result = parser.parse(content);
+		const project = result.project;
+		return {
+			id: project.id || "",
+			status: project.status || "open",
+			title: extractText(project.title),
+			description: extractText(project.description),
+			problem: extractText(project.problem),
+			value: extractText(project.value),
+			scope: {
+				inScope: parseItems(project.scope?.["in-scope"]),
+				outOfScope: parseItems(project.scope?.["out-of-scope"])
+			},
+			requirements: parseRequirements(project.requirements),
+			acceptanceCriteria: parseAcceptanceCriteria(project["acceptance-criteria"]),
+			tasks: parseTaskRefs(project.tasks),
+			notes: extractText(project.notes),
+			affects: parseDocIds(project.affects),
+			engineering: parseDocIds(project.engineering),
+			created: project.created || "",
+			updated: project.updated || ""
+		};
+	}
 	function parseTaskXml(content) {
 		const result = parser.parse(content);
 		const task = result.task;
+		const projectId = task["project-id"] ? String(task["project-id"]).trim() : void 0;
+		const projectRequirements = task["project-requirements"] ? parseReqRefs(task["project-requirements"]) : void 0;
 		return {
 			id: task.id || "",
 			status: task.status || "",
@@ -8424,7 +8976,9 @@ function createXmlParserComputer() {
 			affects: parseRefs(task.affects),
 			engineering: parseRefs(task.engineering),
 			created: task.created || "",
-			updated: task.updated || ""
+			updated: task.updated || "",
+			...projectId !== void 0 ? { projectId } : {},
+			...projectRequirements !== void 0 ? { projectRequirements } : {}
 		};
 	}
 	function parseSpecXml(content) {
@@ -8521,6 +9075,7 @@ function createXmlParserComputer() {
 		};
 	}
 	return {
+		parseProjectXml,
 		parseTaskXml,
 		parseSpecXml,
 		parsePlanXml,
@@ -13545,6 +14100,10 @@ function createCliOrchestrator() {
 		yamlParser,
 		xmlParser
 	});
+	const projectHandler = createProjectHandler({
+		fs: fs$3,
+		xmlParser
+	});
 	const registry = createCommandRegistry();
 	for (const command of taskHandler.getCommands()) registry.register(command);
 	for (const command of specHandler.getCommands()) registry.register(command);
@@ -13554,6 +14113,7 @@ function createCliOrchestrator() {
 	for (const command of validationHandler.getCommands()) registry.register(command);
 	for (const command of configHandler.getCommands()) registry.register(command);
 	for (const command of queryHandler.getCommands()) registry.register(command);
+	for (const command of projectHandler.getCommands()) registry.register(command);
 	return { registry };
 }
 

@@ -24,6 +24,12 @@ Define a new greenfield product through deep Socratic Q&A and generate both prod
 
 
 
+
+
+
+
+
+
 <note>Use these scripts to work with product documentation:</note>
 
 <command description="List all product docs (returns JSON with count and docs array)">node .festinalente/scripts/festinalente.cjs list-product</command>

@@ -27,6 +27,16 @@ Show the current state of the board or specific tasks. Starts by asking what the
 
 
 
+
+
+
+<command description="List all projects (returns JSON with count and projects array)">node .festinalente/scripts/festinalente.cjs list-projects</command>
+<command description="List projects filtered by status">node .festinalente/scripts/festinalente.cjs list-projects --status=open</command>
+
+<command description="Get all tasks belonging to a project (returns JSON with count and tasks array)">node .festinalente/scripts/festinalente.cjs get-project-tasks {project-id}</command>
+
+<command description="Get task progress counts by status for a project">node .festinalente/scripts/festinalente.cjs get-project-progress {project-id}</command>
+
 </context>
 
 <prohibited>
@@ -57,6 +67,18 @@ No tasks found.
       If validation fails, fix the reported errors before completing.
       
       <output>[FESTINA_COMPLETE]</output>
+    </branch>
+  </step>
+
+  <step name="load_projects" outputs="projects">
+    <note>AC-F4: If no projects exist, skip entirely and behave exactly as before.</note>
+    <command>node .festinalente/scripts/festinalente.cjs list-projects</command>
+    <branch condition="count is 0">
+      <action>Skip — no projects exist, proceed without project data (AC-F4)</action>
+    </branch>
+    <branch condition="projects exist (count > 0)">
+      <action>For each project, call: node .festinalente/scripts/festinalente.cjs get-project-progress {project-id}</action>
+      <action>Store project list with progress data for display in views</action>
     </branch>
   </step>
 
@@ -114,6 +136,19 @@ No tasks in progress.
 - Next: {appropriate command for status}
 
     </output>
+
+    <branch condition="projects were loaded (count > 0)">
+      <note>AC-F3: Show Projects section. Order: in-progress first, then open, then done.</note>
+      <output>
+## Projects
+
+{For each project, ordered: in-progress first, then open, then done (AC-F3):}
+**{project-id}: {project-title}** ({status})
+- Progress: {done}/{total} tasks complete
+- Tasks: {comma-separated child task IDs}
+      </output>
+    </branch>
+
     ## Final Validation
     
     Before completing, validate all task XML:
@@ -162,6 +197,19 @@ No tasks in progress.
 **Done ({count})**
 - {id}: {title}
     </output>
+
+    <branch condition="projects were loaded (count > 0)">
+      <note>AC-F3: Show Projects section. Order: in-progress first, then open, then done.</note>
+      <output>
+## Projects
+
+{For each project, ordered: in-progress first, then open, then done (AC-F3):}
+**{project-id}: {project-title}** ({status})
+- Progress: {done}/{total} tasks complete
+- Tasks: {comma-separated child task IDs}
+      </output>
+    </branch>
+
     ## Final Validation
     
     Before completing, validate all task XML:
@@ -210,6 +258,18 @@ No tasks in progress.
 
 Done ({count} tasks)
     </output>
+
+    <branch condition="projects were loaded (count > 0)">
+      <note>AC-F3: Show Projects section below the board. Order: in-progress first, then open, then done.</note>
+      <output>
+## Projects
+
+{For each project, ordered: in-progress first, then open, then done (AC-F3):}
+**{project-id}: {project-title}** ({status}) — {done}/{total} tasks complete
+  Tasks: {comma-separated child task IDs}
+      </output>
+    </branch>
+
     ## Final Validation
     
     Before completing, validate all task XML:
