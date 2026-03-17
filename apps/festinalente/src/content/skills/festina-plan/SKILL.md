@@ -472,6 +472,22 @@ Run: /festina-scope {taskId}
       </branch>
     </action>
 
+    <action name="directive_content_assessment">
+      <note>Assess plan content against loaded directive principles and process rules (phase="plan")</note>
+      <branch condition="directives were loaded in load_directives step">
+        <action>For each loaded directive:</action>
+        <action>Extract context principles and process rules where phase contains "plan"</action>
+        <action>For each principle/rule, self-assess whether the plan's approach rationale, task actions, and pattern references account for it:</action>
+        <action>- Does the plan's approach acknowledge this principle where relevant?</action>
+        <action>- Do task actions avoid contradicting this principle?</action>
+        <action>- Are pattern references consistent with this principle's guidance?</action>
+        <branch condition="any principle/rule is not reflected in plan content">
+          <output>WARNING: Directive "{directive.name}" principle {principle.id} "{principle text}" is not reflected in plan content. Suggested correction: {specific suggestion based on principle}</output>
+        </branch>
+      </branch>
+      <note>This is advisory — WARNINGs not BLOCKERs — because plan text is free-form and principles are broad</note>
+    </action>
+
     <branch condition="any BLOCKER exists">
       <action>Fix blocking issues</action>
       <action>Re-run validate_plan</action>
