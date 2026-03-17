@@ -9,7 +9,7 @@ aliases: [festina-implement, execute, run]
 boundary: "Does not update documentation - that happens in finalize. Git operations are directive-driven."
 references: [skills/plan, skills/finalize, cli/context]
 uses: [systems/cli, systems/data-model]
-updated: 2026-03-07
+updated: 2026-03-17
 ---
 
 # Implement Task
@@ -39,6 +39,7 @@ flowchart TB
         Spawn[Spawn Subagent]
         Execute[Execute Task]
         Verify[Run Verification]
+        DirVal[Directive Validation]
         Persist[Persist Completion]
     end
 
@@ -46,7 +47,9 @@ flowchart TB
     Order --> Spawn
     Spawn --> Execute
     Execute --> Verify
-    Verify --> Persist
+    Verify --> DirVal
+    DirVal --> |pass or continue| Persist
+    DirVal --> |fix now| Execute
     Persist --> |next task| Spawn
     Persist --> |all done| Quality
 ```
@@ -55,11 +58,12 @@ flowchart TB
 
 Each plan task is executed by a fresh subagent:
 
-1. **Build prompt** from task elements (files, pattern, action, verify)
+1. **Build prompt** from task elements (files, pattern, action, verify). When directives are loaded, full directive XML is included in the subagent prompt so it has directive context
 2. **Spawn subagent** with general-purpose type
 3. **Wait for completion** and parse SUCCESS/FAILURE
-4. **Persist immediately** - Mark `completed="true"` in plan.xml
-5. **Continue** to next task or handle failure
+4. **Per-task directive validation** - Run directive validation checks (commands, patterns, checklists) scoped to the current task's files. Violations prompt user with Fix now / Continue anyway
+5. **Persist immediately** - Mark `completed="true"` in plan.xml
+6. **Continue** to next task or handle failure
 
 **Summary:** Fresh subagents ensure clean context for each implementation step.
 
@@ -145,7 +149,7 @@ What this skill does NOT do:
 
 - **Smart Context**: Loads relevant docs via select-context
 - **Spec Boundaries**: If spec.xml contains `<boundaries>`, the always/ask-first/never rules are injected into each subagent's prompt. Ask-first items instruct subagents to report FAILURE with details rather than proceeding.
-- **Directives**: Applies `phase="implement"` rules
+- **Directives**: Applies `phase="implement"` rules. Full directive XML is injected into subagent prompts. Per-task directive validation runs after each subagent completes, before marking the task complete
 
 ## Limitations
 

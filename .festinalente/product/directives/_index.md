@@ -10,7 +10,7 @@ boundary: "Does not include skill logic itself (see skills domain) or CLI utilit
 contains: [directives/system, directives/creation, directives/diagnostics]
 references: [skills/_index, cli/_index, vscode/_index]
 uses: []
-updated: 2026-03-06
+updated: 2026-03-17
 ---
 
 # Directives
@@ -62,7 +62,7 @@ This domain does NOT include the skill workflow logic. For that, see [skills](..
 
 - **Context Principles**: Ongoing mindset rules the LLM maintains throughout a phase
 - **Process Rules**: Phase-specific requirements (e.g., `phase="implement"` rules only apply during implementation)
-- **Validation Checks**: Automated checks (commands, patterns, checklists) run during directive compliance
+- **Validation Checks**: Automated checks (commands, patterns, checklists) run per-task during implementation and during final directive compliance
 - **Overrides**: Directives can skip and replace skill steps entirely
 - **Skill Mapping**: Directives are linked to skills via `.festinalente/config.yaml`
 
