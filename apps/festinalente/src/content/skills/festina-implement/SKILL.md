@@ -119,8 +119,8 @@ Move task from Planned to In Progress and execute the plan.
   </step>
 
   <step name="load_directives">
-    <note>**Orchestrator-only step:** Directive loading and compliance checking runs in orchestrator only.
-    Subagents do not receive directive context - they focus purely on task execution.</note>
+    <note>**Directive loading:** Directives are loaded here and injected into each subagent prompt via build_subagent_prompt.
+    Per-task validation runs after each subagent completes in handle_subagent_result.</note>
     {{> load-directives skill="implement"}}
   </step>
 
@@ -157,6 +157,7 @@ Spawning subagent...
 
     <substep name="build_subagent_prompt" outputs="subagentPrompt">
       <note>Build prompt from task elements - file refs only, no embedded content.</note>
+      <note>When directives were loaded in load_directives, include their full XML in the prompt so subagents can follow project-specific standards.</note>
       <action>Extract task elements: id, name, context, pattern, action, verify, done</action>
       <action>Build prompt using template:</action>
 
@@ -186,6 +187,16 @@ Execute task {task.id}: "{task.name}"
 - ASK FIRST: {ask-first items — if you encounter these, report FAILURE with details instead of proceeding}
 - NEVER: {never items — do NOT do these under any circumstances}
 
+{If directives were loaded in load_directives step:}
+**Directives:**
+The following project directives apply to this task. Follow their context principles
+and process rules where phase contains "implement":
+
+{For each loaded directive:}
+```xml
+{full directive XML content}
+```
+
 When complete, report:
 - SUCCESS: {summary of what was done}
 - FAILURE: {what failed and why}
@@ -210,6 +221,52 @@ When complete, report:
     <substep name="handle_subagent_result">
       <branch condition="subagent reports SUCCESS">
         <output>✓ Task {task.id} completed: {subagent summary}</output>
+
+        <substep name="per_task_directive_validation">
+          <branch condition="directives were loaded in load_directives step">
+            <note>Run directive validation checks scoped to files modified by this task</note>
+            <action>Extract file paths from this task's files element</action>
+            <action>For each loaded directive, re-read the directive XML file</action>
+            <action>Run each validation check:</action>
+
+            <branch condition="check type=command">
+              <command>{content of run element}</command>
+              <validate>{content of expect element}</validate>
+            </branch>
+
+            <branch condition="check type=pattern">
+              <action>For each file in THIS TASK's files list that matches the check's files glob:</action>
+              <action>Check content against forbidden or required regex</action>
+            </branch>
+
+            <branch condition="check type=checklist">
+              <action>Self-assess each item as Y/N against this task's changes</action>
+            </branch>
+
+            <branch condition="any check fails">
+              <output>Directive violation in task {task.id}: {check id} - {reason}</output>
+              <action>Find example elements where ref matches failed check</action>
+              <action>Show violation examples to illustrate the problem</action>
+              <action>Show correct examples to illustrate the fix</action>
+              <action>Use AskUserQuestion tool with:
+                - header: "Directive Violation"
+                - question: "Directive check failed for task {task.id} '{task.name}': {violation details}. How would you like to proceed?"
+                - options:
+                  - label: "Fix now", description: "Attempt to remediate the violation before continuing"
+                  - label: "Continue anyway", description: "Acknowledge and proceed despite violation"
+                - multiSelect: false
+              </action>
+              <branch condition="user selects Fix now">
+                <action>Attempt remediation for the violation</action>
+                <action>Re-run the failed validation checks</action>
+                <branch condition="still failing after remediation">
+                  <action>Report to user and continue</action>
+                </branch>
+              </branch>
+            </branch>
+          </branch>
+        </substep>
+
         <action>Update plan.xml: Add `completed="true" completed_at="{ISO timestamp}"` to the task element</action>
         <action>Write updated plan file</action>
         <note>Persist immediately - ensures progress saved before potential context issues</note>

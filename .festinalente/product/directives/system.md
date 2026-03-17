@@ -9,7 +9,7 @@ aliases: [directive-format, directive-loading, rule-system]
 boundary: "Does not define skill workflow steps - only modifies them via rules and overrides"
 references: [skills/_index, cli/validation]
 uses: []
-updated: 2026-03-09
+updated: 2026-03-17
 ---
 
 # Directive System
@@ -34,14 +34,21 @@ flowchart LR
     Directive --> Process[Process Rules]
     Directive --> Validation[Validation Checks]
     Directive --> Examples[Code Examples]
+    Context --> |plan phase| PlanAssess[Plan Content Assessment]
+    Directive --> |implement phase| SubPrompt[Subagent Prompt Injection]
+    Validation --> |per task| PerTask[Per-Task Validation]
+    Validation --> |end of skill| Final[Final Compliance Check]
 ```
 
 1. Skill calls `get-skill-config {skill-name}` to discover mapped directives
 2. For each directive, skill reads the XML file
 3. Context principles are maintained as ongoing mindset
 4. Process rules are applied when the phase matches
-5. Validation checks run during the `directive_compliance` step
-6. Examples are shown when violations are found
+5. **Plan content assessment** - During `validate_plan`, task actions/patterns/rationale are checked against `phase="plan"` directive principles. Violations are flagged as WARNINGs
+6. **Subagent prompt injection** - During implementation, full directive XML is included in each subagent's prompt so subagents have directive context
+7. **Per-task validation** - After each subagent completes, validation checks (commands, patterns, checklists) run scoped to the current task's files before marking the task complete. Violations prompt the user with Fix now / Continue anyway
+8. **Final compliance** - Validation checks run during the `directive_compliance` step at end of skill
+9. Examples are shown when violations are found
 
 **Summary:** Skills dynamically load and enforce directives based on config mapping.
 
@@ -137,7 +144,7 @@ What this feature does NOT do:
 
 ## Interactions
 
-- **Skills**: Load directives during `load_directives` step, enforce during `directive_compliance`
+- **Skills**: Load directives during `load_directives` step, enforce via plan content assessment, per-task validation, and final `directive_compliance`
 - **CLI**: `validate-directive` checks XML structure; `get-skill-config` returns mapped directives
 - **VSCode**: Shows directives in sidebar TreeView; provides real-time diagnostics
 
@@ -145,4 +152,4 @@ What this feature does NOT do:
 
 - Directives only apply to skills they're mapped to in config.yaml
 - Process rules only fire when the current phase matches
-- Validation checks run at the end of skill execution, not continuously
+- Per-task validation is scoped to the current task's files, not the full project
