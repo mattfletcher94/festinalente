@@ -853,6 +853,133 @@ The Q&A phase is the natural place to challenge any assumption made during synth
     </branch>
   </step>
 
+  <step name="spec_self_critique" outputs="deferredFindings, boundarySuggestions">
+    <note>Review gathered requirements for quality defects before spec creation. This complements validate_gaps (which checks structural correctness — conflicts, dangling references, acceptance coverage) by focusing on requirement quality: clarity, testability, completeness, and consistency. Do not duplicate validate_gaps checks.</note>
+
+    <action name="check_vague_language">
+      <note>FR7, FR15: Scan each requirement for vague quantifiers, modal weakenings, and passive voice with ambiguous actors</note>
+      <action>Check for vague quantifiers: "some", "many", "most", "few", "several", "various"</action>
+      <action>Check for modal weakenings: "might", "should", "could", "may"</action>
+      <action>Check for passive voice with ambiguous actors (e.g., "data is processed" — by whom?)</action>
+      <action>Flag as CRITICAL with specific suggestions (e.g., "'fast processing' is untestable — suggest specifying a target latency")</action>
+    </action>
+
+    <action name="check_testability">
+      <note>FR8, FR15: Scan each requirement for subjective adjectives without measurable criteria</note>
+      <action>Check for subjective adjectives: "efficient", "reliable", "user-friendly", "fast", "simple", "intuitive"</action>
+      <action>Flag as CRITICAL with suggestions to add measurable definitions (e.g., "'reliable' — suggest defining acceptable failure rate or uptime target")</action>
+    </action>
+
+    <action name="check_edge_cases">
+      <note>FR9, FR15: Check requirements involving conditional logic or external input for missing edge cases</note>
+      <action>For each requirement involving conditional logic or external input:</action>
+      <action>Check for missing error states</action>
+      <action>Check for missing boundary conditions</action>
+      <action>Check for missing state transitions</action>
+      <action>Flag gaps as MODERATE</action>
+    </action>
+
+    <action name="check_consistency">
+      <note>FR10, FR15: Compare requirements for logical contradictions</note>
+      <action>Compare each pair of requirements for logical contradictions (e.g., "always validate input" vs "skip validation in batch mode")</action>
+      <action>Flag as CRITICAL, referencing both requirement IDs in the finding</action>
+    </action>
+
+    <action name="check_project_coverage">
+      <note>FR14: Validate project requirement coverage when task has project-id</note>
+      <branch condition="task has project-id AND project requirements exist (from selectedRequirements/project context)">
+        <action>For each selected project requirement, verify at least one functional requirement addresses it</action>
+        <action>Flag unaddressed project requirements as CRITICAL</action>
+      </branch>
+    </action>
+
+    <branch condition="a spec-quality directive was loaded during the load_directives step">
+      <note>FR6: Apply directive-defined quality rules alongside generic checks</note>
+      <action>Read directive quality rules from the already-loaded directives (via get-skill-config mechanism)</action>
+      <action>Apply directive-defined quality checks to all requirements</action>
+      <action>Add any directive findings to the categorized findings list with appropriate severity</action>
+    </branch>
+
+    <action>Collect all findings into a categorized list, each tagged as CRITICAL or MODERATE (FR2)</action>
+
+    <branch condition="no findings">
+      <output>Self-critique passed. No quality issues found.</output>
+    </branch>
+
+    <branch condition="findings found">
+      <note>FR3: Present CRITICAL findings individually</note>
+      <action>For each CRITICAL finding, use AskUserQuestion tool with:
+        - header: "Quality Issue (CRITICAL)"
+        - question: "{requirement ID}: {issue description}\n\nSuggestion: {specific improvement}"
+        - options:
+          - label: "Address now", description: "Revise this requirement"
+          - label: "Defer to open-questions", description: "Add to spec open-questions for later resolution"
+          - label: "Dismiss", description: "Acknowledge and continue without change"
+        - multiSelect: false
+      </action>
+
+      <branch condition="user selects 'Address now'">
+        <action>Ask user for revised requirement text</action>
+        <action>Replace the requirement in gathered requirements with the revised text</action>
+        <action>FR11: Re-run quality checks on ONLY the revised requirement (not all requirements)</action>
+        <branch condition="new issues found on revised requirement">
+          <action>Present new findings to user again with the same address/defer/dismiss options</action>
+        </branch>
+      </branch>
+      <branch condition="user selects 'Defer to open-questions'">
+        <action>FR12: Add finding description to the deferredFindings list (flows to create_spec_file open-questions)</action>
+      </branch>
+      <branch condition="user selects 'Dismiss'">
+        <action>Log dismissal, continue to next finding</action>
+      </branch>
+
+      <note>FR4: Present MODERATE findings in batch</note>
+      <action>Present all MODERATE findings together using AskUserQuestion tool with:
+        - header: "Quality Issues (MODERATE)"
+        - question: "{list of all moderate findings with requirement IDs and descriptions}"
+        - options:
+          - label: "Review individually", description: "Address each finding one by one"
+          - label: "Defer all", description: "Add all to spec open-questions"
+          - label: "Dismiss all", description: "Acknowledge and continue"
+        - multiSelect: false
+      </action>
+
+      <branch condition="user selects 'Review individually'">
+        <action>Loop through each MODERATE finding with the same address/defer/dismiss pattern as CRITICAL findings</action>
+      </branch>
+      <branch condition="user selects 'Defer all'">
+        <action>FR12: Add all MODERATE findings to deferredFindings list</action>
+      </branch>
+      <branch condition="user selects 'Dismiss all'">
+        <action>Continue</action>
+      </branch>
+
+      <note>FR13: Check for autonomy boundary implications</note>
+      <action>After finding resolution, check if any findings imply autonomy boundaries (always/ask-first/never)</action>
+      <branch condition="boundary implications found">
+        <action>For each implied boundary, use AskUserQuestion tool with:
+          - header: "Boundary Suggestion"
+          - question: "This finding implies an autonomy boundary: {description}. Add to spec boundaries?"
+          - options:
+            - label: "Always", description: "Agent should always do this"
+            - label: "Ask-first", description: "Agent should ask before doing this"
+            - label: "Never", description: "Agent must never do this"
+            - label: "Skip", description: "Don't add as boundary"
+          - multiSelect: false
+        </action>
+        <branch condition="user selects Always, Ask-first, or Never">
+          <action>Add to boundarySuggestions list with the selected category</action>
+        </branch>
+      </branch>
+    </branch>
+
+    <output>
+**Self-Critique Summary**
+
+{N} findings total, {N} addressed, {N} deferred, {N} dismissed.
+    </output>
+  </step>
+
   <step name="create_spec_file" outputs="specPath">
     <action>Create at `.festinalente/tasks/{taskId}/spec.xml`</action>
     <action>Follow template at `.festinalente/templates/spec.xml`</action>
@@ -873,6 +1000,14 @@ The Q&A phase is the natural place to challenge any assumption made during synth
         - ask-first: Items from ask-first category, each as an item element
         - never: Items from never category, each as an item element
       </action>
+    </branch>
+
+    <branch condition="boundarySuggestions from spec_self_critique exist">
+      <action>Add each boundary suggestion to the boundaries section in the appropriate category (always/ask-first/never), each as an item element</action>
+    </branch>
+
+    <branch condition="deferredFindings from spec_self_critique exist">
+      <action>Add each deferred finding as a question element in the open-questions section of the spec XML</action>
     </branch>
 
     <note>Project-aware spec sections (only when projectContext exists):</note>
