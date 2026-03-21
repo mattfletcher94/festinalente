@@ -9,7 +9,7 @@ aliases: [festina-finalize, finish]
 boundary: "Does not implement code or close tasks - only validates, documents, and transitions to awaiting-completion. Task closure is handled by /festina-complete."
 references: [skills/implement, skills/complete, docs/product, docs/engineering]
 uses: [systems/cli, systems/data-model]
-updated: 2026-03-08
+updated: 2026-03-21
 ---
 
 # Finalize Task
@@ -45,7 +45,8 @@ flowchart LR
 
     Checks --> Fix
     Fix --> Review[Spec Review]
-    Review --> Analyze
+    Review --> Goal[Goal Verification]
+    Goal --> Analyze
     Analyze --> Agents
     Agents --> Await
     Await --> Directives
@@ -57,6 +58,7 @@ flowchart LR
 2. **Run directive checks** - TypeScript, tests, linting
 3. **Auto-fix loop** - Fix issues, log to iterations, retry
 4. **Spec compliance review** - Independent agent verifies implementation against spec
+5. **Goal-backward verification** - Translates acceptance criteria to observable behaviors, interactively verifies with user (YES/NO/DIFFERENT), spawns diagnostic subagent for failures. Optional directive-driven stub detection scans modified files.
 
 ### Phase 2: Documentation
 
@@ -71,7 +73,7 @@ flowchart LR
 1. **Move to awaiting-completion** - Update task status
 2. **Run directive rules** - Git commit, push, PR creation (directive-driven)
 
-**Summary:** Three distinct phases, each resumable independently. Phase 1 includes an independent spec compliance review after directive checks. Git operations (committing, PR creation) are handled by directives, not the skill itself. Task closure is handled by `/festina-complete`.
+**Summary:** Three distinct phases, each resumable independently. Phase 1 includes spec compliance review and goal-backward verification after directive checks. Git operations (committing, PR creation) are handled by directives, not the skill itself. Task closure is handled by `/festina-complete`.
 
 ## Examples
 
@@ -121,6 +123,7 @@ What this skill does NOT do:
 - **Directives**: Runs all configured checks in Phase 1; git/PR operations in Phase 3 are directive-driven
 - **Complete**: After finalize, run `/festina-complete` to close the task
 - **Spec Review**: Independent Explore agent verifies implementation against spec requirements
+- **Goal Verification**: Translates acceptance criteria to testable behaviors and verifies interactively with the user
 - **Product Docs**: Spawns agent if task has `affects` field
 - **Engineering Docs**: Spawns agent if task has `engineering` field
 - **Glossary**: Updates with new terms from doc agents
