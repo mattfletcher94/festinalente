@@ -806,33 +806,73 @@ The Q&A phase is the natural place to challenge any assumption made during synth
     <note>Optionally derive behavioral contracts (preconditions, postconditions, invariants) from the gathered requirements.</note>
 
     <branch condition="a contracts directive is loaded">
-      <note>FR11: When a contracts directive is active, contract derivation is mandatory — skip the prompt and proceed directly to deriving contracts.</note>
+      <note>FR11: When a contracts directive is active, contract derivation is mandatory — skip the assessment and proceed directly to deriving contracts.</note>
       <action>Set deriveContracts to true</action>
     </branch>
 
     <branch condition="no contracts directive is loaded">
-      <action>Use AskUserQuestion tool with:
-        - header: "Contracts"
-        - question: "Would you like to derive behavioral contracts (preconditions, postconditions, invariants) from the requirements?"
-        - options:
-          - label: "Yes"
-            description: "Derive contracts for each functional requirement"
-          - label: "No"
-            description: "Skip contracts"
-        - multiSelect: false
+      <action>Assess whether contracts would add value by checking the gathered requirements:
+        - Do requirements describe behavior with inputs/outputs, state transitions, or side effects?
+        - Or do they describe content changes, configuration, or text edits?
       </action>
+
+      <branch condition="requirements describe content/config/text changes only (e.g., edit a template, update a prompt, change a setting, add documentation)">
+        <action>Skip contracts entirely — no question asked</action>
+        <output>contractsList — empty (content/config task, contracts not applicable)</output>
+      </branch>
+
+      <branch condition="requirements describe behavioral concerns (e.g., processing inputs, managing state, coordinating parallel work, validating data, persisting results, calling external services)">
+        <action>Use AskUserQuestion tool with:
+          - header: "Contracts"
+          - question: "This task involves behavioral requirements ({list relevant concerns found}). I'd recommend deriving contracts to make preconditions, postconditions, and invariants explicit. Derive contracts?"
+          - options:
+            - label: "Yes (Recommended)"
+              description: "Derive contracts for behavioral requirements"
+            - label: "No"
+              description: "Skip contracts"
+          - multiSelect: false
+        </action>
+      </branch>
+
+      <branch condition="uncertain — mixed signals or unclear">
+        <action>Use AskUserQuestion tool with:
+          - header: "Contracts"
+          - question: "Would you like to derive behavioral contracts (preconditions, postconditions, invariants) from the requirements?"
+          - options:
+            - label: "Yes"
+              description: "Derive contracts for each functional requirement"
+            - label: "No"
+              description: "Skip contracts"
+          - multiSelect: false
+        </action>
+      </branch>
     </branch>
 
     <branch condition="user selects 'Yes' or contracts directive is active">
-      <action>For each functional requirement (FR1, FR2, ...):
+      <action>Group related functional requirements where a single contract can cover multiple FRs (e.g., all validation FRs share the same behavioral constraints). Propose one contract per logical group, not one per FR.</action>
+
+      <action>For each contract group:
+        Analyze the requirements and propose contract elements:
+        - precondition: what must be true before
+        - postcondition: what must be true after
+        - invariant: what must always be true
+        - property: general property that should hold
+
         Use AskUserQuestion tool with:
-        - header: "Contract for {requirement id}: {short description}"
-        - question: "What must be true before, after, and always for this requirement?"
-        - freeform input (no options)
+        - header: "Contract: {short name}"
+        - question: "{requirement IDs covered}.\nI'd suggest:\n- Pre: {proposed precondition}\n- Post: {proposed postcondition}\n- Invariant: {proposed invariant}\n- Property: {proposed property}"
+        - options:
+          - label: "Accept suggestions"
+            description: "Use the suggested contract elements as-is"
+          - label: "Modify"
+            description: "I want to adjust these contract elements"
+        - multiSelect: false
       </action>
-      <action>Build contract elements from user responses:
+      <note>User can select "Other" to type entirely custom contract elements</note>
+
+      <action>Build contract elements from responses:
         - id: C1, C2, ... (sequential)
-        - requirement: reference to the FR (FR1, FR2, ...)
+        - requirement: reference to the FRs covered (FR1, FR2, ...)
         - name: short descriptive name for the contract
         - precondition: what must be true before (natural language)
         - postcondition: what must be true after (natural language)

@@ -119,9 +119,15 @@ Boundaries are recorded in the `spec.xml` and injected into implementation subag
 
 ### Contracts
 
-After Q&A and before gap validation, the scope skill optionally derives behavioral contracts from the gathered requirements. Each contract captures preconditions, postconditions, invariants, and general properties for a functional requirement.
+After Q&A and before gap validation, the scope skill optionally derives behavioral contracts from the gathered requirements. Each contract captures preconditions, postconditions, invariants, and general properties for a group of related functional requirements.
 
-By default, the user is prompted whether to derive contracts. When a `contracts` directive is loaded, contract derivation becomes mandatory and the prompt is skipped. For each functional requirement, the user provides the behavioral expectations (what must be true before, after, and always), and the skill builds contract elements (C1, C2, ...) that reference the corresponding requirement IDs.
+The skill assesses whether contracts would add value based on the nature of the requirements:
+- **Auto-skip**: When requirements describe content/config/text changes only (e.g., editing a prompt template, updating a YAML setting), contracts are skipped entirely with no question asked.
+- **Recommend**: When requirements describe behavioral concerns (e.g., processing inputs, managing state, coordinating parallel work, validating data), the skill recommends deriving contracts and explains why.
+- **Ask**: When signals are mixed or unclear, the skill asks without a recommendation.
+- **Mandatory**: When a `contracts` directive is loaded, contract derivation is required and the prompt is skipped.
+
+When deriving contracts, the skill groups related FRs that share behavioral constraints into a single contract rather than asking per-FR. For each group, the LLM proposes contract elements (precondition, postcondition, invariant, property) and the user can accept, modify, or provide custom elements.
 
 Contracts are included in the `spec.xml` as an optional `<contracts>` element containing `<contract>` sub-elements. When contracts are not derived, the element is simply absent from the spec.
 
