@@ -96,6 +96,7 @@ Move task from Planned to In Progress and execute the plan.
     <action>Get `spec` path from plan XML</action>
     <action>Read spec file for full context on requirements and patterns</action>
     <action>Extract boundaries from spec if present (always, ask-first, never sections)</action>
+    <action>Extract contracts from spec if present (contracts element with contract sub-elements)</action>
   </step>
 
   <step name="load_smart_context">
@@ -186,6 +187,24 @@ Execute task {task.id}: "{task.name}"
 - ALWAYS: {always items — proceed without asking}
 - ASK FIRST: {ask-first items — if you encounter these, report FAILURE with details instead of proceeding}
 - NEVER: {never items — do NOT do these under any circumstances}
+
+{If spec has &lt;contracts&gt; element AND task's requirements overlap with contract requirements:}
+**Contracts (behavioral expectations):**
+{For each contract where contract.requirement matches one of this task's requirements:}
+- **{contract.name}** (Contract {contract.id}, constrains {contract.requirement}):
+  - Precondition: {contract.precondition}
+  - Postcondition: {contract.postcondition}
+  - Invariant: {contract.invariant}
+  - Property: {contract.property}
+
+{If task has &lt;contracts&gt; element in its context:}
+**Contracts (behavioral expectations):**
+{For each contract in task context:}
+- **{contract.name}** (Contract {contract.id}, constrains {contract.requirement}):
+  - Precondition: {contract.precondition}
+  - Postcondition: {contract.postcondition}
+  - Invariant: {contract.invariant}
+  - Property: {contract.property}
 
 {If directives were loaded in load_directives step:}
 **Directives:**

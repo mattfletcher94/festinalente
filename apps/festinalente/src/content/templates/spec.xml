@@ -26,6 +26,17 @@
     <never>{hard stop}</never>
   </boundaries>
 
+  <!-- Optional: behavioral contracts derived from requirements -->
+  <contracts>
+    <contract id="C1" requirement="FR1">
+      <name>{contract name}</name>
+      <precondition>{what must be true before}</precondition>
+      <postcondition>{what must be true after}</postcondition>
+      <invariant>{what must always be true}</invariant>
+      <property>{general property that should hold}</property>
+    </contract>
+  </contracts>
+
   <requirements>
     <requirement id="FR1">{requirement}</requirement>
   </requirements>
