@@ -1,7 +1,7 @@
 ---
 name: festina-implement
 description: Implement a planned task. Moves task to In Progress, executes the plan, then moves to Finalize.
-allowed-tools: Read, Write, Edit, Bash(*), Task
+allowed-tools: Read, Write, Edit, Bash(*)
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---
@@ -99,29 +99,9 @@ Move task from Planned to In Progress and execute the plan.
     <action>Extract contracts from spec if present (contracts element with contract sub-elements)</action>
   </step>
 
-  <step name="load_smart_context">
-    <note>**Smart Context Selection:** Load relevant docs at appropriate tier</note>
-    <command>node .festinalente/scripts/festinalente.cjs select-context {taskId} --tier=standard --max=5</command>
-    <action>Parse JSON output</action>
-    <action>For each doc in output, present the content field</action>
-    <note>Standard tier: tldr + summary + boundary for each relevant doc</note>
-
-    <branch condition="task appears complex (multiple systems involved)">
-      <action>Re-run with --tier=full for most relevant 2 docs</action>
-      <command>node .festinalente/scripts/festinalente.cjs select-context {taskId} --tier=full --max=2</command>
-    </branch>
-
-    <note>Context tiers:</note>
-    <note>- minimal: Only tldr (~50 tokens per doc)</note>
-    <note>- standard: tldr + summary + boundary (~200 tokens per doc)</note>
-    <note>- full: Entire doc content (~500-1000 tokens per doc)</note>
-
-    <note>Implementation should maintain or extend documented behavior</note>
-  </step>
-
   <step name="load_directives">
-    <note>**Directive loading:** Directives are loaded here and injected into each subagent prompt via build_subagent_prompt.
-    Per-task validation runs after each subagent completes in handle_subagent_result.</note>
+    <note>**Directive loading:** Directives are loaded once and remain in context for direct use during task execution.
+    Per-task validation runs after each task completes.</note>
     {{> load-directives skill="implement"}}
   </step>
 
@@ -141,9 +121,9 @@ Move task from Planned to In Progress and execute the plan.
   </step>
 
   <step name="execute_tasks">
-    <note>**Subagent Orchestration:** Spawn a subagent for each task to keep orchestrator lean.</note>
-    <note>Each subagent gets fresh context with explicit file references - no embedded snippets.</note>
-    <note>Orchestrator persists completion immediately after each subagent finishes.</note>
+    <note>**Direct Execution:** Execute each task directly in the orchestrator context.</note>
+    <note>Read context files, execute actions, run verify commands — all inline.</note>
+    <note>Persist completion immediately after each task finishes.</note>
 
     <action>For each task in executionOrder where completed != "true":</action>
 
@@ -152,202 +132,124 @@ Move task from Planned to In Progress and execute the plan.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 [{currentIndex}/{totalTasks}] {task.name}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Spawning subagent...
       </output>
     </substep>
 
-    <substep name="build_subagent_prompt" outputs="subagentPrompt">
-      <note>Build prompt from task elements - file refs only, no embedded content.</note>
-      <note>When directives were loaded in load_directives, include their full XML in the prompt so subagents can follow project-specific standards.</note>
-      <action>Extract task elements: id, name, context, pattern, action, verify, done</action>
-      <action>Build prompt using template:</action>
-
-      <prompt_template>
-Execute task {task.id}: "{task.name}"
-
-**Read these files first:**
-{For each file in task.context:}
-- {file path}
-
-**Pattern to follow:**
-{task.pattern file path, if present; otherwise "None specified"}
-
-**Action:**
-{content of task.action element}
-
-**Verify:** {content of task.verify element}
-
-**Done criteria:** {content of task.done element}
-
-**Spec reference:** .festinalente/tasks/{taskId}/spec.xml
-(Read if you need functional requirements or additional context)
-
-{If spec has &lt;boundaries&gt; element:}
-**Boundaries:**
-- ALWAYS: {always items — proceed without asking}
-- ASK FIRST: {ask-first items — if you encounter these, report FAILURE with details instead of proceeding}
-- NEVER: {never items — do NOT do these under any circumstances}
-
-{If spec has &lt;contracts&gt; element AND task's requirements overlap with contract requirements:}
-**Contracts (behavioral expectations):**
-{For each contract where contract.requirement matches one of this task's requirements:}
-- **{contract.name}** (Contract {contract.id}, constrains {contract.requirement}):
-  - Precondition: {contract.precondition}
-  - Postcondition: {contract.postcondition}
-  - Invariant: {contract.invariant}
-  - Property: {contract.property}
-
-{If task has &lt;contracts&gt; element in its context:}
-**Contracts (behavioral expectations):**
-{For each contract in task context:}
-- **{contract.name}** (Contract {contract.id}, constrains {contract.requirement}):
-  - Precondition: {contract.precondition}
-  - Postcondition: {contract.postcondition}
-  - Invariant: {contract.invariant}
-  - Property: {contract.property}
-
-{If directives were loaded in load_directives step:}
-**Directives:**
-The following project directives apply to this task. Follow their context principles
-and process rules where phase contains "implement":
-
-{For each loaded directive:}
-```xml
-{full directive XML content}
-```
-
-When complete, report:
-- SUCCESS: {summary of what was done}
-- FAILURE: {what failed and why}
-      </prompt_template>
-
+    <substep name="read_context">
+      <action>Read the files listed in the task's &lt;context&gt; element</action>
+      <branch condition="task has pattern element with file reference">
+        <action>Read the pattern reference file for implementation guidance</action>
+      </branch>
+      <note>Context files, spec boundaries, and contracts are now directly available in the orchestrator's context</note>
     </substep>
 
-    <substep name="spawn_subagent">
-      <note>**CRITICAL:** Use Task tool with subagent_type for execution.</note>
-      <note>Subagent gets Edit/Write/Bash access to make changes and run verification.</note>
-
-      <action>Use Task tool with:
-        - description: "Execute task {task.id}: {task.name}"
-        - prompt: {subagentPrompt built above}
-        - subagent_type: "general-purpose"
-      </action>
-
-      <action>Wait for subagent to complete</action>
-      <action>Parse subagent response for SUCCESS or FAILURE prefix</action>
+    <substep name="execute_action">
+      <action>Execute the task's &lt;action&gt; element directly using available tools (Read, Edit, Write, Bash)</action>
+      <action>Follow the pattern reference if specified</action>
+      <action>Respect spec boundaries (always/ask-first/never) and contracts from context</action>
+      <note>The orchestrator has full visibility of changes from prior tasks — use this for cross-task coherence</note>
     </substep>
 
-    <substep name="handle_subagent_result">
-      <branch condition="subagent reports SUCCESS">
-        <output>✓ Task {task.id} completed: {subagent summary}</output>
+    <substep name="run_verify">
+      <command>{task.verify}</command>
+      <branch condition="verify command succeeds">
+        <output>✓ Task {task.id} completed: {summary of changes}</output>
+      </branch>
+      <branch condition="verify command fails">
+        <output>✗ Task {task.id} failed: {failure details}</output>
+      </branch>
+    </substep>
 
-        <substep name="per_task_directive_validation">
-          <branch condition="directives were loaded in load_directives step">
-            <note>Run directive validation checks scoped to files modified by this task</note>
-            <action>Extract file paths from this task's files element</action>
-            <action>For each loaded directive, re-read the directive XML file</action>
-            <action>Run each validation check:</action>
+    <substep name="per_task_directive_validation" when="verify succeeded">
+      <branch condition="directives were loaded in load_directives step">
+        <note>Run directive validation checks scoped to files modified by this task</note>
+        <action>Extract file paths from this task's files element</action>
+        <action>For each loaded directive, re-read the directive XML file</action>
+        <action>Run each validation check:</action>
 
-            <branch condition="check type=command">
-              <command>{content of run element}</command>
-              <validate>{content of expect element}</validate>
-            </branch>
+        <branch condition="check type=command">
+          <command>{content of run element}</command>
+          <validate>{content of expect element}</validate>
+        </branch>
 
-            <branch condition="check type=pattern">
-              <action>For each file in THIS TASK's files list that matches the check's files glob:</action>
-              <action>Check content against forbidden or required regex</action>
-            </branch>
+        <branch condition="check type=pattern">
+          <action>For each file in THIS TASK's files list that matches the check's files glob:</action>
+          <action>Check content against forbidden or required regex</action>
+        </branch>
 
-            <branch condition="check type=checklist">
-              <action>Self-assess each item as Y/N against this task's changes</action>
-            </branch>
+        <branch condition="check type=checklist">
+          <action>Self-assess each item as Y/N against this task's changes</action>
+        </branch>
 
-            <branch condition="any check fails">
-              <output>Directive violation in task {task.id}: {check id} - {reason}</output>
-              <action>Find example elements where ref matches failed check</action>
-              <action>Show violation examples to illustrate the problem</action>
-              <action>Show correct examples to illustrate the fix</action>
-              <action>Use AskUserQuestion tool with:
-                - header: "Directive Violation"
-                - question: "Directive check failed for task {task.id} '{task.name}': {violation details}. How would you like to proceed?"
-                - options:
-                  - label: "Fix now", description: "Attempt to remediate the violation before continuing"
-                  - label: "Continue anyway", description: "Acknowledge and proceed despite violation"
-                - multiSelect: false
-              </action>
-              <branch condition="user selects Fix now">
-                <action>Attempt remediation for the violation</action>
-                <action>Re-run the failed validation checks</action>
-                <branch condition="still failing after remediation">
-                  <action>Report to user and continue</action>
-                </branch>
-              </branch>
+        <branch condition="any check fails">
+          <output>Directive violation in task {task.id}: {check id} - {reason}</output>
+          <action>Find example elements where ref matches failed check</action>
+          <action>Show violation examples to illustrate the problem</action>
+          <action>Show correct examples to illustrate the fix</action>
+          <action>Use AskUserQuestion tool with:
+            - header: "Directive Violation"
+            - question: "Directive check failed for task {task.id} '{task.name}': {violation details}. How would you like to proceed?"
+            - options:
+              - label: "Fix now", description: "Attempt to remediate the violation before continuing"
+              - label: "Continue anyway", description: "Acknowledge and proceed despite violation"
+            - multiSelect: false
+          </action>
+          <branch condition="user selects Fix now">
+            <action>Attempt remediation for the violation</action>
+            <action>Re-run the failed validation checks</action>
+            <branch condition="still failing after remediation">
+              <action>Report to user and continue</action>
             </branch>
           </branch>
-        </substep>
+        </branch>
+      </branch>
+    </substep>
 
-        <action>Update plan.xml: Add `completed="true" completed_at="{ISO timestamp}"` to the task element</action>
-        <action>Write updated plan file</action>
-        <note>Persist immediately - ensures progress saved before potential context issues</note>
+    <substep name="persist_completion" when="verify succeeded">
+      <action>Update plan.xml: Add `completed="true" completed_at="{ISO timestamp}"` to the task element</action>
+      <action>Write updated plan file</action>
+      <note>Persist immediately - ensures progress saved before potential context issues</note>
+    </substep>
+
+    <substep name="handle_failure" when="verify failed">
+      <action>Use AskUserQuestion tool with:
+        - header: "Task Failed"
+        - question: "Task '{task.name}' failed: {failure reason}. How should I proceed?"
+        - options:
+          - label: "Fix manually and continue", description: "I'll fix this myself, then continue with remaining tasks"
+          - label: "Skip this task", description: "Mark as incomplete and move to next task"
+          - label: "Stop implementation", description: "Halt implementation to investigate"
+        - multiSelect: false
+      </action>
+
+      <branch condition="user selects 'Fix manually and continue'">
+        <output>Pausing for manual fix. Run /festina-implement {taskId} when ready to continue.</output>
+        <action>Exit - do not mark task complete</action>
       </branch>
 
-      <branch condition="subagent reports FAILURE">
-        <output>✗ Task {task.id} failed: {subagent failure reason}</output>
+      <branch condition="user selects 'Skip this task'">
+        <output>Skipping task {task.id}. Continuing with remaining tasks.</output>
+        <note>Do NOT mark as completed - remains incomplete for later attention</note>
+        <action>Continue to next task in executionOrder</action>
+      </branch>
 
-        <action>Use AskUserQuestion tool with:
-          - header: "Task Failed"
-          - question: "Task '{task.name}' failed: {failure reason}. How should I proceed?"
-          - options:
-            - label: "Fix manually and continue", description: "I'll fix this myself, then continue with remaining tasks"
-            - label: "Skip this task", description: "Mark as incomplete and move to next task"
-            - label: "Stop implementation", description: "Halt implementation to investigate"
-          - multiSelect: false
-        </action>
-
-        <branch condition="user selects 'Fix manually and continue'">
-          <output>Pausing for manual fix. Run /festina-implement {taskId} when ready to continue.</output>
-          <action>Exit - do not mark task complete</action>
-        </branch>
-
-        <branch condition="user selects 'Skip this task'">
-          <output>Skipping task {task.id}. Continuing with remaining tasks.</output>
-          <note>Do NOT mark as completed - remains incomplete for later attention</note>
-          <action>Continue to next task in executionOrder</action>
-        </branch>
-
-        <branch condition="user selects 'Stop implementation'">
-          <output>
+      <branch condition="user selects 'Stop implementation'">
+        <output>
 Implementation stopped at task {task.id}.
 {completed}/{total} tasks complete.
 
 To resume later:
 /clear
 /festina-implement {taskId}
-          </output>
-          <action>Exit</action>
-        </branch>
-      </branch>
-
-      <branch condition="subagent response unclear (no SUCCESS/FAILURE prefix)">
-        <output>Warning: Subagent response unclear. Checking verification manually.</output>
-        <branch condition="task.verify is automated command">
-          <command>{task.verify}</command>
-          <branch condition="command succeeds">
-            <output>✓ Verification passed (manual check)</output>
-            <action>Update plan.xml: Add `completed="true" completed_at="{ISO timestamp}"` to the task element</action>
-            <action>Write updated plan file</action>
-          </branch>
-          <branch condition="command fails">
-            <action>Treat as FAILURE - trigger user question above</action>
-          </branch>
-        </branch>
+        </output>
+        <action>Exit</action>
       </branch>
     </substep>
   </step>
 
   <step name="verify_implementation_quality">
     <note>**Quality verification runs in orchestrator after all tasks complete.**</note>
-    <note>These checks (TODO scan, requirement trace, wiring check) examine the full codebase and must run in orchestrator context, not subagents.</note>
+    <note>These checks (TODO scan, requirement trace, wiring check) examine the full codebase after all tasks complete.</note>
     <note>Verify implementation achieved spec goals, not just task completion (GSD verifier pattern)</note>
     <note>Work backward from requirements to confirm implementation exists</note>
 
