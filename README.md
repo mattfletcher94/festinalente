@@ -54,13 +54,13 @@ BACKLOG → SCOPED → PLANNED → IN-PROGRESS → FINALIZE → AWAITING-COMPLET
 
 **`/festina-create`** — You describe the problem. The AI proposes its understanding for you to confirm. Problem, value, and acceptance criteria get written to `task.xml`.
 
-**`/festina-scope`** — The AI investigates the codebase and writes a specification: requirements, files to modify, patterns to follow, risks. Technical decisions are surfaced as questions, not assumptions.
+**`/festina-scope`** — The AI investigates the codebase and writes a specification: requirements, files to modify, patterns to follow, risks, and autonomy boundaries (always / ask-first / never). It optionally derives behavioral contracts — preconditions, postconditions, and invariants — for requirements that involve side effects or state. A self-critique step then reviews the requirements for quality defects (ambiguity, testability, completeness) before the spec is finalized.
 
-**`/festina-plan`** — The spec becomes atomic steps, each with files, code snippets, a verification command, and done criteria. The self-check: *can this be executed without reading the conversation?*
+**`/festina-plan`** — The spec becomes atomic steps, each with files, code snippets, a verification command, and done criteria. When contracts exist, the plan derives test cases from them. The self-check: *can this be executed without reading the conversation?*
 
-**`/festina-implement`** — Each step runs in a fresh subagent with clean context. Verification runs after each step. Progress is written back immediately.
+**`/festina-implement`** — Each step is executed directly, reading the plan's context files, making changes, and running the verification command. Directives, boundaries, and contracts are already in context — no prompt injection needed. Progress is written to disk after each step, so you can resume if interrupted.
 
-**`/festina-finalize`** — Automated checks and an independent spec compliance review. Documentation updates. The task moves to `awaiting-completion`.
+**`/festina-finalize`** — Automated directive checks, goal-backward verification (working backward from each requirement to confirm the implementation satisfies it), and documentation updates. The task moves to `awaiting-completion`.
 
 **`/festina-complete`** — Marks the task done. Deliberately lightweight — validation happens in finalize, closure happens here. This separation lets directives hook into completion (merge a PR, notify a channel) without re-running quality gates.
 
@@ -126,8 +126,26 @@ The only directive that ships with Festina Lente is `git.xml`. It commits direct
 This repository is built with Festina Lente, and its directives demonstrate what is possible:
 
 - [**`github.xml`**](.festinalente/directives/github.xml) — Full GitHub PR workflow. Overrides `git.xml` to create issues, push branches, open PRs during finalize, then check approval and squash merge during complete.
-- [**`coding.xml`**](.festinalente/directives/coding.xml) — Three-layer architecture enforcement, TypeScript type safety rules, circular dependency checks.
+- [**`coding.xml`**](.festinalente/directives/coding.xml) — Three-layer DAG architecture, TypeScript type safety, declarative style enforcement, circular dependency checks.
 - [**`design.xml`**](.festinalente/directives/design.xml) — Native VSCode UI standards for the companion extension.
+
+---
+
+## Projects
+
+For work that spans multiple tasks, projects provide a grouping layer with requirement traceability. You define the project's problem, value, scope, and numbered requirements through Q&A, and the skill auto-decomposes it into 2–5 vertically-sliced tasks — each mapped back to the project requirements it addresses.
+
+```
+/festina-create-project "User authentication system"
+```
+
+Each child task follows the normal workflow independently (scope → plan → implement → finalize → complete). When all tasks are done:
+
+```
+/festina-complete-project auth-system
+```
+
+This evaluates the project-level acceptance criteria against the combined implementation and closes the project.
 
 ---
 
@@ -140,10 +158,13 @@ This repository is built with Festina Lente, and its directives demonstrate what
 | `/festina-rework` | Send a task back with an issue report |
 | `/festina-delete` | Remove a task |
 | `/festina-overview` | View the kanban board |
-| `/festina-explore` | Explore ideas before committing to a task |
+| `/festina-discover` | Systematically surface feature opportunities and gaps |
+| `/festina-create-project` | Decompose multi-task work into tracked tasks |
+| `/festina-complete-project` | Close a project when all tasks are done |
 | `/festina-map-product` | Document product features |
 | `/festina-map-engineering` | Document technical architecture |
 | `/festina-define` | Define a new product and engineering docs from scratch |
+| `/festina-directive` | Create a new directive through guided Q&A |
 
 ---
 
@@ -152,11 +173,15 @@ This repository is built with Festina Lente, and its directives demonstrate what
 All state lives in a single directory at the root of your project:
 
 - `tasks/` — One folder per task containing `task.xml`, `spec.xml`, and `plan.xml`
+- `projects/` — One folder per project containing `project.xml`
+- `quick/` — One folder per quick task containing `quick.xml`
 - `directives/` — Your project's rules and workflow customizations
 - `product/` — Product documentation, organized by domain
 - `engineering/` — Engineering documentation — systems, patterns, conventions
 - `config.yaml` — Maps directives to skills
 - `workflow.yaml` — Column definitions and transitions
+- `glossary.yaml` — Project terminology for search expansion
+- `manifest.json` — Installation metadata and version
 
 Some of these folders can be gitignored depending on your workflow. This repository, for example, gitignores `tasks/` because the GitHub directive posts specs and plans to GitHub Issues instead — the local files are just working state.
 
