@@ -394,7 +394,7 @@ This is a stub document created during task creation. It will be completed with 
       <note>User can select "Other" to describe acceptance criteria</note>
 
       <branch condition="user selects 'You decide'">
-        <action>Generate comprehensive Gherkin criteria covering all 5 categories: happy path, error/failure states, edge cases/boundary conditions, backwards compatibility, and integration</action>
+        <action>Generate comprehensive Gherkin criteria covering all 5 categories: happy path, error/failure states, edge cases/boundary conditions, and integration</action>
         <action>Present grouped by category in the Confirm step so user sees coverage at a glance</action>
         <note>Document what was inferred vs confirmed. Skip category_probing — all categories already covered.</note>
       </branch>
@@ -407,11 +407,10 @@ User-confirmed criteria from the initial Criteria question are preserved — thi
       <action>Review already-captured criteria and identify which categories are covered vs missing.</action>
 
       <action>For each category that needs coverage, use AskUserQuestion tool with:
-        - header: "{Category}" (e.g., "Error States", "Edge Cases", "Backwards Compatibility", "Integration")
+        - header: "{Category}" (e.g., "Error States", "Edge Cases", "Integration")
         - question: "For {category}, I'd propose: {proposed Gherkin criteria}. {contextual follow-up probe}"
           Follow-up probes:
           - Errors: "What should happen if {operation} fails?"
-          - Backwards compat: "What existing behavior must not change?"
           - Integration: "How does this interact with {related feature from doc search}?"
         - options:
           - label: "Yes", description: "Add these criteria"
@@ -441,7 +440,7 @@ User-confirmed criteria from the initial Criteria question are preserved — thi
 
     <action>Use AskUserQuestion tool with:
       - header: "Confirm"
-      - question: "Ready to create the task. Does this look correct? Problem: {summary}, Value: {summary}, Acceptance criteria:\n\n**Happy path:**\n{criteria}\n\n**Error states:**\n{criteria}\n\n**Edge cases:**\n{criteria}\n\n**Backwards compatibility:**\n{criteria}\n\n**Integration:**\n{criteria}"
+      - question: "Ready to create the task. Does this look correct? Problem: {summary}, Value: {summary}, Acceptance criteria:\n\n**Happy path:**\n{criteria}\n\n**Error states:**\n{criteria}\n\n**Edge cases:**\n{criteria}\n\n**Integration:**\n{criteria}"
       - options:
         - label: "Yes, create it", description: "Create the task file"
         - label: "Add more", description: "I have additional context"
