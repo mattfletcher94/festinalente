@@ -605,6 +605,7 @@ The Q&A phase is the natural place to challenge any assumption made during synth
         - multiSelect: false
       </action>
       <note>User can select "Other" to specify different files</note>
+      <note>EXCLUDE product docs (.festinalente/product/) and engineering docs (.festinalente/engineering/) from this list — those are updated by /festina-finalize (Phase 2: Documentation) using the task's affects/engineering fields, not during implementation.</note>
 
       <action>Use AskUserQuestion tool with:
         - header: "Dependencies"
@@ -987,6 +988,7 @@ The Q&A phase is the natural place to challenge any assumption made during synth
 
   <scope>
     <in-scope>
+      <!-- Only implementation work. Do NOT include "update product/engineering docs" — that is handled by /festina-finalize. -->
       <item>{What this spec covers}</item>
       <item>{Another scope item}</item>
     </in-scope>
@@ -1036,6 +1038,7 @@ The Q&A phase is the natural place to challenge any assumption made during synth
   </requirements>
 
   <files>
+    <!-- Only implementation files (source code). Product docs (.festinalente/product/) and engineering docs (.festinalente/engineering/) are NOT listed here — they are updated by /festina-finalize using the task's affects/engineering fields. -->
     <file action="modify" path="path/to/file.ts" reason="{reason}"/>
     <file action="create" path="path/to/new.ts" reason="{reason}"/>
   </files>
