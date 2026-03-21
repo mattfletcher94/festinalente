@@ -2,27 +2,27 @@
 id: skills/implement
 title: "Implement Task"
 type: feature
-tldr: "Execute plan tasks through subagent orchestration with progress persistence"
-summary: "The /festina-implement skill spawns subagents for each plan task, tracks completion in plan.xml, runs quality verification, and moves completed tasks to finalize status."
-keywords: [implement, execute, subagent, orchestration, verification, progress, contracts]
+tldr: "Execute plan tasks directly with progress persistence and quality verification"
+summary: "The /festina-implement skill executes each plan task directly in the orchestrator context, tracks completion in plan.xml, runs quality verification, and moves completed tasks to finalize status."
+keywords: [implement, execute, verification, progress, contracts, direct-execution]
 aliases: [festina-implement, execute, run]
 boundary: "Does not update documentation - that happens in finalize. Git operations are directive-driven."
 references: [skills/plan, skills/finalize, cli/context]
 uses: [systems/cli, systems/data-model]
-updated: 2026-03-17
+updated: 2026-03-21
 ---
 
 # Implement Task
 
-> **TL;DR:** Execute plan tasks through subagent orchestration with progress persistence
+> **TL;DR:** Execute plan tasks directly with progress persistence and quality verification
 
 ## Overview
 
-The `/festina-implement` skill executes the plan by spawning a fresh subagent for each task. Progress is persisted immediately after each task completes, enabling resume if interrupted.
+The `/festina-implement` skill executes the plan by running each task directly in the orchestrator context. Progress is persisted immediately after each task completes, enabling resume if interrupted.
 
 **Why it exists:** To execute complex plans reliably with verification at each step.
 
-**Summary:** Implement orchestrates subagents through the plan, persisting progress as it goes.
+**Summary:** Implement executes tasks directly through the plan, persisting progress as it goes.
 
 ## How It Works
 
@@ -36,36 +36,36 @@ flowchart TB
     end
 
     subgraph "Per Task"
-        Spawn[Spawn Subagent]
-        Execute[Execute Task]
+        ReadCtx[Read Context]
+        Execute[Execute Action]
         Verify[Run Verification]
         DirVal[Directive Validation]
         Persist[Persist Completion]
     end
 
     Parse --> Order
-    Order --> Spawn
-    Spawn --> Execute
+    Order --> ReadCtx
+    ReadCtx --> Execute
     Execute --> Verify
     Verify --> DirVal
     DirVal --> |pass or continue| Persist
     DirVal --> |fix now| Execute
-    Persist --> |next task| Spawn
+    Persist --> |next task| ReadCtx
     Persist --> |all done| Quality
 ```
 
-### Subagent Orchestration
+### Direct Execution
 
-Each plan task is executed by a fresh subagent:
+Each plan task is executed directly by the orchestrator:
 
-1. **Build prompt** from task elements (files, pattern, action, verify). When directives are loaded, full directive XML is included in the subagent prompt so it has directive context
-2. **Spawn subagent** with general-purpose type
-3. **Wait for completion** and parse SUCCESS/FAILURE
+1. **Read context** files listed in the task's context element, plus pattern reference if specified
+2. **Execute action** directly using available tools (Read, Edit, Write, Bash), respecting spec boundaries and contracts from context
+3. **Run verification** command and check result
 4. **Per-task directive validation** - Run directive validation checks (commands, patterns, checklists) scoped to the current task's files. Violations prompt user with Fix now / Continue anyway
 5. **Persist immediately** - Mark `completed="true"` in plan.xml
 6. **Continue** to next task or handle failure
 
-**Summary:** Fresh subagents ensure clean context for each implementation step.
+**Summary:** Direct execution gives the orchestrator full visibility of prior task changes, enabling cross-task coherence.
 
 ### Progress Persistence
 
@@ -92,11 +92,11 @@ After all tasks complete, orchestrator runs:
 
 **Summary:** Quality checks catch incomplete work before finalize.
 
-### Contract Injection
+### Contract and Boundary Handling
 
-When the spec contains a `<contracts>` element, the implement skill extracts contracts during the spec-reading step and injects them into subagent prompts. Contract injection follows the same conditional pattern as boundaries: contracts are only included when they are present in the spec, and only contracts relevant to the current task's requirements are injected.
+When the spec contains `<contracts>` or `<boundaries>` elements, the implement skill extracts them during the spec-reading step. Because the orchestrator executes tasks directly, boundaries and contracts remain available in context throughout execution without any injection needed.
 
-For each subagent prompt, the skill checks whether the task's requirements overlap with any contract's `requirement` attribute. If they do, those contracts are included in the prompt with their preconditions, postconditions, invariants, and properties, giving the subagent clear behavioral expectations to follow during implementation. Contracts may also appear in the task's `<context>` element from the plan, providing a second path for contract visibility.
+The orchestrator respects boundary rules (always/ask-first/never) and contract preconditions, postconditions, invariants, and properties directly as it executes each task. Contracts may also appear in the task's `<context>` element from the plan, providing additional visibility.
 
 ## Examples
 
@@ -108,16 +108,14 @@ For each subagent prompt, the skill checks whether the task's requirements overl
 Reading plan: .festinalente/tasks/001/plan.xml
 Found 3 tasks, 0 completed, order: 1, 2, 3
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 [1/3] Create auth routes file
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Spawning subagent...
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ✓ Task 1 completed: Created src/routes/auth.ts
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 [2/3] Add login endpoint
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Spawning subagent...
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ✓ Task 2 completed: Added POST /login handler
 
 All tasks complete. Moving to finalize.
@@ -145,18 +143,11 @@ What this skill does NOT do:
 - **Does NOT:** Handle git operations directly (directive-driven)
 - **Does NOT:** Update documentation → See [finalize](./finalize.md)
 
-## Configuration
-
-| Setting | Description | Default |
-|---------|-------------|---------|
-| Subagent type | Agent type for tasks | general-purpose |
-
 ## Interactions
 
-- **Smart Context**: Loads relevant docs via select-context
-- **Spec Boundaries**: If spec.xml contains `<boundaries>`, the always/ask-first/never rules are injected into each subagent's prompt. Ask-first items instruct subagents to report FAILURE with details rather than proceeding.
-- **Spec Contracts**: If spec.xml contains `<contracts>`, relevant contracts are injected into subagent prompts following the same conditional pattern as boundaries
-- **Directives**: Applies `phase="implement"` rules. Full directive XML is injected into subagent prompts. Per-task directive validation runs after each subagent completes, before marking the task complete
+- **Spec Boundaries**: If spec.xml contains `<boundaries>`, the always/ask-first/never rules are available in context during execution
+- **Spec Contracts**: If spec.xml contains `<contracts>`, contracts are available in context during execution
+- **Directives**: Applies `phase="implement"` rules. Directives are loaded once and remain in context. Per-task directive validation runs after each task completes, before marking the task complete
 
 ## Limitations
 
