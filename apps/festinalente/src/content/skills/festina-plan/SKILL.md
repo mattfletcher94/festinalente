@@ -425,7 +425,7 @@ Run: /festina-scope {taskId}
   </step>
 
   <step name="validate_plan">
-    <note>Validate plan will achieve spec goals, not just complete tasks (GSD plan-checker pattern)</note>
+    <note>Validate plan will achieve spec goals, not just complete tasks</note>
 
     <action name="requirement_coverage">
       <note>Every functional requirement must have at least one task addressing it</note>
@@ -434,15 +434,6 @@ Run: /festina-scope {taskId}
       <branch condition="any FR has no addressing task">
         <output>BLOCKER: FR{n} "{description}" has no task addressing it</output>
         <action>Add task to plan or update existing task to cover FR</action>
-      </branch>
-    </action>
-
-    <action name="dependency_check">
-      <note>No circular dependencies allowed</note>
-      <action>Build dependency graph from task depends attributes</action>
-      <branch condition="circular dependency detected">
-        <output>BLOCKER: Circular dependency: {cycle}</output>
-        <action>Fix dependency chain</action>
       </branch>
     </action>
 
