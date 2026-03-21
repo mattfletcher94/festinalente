@@ -4,7 +4,7 @@ title: "Scope Task"
 type: feature
 tldr: "Research codebase and create functional specification through parallel exploration"
 summary: "The /festina-scope skill researches the codebase using parallel agents, detects brownfield changes, resolves pitfalls through structured Q&A with autonomy boundaries, validates specs for gaps and implementation leakage, and creates a spec.xml with affected files, patterns, and requirements."
-keywords: [scope, spec, research, parallel-agents, pitfalls, functional-requirements, brownfield, boundaries, validation]
+keywords: [scope, spec, research, parallel-agents, pitfalls, functional-requirements, brownfield, boundaries, validation, contracts]
 aliases: [festina-scope, specification, research]
 boundary: "Does not create implementation plans - only produces functional specification"
 references: [skills/create, skills/plan, docs/product, docs/engineering]
@@ -52,7 +52,8 @@ flowchart LR
     Deep --> Synthesis
     Synthesis --> Pitfalls
     Pitfalls --> QA
-    QA --> GapVal
+    QA --> Contracts[Derive Contracts]
+    Contracts --> GapVal
     GapVal --> SelfCritique[Self-Critique]
     SelfCritique --> Leakage
     Leakage --> Spec[spec.xml]
@@ -115,6 +116,14 @@ During the Q&A phase, the scope skill asks the user about implementation boundar
 | **Never** | Agent must not do this under any circumstances | "Delete existing steps" |
 
 Boundaries are recorded in the `spec.xml` and injected into implementation subagent prompts, where ask-first items instruct subagents to report FAILURE with details rather than proceeding on their own.
+
+### Contracts
+
+After Q&A and before gap validation, the scope skill optionally derives behavioral contracts from the gathered requirements. Each contract captures preconditions, postconditions, invariants, and general properties for a functional requirement.
+
+By default, the user is prompted whether to derive contracts. When a `contracts` directive is loaded, contract derivation becomes mandatory and the prompt is skipped. For each functional requirement, the user provides the behavioral expectations (what must be true before, after, and always), and the skill builds contract elements (C1, C2, ...) that reference the corresponding requirement IDs.
+
+Contracts are included in the `spec.xml` as an optional `<contracts>` element containing `<contract>` sub-elements. When contracts are not derived, the element is simply absent from the spec.
 
 ### Spec Validation
 

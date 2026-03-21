@@ -77,7 +77,7 @@ Create a plan file in `.festinalente/tasks/{id}/` and move task from Scoped to P
     </branch>
   </step>
 
-  <step name="read_spec" outputs="functionalRequirements, affectedFiles, existingPatterns, risks, technicalConstraints, dependencies">
+  <step name="read_spec" outputs="functionalRequirements, affectedFiles, existingPatterns, risks, technicalConstraints, dependencies, contracts">
     <command>node .festinalente/scripts/festinalente.cjs find-spec {taskId}</command>
     <branch condition="spec found">
       <action>Read the spec file at the `path` from JSON output</action>
@@ -90,6 +90,7 @@ Run: /festina-scope {taskId}
       <action>Exit</action>
     </branch>
     <action>Extract all sections: functional requirements, affected files, existing patterns, risks, technical constraints, dependencies</action>
+    <action>Extract contracts from spec if present (optional — may not exist)</action>
   </step>
 
   <step name="assess_complexity" outputs="complexity">
@@ -217,6 +218,14 @@ Run: /festina-scope {taskId}
       - Format: old string/pattern → new string/pattern
     </action>
 
+    <action name="contract_testing">
+      <note>When contracts exist in spec, derive test cases from them:</note>
+      - For each contract's precondition: derive a negative test (what happens when precondition violated)
+      - For each contract's postcondition: derive a positive test (verify postcondition holds)
+      - For each contract's property: derive a property-based test description
+      - Reference specific contract IDs (C1, C2, etc.)
+    </action>
+
     <action name="inventory">
       <note>For bulk operations (updating many files, migrating many items):</note>
       - List ALL items explicitly (not "all 9 files")
@@ -279,6 +288,13 @@ Run: /festina-scope {taskId}
       <context>
         <file>path/to/pattern/reference.ts</file>
         <file>path/to/related/types.ts</file>
+        <!-- When spec has contracts relevant to this task's requirements: -->
+        <contracts>
+          <contract id="C1" requirement="FR1">
+            <precondition>...</precondition>
+            <postcondition>...</postcondition>
+          </contract>
+        </contracts>
       </context>
       <action>
         - Step 1
@@ -321,6 +337,12 @@ Run: /festina-scope {taskId}
     <automated>{what tests to write, if any - derived from FRs}</automated>
     <manual>{what to verify by hand - derived from acceptance criteria}</manual>
     <regression>{what existing behavior to confirm still works}</regression>
+    <!-- When spec has contracts: -->
+    <contract-test contract="C1">
+      <positive>{valid input} -> {expected result per postcondition}</positive>
+      <negative>{invalid input} -> {expected behavior per precondition violation}</negative>
+      <property>{property-based test from contract property}</property>
+    </contract-test>
   </testing>
 
   <edge-cases>
@@ -369,6 +391,7 @@ Run: /festina-scope {taskId}
     <note>- Pattern reference file (from `<pattern>` element) - to see implementation examples</note>
     <note>- Files that import the target file - to understand usage and integration points</note>
     <note>- Related files containing types, interfaces, or constants needed for the task</note>
+    <note>- Contracts from spec that are relevant to this task's requirements — include in a contracts sub-element</note>
     <note>Context should include files the subagent needs to read for understanding, NOT files being created (they don't exist yet).</note>
 
     <note>Verification:</note>

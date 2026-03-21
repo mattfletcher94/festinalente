@@ -46,6 +46,14 @@
     <automated></automated>
     <manual></manual>
     <regression></regression>
+    <!-- Optional: test cases derived from behavioral contracts -->
+    <!--
+    <contract-test contract="C1">
+      <positive>{input} -> {expected output for valid case}</positive>
+      <negative>{input} -> {expected behavior for invalid case}</negative>
+      <property>{property-based test description}</property>
+    </contract-test>
+    -->
   </testing>
 
   <edge-cases>

@@ -801,6 +801,52 @@ The Q&A phase is the natural place to challenge any assumption made during synth
 - Don't rush - thoroughness now saves time during implementation</note>
   </step>
 
+  <step name="derive_contracts" outputs="contractsList">
+    <note>Optionally derive behavioral contracts (preconditions, postconditions, invariants) from the gathered requirements.</note>
+
+    <branch condition="a contracts directive is loaded">
+      <note>FR11: When a contracts directive is active, contract derivation is mandatory — skip the prompt and proceed directly to deriving contracts.</note>
+      <action>Set deriveContracts to true</action>
+    </branch>
+
+    <branch condition="no contracts directive is loaded">
+      <action>Use AskUserQuestion tool with:
+        - header: "Contracts"
+        - question: "Would you like to derive behavioral contracts (preconditions, postconditions, invariants) from the requirements?"
+        - options:
+          - label: "Yes"
+            description: "Derive contracts for each functional requirement"
+          - label: "No"
+            description: "Skip contracts"
+        - multiSelect: false
+      </action>
+    </branch>
+
+    <branch condition="user selects 'Yes' or contracts directive is active">
+      <action>For each functional requirement (FR1, FR2, ...):
+        Use AskUserQuestion tool with:
+        - header: "Contract for {requirement id}: {short description}"
+        - question: "What must be true before, after, and always for this requirement?"
+        - freeform input (no options)
+      </action>
+      <action>Build contract elements from user responses:
+        - id: C1, C2, ... (sequential)
+        - requirement: reference to the FR (FR1, FR2, ...)
+        - name: short descriptive name for the contract
+        - precondition: what must be true before (natural language)
+        - postcondition: what must be true after (natural language)
+        - invariant: what must always be true (natural language)
+        - property: general property that should hold (natural language)
+      </action>
+      <output>contractsList — list of contract elements ready for spec XML</output>
+    </branch>
+
+    <branch condition="user selects 'No'">
+      <action>Skip contract derivation — contracts will be absent from spec</action>
+      <output>contractsList — empty</output>
+    </branch>
+  </step>
+
   <step name="validate_gaps">
     <note>Check the draft requirements for gaps and conflicts before creating the spec file.</note>
 
@@ -1010,6 +1056,12 @@ The Q&A phase is the natural place to challenge any assumption made during synth
       <action>Add each deferred finding as a question element in the open-questions section of the spec XML</action>
     </branch>
 
+    <branch condition="contracts were derived during derive_contracts step">
+      <action>Include contracts element in spec XML with each contract referencing the requirement
+        it constrains. Each contract has id, requirement, name, precondition, postcondition,
+        invariant, and property elements using natural language descriptions.</action>
+    </branch>
+
     <note>Project-aware spec sections (only when projectContext exists):</note>
     <branch condition="projectContext exists (task belongs to a project)">
       <action>AC-D3: In out-of-scope, reference what sibling tasks handle.
@@ -1058,6 +1110,17 @@ The Q&A phase is the natural place to challenge any assumption made during synth
         <item>{never do this}</item>
       </never>
     </boundaries>
+
+    <!-- Conditional: only when contracts were derived -->
+    <contracts>
+      <contract id="C1" requirement="FR1">
+        <name>{contract name}</name>
+        <precondition>{what must be true before}</precondition>
+        <postcondition>{what must be true after}</postcondition>
+        <invariant>{what must always be true}</invariant>
+        <property>{general property that holds}</property>
+      </contract>
+    </contracts>
 
   <requirements>
     <!-- AC-D4: When task belongs to a project, add traces-to attribute linking to project requirement IDs -->
