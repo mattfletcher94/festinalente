@@ -53,7 +53,8 @@ flowchart LR
     Synthesis --> Pitfalls
     Pitfalls --> QA
     QA --> GapVal
-    GapVal --> Leakage
+    GapVal --> SelfCritique[Self-Critique]
+    SelfCritique --> Leakage
     Leakage --> Spec[spec.xml]
 ```
 
@@ -117,13 +118,22 @@ Boundaries are recorded in the `spec.xml` and injected into implementation subag
 
 ### Spec Validation
 
-After Q&A confirmation and before final spec creation, two validation passes run:
+After Q&A confirmation and before final spec creation, three validation passes run:
 
 **Gap Validation** checks the assembled requirements for:
 - Conflicting requirements that contradict each other
 - Missing error handling for failure cases
 - Dangling references to files or docs that do not exist
 - Uncovered acceptance criteria with no backing requirement
+
+**Self-Critique** reviews each requirement for quality defects:
+- Vague language (quantifiers, modal weakenings, passive voice)
+- Untestable criteria (subjective adjectives without measures)
+- Missing edge cases (conditional logic without error handling)
+- Internal consistency (contradicting requirements)
+- Project requirement coverage (when task belongs to a project)
+
+Findings are categorized as CRITICAL (must address) or MODERATE (advisory). Users can address, defer to open-questions, or dismiss each finding. Project-specific quality rules can be added via a spec-quality directive.
 
 **Leakage Check** reviews each requirement to flag any that prescribe **how** something should be implemented rather than **what** outcome is expected. Requirements that leak implementation details are surfaced for the user to rephrase as outcome-focused statements.
 
@@ -201,6 +211,7 @@ What this skill does NOT do:
 - **Engineering Docs**: Reads docs listed in task's `engineering` field
 - **Project Context**: When a task has a `project-id` attribute, loads the parent project's goal, requirements, and scope, plus sibling task summaries for cross-task awareness. Spec requirements trace back to project requirement IDs (e.g., FR1 traces-to R2)
 - **Directives**: Applies any `phase="scope"` rules
+- **Self-Critique Findings**: Deferred self-critique findings feed into the open-questions element of spec.xml; boundary suggestions feed into the boundaries element
 - **Implement Skill**: Autonomy boundaries from spec.xml are injected into implementation subagent prompts
 
 ## Limitations
