@@ -3,8 +3,8 @@ id: skills/create
 title: "Create Task"
 type: feature
 tldr: "Create and refine tasks through conversational Q&A with automatic doc linking"
-summary: "The /festina-create skill captures problem, value, and acceptance criteria through iterative dialogue, then saves a new task to Backlog with automatic product/engineering doc linking. Git operations are handled by the git.xml directive if mapped."
-keywords: [create, task, qa, backlog, acceptance-criteria, gherkin]
+summary: "The /festina-create skill captures problem, value, and acceptance criteria through iterative dialogue with systematic category probing across 5 AC categories, then saves a new task to Backlog with automatic product/engineering doc linking and opportunistic notes population. Git operations are handled by the git.xml directive if mapped."
+keywords: [create, task, qa, backlog, acceptance-criteria, gherkin, category-probing, notes, context]
 aliases: [festina-create, new-task, add-task]
 boundary: "Does not scope or plan tasks - only captures requirements and creates task.xml"
 references: [skills/scope, skills/plan, docs/product, docs/engineering]
@@ -46,12 +46,13 @@ sequenceDiagram
 2. **Doc search** - Find related product/engineering docs
 3. **Priority/label** - Auto-detect from keywords, user confirms
 4. **Q&A dialogue** - Propose understanding, user validates
-5. **Doc link refinement** - Extracts 10-20 keywords (nouns, verbs, domain terms, technical terms, system names) from full task context, expands them via glossary synonyms (`expand-query`), then re-searches docs with the expanded set. Deduplicates against already-linked docs and prompts user only if new high-scoring matches (score >= 0.5) are found; silently skips otherwise
-6. **Project attachment** (optional) - When open projects exist, offers to attach the task to a project. If attached, the user selects which project requirements the task addresses, and sibling context is included in the task description. Skipped entirely when no open projects exist (zero additional friction)
-7. **Task creation** - Write task.xml with Gherkin acceptance criteria
-8. **Directive rules** - Git commit, issue sync, etc. (directive-driven)
+5. **Category probing** - Systematically probe acceptance criteria across 5 categories (happy path, errors, edges, backwards compat, integration)
+6. **Doc link refinement** - Extracts 10-20 keywords (nouns, verbs, domain terms, technical terms, system names) from full task context, expands them via glossary synonyms (`expand-query`), then re-searches docs with the expanded set. Deduplicates against already-linked docs and prompts user only if new high-scoring matches (score >= 0.5) are found; silently skips otherwise
+7. **Project attachment** (optional) - When open projects exist, offers to attach the task to a project. If attached, the user selects which project requirements the task addresses, and sibling context is included in the task description. Skipped entirely when no open projects exist (zero additional friction)
+8. **Task creation** - Write task.xml with Gherkin acceptance criteria
+9. **Directive rules** - Git commit, issue sync, etc. (directive-driven)
 
-**Summary:** Create follows a propose-then-validate pattern to minimize user effort.
+**Summary:** Create follows a propose-then-validate pattern with systematic category probing to minimize user effort while ensuring thorough acceptance criteria.
 
 ### Acceptance Criteria Format
 
@@ -62,6 +63,24 @@ When {action}
 Then {expected outcome}
 And {additional outcome if needed}
 ```
+
+### Acceptance Criteria Categories
+
+Criteria are probed across 5 categories for thorough coverage:
+- **Happy path** — Core success scenarios
+- **Error/failure states** — What happens when things go wrong
+- **Edge cases** — Boundary conditions, limits, empty states
+- **Backwards compatibility** — What must NOT change
+- **Integration** — How this interacts with existing features
+
+Users can skip any category or say "You decide" for LLM-generated comprehensive criteria.
+
+### Notes Population
+
+When conversation context is available (research, integration points, design principles),
+Create populates the `<notes>` field with structured, source-attributed content.
+When invoked directly with minimal input, notes remain empty. Population is opportunistic,
+not mandatory.
 
 ## Examples
 

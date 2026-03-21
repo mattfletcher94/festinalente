@@ -394,9 +394,33 @@ This is a stub document created during task creation. It will be completed with 
       <note>User can select "Other" to describe acceptance criteria</note>
 
       <branch condition="user selects 'You decide'">
-        <action>Use judgment to fill gaps - research if helpful, infer from context</action>
-        <note>Document what was inferred vs confirmed</note>
+        <action>Generate comprehensive Gherkin criteria covering all 5 categories: happy path, error/failure states, edge cases/boundary conditions, and integration</action>
+        <action>Present grouped by category in the Confirm step so user sees coverage at a glance</action>
+        <note>Document what was inferred vs confirmed. Skip category_probing — all categories already covered.</note>
       </branch>
+    </questions>
+
+    <questions name="category_probing" condition="user did NOT say 'You decide' for criteria">
+      <note>Systematically probe acceptance criteria across 5 categories to ensure coverage.
+User-confirmed criteria from the initial Criteria question are preserved — this step adds to them.</note>
+
+      <action>Review already-captured criteria and identify which categories are covered vs missing.</action>
+
+      <action>For each category that needs coverage, use AskUserQuestion tool with:
+        - header: "{Category}" (e.g., "Error States", "Edge Cases", "Integration")
+        - question: "For {category}, I'd propose: {proposed Gherkin criteria}. {contextual follow-up probe}"
+          Follow-up probes:
+          - Errors: "What should happen if {operation} fails?"
+          - Integration: "How does this interact with {related feature from doc search}?"
+        - options:
+          - label: "Yes", description: "Add these criteria"
+          - label: "Adjust", description: "Modify the proposed criteria"
+          - label: "Skip", description: "Not relevant for this task"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" for freeform criteria</note>
+
+      <action>Merge confirmed/adjusted category criteria with initial criteria. Never remove user-confirmed criteria from initial capture.</action>
     </questions>
 
     <branch condition="user requests research">
@@ -416,7 +440,7 @@ This is a stub document created during task creation. It will be completed with 
 
     <action>Use AskUserQuestion tool with:
       - header: "Confirm"
-      - question: "Ready to create the task. Does this look correct? Problem: {summary}, Value: {summary}, Acceptance criteria: {summary}"
+      - question: "Ready to create the task. Does this look correct? Problem: {summary}, Value: {summary}, Acceptance criteria:\n\n**Happy path:**\n{criteria}\n\n**Error states:**\n{criteria}\n\n**Edge cases:**\n{criteria}\n\n**Integration:**\n{criteria}"
       - options:
         - label: "Yes, create it", description: "Create the task file"
         - label: "Add more", description: "I have additional context"
@@ -528,7 +552,23 @@ If so, mark the stub link for replacement with the real doc link (FR8).</action>
     <action>Fill `<problem>` with problem statement from Q&A</action>
     <action>Fill `<value>` with value statement from Q&A</action>
     <action>Fill `<acceptance-criteria>` with Gherkin-format criteria from Q&A</action>
-    <action>Leave `<notes>` empty (filled during implementation)</action>
+    <action>Populate `<notes>` with available context from the conversation. Structure as:
+
+**Research references** (when user shared papers, articles, tools, or research findings):
+- Source-attributed entries (e.g., "Addy Osmani: specs need test plans and boundaries")
+- Research requested by user during Q&amp;A
+
+**Integration points** (when doc search found related features or user mentioned connections):
+- How this connects to existing systems/features
+- Related product/engineering docs and why they matter
+
+**Design principles** (when user stated constraints or preferences):
+- Guiding constraints for implementation
+- Trade-offs or decisions made during Q&amp;A
+
+Population is opportunistic: include sections that have content, omit sections that don't.
+When no upstream context exists (user invoked directly with minimal input), leave notes empty.
+Attribute content to its source: "User: ..." for user-provided, "Research: ..." for web findings, "Inferred: ..." for LLM-derived context.</action>
   </step>
 
   {{> directive-compliance}}
