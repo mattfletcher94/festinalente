@@ -47,6 +47,7 @@ Run directive checks, update documentation, and complete the task. This skill co
 Load these as needed during each phase:
 
 - **[checks.md](checks.md)** - Load in Phase 1: Contains plan verification, check execution by type, and auto-fix loop with iteration logging
+- **[goal-verification.md](goal-verification.md)** - Load in Phase 1: Contains goal-backward verification — AC extraction, stub detection, interactive behavior verification, diagnostic subagent, fix/rework/acknowledge flows
 - **[docs-product.md](docs-product.md)** - Load in Phase 2 if product docs needed: Contains impact analysis, smart context loading, doc update/complete/create flows, domain index updates, glossary updates, and validation
 - **[docs-engineering.md](docs-engineering.md)** - Load in Phase 2 if engineering docs needed: Contains impact analysis, smart context loading, type-specific sections (system/pattern/convention), and engineering index updates
 </context>
@@ -404,6 +405,29 @@ If no acceptance criteria exist, report as N/A.
         <action>Exit</action>
       </branch>
     </branch>
+  </step>
+
+  <step name="verify_goal_satisfaction" when="resumeFrom is phase1">
+    <output>
+Running goal-backward verification...
+    </output>
+
+    <note>
+**Goal-Backward Verification**
+
+This step verifies that the implementation actually works from the user's perspective,
+not just that code compiles and passes pattern checks. It works backward from acceptance
+criteria to observable user behaviors.
+
+Read goal-verification.md for the detailed verification flow.
+    </note>
+
+    <action>Read goal-verification.md for detailed guidance</action>
+    <action>Read task.xml acceptance-criteria (already loaded from read_task_file step)</action>
+    <action>Read plan.xml (already loaded from verify_plan_completion step) for modified files list</action>
+    <action>Follow goal-verification.md sections 1-5 in order</action>
+    <action>On completion: proceed to Phase 2</action>
+    <action>On rework exit: stop skill execution (user directed to /festina-rework)</action>
   </step>
 
   <!-- ═══════════════════════════════════════════════════════════════════════════
