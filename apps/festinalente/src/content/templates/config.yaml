@@ -27,7 +27,7 @@ directives:
     - git
   festina-quick:
     - git
-  festina-explore: []
+  festina-discover: []
   festina-overview: []
   festina-directive:
     - git

@@ -66,6 +66,16 @@ terms:
     definition: 'Workflow column for validation, documentation, and completion'
     auto_generated: true
 
+  - term: 'discover'
+    aliases: ['discovery', 'festina-discover', 'find-opportunities', 'ideation']
+    domain: skills
+    definition: 'Skill that spawns parallel lens agents to systematically surface feature opportunities'
+
+  - term: 'lens'
+    aliases: ['lens-agent', 'discovery-lens', 'perspective']
+    domain: skills
+    definition: 'A specialized agent in /festina-discover that analyzes the project from one perspective (User, Product, Engineering, or Backlog)'
+
   - term: 'rework'
     aliases: ['revision', 'redo', 'fix', 'review-feedback']
     domain: tasks

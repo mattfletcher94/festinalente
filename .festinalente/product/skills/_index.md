@@ -7,10 +7,10 @@ summary: "The skills domain provides slash commands (/festina-*) that orchestrat
 keywords: [skills, slash-commands, workflow, ai-assisted, orchestration, conversational]
 aliases: [commands, slash-commands, festina-commands]
 boundary: "Does not include CLI utilities (see cli domain) or VSCode extension features (see vscode domain)"
-contains: [skills/create, skills/scope, skills/plan, skills/implement, skills/finalize, skills/complete, skills/quick, skills/explore, skills/overview, skills/save, skills/rework, skills/delete, skills/define-product, skills/map-product, skills/map-engineering, skills/directive, skills/create-project, skills/complete-project]
+contains: [skills/create, skills/scope, skills/plan, skills/implement, skills/finalize, skills/complete, skills/quick, skills/discover, skills/overview, skills/save, skills/rework, skills/delete, skills/define-product, skills/map-product, skills/map-engineering, skills/directive, skills/create-project, skills/complete-project]
 references: [cli/_index, docs/_index, directives/_index]
 uses: [systems/cli, systems/content-build]
-updated: 2026-03-08
+updated: 2026-03-21
 ---
 
 # Skills
@@ -50,7 +50,7 @@ flowchart LR
     end
 
     subgraph "Discovery & Documentation"
-        explore[/festina-explore]
+        discover[/festina-discover]
         overview[/festina-overview]
         defineProduct[/festina-define]
         mapProduct[/festina-map-product]
@@ -82,7 +82,7 @@ This domain does NOT cover CLI helper commands (use `node .festinalente/scripts/
 | [finalize](./finalize.md) | Validate, document, and transition to awaiting-completion | stable |
 | [complete](./complete.md) | Move task from awaiting-completion to done | stable |
 | [quick](./quick.md) | Fast path for simple fixes | stable |
-| [explore](./explore.md) | Explore questions through Socratic dialogue | stable |
+| [discover](./discover.md) | Discover opportunities through multi-perspective lens agents | stable |
 | [overview](./overview.md) | View board status and task details | stable |
 | [save](./save.md) | Persist partial progress when interrupted | stable |
 | [rework](./rework.md) | Return task to in-progress with issue report | stable |
