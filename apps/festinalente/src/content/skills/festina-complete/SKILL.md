@@ -83,6 +83,13 @@ Move a task from awaiting-completion to done. Lightweight by default, extensible
 
   {{> directive-compliance}}
 
+  <step name="validate_xml">
+    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
+    <branch condition="validation fails">
+      <output>Warning: XML validation failed. Fix errors before completing.</output>
+    </branch>
+  </step>
+
   <step name="output_result">
     <output>
 **Task {taskId} completed**
