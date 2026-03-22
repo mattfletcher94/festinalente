@@ -38,6 +38,10 @@ No tasks found.
     </branch>
   </step>
 
+  <step name="load_directives">
+    {{> load-directives skill="overview"}}
+  </step>
+
   <step name="load_projects" outputs="projects">
     <note>AC-F4: If no projects exist, skip entirely and behave exactly as before.</note>
     <command>node .festinalente/scripts/festinalente.cjs list-projects</command>
@@ -329,6 +333,9 @@ I didn't understand "{input}". You can:
     <branch condition="status is finalize">
       <output>**Next:** `/festina-finalize {taskId}` or `/festina-rework {taskId}`</output>
     </branch>
+    <branch condition="status is awaiting-completion">
+      <output>**Next:** `/festina-complete {taskId}`</output>
+    </branch>
     <branch condition="status is update-docs">
       <output>**Next:** `/festina-docs {taskId}`</output>
     </branch>
@@ -338,6 +345,8 @@ I didn't understand "{input}". You can:
     <branch condition="status is done">
       <output>Task complete.</output>
     </branch>
+
+    {{> directive-compliance}}
 
     {{> skill-complete}}
   </step>

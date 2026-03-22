@@ -35,6 +35,10 @@ Create a new directive through conversational Q&A. Captures context principles, 
     </branch>
   </step>
 
+  <step name="load_directives">
+    {{> load-directives skill="directive"}}
+  </step>
+
   <step name="get_directive_name" outputs="name">
     <branch condition="$ARGUMENTS provided">
       <action>Use $ARGUMENTS as name</action>
@@ -426,6 +430,8 @@ Create a new directive through conversational Q&A. Captures context principles, 
 Updated `.festinalente/config.yaml`
     </output>
   </step>
+
+  {{> directive-compliance}}
 
   <step name="output_result">
     <output>Directive created: .festinalente/directives/{name}.xml</output>

@@ -30,6 +30,10 @@ Permanently delete a task from the festina board. Only tasks in Backlog status c
     {{> workflow-load}}
   </step>
 
+  <step name="load_directives">
+    {{> load-directives skill="delete"}}
+  </step>
+
   <step name="get_task_id" outputs="taskId">
     <branch condition="$ARGUMENTS provided">
       <action>Use $ARGUMENTS as taskId</action>
@@ -109,7 +113,10 @@ Permanently delete a task from the festina board. Only tasks in Backlog status c
     <output>Task folder deleted: .festinalente/tasks/{taskId}/</output>
   </step>
 
+  {{> directive-compliance}}
+
   <step name="output_result">
+    <validate>Confirm task folder .festinalente/tasks/{taskId}/ no longer exists</validate>
     <output>Task {taskId} deleted successfully.</output>
     {{> skill-complete}}
   </step>

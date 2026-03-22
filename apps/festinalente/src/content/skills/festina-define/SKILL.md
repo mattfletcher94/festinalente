@@ -705,6 +705,13 @@ ISSUES FOUND:
 
   {{> directive-compliance}}
 
+  <step name="validate_xml">
+    <command description="Validate created docs">node .festinalente/scripts/festinalente.cjs validate-docs</command>
+    <branch condition="validation fails">
+      <output>Warning: Validation failed. Fix errors before completing.</output>
+    </branch>
+  </step>
+
   <step name="output_result">
     <output>Product and engineering documentation defined!</output>
     <output>

@@ -108,6 +108,13 @@ Save partial implementation progress when interrupted. Task stays in In Progress
 
   {{> directive-compliance}}
 
+  <step name="validate_xml">
+    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
+    <branch condition="validation fails">
+      <output>Warning: XML validation failed. Fix errors before completing.</output>
+    </branch>
+  </step>
+
   <step name="output_result">
 
     <output>Print progress: "{completed}/{total} plan items complete"</output>
