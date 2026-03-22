@@ -9,7 +9,7 @@ aliases: [festina-implement, execute, run]
 boundary: "Does not update documentation - that happens in finalize. Git operations are directive-driven."
 references: [skills/plan, skills/finalize, cli/context]
 uses: [systems/cli, systems/data-model]
-updated: 2026-03-21
+updated: 2026-03-22
 ---
 
 # Implement Task
@@ -39,6 +39,7 @@ flowchart TB
         ReadCtx[Read Context]
         Execute[Execute Action]
         Verify[Run Verification]
+        ContractV[Contract Verification]
         DirVal[Directive Validation]
         Persist[Persist Completion]
     end
@@ -47,7 +48,8 @@ flowchart TB
     Order --> ReadCtx
     ReadCtx --> Execute
     Execute --> Verify
-    Verify --> DirVal
+    Verify --> ContractV
+    ContractV --> DirVal
     DirVal --> |pass or continue| Persist
     DirVal --> |fix now| Execute
     Persist --> |next task| ReadCtx
@@ -61,8 +63,9 @@ Each plan task is executed directly by the orchestrator:
 1. **Read context** files listed in the task's context element, plus pattern reference if specified
 2. **Execute action** directly using available tools (Read, Edit, Write, Bash), respecting spec boundaries and contracts from context
 3. **Run verification** command and check result
-4. **Per-task directive validation** - Run directive validation checks (commands, patterns, checklists) scoped to the current task's files. Violations prompt user with Fix now / Continue anyway
-5. **Persist immediately** - Mark `completed="true"` in plan.xml
+4. **Contract verification** - If the spec has contracts, evaluate applicable contracts against the task's changes with structured pass/fail results and evidence. Failures prompt user with Fix now / Continue anyway
+5. **Per-task directive validation** - Run directive validation checks (commands, patterns, checklists) scoped to the current task's files. Violations prompt user with Fix now / Continue anyway
+6. **Persist immediately** - Mark `completed="true"` in plan.xml, including contract verification results if contracts were evaluated
 6. **Continue** to next task or handle failure
 
 **Summary:** Direct execution gives the orchestrator full visibility of prior task changes, enabling cross-task coherence.
@@ -92,11 +95,23 @@ After all tasks complete, orchestrator runs:
 
 **Summary:** Quality checks catch incomplete work before finalize.
 
-### Contract and Boundary Handling
+### Contract Verification
 
-When the spec contains `<contracts>` or `<boundaries>` elements, the implement skill extracts them during the spec-reading step. Because the orchestrator executes tasks directly, boundaries and contracts remain available in context throughout execution without any injection needed.
+When the spec contains `<contracts>`, the implement skill runs structured contract verification after each plan task completes its verification command. For each task, the skill:
 
-The orchestrator respects boundary rules (always/ask-first/never) and contract preconditions, postconditions, invariants, and properties directly as it executes each task. Contracts may also appear in the task's `<context>` element from the plan, providing additional visibility.
+1. **Maps contracts to tasks** by matching the task's `requirements` field against each contract's `requirement` attribute. A contract is selected if any FR overlaps.
+2. **Evaluates all four elements** — precondition, postcondition, invariant, and property — against the current code state, producing a pass/fail result with evidence (file:line reference or reasoning).
+3. **Includes contract-test context** from the plan's testing section as complementary input to the evaluation.
+4. **Handles failures** by presenting the user with which contract failed, why, and the evidence, then prompting with Fix now / Continue anyway.
+5. **Persists results** in plan.xml as a `<contract-verification>` child element within each task, containing one `<result>` per contract evaluated.
+
+When the spec has no contracts, this step is skipped entirely with no change to existing behavior.
+
+### Boundary Handling
+
+When the spec contains `<boundaries>`, the implement skill extracts them during the spec-reading step. Because the orchestrator executes tasks directly, boundaries remain available in context throughout execution without any injection needed.
+
+The orchestrator respects boundary rules (always/ask-first/never) directly as it executes each task.
 
 ## Examples
 
@@ -146,7 +161,7 @@ What this skill does NOT do:
 ## Interactions
 
 - **Spec Boundaries**: If spec.xml contains `<boundaries>`, the always/ask-first/never rules are available in context during execution
-- **Spec Contracts**: If spec.xml contains `<contracts>`, contracts are available in context during execution
+- **Spec Contracts**: If spec.xml contains `<contracts>`, structured contract verification runs after each task with pass/fail results persisted in plan.xml
 - **Directives**: Applies `phase="implement"` rules. Directives are loaded once and remain in context. Per-task directive validation runs after each task completes, before marking the task complete
 
 ## Limitations
