@@ -42,6 +42,38 @@ Create a new directive through conversational Q&A. Captures context principles, 
 
 
 
+<note>Use these scripts to work with product documentation:</note>
+
+<command description="List all product docs (returns JSON with count and docs array)">node .festinalente/scripts/festinalente.cjs list-product</command>
+<command description="Filter by type">node .festinalente/scripts/festinalente.cjs list-product --type=feature</command>
+<command description="Filter by domain">node .festinalente/scripts/festinalente.cjs list-product --domain=auth</command>
+
+<command description="Search product docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/festinalente.cjs search-product keyword1 keyword2 ...</command>
+<command description="With minimum score threshold">node .festinalente/scripts/festinalente.cjs search-product password reset --min-score=0.3</command>
+<note>Score interpretation: ≥0.5 = strong match | 0.3-0.5 = possible match | &lt;0.3 = weak match | No results = likely new feature</note>
+
+
+<note>Path rule: ID `auth/login` → Path `.festinalente/product/auth/login.md`</note>
+
+<note>Use these scripts to work with engineering documentation:</note>
+
+<command description="List all engineering docs (returns JSON with count and docs array)">node .festinalente/scripts/festinalente.cjs list-engineering</command>
+<command description="Filter by type">node .festinalente/scripts/festinalente.cjs list-engineering --type=pattern</command>
+<command description="Filter components by system">node .festinalente/scripts/festinalente.cjs list-engineering --system=auth</command>
+
+<command description="Search engineering docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/festinalente.cjs search-engineering keyword1 keyword2 ...</command>
+<command description="With minimum score threshold">node .festinalente/scripts/festinalente.cjs search-engineering middleware pattern --min-score=0.3</command>
+<note>Score interpretation: ≥0.5 = strong match | 0.3-0.5 = possible match | &lt;0.3 = weak match | No results = likely new pattern/system</note>
+
+
+<note>Path rules:
+- `overview` → `.festinalente/engineering/overview.md`
+- `systems/auth` → `.festinalente/engineering/systems/auth/_index.md`
+- `systems/auth/validator` → `.festinalente/engineering/systems/auth/validator.md`
+- `patterns/acyclic-arch` → `.festinalente/engineering/patterns/acyclic-arch.md`
+- `conventions/file-naming` → `.festinalente/engineering/conventions/file-naming.md`
+</note>
+
 <note>Directives are stored at `.festinalente/directives/{name}.xml`</note>
 <note>Directives are linked to skills via `.festinalente/config.yaml`</note>
 </context>
@@ -58,6 +90,51 @@ Create a new directive through conversational Q&A. Captures context principles, 
       <output>Error: Festina Lente not initialized. Run `npx festinalente init` first.</output>
       <action>Exit</action>
     </branch>
+  </step>
+
+  <step name="load_directives">
+    <command>node .festinalente/scripts/festinalente.cjs get-skill-config festina-directive</command>
+    <action>Parse the JSON output</action>
+    
+    <branch condition="directives.length > 0">
+      <warning>Directives are MANDATORY. You MUST follow them.</warning>
+      <action>For EACH directive where `exists` is `true`:</action>
+      <action>Read the directive XML file at `path`</action>
+      <action>Parse and apply:</action>
+      <action>- `<context>` principles: Maintain as ongoing mindset</action>
+      <action>- `<process>` rules where phase contains "directive" (phase may be comma-separated, e.g. phase="plan,implement" applies to both): Follow as requirements</action>
+      <action>- `<override>` sections where phase="directive": Apply step replacements</action>
+      <action>- `<verification>` commands: Note for use in task `<verify>` elements</action>
+    
+      <branch condition="directive has <override> section for phase=directive">
+        <output>
+    **DIRECTIVE OVERRIDE ACTIVE: {directive.name}**
+    
+    The following skill steps are REPLACED by this directive:
+    
+    {For each &lt;skip&gt; element:}
+    **SKIP STEP: `{step}`** - Do NOT execute this step when you reach it in the skill process.
+    
+    **REPLACEMENT:** Execute directive rules {override.instead.rules} instead.
+    
+    **Reason:** {override.reason}
+    
+    **CRITICAL:** When you encounter any skipped step in the skill's &lt;process&gt;,
+    you MUST skip it entirely and follow the directive's replacement rules instead.
+        </output>
+      </branch>
+      <note>`<validation>` checks will run in directive_compliance step</note>
+      <note>`<examples>` will be shown if violations are found</note>
+    </branch>
+    
+    <example_code lang="json">
+    {
+      "skill": "festina-directive",
+      "directives": [
+        { "name": "architecture", "path": ".festinalente/directives/architecture.xml", "exists": true }
+      ]
+    }
+    </example_code>
   </step>
 
   <step name="get_directive_name" outputs="name">
@@ -452,20 +529,50 @@ Updated `.festinalente/config.yaml`
     </output>
   </step>
 
+  <step name="directive_compliance">
+    <note>Verify compliance with all loaded directives</note>
+  
+    <action>For each directive loaded in load_directives step:</action>
+    <action>Re-read the directive XML file</action>
+  
+    <action>Run each `<validation>` check:</action>
+  
+    <branch condition="check type=command">
+      <command>{content of <run> element}</command>
+      <validate>{content of <expect> element}</validate>
+    </branch>
+  
+    <branch condition="check type=pattern">
+      <action>For each file matching `files` glob that was modified:</action>
+      <action>Check content against `<forbidden>` or `<required>` regex</action>
+    </branch>
+  
+    <branch condition="check type=checklist">
+      <action>Self-assess each `<item>` as Y/N</action>
+    </branch>
+  
+    <branch condition="any check fails">
+      <output>Directive violation: {check id} - {reason}</output>
+      <action>Find `<example>` elements where ref matches failed check</action>
+      <action>Show violation examples to illustrate the problem</action>
+      <action>Show correct examples to illustrate the fix</action>
+      <action>Use AskUserQuestion tool with:
+        - header: "Violation"
+        - question: "Directive check failed. How would you like to proceed?"
+        - options:
+          - label: "Fix now", description: "Address the violation before continuing"
+          - label: "Continue anyway", description: "Acknowledge and proceed despite violation"
+        - multiSelect: false
+      </action>
+    </branch>
+  </step>
+
   <step name="output_result">
     <output>Directive created: .festinalente/directives/{name}.xml</output>
     <output>Linked to skills: {selected skills}</output>
     <output>
 **Next: Test by running a skill that uses this directive**
     </output>
-    ## Final Validation
-    
-    Before completing, validate all task XML:
-    
-    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
-    
-    If validation fails, fix the reported errors before completing.
-    
     <output>[FESTINA_COMPLETE]</output>
   </step>
 </process>
@@ -475,6 +582,7 @@ Updated `.festinalente/config.yaml`
 - Directive XML is valid (passes validate-directive.cjs)
 - At least one section (context, process, validation, or examples) is present
 - config.yaml updated with directive in selected skills
+- Next steps shown to user for testing the directive
 </success_criteria>
 
 <example>

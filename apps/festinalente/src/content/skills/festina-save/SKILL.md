@@ -1,7 +1,7 @@
 ---
 name: festina-save
 description: Save partial implementation progress. Use when implementation is interrupted and you need to save work.
-allowed-tools: Read, Write, Edit, Bash(ls *, git add *, git commit *, git status, git diff *, git branch *)
+allowed-tools: Read, Write, Edit, Bash(node *, git add *, git commit *, git status, git diff *, git branch *)
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---
@@ -13,7 +13,13 @@ Save partial implementation progress when interrupted. Task stays in In Progress
 </purpose>
 
 <context>
+{{> directory-reference}}
+
 {{> helper-scripts show_find_task=true show_find_plan=true}}
+
+{{> product-docs-scripts show_search_product=true}}
+
+{{> engineering-docs-scripts show_search_engineering=true}}
 
 {{> column-transition from="in-progress" to="in-progress (no change)"}}
 </context>
@@ -133,6 +139,8 @@ Save partial implementation progress when interrupted. Task stays in In Progress
 <success_criteria>
 - Task file exists at `.festinalente/tasks/{taskId}/task.xml`
 - Task XML has `status="in-progress"`
+- Plan file updated with completed task progress (if applicable)
+- Directive compliance checks passed (if directives exist)
 - Next steps shown to user
 </success_criteria>
 

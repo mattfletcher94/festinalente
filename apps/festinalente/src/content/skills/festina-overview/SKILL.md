@@ -1,7 +1,7 @@
 ---
 name: festina-overview
 description: Show board overview, current status, visual board, or task details. The main command for understanding current state.
-allowed-tools: Read, Glob, Grep, Bash(git log *)
+allowed-tools: Read, Glob, Grep, Bash(node *, git log *)
 disable-model-invocation: true
 ---
 
@@ -12,7 +12,13 @@ Show the current state of the board or specific tasks. Starts by asking what the
 </purpose>
 
 <context>
+{{> directory-reference}}
+
 {{> helper-scripts show_list_tasks=true show_find_task=true show_find_plan=true show_list_projects=true show_get_project_progress=true show_get_project_tasks=true}}
+
+{{> product-docs-scripts show_search_product=true}}
+
+{{> engineering-docs-scripts show_search_engineering=true}}
 </context>
 
 <prohibited>
@@ -357,6 +363,7 @@ I didn't understand "{input}". You can:
 - Only the requested view is shown
 - Task details include next command suggestion
 - Free text input is handled flexibly
+- Appropriate next commands suggested based on board state
 </success_criteria>
 
 <example label="Current Status">
@@ -480,3 +487,18 @@ User: `/festina-overview`
 └ ─ ┘   Bottom-left corner, horizontal, bottom-right corner
 ```
 </note>
+
+<next_steps>
+Start a new task:
+```
+/festina-create
+```
+
+Work on a task (based on board state):
+```
+/festina-scope {id}
+/festina-plan {id}
+/festina-implement {id}
+/festina-finalize {id}
+```
+</next_steps>

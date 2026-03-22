@@ -147,6 +147,18 @@ Complete a project by verifying all child tasks are done, evaluating project-lev
       <output>Error: Project not found</output>
       <action>Exit</action>
     </branch>
+    <branch condition="requirements is empty or missing">
+      <output>Error: Project has no requirements defined. Cannot complete a project without requirements.</output>
+      <action>Exit</action>
+    </branch>
+    <branch condition="no task-ref entries found">
+      <output>Error: Project has no tasks. Cannot complete a project with no tasks.</output>
+      <action>Exit</action>
+    </branch>
+    <branch condition="status is done">
+      <output>Error: Project is already completed.</output>
+      <action>Exit</action>
+    </branch>
   </step>
 
   <step name="check_tasks" outputs="allTasksDone, incompleteTasks">
@@ -286,6 +298,13 @@ These tasks must be completed before the project can be closed.
     </branch>
   </step>
 
+  <step name="validate_xml">
+    <command description="Validate project XML">node .festinalente/scripts/festinalente.cjs validate-xml projects/{projectId}</command>
+    <branch condition="validation fails">
+      <output>Warning: XML validation failed. Fix errors before completing.</output>
+    </branch>
+  </step>
+
   <step name="output_result">
     <output>
 **Project {projectId} completed**
@@ -302,14 +321,6 @@ These tasks must be completed before the project can be closed.
 /festina-overview
 ```
     </output>
-    ## Final Validation
-    
-    Before completing, validate all task XML:
-    
-    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
-    
-    If validation fails, fix the reported errors before completing.
-    
     <output>[FESTINA_COMPLETE]</output>
   </step>
 </process>

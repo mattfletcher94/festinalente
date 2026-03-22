@@ -384,6 +384,9 @@ To resume later, read the quick.xml for context then continue.
 - Quick folder exists at `.festinalente/quick/{quickId}/`
 - Quick file exists at `.festinalente/quick/{quickId}/quick.xml`
 - Quick XML is valid (passes validate-xml.cjs)
+- Code changes implemented and verified
+- Directive compliance checks passed (if directives exist)
+- Next steps shown to user
 </success_criteria>
 
 <example>

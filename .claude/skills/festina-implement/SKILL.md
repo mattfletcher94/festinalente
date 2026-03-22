@@ -53,6 +53,32 @@ Move task from Planned to In Progress and execute the plan.
 
 
 
+<note>Use these scripts to work with product documentation:</note>
+
+
+<command description="Search product docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/festinalente.cjs search-product keyword1 keyword2 ...</command>
+<command description="With minimum score threshold">node .festinalente/scripts/festinalente.cjs search-product password reset --min-score=0.3</command>
+<note>Score interpretation: ≥0.5 = strong match | 0.3-0.5 = possible match | &lt;0.3 = weak match | No results = likely new feature</note>
+
+
+<note>Path rule: ID `auth/login` → Path `.festinalente/product/auth/login.md`</note>
+
+<note>Use these scripts to work with engineering documentation:</note>
+
+
+<command description="Search engineering docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/festinalente.cjs search-engineering keyword1 keyword2 ...</command>
+<command description="With minimum score threshold">node .festinalente/scripts/festinalente.cjs search-engineering middleware pattern --min-score=0.3</command>
+<note>Score interpretation: ≥0.5 = strong match | 0.3-0.5 = possible match | &lt;0.3 = weak match | No results = likely new pattern/system</note>
+
+
+<note>Path rules:
+- `overview` → `.festinalente/engineering/overview.md`
+- `systems/auth` → `.festinalente/engineering/systems/auth/_index.md`
+- `systems/auth/validator` → `.festinalente/engineering/systems/auth/validator.md`
+- `patterns/acyclic-arch` → `.festinalente/engineering/patterns/acyclic-arch.md`
+- `conventions/file-naming` → `.festinalente/engineering/conventions/file-naming.md`
+</note>
+
 <note>Column transition: planned → in-progress</note>
 <note>See `.festinalente/workflow.yaml` for column definitions and valid transitions</note>
 </context>
@@ -239,6 +265,78 @@ Move task from Planned to In Progress and execute the plan.
       </branch>
     </substep>
 
+    <substep name="contract_verification" when="verify succeeded">
+      <branch condition="spec contracts were extracted in read_spec step AND contracts element is non-empty">
+        <note>**Contract-to-task mapping (FR1, FR2):** For each contract in the spec's contracts element,
+        parse the contract's `requirement` attribute (e.g., "FR1, FR2") as a comma-separated list.
+        Parse the current task's `requirements` field the same way. If any FR in the contract's
+        requirement attribute appears in the task's requirements field, the contract is selected
+        for verification. Contracts with no matching FRs are skipped.</note>
+
+        <branch condition="no contracts map to this task">
+          <note>Skip the rest of the substep silently — no contracts relevant to this task</note>
+        </branch>
+
+        <branch condition="one or more contracts map to this task">
+          <note>**Gather contract-test context (FR8):** Check if plan.xml's testing section has
+          contract-test elements. For each contract being verified, find any contract-test element
+          with a matching contract attribute. Include the positive/negative/property test cases as
+          additional context in the verification evaluation.</note>
+
+          <action>**Evaluation (FR3, FR4):** For each selected contract, evaluate all four elements
+          against the current state of the code after this task's changes:
+          - Precondition: Is the precondition satisfied in the current code state?
+          - Postcondition: Does the postcondition hold after this task's changes?
+          - Invariant: Is the invariant maintained?
+          - Property: Does the property hold?
+
+          If a contract element is absent (e.g., no invariant), skip it — only evaluate elements that
+          are present.
+
+          Each contract evaluation produces a structured result:
+          - contract: the contract ID (e.g., "C1")
+          - status: "pass" or "fail"
+          - evidence: file:line reference or reasoning text
+          - details: which specific element(s) passed/failed and why
+
+          Output each result as it completes:
+          `✓ Contract C1 "Name": pass — {evidence summary}`
+          or
+          `✗ Contract C2 "Name": FAIL — {evidence summary}`
+          </action>
+
+          <branch condition="any contract evaluation produces a fail status">
+            <output>Present all failures together including:
+            - Which contract(s) failed (ID and name)
+            - Why each failed (which element — precondition/postcondition/invariant/property)
+            - The evidence (file:line or reasoning)</output>
+            <action>Use AskUserQuestion tool with:
+              - header: "Contract Violation"
+              - question: "Contract verification failed for task {task.id} '{task.name}': {failure summary}. How would you like to proceed?"
+              - options:
+                - label: "Fix now", description: "Address the contract violation before continuing"
+                - label: "Continue anyway", description: "Acknowledge and proceed despite contract failure"
+              - multiSelect: false
+            </action>
+            <branch condition="user selects Fix now">
+              <action>Attempt remediation for the contract violation</action>
+              <action>Re-evaluate the failed contracts</action>
+              <branch condition="still failing after remediation">
+                <action>Report to user and continue</action>
+              </branch>
+            </branch>
+          </branch>
+
+          <note>Collect all results (both pass and fail) for persistence in the persist_completion substep</note>
+        </branch>
+      </branch>
+
+      <branch condition="spec has no contracts element OR contracts element is empty (FR7)">
+        <note>Skip entirely — no contract verification runs, no contract-related elements appear in plan.xml.
+        Existing verification behavior is unchanged.</note>
+      </branch>
+    </substep>
+
     <substep name="per_task_directive_validation" when="verify succeeded">
       <branch condition="directives were loaded in load_directives step">
         <note>Run directive validation checks scoped to files modified by this task</note>
@@ -286,6 +384,29 @@ Move task from Planned to In Progress and execute the plan.
 
     <substep name="persist_completion" when="verify succeeded">
       <action>Update plan.xml: Add `completed="true" completed_at="{ISO timestamp}"` to the task element</action>
+      <branch condition="contract verification ran for this task (contracts were mapped and evaluated)">
+        <action>Add a `contract-verification` child element within the task element in plan.xml containing:
+        ```xml
+        <contract-verification verified-at="{ISO timestamp}">
+          <result contract="{contractId}" status="pass|fail">
+            <evidence>{file:line reference or reasoning}</evidence>
+            <details>
+              <precondition status="pass|fail">{explanation}</precondition>
+              <postcondition status="pass|fail">{explanation}</postcondition>
+              <invariant status="pass|fail">{explanation}</invariant>
+              <property status="pass|fail">{explanation}</property>
+            </details>
+          </result>
+          <!-- one result element per contract evaluated -->
+        </contract-verification>
+        ```
+        </action>
+        <note>Only include elements that were present in the contract (skip absent elements)</note>
+        <note>Results must exactly match the verification output — no results dropped or modified</note>
+      </branch>
+      <branch condition="contract verification did NOT run for this task">
+        <note>Do not add any contract-related elements to plan.xml</note>
+      </branch>
       <action>Write updated plan file</action>
       <note>Persist immediately - ensures progress saved before potential context issues</note>
     </substep>
@@ -494,6 +615,13 @@ To save progress now:
     </branch>
   </step>
 
+  <step name="validate_xml">
+    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
+    <branch condition="validation fails">
+      <output>Warning: XML validation failed. Fix errors before completing.</output>
+    </branch>
+  </step>
+
   <step name="output_result">
     <output>Display implementation summary</output>
     <output>Show files modified</output>
@@ -517,14 +645,6 @@ To save progress now:
 ```
       </output>
     </branch>
-    ## Final Validation
-    
-    Before completing, validate all task XML:
-    
-    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
-    
-    If validation fails, fix the reported errors before completing.
-    
     <output>[FESTINA_COMPLETE]</output>
   </step>
 </process>

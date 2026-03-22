@@ -1,7 +1,7 @@
 ---
 name: festina-plan
 description: Create a plan document for a scoped task. Transforms functional specification into executable implementation steps with appropriate detail based on complexity.
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *)
+allowed-tools: Read, Write, Bash(node *, git add *, git commit *, git status, git branch *)
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---
@@ -672,6 +672,13 @@ Run: /festina-scope {taskId}
     </branch>
   </step>
 
+  <step name="validate_xml">
+    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
+    <branch condition="validation fails">
+      <output>Warning: XML validation failed. Fix errors before completing.</output>
+    </branch>
+  </step>
+
   <step name="output_result">
     <output>Print: "Task {taskId} moved to Planned"</output>
     <output>Print complexity level</output>
@@ -682,14 +689,6 @@ Next:
 /clear
 /festina-implement {taskId}
     </output>
-    ## Final Validation
-    
-    Before completing, validate all task XML:
-    
-    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
-    
-    If validation fails, fix the reported errors before completing.
-    
     <output>[FESTINA_COMPLETE]</output>
   </step>
 </process>

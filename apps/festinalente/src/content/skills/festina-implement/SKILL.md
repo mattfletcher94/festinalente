@@ -17,6 +17,10 @@ Move task from Planned to In Progress and execute the plan.
 
 {{> helper-scripts show_find_task=true show_find_plan=true show_get_date_time=true show_get_skill_config=true}}
 
+{{> product-docs-scripts show_search_product=true}}
+
+{{> engineering-docs-scripts show_search_engineering=true}}
+
 {{> column-transition from="planned" to="in-progress"}}
 </context>
 

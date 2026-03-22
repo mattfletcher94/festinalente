@@ -1,7 +1,7 @@
 ---
 name: festina-map-engineering
 description: Analyze existing codebase and create engineering documentation through parallel exploration and Socratic Q&A
-allowed-tools: Read, Write, Glob, Grep, Bash(git add *, git commit *, git status), Task
+allowed-tools: Read, Write, Glob, Grep, Bash(node *, git add *, git commit *, git status), Task
 disable-model-invocation: true
 ---
 
@@ -12,6 +12,17 @@ Analyze existing codebase and create engineering documentation through parallel 
 </purpose>
 
 <context>
+<note>
+- **`.claude/skills/festina-*/`** — Installed festina skills — READ ONLY
+- **`.festinalente/`** — Project data and config — READ/WRITE
+- **`.festinalente/tasks/{id}/`** — Task folder containing `task.xml`, `spec.xml`, `plan.xml`
+- **`.festinalente/quick/{id}/`** — Quick task folder containing `quick.xml` (for /festina-quick)
+- **`.festinalente/scripts/`** — Helper scripts for festina operations
+- **`.festinalente/templates/`** — Document templates
+- **`.festinalente/workflow.yaml`** — Workflow config (columns, labels, transitions)
+- **`.festinalente/directives/`** — User-defined directives (custom instructions for skills)
+</note>
+
 <note>Use these scripts to reliably find files:</note>
 
 
@@ -36,6 +47,9 @@ Analyze existing codebase and create engineering documentation through parallel 
 <command description="Filter by type">node .festinalente/scripts/festinalente.cjs list-engineering --type=pattern</command>
 <command description="Filter components by system">node .festinalente/scripts/festinalente.cjs list-engineering --system=auth</command>
 
+<command description="Search engineering docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/festinalente.cjs search-engineering keyword1 keyword2 ...</command>
+<command description="With minimum score threshold">node .festinalente/scripts/festinalente.cjs search-engineering middleware pattern --min-score=0.3</command>
+<note>Score interpretation: ≥0.5 = strong match | 0.3-0.5 = possible match | &lt;0.3 = weak match | No results = likely new pattern/system</note>
 
 
 <note>Path rules:
@@ -730,14 +744,6 @@ Risks documented: {count} from Risk Identifier
 /festina-create "Your task title"
 ```
     </output>
-    ## Final Validation
-    
-    Before completing, validate all task XML:
-    
-    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
-    
-    If validation fails, fix the reported errors before completing.
-    
     <output>[FESTINA_COMPLETE]</output>
   </step>
 </process>

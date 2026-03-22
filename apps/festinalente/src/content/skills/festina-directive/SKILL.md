@@ -17,6 +17,10 @@ Create a new directive through conversational Q&A. Captures context principles, 
 
 {{> helper-scripts show_get_date_time=true}}
 
+{{> product-docs-scripts show_search_product=true show_list_product=true}}
+
+{{> engineering-docs-scripts show_search_engineering=true show_list_engineering=true}}
+
 <note>Directives are stored at `.festinalente/directives/{name}.xml`</note>
 <note>Directives are linked to skills via `.festinalente/config.yaml`</note>
 </context>
@@ -448,6 +452,7 @@ Updated `.festinalente/config.yaml`
 - Directive XML is valid (passes validate-directive.cjs)
 - At least one section (context, process, validation, or examples) is present
 - config.yaml updated with directive in selected skills
+- Next steps shown to user for testing the directive
 </success_criteria>
 
 <example>
