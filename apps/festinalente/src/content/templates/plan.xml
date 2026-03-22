@@ -38,6 +38,19 @@
       </action>
       <verify>Command or check to verify the task is complete</verify>
       <done>Clear criteria that defines when this task is complete</done>
+      <!-- Contract verification results (added by /festina-implement when contracts exist):
+      <contract-verification verified-at="{ISO timestamp}">
+        <result contract="C1" status="pass|fail">
+          <evidence>file:line reference or reasoning</evidence>
+          <details>
+            <precondition status="pass|fail">explanation</precondition>
+            <postcondition status="pass|fail">explanation</postcondition>
+            <invariant status="pass|fail">explanation</invariant>
+            <property status="pass|fail">explanation</property>
+          </details>
+        </result>
+      </contract-verification>
+      -->
     </task>
     -->
   </tasks>
