@@ -506,6 +506,15 @@ Avoid loading more than 2-3 related docs to preserve context window.</note>
     </branch>
   </step>
 
+  <step name="validate_xml">
+    <command description="Validate project XML">node .festinalente/scripts/festinalente.cjs validate-xml projects/{projectId}</command>
+    <action>For each task-ref in taskIds:</action>
+    <command description="Validate task XML">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
+    <branch condition="validation fails">
+      <output>Warning: XML validation failed. Fix errors before completing.</output>
+    </branch>
+  </step>
+
   <step name="output_result">
     <output>
 **Project {projectId} created**
@@ -536,14 +545,6 @@ Avoid loading more than 2-3 related docs to preserve context window.</note>
 /festina-scope {firstTaskId}
 ```
     </output>
-    ## Final Validation
-    
-    Before completing, validate all task XML:
-    
-    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
-    
-    If validation fails, fix the reported errors before completing.
-    
     <output>[FESTINA_COMPLETE]</output>
   </step>
 </process>

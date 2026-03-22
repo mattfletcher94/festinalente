@@ -1,7 +1,7 @@
 ---
 name: festina-complete
 description: Complete a task by moving it from Awaiting Completion to Done. Provides directive hook point for custom completion workflows.
-allowed-tools: Read, Write, Bash(ls *, node *, git *)
+allowed-tools: Read, Write, Bash(node *, git *)
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---
@@ -56,6 +56,13 @@ Move a task from awaiting-completion to done. Lightweight by default, extensible
 <note>Column transition: awaiting-completion → done</note>
 <note>See `.festinalente/workflow.yaml` for column definitions and valid transitions</note>
 </context>
+
+<prohibited>
+- Do not use `Search()` or `Glob()` to find files manually
+- Do not read `.festinalente/config.yaml` directly
+- Do not run `ls` commands to explore directories
+- Do not guess filenames or IDs — always use the helper scripts
+</prohibited>
 
 <process>
   <step name="load_workflow">
@@ -198,6 +205,13 @@ Move a task from awaiting-completion to done. Lightweight by default, extensible
     </branch>
   </step>
 
+  <step name="validate_xml">
+    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
+    <branch condition="validation fails">
+      <output>Warning: XML validation failed. Fix errors before completing.</output>
+    </branch>
+  </step>
+
   <step name="output_result">
     <output>
 **Task {taskId} completed**
@@ -212,14 +226,6 @@ Move a task from awaiting-completion to done. Lightweight by default, extensible
 /festina-overview
 ```
     </output>
-    ## Final Validation
-    
-    Before completing, validate all task XML:
-    
-    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
-    
-    If validation fails, fix the reported errors before completing.
-    
     <output>[FESTINA_COMPLETE]</output>
   </step>
 </process>

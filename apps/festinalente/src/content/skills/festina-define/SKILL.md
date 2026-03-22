@@ -1,7 +1,7 @@
 ---
 name: festina-define
 description: Define a new product through Socratic Q&A and generate product and engineering documentation
-allowed-tools: Read, Write, Bash(git add *, git commit *, git status), WebSearch
+allowed-tools: Read, Write, Bash(node *, git add *, git commit *, git status), WebSearch
 disable-model-invocation: true
 ---
 
@@ -12,11 +12,13 @@ Define a new greenfield product through deep Socratic Q&A and generate both prod
 </purpose>
 
 <context>
+{{> directory-reference}}
+
 {{> helper-scripts show_get_date_time=true}}
 
-{{> product-docs-scripts show_list_product=true}}
+{{> product-docs-scripts show_search_product=true show_list_product=true}}
 
-{{> engineering-docs-scripts show_list_engineering=true}}
+{{> engineering-docs-scripts show_search_engineering=true show_list_engineering=true}}
 
 <note>**Column Transition:** N/A - This is a discovery command, not a task workflow command.</note>
 

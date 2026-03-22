@@ -126,6 +126,8 @@ Permanently delete a task from the festina board. Only tasks in Backlog status c
 - Task folder `.festinalente/tasks/{taskId}/` no longer exists
 - User was shown task details before confirming
 - User explicitly confirmed deletion
+- Task was in `backlog` status before deletion
+- Next steps shown to user
 </success_criteria>
 
 <example>
@@ -176,3 +178,10 @@ Task details:
 ...
 ```
 </example>
+
+<next_steps>
+```
+/festina-overview
+/festina-create
+```
+</next_steps>

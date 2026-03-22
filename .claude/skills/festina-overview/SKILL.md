@@ -1,7 +1,7 @@
 ---
 name: festina-overview
 description: Show board overview, current status, visual board, or task details. The main command for understanding current state.
-allowed-tools: Read, Glob, Grep, Bash(git log *)
+allowed-tools: Read, Glob, Grep, Bash(node *, git log *)
 disable-model-invocation: true
 ---
 
@@ -12,6 +12,17 @@ Show the current state of the board or specific tasks. Starts by asking what the
 </purpose>
 
 <context>
+<note>
+- **`.claude/skills/festina-*/`** — Installed festina skills — READ ONLY
+- **`.festinalente/`** — Project data and config — READ/WRITE
+- **`.festinalente/tasks/{id}/`** — Task folder containing `task.xml`, `spec.xml`, `plan.xml`
+- **`.festinalente/quick/{id}/`** — Quick task folder containing `quick.xml` (for /festina-quick)
+- **`.festinalente/scripts/`** — Helper scripts for festina operations
+- **`.festinalente/templates/`** — Document templates
+- **`.festinalente/workflow.yaml`** — Workflow config (columns, labels, transitions)
+- **`.festinalente/directives/`** — User-defined directives (custom instructions for skills)
+</note>
+
 <note>Use these scripts to reliably find files:</note>
 
 <command description="Find task by ID (returns JSON with path and metadata)">node .festinalente/scripts/festinalente.cjs find-task {id}</command>
@@ -37,6 +48,32 @@ Show the current state of the board or specific tasks. Starts by asking what the
 
 <command description="Get task progress counts by status for a project">node .festinalente/scripts/festinalente.cjs get-project-progress {project-id}</command>
 
+
+<note>Use these scripts to work with product documentation:</note>
+
+
+<command description="Search product docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/festinalente.cjs search-product keyword1 keyword2 ...</command>
+<command description="With minimum score threshold">node .festinalente/scripts/festinalente.cjs search-product password reset --min-score=0.3</command>
+<note>Score interpretation: ≥0.5 = strong match | 0.3-0.5 = possible match | &lt;0.3 = weak match | No results = likely new feature</note>
+
+
+<note>Path rule: ID `auth/login` → Path `.festinalente/product/auth/login.md`</note>
+
+<note>Use these scripts to work with engineering documentation:</note>
+
+
+<command description="Search engineering docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/festinalente.cjs search-engineering keyword1 keyword2 ...</command>
+<command description="With minimum score threshold">node .festinalente/scripts/festinalente.cjs search-engineering middleware pattern --min-score=0.3</command>
+<note>Score interpretation: ≥0.5 = strong match | 0.3-0.5 = possible match | &lt;0.3 = weak match | No results = likely new pattern/system</note>
+
+
+<note>Path rules:
+- `overview` → `.festinalente/engineering/overview.md`
+- `systems/auth` → `.festinalente/engineering/systems/auth/_index.md`
+- `systems/auth/validator` → `.festinalente/engineering/systems/auth/validator.md`
+- `patterns/acyclic-arch` → `.festinalente/engineering/patterns/acyclic-arch.md`
+- `conventions/file-naming` → `.festinalente/engineering/conventions/file-naming.md`
+</note>
 </context>
 
 <prohibited>
@@ -58,16 +95,53 @@ No tasks found.
 /festina-create "Your task title"
 ```
       </output>
-      ## Final Validation
-      
-      Before completing, validate all task XML:
-      
-      <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
-      
-      If validation fails, fix the reported errors before completing.
-      
       <output>[FESTINA_COMPLETE]</output>
     </branch>
+  </step>
+
+  <step name="load_directives">
+    <command>node .festinalente/scripts/festinalente.cjs get-skill-config festina-overview</command>
+    <action>Parse the JSON output</action>
+    
+    <branch condition="directives.length > 0">
+      <warning>Directives are MANDATORY. You MUST follow them.</warning>
+      <action>For EACH directive where `exists` is `true`:</action>
+      <action>Read the directive XML file at `path`</action>
+      <action>Parse and apply:</action>
+      <action>- `<context>` principles: Maintain as ongoing mindset</action>
+      <action>- `<process>` rules where phase contains "overview" (phase may be comma-separated, e.g. phase="plan,implement" applies to both): Follow as requirements</action>
+      <action>- `<override>` sections where phase="overview": Apply step replacements</action>
+      <action>- `<verification>` commands: Note for use in task `<verify>` elements</action>
+    
+      <branch condition="directive has <override> section for phase=overview">
+        <output>
+    **DIRECTIVE OVERRIDE ACTIVE: {directive.name}**
+    
+    The following skill steps are REPLACED by this directive:
+    
+    {For each &lt;skip&gt; element:}
+    **SKIP STEP: `{step}`** - Do NOT execute this step when you reach it in the skill process.
+    
+    **REPLACEMENT:** Execute directive rules {override.instead.rules} instead.
+    
+    **Reason:** {override.reason}
+    
+    **CRITICAL:** When you encounter any skipped step in the skill's &lt;process&gt;,
+    you MUST skip it entirely and follow the directive's replacement rules instead.
+        </output>
+      </branch>
+      <note>`<validation>` checks will run in directive_compliance step</note>
+      <note>`<examples>` will be shown if violations are found</note>
+    </branch>
+    
+    <example_code lang="json">
+    {
+      "skill": "festina-overview",
+      "directives": [
+        { "name": "architecture", "path": ".festinalente/directives/architecture.xml", "exists": true }
+      ]
+    }
+    </example_code>
   </step>
 
   <step name="load_projects" outputs="projects">
@@ -115,14 +189,6 @@ No tasks in progress.
 
 **Next:** `/festina-implement {id}`
       </output>
-      ## Final Validation
-      
-      Before completing, validate all task XML:
-      
-      <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
-      
-      If validation fails, fix the reported errors before completing.
-      
       <output>[FESTINA_COMPLETE]</output>
     </branch>
 
@@ -149,14 +215,6 @@ No tasks in progress.
       </output>
     </branch>
 
-    ## Final Validation
-    
-    Before completing, validate all task XML:
-    
-    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
-    
-    If validation fails, fix the reported errors before completing.
-    
     <output>[FESTINA_COMPLETE]</output>
   </step>
 
@@ -210,14 +268,6 @@ No tasks in progress.
       </output>
     </branch>
 
-    ## Final Validation
-    
-    Before completing, validate all task XML:
-    
-    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
-    
-    If validation fails, fix the reported errors before completing.
-    
     <output>[FESTINA_COMPLETE]</output>
   </step>
 
@@ -270,14 +320,6 @@ Done ({count} tasks)
       </output>
     </branch>
 
-    ## Final Validation
-    
-    Before completing, validate all task XML:
-    
-    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
-    
-    If validation fails, fix the reported errors before completing.
-    
     <output>[FESTINA_COMPLETE]</output>
   </step>
 
@@ -304,14 +346,6 @@ Done ({count} tasks)
 
 **Total:** {count} tasks
       </output>
-      ## Final Validation
-      
-      Before completing, validate all task XML:
-      
-      <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
-      
-      If validation fails, fix the reported errors before completing.
-      
       <output>[FESTINA_COMPLETE]</output>
     </branch>
 
@@ -327,27 +361,11 @@ Done ({count} tasks)
 
 **Total:** {count} tasks
       </output>
-      ## Final Validation
-      
-      Before completing, validate all task XML:
-      
-      <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
-      
-      If validation fails, fix the reported errors before completing.
-      
       <output>[FESTINA_COMPLETE]</output>
     </branch>
 
     <branch condition="input asks about recent activity">
       <output>Recent activity is tracked in task files. Use `/festina-overview` with a task ID to see details.</output>
-      ## Final Validation
-      
-      Before completing, validate all task XML:
-      
-      <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
-      
-      If validation fails, fix the reported errors before completing.
-      
       <output>[FESTINA_COMPLETE]</output>
     </branch>
 
@@ -358,14 +376,6 @@ I didn't understand "{input}". You can:
 - Ask about labels (e.g. "show bugs")
 - Ask about priority (e.g. "high priority tasks")
       </output>
-      ## Final Validation
-      
-      Before completing, validate all task XML:
-      
-      <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
-      
-      If validation fails, fix the reported errors before completing.
-      
       <output>[FESTINA_COMPLETE]</output>
     </branch>
   </step>
@@ -380,14 +390,6 @@ I didn't understand "{input}". You can:
 
     <branch condition="task not found">
       <output>Task {taskId} not found.</output>
-      ## Final Validation
-      
-      Before completing, validate all task XML:
-      
-      <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
-      
-      If validation fails, fix the reported errors before completing.
-      
       <output>[FESTINA_COMPLETE]</output>
     </branch>
 
@@ -433,6 +435,9 @@ I didn't understand "{input}". You can:
     <branch condition="status is finalize">
       <output>**Next:** `/festina-finalize {taskId}` or `/festina-rework {taskId}`</output>
     </branch>
+    <branch condition="status is awaiting-completion">
+      <output>**Next:** `/festina-complete {taskId}`</output>
+    </branch>
     <branch condition="status is update-docs">
       <output>**Next:** `/festina-docs {taskId}`</output>
     </branch>
@@ -443,14 +448,44 @@ I didn't understand "{input}". You can:
       <output>Task complete.</output>
     </branch>
 
-    ## Final Validation
+    <step name="directive_compliance">
+      <note>Verify compliance with all loaded directives</note>
     
-    Before completing, validate all task XML:
+      <action>For each directive loaded in load_directives step:</action>
+      <action>Re-read the directive XML file</action>
     
-    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
+      <action>Run each `<validation>` check:</action>
     
-    If validation fails, fix the reported errors before completing.
+      <branch condition="check type=command">
+        <command>{content of <run> element}</command>
+        <validate>{content of <expect> element}</validate>
+      </branch>
     
+      <branch condition="check type=pattern">
+        <action>For each file matching `files` glob that was modified:</action>
+        <action>Check content against `<forbidden>` or `<required>` regex</action>
+      </branch>
+    
+      <branch condition="check type=checklist">
+        <action>Self-assess each `<item>` as Y/N</action>
+      </branch>
+    
+      <branch condition="any check fails">
+        <output>Directive violation: {check id} - {reason}</output>
+        <action>Find `<example>` elements where ref matches failed check</action>
+        <action>Show violation examples to illustrate the problem</action>
+        <action>Show correct examples to illustrate the fix</action>
+        <action>Use AskUserQuestion tool with:
+          - header: "Violation"
+          - question: "Directive check failed. How would you like to proceed?"
+          - options:
+            - label: "Fix now", description: "Address the violation before continuing"
+            - label: "Continue anyway", description: "Acknowledge and proceed despite violation"
+          - multiSelect: false
+        </action>
+      </branch>
+    </step>
+
     <output>[FESTINA_COMPLETE]</output>
   </step>
 </process>
@@ -460,6 +495,7 @@ I didn't understand "{input}". You can:
 - Only the requested view is shown
 - Task details include next command suggestion
 - Free text input is handled flexibly
+- Appropriate next commands suggested based on board state
 </success_criteria>
 
 <example label="Current Status">
@@ -583,3 +619,18 @@ User: `/festina-overview`
 └ ─ ┘   Bottom-left corner, horizontal, bottom-right corner
 ```
 </note>
+
+<next_steps>
+Start a new task:
+```
+/festina-create
+```
+
+Work on a task (based on board state):
+```
+/festina-scope {id}
+/festina-plan {id}
+/festina-implement {id}
+/festina-finalize {id}
+```
+</next_steps>

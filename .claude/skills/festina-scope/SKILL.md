@@ -1,7 +1,7 @@
 ---
 name: festina-scope
 description: Research codebase and create functional specification through conversational Q&A. Focuses on engineering analysis - HOW to build it technically.
-allowed-tools: Read, Write, Bash(ls *, git add *, git commit *, git status, git branch *, git checkout *), Glob, Grep, WebSearch, WebFetch, Task
+allowed-tools: Read, Write, Bash(node *, git add *, git commit *, git status, git branch *, git checkout *), Glob, Grep, WebSearch, WebFetch, Task
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---
@@ -53,6 +53,16 @@ Create a functional specification through iterative conversational Q&A focused o
 
 
 <command description="Get sibling tasks for a task in its project (returns compact JSON: projectId, projectTitle, siblings[])">node .festinalente/scripts/festinalente.cjs get-project-siblings {task-id}</command>
+
+<note>Use these scripts to work with product documentation:</note>
+
+
+<command description="Search product docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/festinalente.cjs search-product keyword1 keyword2 ...</command>
+<command description="With minimum score threshold">node .festinalente/scripts/festinalente.cjs search-product password reset --min-score=0.3</command>
+<note>Score interpretation: ≥0.5 = strong match | 0.3-0.5 = possible match | &lt;0.3 = weak match | No results = likely new feature</note>
+
+
+<note>Path rule: ID `auth/login` → Path `.festinalente/product/auth/login.md`</note>
 
 <note>Use these scripts to work with engineering documentation:</note>
 
@@ -1321,6 +1331,13 @@ The following requirements prescribe HOW instead of WHAT:
     </branch>
   </step>
 
+  <step name="validate_xml">
+    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
+    <branch condition="validation fails">
+      <output>Warning: XML validation failed. Fix errors before completing.</output>
+    </branch>
+  </step>
+
   <step name="output_result">
     <output>Print summary of affected files identified</output>
     <output>Print existing patterns found</output>
@@ -1333,14 +1350,6 @@ The following requirements prescribe HOW instead of WHAT:
 /festina-plan {taskId}
 ```
     </output>
-    ## Final Validation
-    
-    Before completing, validate all task XML:
-    
-    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
-    
-    If validation fails, fix the reported errors before completing.
-    
     <output>[FESTINA_COMPLETE]</output>
   </step>
 </process>

@@ -1,7 +1,7 @@
 ---
 name: festina-rework
 description: Return task to In Progress with structured issue report. Works from Finalize or Awaiting Completion columns.
-allowed-tools: Read, Write, Bash(ls *, node *)
+allowed-tools: Read, Write, Bash(node *)
 argument-hint: "[task-id]"
 disable-model-invocation: true
 ---
@@ -16,6 +16,10 @@ Return a task to In Progress when human review finds issues. Gather structured i
 {{> directory-reference}}
 
 {{> helper-scripts show_find_task=true show_find_plan=true show_get_date_time=true show_get_skill_config=true}}
+
+{{> product-docs-scripts show_search_product=true}}
+
+{{> engineering-docs-scripts show_search_engineering=true}}
 
 <note>Column Transitions:
 ```

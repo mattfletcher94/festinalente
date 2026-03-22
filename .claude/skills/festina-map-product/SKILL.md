@@ -1,7 +1,7 @@
 ---
 name: festina-map-product
 description: Analyze existing codebase and create product documentation through parallel exploration and Socratic Q&A
-allowed-tools: Read, Write, Glob, Grep, Bash(git add *, git commit *, git status), Task
+allowed-tools: Read, Write, Glob, Grep, Bash(node *, git add *, git commit *, git status), Task
 disable-model-invocation: true
 ---
 
@@ -12,6 +12,17 @@ Analyze existing codebase and create product documentation through parallel expl
 </purpose>
 
 <context>
+<note>
+- **`.claude/skills/festina-*/`** — Installed festina skills — READ ONLY
+- **`.festinalente/`** — Project data and config — READ/WRITE
+- **`.festinalente/tasks/{id}/`** — Task folder containing `task.xml`, `spec.xml`, `plan.xml`
+- **`.festinalente/quick/{id}/`** — Quick task folder containing `quick.xml` (for /festina-quick)
+- **`.festinalente/scripts/`** — Helper scripts for festina operations
+- **`.festinalente/templates/`** — Document templates
+- **`.festinalente/workflow.yaml`** — Workflow config (columns, labels, transitions)
+- **`.festinalente/directives/`** — User-defined directives (custom instructions for skills)
+</note>
+
 <note>Use these scripts to reliably find files:</note>
 
 
@@ -36,6 +47,9 @@ Analyze existing codebase and create product documentation through parallel expl
 <command description="Filter by type">node .festinalente/scripts/festinalente.cjs list-product --type=feature</command>
 <command description="Filter by domain">node .festinalente/scripts/festinalente.cjs list-product --domain=auth</command>
 
+<command description="Search product docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/festinalente.cjs search-product keyword1 keyword2 ...</command>
+<command description="With minimum score threshold">node .festinalente/scripts/festinalente.cjs search-product password reset --min-score=0.3</command>
+<note>Score interpretation: ≥0.5 = strong match | 0.3-0.5 = possible match | &lt;0.3 = weak match | No results = likely new feature</note>
 
 
 <note>Path rule: ID `auth/login` → Path `.festinalente/product/auth/login.md`</note>
@@ -843,14 +857,6 @@ Ready to start creating tasks:
 /festina-create "Your task title"
 ```
     </output>
-    ## Final Validation
-    
-    Before completing, validate all task XML:
-    
-    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
-    
-    If validation fails, fix the reported errors before completing.
-    
     <output>[FESTINA_COMPLETE]</output>
   </step>
 </process>

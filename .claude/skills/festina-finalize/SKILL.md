@@ -1016,6 +1016,13 @@ PHASE 3: COMPLETE
     </branch>
   </step>
 
+  <step name="validate_xml">
+    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
+    <branch condition="validation fails">
+      <output>Warning: XML validation failed. Fix errors before completing.</output>
+    </branch>
+  </step>
+
   <step name="output_result">
     <output>
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1033,14 +1040,6 @@ Task has passed validation and documentation. Ready for completion.
 /festina-complete {taskId}
 ```
     </output>
-    ## Final Validation
-    
-    Before completing, validate all task XML:
-    
-    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
-    
-    If validation fails, fix the reported errors before completing.
-    
     <output>[FESTINA_COMPLETE]</output>
   </step>
 </process>

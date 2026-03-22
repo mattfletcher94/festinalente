@@ -60,6 +60,51 @@ Permanently delete a task from the festina board. Only tasks in Backlog status c
     <note>Use these values throughout this skill</note>
   </step>
 
+  <step name="load_directives">
+    <command>node .festinalente/scripts/festinalente.cjs get-skill-config festina-delete</command>
+    <action>Parse the JSON output</action>
+    
+    <branch condition="directives.length > 0">
+      <warning>Directives are MANDATORY. You MUST follow them.</warning>
+      <action>For EACH directive where `exists` is `true`:</action>
+      <action>Read the directive XML file at `path`</action>
+      <action>Parse and apply:</action>
+      <action>- `<context>` principles: Maintain as ongoing mindset</action>
+      <action>- `<process>` rules where phase contains "delete" (phase may be comma-separated, e.g. phase="plan,implement" applies to both): Follow as requirements</action>
+      <action>- `<override>` sections where phase="delete": Apply step replacements</action>
+      <action>- `<verification>` commands: Note for use in task `<verify>` elements</action>
+    
+      <branch condition="directive has <override> section for phase=delete">
+        <output>
+    **DIRECTIVE OVERRIDE ACTIVE: {directive.name}**
+    
+    The following skill steps are REPLACED by this directive:
+    
+    {For each &lt;skip&gt; element:}
+    **SKIP STEP: `{step}`** - Do NOT execute this step when you reach it in the skill process.
+    
+    **REPLACEMENT:** Execute directive rules {override.instead.rules} instead.
+    
+    **Reason:** {override.reason}
+    
+    **CRITICAL:** When you encounter any skipped step in the skill's &lt;process&gt;,
+    you MUST skip it entirely and follow the directive's replacement rules instead.
+        </output>
+      </branch>
+      <note>`<validation>` checks will run in directive_compliance step</note>
+      <note>`<examples>` will be shown if violations are found</note>
+    </branch>
+    
+    <example_code lang="json">
+    {
+      "skill": "festina-delete",
+      "directives": [
+        { "name": "architecture", "path": ".festinalente/directives/architecture.xml", "exists": true }
+      ]
+    }
+    </example_code>
+  </step>
+
   <step name="get_task_id" outputs="taskId">
     <branch condition="$ARGUMENTS provided">
       <action>Use $ARGUMENTS as taskId</action>
@@ -139,16 +184,47 @@ Permanently delete a task from the festina board. Only tasks in Backlog status c
     <output>Task folder deleted: .festinalente/tasks/{taskId}/</output>
   </step>
 
+  <step name="directive_compliance">
+    <note>Verify compliance with all loaded directives</note>
+  
+    <action>For each directive loaded in load_directives step:</action>
+    <action>Re-read the directive XML file</action>
+  
+    <action>Run each `<validation>` check:</action>
+  
+    <branch condition="check type=command">
+      <command>{content of <run> element}</command>
+      <validate>{content of <expect> element}</validate>
+    </branch>
+  
+    <branch condition="check type=pattern">
+      <action>For each file matching `files` glob that was modified:</action>
+      <action>Check content against `<forbidden>` or `<required>` regex</action>
+    </branch>
+  
+    <branch condition="check type=checklist">
+      <action>Self-assess each `<item>` as Y/N</action>
+    </branch>
+  
+    <branch condition="any check fails">
+      <output>Directive violation: {check id} - {reason}</output>
+      <action>Find `<example>` elements where ref matches failed check</action>
+      <action>Show violation examples to illustrate the problem</action>
+      <action>Show correct examples to illustrate the fix</action>
+      <action>Use AskUserQuestion tool with:
+        - header: "Violation"
+        - question: "Directive check failed. How would you like to proceed?"
+        - options:
+          - label: "Fix now", description: "Address the violation before continuing"
+          - label: "Continue anyway", description: "Acknowledge and proceed despite violation"
+        - multiSelect: false
+      </action>
+    </branch>
+  </step>
+
   <step name="output_result">
+    <validate>Confirm task folder .festinalente/tasks/{taskId}/ no longer exists</validate>
     <output>Task {taskId} deleted successfully.</output>
-    ## Final Validation
-    
-    Before completing, validate all task XML:
-    
-    <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
-    
-    If validation fails, fix the reported errors before completing.
-    
     <output>[FESTINA_COMPLETE]</output>
   </step>
 </process>
@@ -157,6 +233,8 @@ Permanently delete a task from the festina board. Only tasks in Backlog status c
 - Task folder `.festinalente/tasks/{taskId}/` no longer exists
 - User was shown task details before confirming
 - User explicitly confirmed deletion
+- Task was in `backlog` status before deletion
+- Next steps shown to user
 </success_criteria>
 
 <example>
@@ -207,3 +285,10 @@ Task details:
 ...
 ```
 </example>
+
+<next_steps>
+```
+/festina-overview
+/festina-create
+```
+</next_steps>
