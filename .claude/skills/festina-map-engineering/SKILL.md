@@ -364,25 +364,11 @@ For each issue, provide:
 
   <step name="create_engineering_overview">
     <note>Based on synthesis, draft overview content:</note>
-    <action>Use AskUserQuestion tool with:
-      - header: "Tech Stack"
-      - question: "What is the main technology stack?"
-      - options:
-        - label: "Use detected", description: "Use stack found by Stack Analyzer"
-        - label: "Skip", description: "I'll provide this later"
-      - multiSelect: false
-    </action>
-    <note>User can select "Other" to specify a different stack</note>
+    <output>Detected stack: {detected stack from Stack Analyzer}.</output>
+    <action>Use detected stack. User can correct during Q&amp;A if needed.</action>
 
-    <action>Use AskUserQuestion tool with:
-      - header: "Architecture"
-      - question: "What's the high-level architecture approach?"
-      - options:
-        - label: "Use detected", description: "Use architecture found by mapper"
-        - label: "Skip", description: "I'll provide this later"
-      - multiSelect: false
-    </action>
-    <note>User can select "Other" to describe the architecture</note>
+    <output>Detected architecture: {detected architecture from Architecture Mapper}.</output>
+    <action>Use detected architecture. User can correct during Q&amp;A if needed.</action>
 
     <warning>IMMEDIATELY create overview.md:</warning>
     <action>Create `.festinalente/engineering/overview.md`</action>

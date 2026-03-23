@@ -14,9 +14,8 @@ Before running checks, verify all implementation tasks are complete:
    - Check if completed="true" exists
    - If NOT: add to incomplete list
 5. If incomplete tasks exist:
-   - List them to user
-   - Use AskUserQuestion: "Plan has incomplete tasks. Run checks anyway?"
-   - Options: Yes (proceed) / No (cancel)
+   - Output WARNING listing incomplete task names
+   - Auto-proceed to run checks
 ```
 
 ## 2. Check Execution by Type
@@ -131,7 +130,7 @@ Exit the skill
 
 ```
 1. Verify plan completion
-   └─ If incomplete: prompt user
+   └─ If incomplete: warn and auto-proceed
 
 2. Load directives for finalize phase
 
@@ -145,7 +144,7 @@ Exit the skill
 
 4. Spec compliance review (independent Explore agent)
    ├─ PASS → continue
-   ├─ PASS WITH NOTES → Acknowledge / Fix / Rework
+   ├─ PASS WITH NOTES → auto-acknowledge, proceed
    └─ FAIL → Fix / Acknowledge / Rework
 
 5. Proceed to Phase 2 (Documentation)

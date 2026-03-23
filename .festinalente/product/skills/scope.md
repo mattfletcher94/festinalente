@@ -61,7 +61,7 @@ flowchart LR
 
 ### Research Depth Options
 
-Reconnaissance always runs first: it reads the affected product and engineering docs referenced by the task, identifies focus areas, and assesses observable signals (file count, module count, pattern clarity, cross-cutting concerns). After recon, the skill recommends Quick or Deep research based on those signals, and the user can accept or override the recommendation.
+Reconnaissance always runs first: it reads the affected product and engineering docs referenced by the task, identifies focus areas, and assesses observable signals (file count, module count, pattern clarity, cross-cutting concerns). After recon, the skill auto-selects Quick or Deep research based on those signals, stating the decision and rationale.
 
 | Depth | When Recommended | Agents Spawned |
 |-------|------------------|----------------|
@@ -96,7 +96,7 @@ How should we handle this?
 
 ### Brownfield Detection
 
-When a task has an `affects` field referencing existing product docs, the scope skill detects this as a brownfield change. The user is offered a choice between a **delta spec format** and a full spec format before research begins.
+When a task has an `affects` field referencing existing product docs, the scope skill detects this as a brownfield change and auto-selects the **delta spec format** (auto-selecting full format when docs are stubs or missing).
 
 The delta spec format documents three aspects of the change:
 - **Current**: What exists today, drawn from the referenced product docs
@@ -107,7 +107,7 @@ This distinction prevents the implementation agent from accidentally rewriting o
 
 ### Autonomy Boundaries
 
-During the Q&A phase, the scope skill asks the user about implementation boundaries, capturing three tiers of autonomy:
+During the Q&A phase, users can volunteer implementation boundaries, which are captured in three tiers of autonomy:
 
 | Tier | Meaning | Example |
 |------|---------|---------|
@@ -163,10 +163,8 @@ Running reconnaissance...
 Read: product/ui/buttons.md, engineering/patterns/responsive.md
 Focus areas: Button component, mobile styles
 
-Based on recon, I recommend Quick research.
+Based on recon, using Quick research.
 Rationale: Single file change in a well-understood module with clear patterns to follow.
-Accept or override?
-> Quick (Recommended)
 
 Researching (sequential, skipping already-read docs)...
 Found: src/components/Button.tsx, src/styles/mobile.css
@@ -186,10 +184,8 @@ Running reconnaissance...
 Read: product/data/sync.md, engineering/systems/api.md
 Focus areas: Sync engine, API layer, auth middleware, state management
 
-Based on recon, I recommend Deep research.
+Based on recon, using Deep research.
 Rationale: Multiple systems affected (sync, API, auth) with unclear interaction patterns.
-Accept or override?
-> Deep (Recommended)
 
 Launching parallel research agents (recon context forwarded)...
 [Product Context Researcher] Finding additional docs...
@@ -217,7 +213,7 @@ What this skill does NOT do:
 
 | Setting | Description | Default |
 |---------|-------------|---------|
-| Research depth | Quick or Deep | Adaptive recommendation (recon-based, user can override) |
+| Research depth | Quick or Deep | Auto-selected based on recon signals |
 | Agent count | Number of parallel agents | 4 (Deep mode) |
 
 ## Interactions

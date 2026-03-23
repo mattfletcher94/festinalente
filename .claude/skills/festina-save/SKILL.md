@@ -90,15 +90,21 @@ Save partial implementation progress when interrupted. Task stays in In Progress
     </branch>
     <branch condition="$ARGUMENTS not provided">
       <action>List tasks in `in-progress` status from `.festinalente/tasks/`</action>
-      <action>Use AskUserQuestion tool with:
-        - header: "Task"
-        - question: "Which task would you like to save WIP for?"
-        - options: Build from task list (up to 4 tasks in in-progress status), each with:
-          - label: "{taskId}: {short title}" (truncate title if needed)
-          - description: "Status: in-progress | Has unsaved work"
-        - multiSelect: false
-      </action>
-      <note>User can select "Other" to type a task ID directly</note>
+      <branch condition="exactly 1 matching task found">
+        <action>Auto-select the single task</action>
+        <output>Auto-selected task: {taskId} "{title}" (only in-progress task).</output>
+      </branch>
+      <branch condition="multiple matching tasks found">
+        <action>Use AskUserQuestion tool with:
+          - header: "Task"
+          - question: "Which task would you like to save WIP for?"
+          - options: Build from task list (up to 4 tasks in in-progress status), each with:
+            - label: "{taskId}: {short title}" (truncate title if needed)
+            - description: "Status: in-progress | Has unsaved work"
+          - multiSelect: false
+        </action>
+        <note>User can select "Other" to type a task ID directly</note>
+      </branch>
     </branch>
   </step>
 

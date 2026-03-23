@@ -332,14 +332,7 @@ PHASE 1: VALIDATE
     <action>Read the plan at the `path` from JSON output</action>
     <validate>Verify all implementation tasks have completed="true"</validate>
     <branch condition="any uncompleted tasks">
-      <action>Use AskUserQuestion tool with:
-        - header: "Incomplete"
-        - question: "Plan has incomplete tasks. Run checks anyway?"
-        - options:
-          - label: "Yes", description: "Proceed despite incomplete plan tasks"
-          - label: "No", description: "Cancel and complete remaining tasks first"
-        - multiSelect: false
-      </action>
+      <output>WARNING: Plan has incomplete tasks: {list incomplete task names}. Proceeding with checks.</output>
     </branch>
   </step>
 
@@ -541,31 +534,8 @@ If no acceptance criteria exist, report as N/A.
     <branch condition="verdict is PASS WITH NOTES">
       <output>Spec compliance review: **PASS WITH NOTES**</output>
       <output>{Display the full review report from the agent}</output>
-      <action>Use AskUserQuestion tool with:
-        - header: "Review"
-        - question: "Spec review passed with notes. How would you like to proceed?"
-        - options:
-          - label: "Acknowledge (Recommended)", description: "Notes are acceptable, continue to Phase 2"
-          - label: "Fix", description: "Address the noted issues before continuing"
-          - label: "Rework", description: "Send back to implementation via /festina-rework"
-        - multiSelect: false
-      </action>
-      <branch condition="user selects Acknowledge">
-        <action>Continue to Phase 2</action>
-      </branch>
-      <branch condition="user selects Fix">
-        <action>Make code changes to address the noted issues</action>
-        <action>Log fix to plan.xml iterations:
-          &lt;iteration phase="finalize" date="{YYYY-MM-DD}"&gt;
-            &lt;fix directive="spec-review"&gt;{description of fix}&lt;/fix&gt;
-          &lt;/iteration&gt;
-        </action>
-        <action>Restart from run_checks step</action>
-      </branch>
-      <branch condition="user selects Rework">
-        <output>Exiting. Run `/festina-rework {taskId}` to capture issues and return to implementation.</output>
-        <action>Exit</action>
-      </branch>
+      <output>Notes acknowledged. Proceeding to Phase 2.</output>
+      <action>Continue to Phase 2</action>
     </branch>
 
     <branch condition="verdict is FAIL">
@@ -713,19 +683,7 @@ Will CREATE (new doc needed): {engMissingDocs}
         </output>
       </branch>
 
-      <action>Use AskUserQuestion tool with:
-        - header: "Docs"
-        - question: "Proceed with documentation updates as analyzed?"
-        - options:
-          - label: "Yes (Recommended)", description: "Spawn agents to update/create docs as shown"
-          - label: "No", description: "Skip all documentation updates"
-        - multiSelect: false
-      </action>
-
-      <branch condition="user selects No">
-        <output>Documentation updates skipped.</output>
-        <action>Set needsProductDocs = false, needsEngineeringDocs = false</action>
-      </branch>
+      <output>Proceeding with documentation updates as analyzed.</output>
     </branch>
   </step>
 
@@ -952,20 +910,7 @@ All validations passed
     <action>For each doc in allFilesChanged, run reverse-lookup:</action>
     <command>node .festinalente/scripts/festinalente.cjs reverse-lookup {docId}</command>
     <branch condition="referencedBy or usedBy has entries">
-      <output>These docs reference the updated doc - consider if they need updates:</output>
-      <output>- {id}: {tldr}</output>
-      <action>Use AskUserQuestion tool with:
-        - header: "Related"
-        - question: "Review these referencing docs for updates?"
-        - options:
-          - label: "Skip (Recommended)", description: "No updates needed - references are still accurate"
-          - label: "Review", description: "Check these docs for potential updates"
-        - multiSelect: false
-      </action>
-      <branch condition="user selects Review">
-        <action>Read each referencing doc and check if references are still accurate</action>
-        <action>If updates needed, add to allFilesChanged</action>
-      </branch>
+      <output>Referencing docs found: {list of ids with tldr}. Auto-skipping (informational only).</output>
     </branch>
   </step>
 
@@ -1086,7 +1031,7 @@ Will COMPLETE (stub exists): auth/login
 
 **Engineering Docs:** No updates needed
 
-[User selects "Yes (Recommended)"]
+Proceeding with documentation updates as analyzed.
 
 Spawning documentation agents in parallel...
 - Product Docs Agent: Processing 1 doc

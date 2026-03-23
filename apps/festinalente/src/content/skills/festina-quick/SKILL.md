@@ -90,18 +90,23 @@ implementation, optional review, optional doc updates.
     <note>User can select "Other" to describe done criteria</note>
   </step>
 
-  <step name="ask_research" outputs="doResearch">
-    <action>Use AskUserQuestion tool with:
-      - header: "Research"
-      - question: "Want me to research the codebase first?"
-      - options:
-        - label: "No (Recommended)", description: "Jump straight to implementation"
-        - label: "Yes", description: "Explore the codebase to find affected files"
-      - multiSelect: false
+  <step name="auto_decide_research" outputs="doResearch">
+    <note>Auto-decide whether codebase research is needed based on task complexity.</note>
+    <action>Assess task complexity from problem description and done criteria:
+      - Simple (typo, config change, single-file edit): skip research
+      - Complex (multi-file, unfamiliar area, integration): do research
     </action>
+    <branch condition="simple task">
+      <action>Set doResearch = false</action>
+      <output>Simple task — skipping codebase research.</output>
+    </branch>
+    <branch condition="complex task">
+      <action>Set doResearch = true</action>
+      <output>Task involves {reason} — researching codebase first.</output>
+    </branch>
   </step>
 
-  <step name="optional_research" when="doResearch is Yes" outputs="findings">
+  <step name="optional_research" when="doResearch is true" outputs="findings">
     <action>Use Glob/Grep to find affected files based on problem and title</action>
     <action>Read relevant files to understand context</action>
     <action>Store findings for later inclusion in quick.xml</action>
@@ -174,29 +179,8 @@ implementation, optional review, optional doc updates.
     <note>Follow any loaded directive rules</note>
   </step>
 
-  <step name="pause_for_review">
-    <output>
-**Implementation complete.**
-
-Now's the time to review changes if you'd like.
-    </output>
-    <action>Use AskUserQuestion tool with:
-      - header: "Proceed"
-      - question: "Ready to proceed?"
-      - options:
-        - label: "Yes, proceed", description: "Finalize the changes"
-        - label: "Wait", description: "I need to review or make changes first"
-      - multiSelect: false
-    </action>
-    <branch condition="user selects Wait">
-      <note>Status remains "in-progress" in quick.xml for LLM resume</note>
-      <output>
-No problem. Your progress is saved in `.festinalente/quick/{quickId}/quick.xml`.
-
-To resume later, read the quick.xml for context then continue.
-      </output>
-      <action>Exit</action>
-    </branch>
+  <step name="proceed_to_finalization">
+    <output>Implementation complete. Proceeding to finalization.</output>
   </step>
 
   {{> directive-compliance}}
@@ -211,18 +195,8 @@ To resume later, read the quick.xml for context then continue.
     <action>- Update `<summary>` element with brief description of what was done</action>
   </step>
 
-  <step name="ask_docs">
-    <action>Use AskUserQuestion tool with:
-      - header: "Docs"
-      - question: "Do you want me to update docs?"
-      - options:
-        - label: "No", description: "Skip doc updates"
-        - label: "Yes", description: "Update product/engineering docs based on changes"
-      - multiSelect: false
-    </action>
-  </step>
-
-  <step name="detect_docs" when="user selected Yes for docs">
+  <step name="detect_docs">
+    <note>Auto-detect whether relevant docs exist for the changes made.</note>
     <action>Analyze the code changes to detect which docs might be affected</action>
     <command>node .festinalente/scripts/festinalente.cjs search-product {keywords from changes}</command>
     <command>node .festinalente/scripts/festinalente.cjs search-engineering {keywords from changes}</command>
@@ -278,8 +252,7 @@ What problem are you solving?
 What does done look like?
 > The button text is spelled correctly
 
-Want me to research the codebase first?
-> No
+Simple task — skipping codebase research.
 
 Created quick task: .festinalente/quick/000/quick.xml
 
@@ -289,15 +262,9 @@ Created quick task: .festinalente/quick/000/quick.xml
 
 Fixing the typo in src/components/LoginButton.tsx...
 
-**Implementation complete.**
+Implementation complete. Proceeding to finalization.
 
-Now's the time to review changes if you'd like.
-
-Ready to proceed? [Yes, proceed / Wait]
-> Yes, proceed
-
-Do you want me to update docs?
-> No
+No related docs to update.
 
 **Quick task 000 complete!**
 

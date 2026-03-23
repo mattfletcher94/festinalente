@@ -214,15 +214,8 @@ Create a functional specification through iterative conversational Q&A focused o
     <branch condition="task has affects field with product doc references">
       <action>Check if any affected product docs exist and contain substantive content (not stubs)</action>
       <branch condition="existing non-stub product docs found">
-        <action>Use AskUserQuestion tool with:
-          - header: "Spec Format"
-          - question: "This task affects existing features ({list affected doc IDs}). Use delta spec format (documents what's changing vs staying the same) or full spec format?"
-          - options:
-            - label: "Delta spec (Recommended)", description: "Focuses on what's changing. Includes current state, changes, and unchanged sections from product docs."
-            - label: "Full spec", description: "Standard full specification. Better for tasks that substantially rework a feature."
-          - multiSelect: false
-        </action>
-        <action>Set specFormat based on user choice</action>
+        <action>Set specFormat = "delta"</action>
+        <output>Brownfield change detected (affects: {list affected doc IDs}). Using delta spec format.</output>
       </branch>
       <branch condition="all affected docs are stubs or missing">
         <action>Set specFormat = "full"</action>
@@ -298,14 +291,8 @@ Create a functional specification through iterative conversational Q&A focused o
       <action>- Large surface area of change or unfamiliar codebase area</action>
     </action>
 
-    <action>Use AskUserQuestion tool with:
-      - header: "Research"
-      - question: "Based on recon, I recommend {Quick|Deep} research. Rationale: {1-2 sentence summary of signals found — e.g., 'Single file change in a well-understood module with clear patterns to follow' or 'Multiple systems affected with unclear interaction patterns'}. Accept or override?"
-      - options:
-        - label: "{recommended} (Recommended)", description: "{rationale summary}"
-        - label: "{other option}", description: "{what this option means for this task}"
-      - multiSelect: false
-    </action>
+    <action>Set researchDepth = {recommended}</action>
+    <output>Based on recon, using {Quick|Deep} research. Rationale: {1-2 sentence summary of signals found}.</output>
   </step>
 
   <step name="structured_research" outputs="researchFindings">
@@ -673,7 +660,7 @@ Proceeding to technical Q&A. You can raise any concerns about the standard mitig
 If user raises concerns about a standard mitigation, discuss alternatives and update resolvedPitfalls.
 The Q&A phase is the natural place to challenge any assumption made during synthesis.</note>
 
-    <note>**For UI tasks:** Propose, don't interrogate.
+    <note>**Propose, don't interrogate.**
 - INFER decisions from context and acceptance criteria
 - PROPOSE solutions with reasoning: "I'd place X here because Y. Does that work?"
 - Only ASK when there's genuine ambiguity the context doesn't resolve</note>
@@ -742,17 +729,8 @@ The Q&A phase is the natural place to challenge any assumption made during synth
       </action>
       <note>User can select "Other" to describe constraints</note>
 
-      <action>Use AskUserQuestion tool with:
-        - header: "Boundaries"
-        - question: "Are there boundaries for the implementation agent? Things it should always do, ask about first, or never touch?"
-        - options:
-          - label: "None needed", description: "No specific autonomy boundaries"
-          - label: "Yes", description: "I want to define always/ask-first/never rules"
-          - label: "Skip", description: "Move to next question"
-        - multiSelect: false
-      </action>
-      <note>User can select "Other" to describe boundaries directly</note>
-      <branch condition="user selects 'Yes' or provides boundaries via 'Other'">
+      <note>Boundaries are not asked for explicitly — users who want boundaries can volunteer them during Q&amp;A or specify them in task notes.</note>
+      <branch condition="user voluntarily provides boundaries during Q&amp;A">
         <action>Capture boundaries into three categories:
           - always: Things the agent should always do without asking (e.g., "run tests", "preserve existing API")
           - ask-first: Things that need user approval before proceeding (e.g., "changing public interfaces", "modifying shared config")
@@ -784,26 +762,8 @@ The Q&A phase is the natural place to challenge any assumption made during synth
 
     <action>Continue until you have enough information to write a complete functional spec</action>
 
-    <action>Use AskUserQuestion tool with:
-      - header: "Confirm"
-      - question: "I have enough information for the spec. Does this summary look correct? Approach: {summary}, Key files: {list}, Dependencies: {list}, Patterns: {summary}"
-      - options:
-        - label: "Yes, proceed", description: "Create the functional spec"
-        - label: "Add more", description: "I have additional context"
-        - label: "Corrections", description: "Some details need fixing"
-      - multiSelect: false
-    </action>
-    <note>User can select "Other" to provide corrections or additions</note>
-
-    <branch condition="user says 'Yes, proceed'">
-      <action>Proceed to writing spec</action>
-    </branch>
-    <branch condition="user says 'Add more'">
-      <action>Incorporate additional context and confirm again</action>
-    </branch>
-    <branch condition="user says 'Corrections'">
-      <action>Update understanding and confirm again</action>
-    </branch>
+    <output>Summary: Approach: {summary}, Key files: {list}, Dependencies: {list}, Patterns: {summary}. Proceeding to spec creation.</output>
+    <action>Proceed to writing spec</action>
 
     <note>Key principles:
 - Focus on TECHNICAL decisions, not product requirements (those are in the task)

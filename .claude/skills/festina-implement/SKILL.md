@@ -101,15 +101,21 @@ Move task from Planned to In Progress and execute the plan.
     </branch>
     <branch condition="$ARGUMENTS not provided">
       <action>List tasks in `planned` or `in-progress` status from `.festinalente/tasks/`</action>
-      <action>Use AskUserQuestion tool with:
-        - header: "Task"
-        - question: "Which task would you like to implement?"
-        - options: Build from task list (up to 4 tasks in planned or in-progress status), each with:
-          - label: "{taskId}: {short title}" (truncate title if needed)
-          - description: "Status: {status} | Ready to implement"
-        - multiSelect: false
-      </action>
-      <note>User can select "Other" to type a task ID directly</note>
+      <branch condition="exactly 1 matching task found">
+        <action>Auto-select the single task</action>
+        <output>Auto-selected task: {taskId} "{title}" (only matching task).</output>
+      </branch>
+      <branch condition="multiple matching tasks found">
+        <action>Use AskUserQuestion tool with:
+          - header: "Task"
+          - question: "Which task would you like to implement?"
+          - options: Build from task list (up to 4 tasks in planned or in-progress status), each with:
+            - label: "{taskId}: {short title}" (truncate title if needed)
+            - description: "Status: {status} | Ready to implement"
+          - multiSelect: false
+        </action>
+        <note>User can select "Other" to type a task ID directly</note>
+      </branch>
     </branch>
   </step>
 
