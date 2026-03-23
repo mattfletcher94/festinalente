@@ -8852,6 +8852,19 @@ const DOC_QUALITY_CHECKS = [
 		check: (_, body) => body.length < 5e3,
 		severity: "warning",
 		message: "Content too long (>5000 chars) - consider splitting"
+	},
+	{
+		name: "has-intent",
+		check: (fm) => {
+			if (typeof fm.intent !== "string") return false;
+			return [
+				"reference",
+				"procedural",
+				"conceptual"
+			].includes(fm.intent);
+		},
+		severity: "warning",
+		message: "Missing or invalid intent field (expected: reference, procedural, or conceptual)"
 	}
 ];
 /**

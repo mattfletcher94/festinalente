@@ -10,7 +10,8 @@ boundary: "Does not apply to skill definitions, directive XML, or task artifacts
 references: [systems/validation, conventions/file-naming]
 uses: []
 paths: [.festinalente/product, .festinalente/engineering, .festinalente/templates]
-updated: 2026-03-23
+intent: reference
+prerequisites: []
 ---
 
 # Documentation Format Convention
@@ -23,7 +24,7 @@ Standardized YAML frontmatter schemas and quality validation for all product and
 
 ## Rule
 
-Every product and engineering documentation file must include valid YAML frontmatter with required fields for its type. Documentation is validated at runtime by the [validation system](../systems/validation/_index.md) against 8 quality checks.
+Every product and engineering documentation file must include valid YAML frontmatter with required fields for its type. Documentation is validated at runtime by the [validation system](../systems/validation/_index.md) against 9 quality checks.
 
 ## Frontmatter Schemas by Doc Type
 
@@ -44,7 +45,8 @@ All engineering docs share a base schema with type-specific values:
 | `references` | Recommended | string[] | Other docs this builds upon or relates to |
 | `uses` | Recommended | string[] | Systems/implementations that employ this |
 | `paths` | Recommended | string[] | Code directory paths relevant to this doc |
-| `updated` | Yes | date | `YYYY-MM-DD` format |
+| `intent` | Recommended | enum | Doc type: `reference` (schemas, APIs, lookups), `procedural` (workflows, how-tos), `conceptual` (explanations, rationale) |
+| `prerequisites` | Recommended | string[] | Doc IDs that must be read first for this doc to make sense (subset of references) |
 
 ### Product Docs
 
@@ -64,7 +66,8 @@ Product docs share most fields with engineering but have type-specific differenc
 | `boundary` | Recommended | string | What this feature does NOT cover |
 | `references` | Recommended | string[] | Other docs this relates to |
 | `uses` | Recommended | string[] | Systems/features that use this |
-| `updated` | Yes | date | `YYYY-MM-DD` format |
+| `intent` | Recommended | enum | Doc type: `reference` (schemas, APIs, lookups), `procedural` (workflows, how-tos), `conceptual` (explanations, rationale) |
+| `prerequisites` | Recommended | string[] | Doc IDs that must be read first for this doc to make sense (subset of references) |
 
 **Domain docs** (`type: domain`):
 
@@ -82,6 +85,22 @@ Product docs share most fields with engineering but have type-specific differenc
 | `paths` | Yes | No | Engineering maps to code directories |
 | `contains` | No | Domain only | Domain docs list child features |
 | `type` values | system, pattern, convention, overview | feature, domain, concept, overview | Different taxonomies |
+
+### Default Intent by Doc Type
+
+| Doc Type | Default Intent | Rationale |
+|----------|---------------|-----------|
+| feature | procedural | Describes how a feature works step-by-step |
+| concept | conceptual | Explains a concept |
+| domain | reference | Index of features, lookup |
+| overview (product) | conceptual | Explains the product |
+| system | reference | Architecture, components, extension points |
+| pattern | conceptual | Problem/solution/when to use |
+| convention | reference | Rule, examples, enforcement |
+| overview (engineering) | reference | Tech stack, directory structure |
+| component | reference | Component interface, data flow |
+
+Default mappings are guidance, not enforcement. A system doc that's primarily about "how to extend" could be procedural. A feature doc that's primarily a field reference could be reference. The finalize agent uses judgment based on actual content.
 
 ## Quality Check Thresholds
 
@@ -104,6 +123,7 @@ These thresholds are enforced by `festinalente validate-docs`:
 | `has-boundaries` | `boundary` field OR body has `## Boundaries` or `Does NOT` | Scope defined to prevent false search matches |
 | `not-too-short` | `body.length > 300` | Minimum substantive content |
 | `not-too-long` | `body.length < 5000` | Encourage splitting long docs |
+| `has-intent` | `intent` is one of `reference`, `procedural`, `conceptual` | Intent field helps agents filter search results by doc type |
 
 ## Relationship Field Semantics
 
@@ -123,6 +143,15 @@ These thresholds are enforced by `festinalente validate-docs`:
 - **Used by:** patterns, conventions
 - **Validated:** Broken uses flagged by `validate-docs`
 
+### `prerequisites` — "must read first"
+
+- **Direction:** This doc → required reading docs
+- **Meaning:** These docs must be read before this doc makes sense
+- **Invariant:** prerequisites ⊆ references (every prerequisite is also a reference, but not vice versa)
+- **Distinguished from:** `references` (general relationship) and `uses` (implementation dependency)
+- **Example:** `skills/plan` has `prerequisites: [skills/scope]` because understanding scope output is required to follow the plan skill
+- **Used by:** any doc with reading-order dependencies
+
 ### `related` — "sibling features" (product only)
 
 - **Direction:** Peer-to-peer
@@ -140,6 +169,67 @@ Does system B implement pattern/convention A?
 
 Are product features A and B related?
   → A.related includes B, B.related includes A
+```
+
+## Progressive Disclosure Tiers
+
+The documentation system uses three tiers for progressive context loading. Agents load the minimum tier needed and upgrade on demand.
+
+### Tier 1 — Minimal (~50 tokens)
+
+**Contents:** frontmatter fields only (id, title, tldr, intent, keywords, boundary, references, uses, prerequisites)
+**Use case:** scanning/routing — deciding if a doc is relevant, building doc lists
+**When used:** search result previews, graph-expanded neighbor docs, prerequisite pre-loading
+**Agent behavior:** read tldr + intent to decide whether to load more
+
+### Tier 2 — Standard (~200 tokens)
+
+**Contents:** frontmatter + TL;DR blockquote + Overview section (everything above the first non-Overview H2)
+**Use case:** context building — understanding what a doc covers without full details
+**When used:** direct search matches for reference context, select-context --tier=standard
+**Agent behavior:** read overview to decide whether full content is needed
+
+### Tier 3 — Full (~500-1000 tokens)
+
+**Contents:** complete document body including all sections, examples, diagrams
+**Use case:** deep reading — executing procedures, extracting implementation details
+**When used:** docs being modified by finalize, docs the agent is actively implementing from
+**Agent behavior:** load when the agent needs to act on the doc's content, not just understand it
+
+### Tier Usage Guidelines
+
+| Context | Tier |
+|---------|------|
+| Direct search matches | standard |
+| Graph-expanded neighbors | minimal |
+| Prerequisites | minimal |
+| Docs being modified | full |
+
+## Self-Containment Rule
+
+Every H2 section must open with a one-line context sentence that provides enough context to understand the section in isolation. This enables section-level retrieval via search without losing meaning.
+
+**Prohibited patterns:**
+- "see above", "as mentioned previously", "the previous section"
+- Vague pronouns without antecedent ("it", "this feature" without naming the feature)
+- Context-dependent statements that only make sense when read top-to-bottom
+
+**Example transformation:**
+
+Before (context-dependent):
+```markdown
+## Validation Checks
+
+These checks run during the finalize phase described above. They verify
+the criteria mentioned in the previous section.
+```
+
+After (self-contained):
+```markdown
+## Validation Checks
+
+The validation system runs 8 quality checks against documentation frontmatter
+and body content during the finalize skill's quality verification phase.
 ```
 
 ## Rationale
@@ -169,7 +259,8 @@ boundary: "Does not handle authorization (role checks) — see permissions syste
 references: [patterns/factory-di, systems/database]
 uses: []
 paths: [apps/api/src/auth]
-updated: 2026-03-23
+intent: reference
+prerequisites: []
 ---
 ```
 
@@ -185,7 +276,7 @@ summary: "Auth system"
 keywords: []
 ---
 # Violates: id missing systems/ prefix, tldr too short (≤10),
-#   summary too short (≤50), no keywords, missing updated,
+#   summary too short (≤50), no keywords, missing intent,
 #   missing boundary
 ```
 
@@ -202,7 +293,7 @@ When this convention does NOT apply:
 
 ## Enforcement
 
-- **Runtime validation:** `festinalente validate-docs` runs all 8 quality checks
+- **Runtime validation:** `festinalente validate-docs` runs all 9 quality checks
 - **Broken reference detection:** `references` and `uses` fields checked against existing doc IDs
 - **Orphan detection:** Docs with no incoming references flagged (overview docs excluded)
 - **No build-time enforcement:** Quality checks do not run during `pnpm build:content`

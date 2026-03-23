@@ -10,7 +10,8 @@ boundary: "Does not validate at build-time — only at CLI runtime"
 references: [patterns/tagged-union-errors, patterns/factory-di, systems/data-model, systems/content-build]
 uses: []
 paths: [apps/festinalente/src/cli/computers/validation.computer.ts, apps/festinalente/src/cli/handlers/validation.handler.ts]
-updated: 2026-03-23
+intent: reference
+prerequisites: []
 ---
 
 # Validation System
@@ -50,7 +51,7 @@ This system follows these patterns from `patterns/`:
 flowchart TB
     subgraph ValidationComputer["validation.computer.ts (548 lines)"]
         PHASES["VALID_PHASES<br/>18 phase tags"]
-        QUALITY["DOC_QUALITY_CHECKS<br/>8 checks with thresholds"]
+        QUALITY["DOC_QUALITY_CHECKS<br/>9 checks with thresholds"]
         DSCHEMA["Directive Schema<br/>context/process/validation"]
         PSCHEMA["Project Schema<br/>requirements/tasks/scope"]
     end
@@ -107,7 +108,7 @@ Phases are **tags, not a state machine**. Directive rules can reference multiple
 
 ## Documentation Quality Checks
 
-8 checks defined in `validation.computer.ts:65–117`:
+9 checks defined in `validation.computer.ts:65–125`:
 
 | Check | Severity | Threshold | Message |
 |-------|----------|-----------|---------|
@@ -119,6 +120,7 @@ Phases are **tags, not a state machine**. Directive rules can reference multiple
 | `has-boundaries` | WARNING | `boundary` field OR body has `## Boundaries` or `Does NOT` | No boundaries defined |
 | `not-too-short` | WARNING | `body.length > 300` | Content too short — may lack detail |
 | `not-too-long` | WARNING | `body.length < 5000` | Content too long — consider splitting |
+| `has-intent` | WARNING | `intent` is `reference`, `procedural`, or `conceptual` | Missing or invalid intent field |
 
 **Result status logic:**
 - `pass` — no errors and no warnings
@@ -236,7 +238,7 @@ The `validate-docs` command (`validation.handler.ts:386–481`) performs:
 
 1. **Directory scan** — reads `.festinalente/product/` and/or `.festinalente/engineering/`
 2. **Frontmatter parse** — extracts YAML frontmatter from each `.md` file
-3. **Quality checks** — runs 8 DOC_QUALITY_CHECKS against each doc
+3. **Quality checks** — runs 9 DOC_QUALITY_CHECKS against each doc
 4. **Broken reference detection** — validates `references[]` and `uses[]` fields resolve to existing doc IDs
 5. **Orphan detection** — finds docs with no incoming references (excludes overview docs)
 
