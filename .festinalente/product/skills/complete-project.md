@@ -30,7 +30,8 @@ The `/festina-complete-project` skill closes a project by verifying that all dec
 flowchart LR
     Select[Select Project] --> Read[Read project.xml]
     Read --> Check{All tasks done?}
-    Check -->|Yes| Evaluate[Evaluate AC]
+    Check -->|Yes| Audit[Audit Documentation]
+    Audit --> Evaluate[Evaluate AC]
     Check -->|No| Report[Report incomplete]
     Evaluate --> Pass{All pass?}
     Pass -->|Yes| Done[Mark done]
@@ -44,10 +45,11 @@ flowchart LR
 1. **Select project** — From argument or interactive selection of open/in-progress projects
 2. **Read project.xml** — Load requirements, acceptance criteria, and task references
 3. **Check task completion** — Verify all child tasks have status `done` via `get-project-progress`
-4. **Evaluate acceptance criteria** — For each Gherkin criterion, assess against implemented state with evidence
-5. **User confirmation** — Present evaluation results for review
-6. **Update status** — Set project status to `done` with completion date
-7. **Run directives** — Execute `phase="complete-project"` rules (e.g., GitHub issue close)
+4. **Audit documentation** — Checks whether project-level docs were updated by child tasks; emits warnings for untouched docs (non-blocking)
+5. **Evaluate acceptance criteria** — For each Gherkin criterion, assess against implemented state with evidence
+6. **User confirmation** — Present evaluation results for review
+7. **Update status** — Set project status to `done` with completion date
+8. **Run directives** — Execute `phase="complete-project"` rules (e.g., GitHub issue close)
 
 **Summary:** Complete Project provides a structured verification gate before marking a project as done.
 
@@ -127,6 +129,7 @@ Consider running /festina-rework on the relevant task to fix the issue.
 ## Interactions
 
 - **Project Progress**: Uses `get-project-progress` and `get-project-tasks` CLI commands
+- **Documentation Audit**: After verifying task completion, checks if project-level docs were updated by child tasks and emits warnings for untouched docs (non-blocking)
 - **Acceptance Criteria**: Reads and evaluates Gherkin criteria from project.xml
 - **Directives**: Applies `phase="complete-project"` rules (GitHub issue close, git commit)
 

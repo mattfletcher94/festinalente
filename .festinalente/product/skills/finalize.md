@@ -62,11 +62,12 @@ flowchart LR
 
 ### Phase 2: Documentation
 
-1. **Analyze impact** - Categorize docs as complete/update/create
-2. **Pre-load context** - Smart context for doc agents
-3. **Spawn parallel agents** - Product and/or Engineering doc agents
-4. **Validate outputs** - Check agent results
-5. **Update glossary/indexes** - Orchestrator handles these
+1. **Search for unlisted impacts** - Autonomously scans for docs affected by the implementation but not listed in `affects`/`engineering`; auto-adds docs with relevance score >= 0.3 to task.xml without user confirmation
+2. **Analyze impact** - Categorize docs as complete/update/create
+3. **Pre-load context** - Smart context for doc agents
+4. **Spawn parallel agents** - Product and/or Engineering doc agents
+5. **Validate outputs** - Check agent results
+6. **Update glossary/indexes** - Orchestrator handles these
 
 ### Phase 3: Transition
 

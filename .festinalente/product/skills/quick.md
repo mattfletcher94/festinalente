@@ -9,7 +9,7 @@ aliases: [festina-quick, fast, simple-fix]
 boundary: "Does not handle complex multi-file changes - use full workflow for those"
 references: [docs/product]
 uses: [systems/cli, systems/data-model]
-updated: 2026-03-01
+updated: 2026-03-23
 ---
 
 # Quick Implementation
@@ -57,7 +57,7 @@ Want me to research the codebase first?
 [Yes] Explore the codebase to find affected files
 ```
 
-If yes, quick will glob/grep to find affected files and store findings in quick.xml.
+If yes, quick will glob/grep to find affected files and store findings in quick.xml. When new features are detected with no matching doc (relevance score < 0.3), the skill creates a stub doc (`stub: true`) and adds it to quick.xml `affects`.
 
 ### Quick Task Storage
 
@@ -134,7 +134,7 @@ When to use full workflow instead:
 ## Interactions
 
 - **Directives**: Applies `phase="quick"` rules if defined (including git operations from `git.xml`)
-- **Product Docs**: Optional doc updates
+- **Product Docs**: Optional doc updates. During `detect_docs`, creates stub docs for new features with no matching documentation and adds them to quick.xml `affects`
 
 ## Limitations
 
