@@ -7,10 +7,10 @@ summary: "High-level technical overview of Festina Lente architecture, tech stac
 keywords: [architecture, tech-stack, overview, monorepo, typescript, vscode, dag, orchestrator]
 aliases: [engineering-overview, architecture-overview]
 boundary: "Does not cover implementation details - see systems/ and patterns/"
-references: [patterns/dag-architecture, patterns/factory-di, patterns/tagged-union-errors, patterns/command-registry, systems/cli, systems/vscode-extension, systems/content-build, systems/data-model, systems/distribution, conventions/file-naming, conventions/folder-structure, conventions/error-handling]
+references: [patterns/dag-architecture, patterns/factory-di, patterns/tagged-union-errors, patterns/command-registry, systems/cli, systems/vscode-extension, systems/content-build, systems/data-model, systems/distribution, systems/validation, conventions/file-naming, conventions/folder-structure, conventions/error-handling, conventions/documentation-format]
 uses: []
 paths: [apps/festinalente, apps/vscode]
-updated: 2026-03-06
+updated: 2026-03-23
 ---
 
 # Festina Lente Engineering Overview
@@ -166,9 +166,11 @@ What this overview does NOT cover:
 - [content-build](systems/content-build/_index.md) - Handlebars skill compilation
 - [data-model](systems/data-model/_index.md) - File-based storage schemas
 - [distribution](systems/distribution/_index.md) - NPM package publishing
+- [validation](systems/validation/_index.md) - XML schema and documentation quality validation
 
 ## Conventions
 
 - [file-naming](conventions/file-naming.md) - kebab-case with .capability/.computer/.handler suffixes
 - [folder-structure](conventions/folder-structure.md) - Domain-driven capability/computer/handler folders
 - [error-handling](conventions/error-handling.md) - Tagged union Result types
+- [documentation-format](conventions/documentation-format.md) - Frontmatter schemas and quality thresholds

@@ -10,7 +10,7 @@ boundary: "Does not define command implementation - see handlers"
 references: [patterns/factory-di, patterns/tagged-union-errors]
 uses: [systems/cli]
 paths: [apps/festinalente/src/cli]
-updated: 2026-03-16
+updated: 2026-03-23
 ---
 
 # Command Registry Pattern
@@ -236,6 +236,73 @@ What this pattern does NOT apply to:
 ## Systems Using This Pattern
 
 - [cli](../systems/cli/_index.md) - Central registry for all CLI commands (TaskHandler, ProjectHandler, SearchHandler, ConfigHandler, etc.)
+
+## How to Add a New Command
+
+Two scenarios: adding a command to an existing handler, or creating a new handler with commands.
+
+### Adding a Command to an Existing Handler
+
+```typescript
+// BEFORE: TaskHandler has find-task and list-tasks
+function getCommands(): readonly CliCommand[] {
+  return [
+    defineCommand('find-task', 'Find task by ID', 'find-task <id>', findTask),
+    defineCommand('list-tasks', 'List all tasks', 'list-tasks [--status=<status>]', listTasks),
+  ];
+}
+```
+
+```typescript
+// AFTER: Add delete-task to the same handler
+function deleteTask(args: string[]): CliResult<DeleteResult> {
+  const id = args[0];
+  if (!id) return error('Task ID required');
+  // ... implementation
+  return success({ deleted: id });
+}
+
+function getCommands(): readonly CliCommand[] {
+  return [
+    defineCommand('find-task', 'Find task by ID', 'find-task <id>', findTask),
+    defineCommand('list-tasks', 'List all tasks', 'list-tasks [--status=<status>]', listTasks),
+    defineCommand('delete-task', 'Delete a task', 'delete-task <id>', deleteTask),  // NEW
+  ];
+}
+```
+
+No orchestrator changes needed — the command auto-registers through `getCommands()`.
+
+### Creating a New Handler with Commands
+
+```typescript
+// Step 1: Create handler with getCommands()
+export function createStatsHandler(deps: StatsHandlerDeps): StatsHandler {
+  function getTaskStats(args: string[]): CliResult<StatsResult> { /* ... */ }
+
+  function getCommands(): readonly CliCommand[] {
+    return [
+      defineCommand('task-stats', 'Show task statistics', 'task-stats', getTaskStats),
+    ];
+  }
+
+  return { getTaskStats, getCommands };
+}
+
+// Step 2: Wire in orchestrator
+const statsHandler = createStatsHandler({ fs, xmlParser });
+for (const command of statsHandler.getCommands()) {
+  registry.register(command);
+}
+```
+
+### Command Naming Checklist
+
+- [ ] Use `kebab-case` (e.g., `find-task`, not `findTask`)
+- [ ] Verb-noun format (e.g., `list-tasks`, `validate-docs`)
+- [ ] Include usage with argument placeholders (e.g., `find-task <id>`)
+- [ ] Description is a short imperative phrase (e.g., "Find task by ID")
+- [ ] Verify no duplicate names via `registry.has(name)` at registration
 
 ## Common Violations
 

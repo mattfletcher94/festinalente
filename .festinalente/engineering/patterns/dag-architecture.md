@@ -10,7 +10,7 @@ boundary: "Does not define specific layer implementations - see individual syste
 references: [patterns/factory-di]
 uses: [systems/cli, systems/vscode-extension]
 paths: [apps/festinalente/src/cli, apps/vscode/src]
-updated: 2026-03-01
+updated: 2026-03-23
 ---
 
 # DAG Architecture Pattern
@@ -196,6 +196,117 @@ What this pattern does NOT apply to:
 
 - [cli](../systems/cli/_index.md) - Orchestrator → Registry → Handlers → Capabilities/Computers
 - [vscode-extension](../systems/vscode-extension/_index.md) - Extension → Orchestrators → Capabilities/Computers
+
+## How to Add a New Handler
+
+Step-by-step walkthrough for adding a handler to the CLI system.
+
+### Step 1: Create the handler file
+
+```typescript
+// BEFORE: No notification handler exists
+// AFTER: apps/festinalente/src/cli/handlers/notification.handler.ts
+
+export interface NotificationHandlerDeps {
+  readonly fs: FileSystemCapability;
+  readonly yamlParser: YamlParserComputer;
+}
+
+export interface NotificationHandler {
+  readonly listNotifications: (args: string[]) => CliResult<NotificationList>;
+  readonly getCommands: () => readonly CliCommand[];
+}
+
+export function createNotificationHandler(deps: NotificationHandlerDeps): NotificationHandler {
+  const { fs, yamlParser } = deps;
+
+  function listNotifications(args: string[]): CliResult<NotificationList> {
+    // Layer 3 (Handler) → Layer 4 (Capability) → Layer 5 (Computer)
+    const readResult = fs.readFile('.festinalente/notifications.yaml');
+    if (!readResult.ok) return error(readResult.error.message);
+    return success(yamlParser.parseYaml(readResult.value));
+  }
+
+  function getCommands(): readonly CliCommand[] {
+    return [
+      defineCommand('list-notifications', 'List notifications', 'list-notifications', listNotifications),
+    ];
+  }
+
+  return { listNotifications, getCommands };
+}
+```
+
+### Step 2: Wire into the orchestrator
+
+```typescript
+// BEFORE: orchestrator.ts
+const taskHandler = createTaskHandler({ fs, xmlParser });
+
+// AFTER: orchestrator.ts — add after existing handler creation
+const notificationHandler = createNotificationHandler({ fs, yamlParser });
+
+// Register commands
+for (const command of notificationHandler.getCommands()) {
+  registry.register(command);
+}
+```
+
+### Step 3: Verify layer rules
+
+```
+✅ notification.handler.ts imports from capabilities/ (Layer 4) — OK
+✅ notification.handler.ts imports from computers/ (Layer 5) — OK
+✅ orchestrator.ts creates and wires the handler — OK
+❌ Would be wrong: notification.handler.ts importing from orchestrator.ts (Layer 2)
+```
+
+### Checklist
+
+- [ ] Handler file created at `handlers/{name}.handler.ts`
+- [ ] `{Name}HandlerDeps` interface with only lower-layer deps
+- [ ] `{Name}Handler` return interface with public methods + `getCommands()`
+- [ ] `create{Name}Handler(deps)` factory function
+- [ ] Wired in `orchestrator.ts` with `registry.register()`
+- [ ] No imports from same or higher layers
+
+## How to Add a New Computer
+
+### Step 1: Create the computer file
+
+```typescript
+// apps/festinalente/src/cli/computers/markdown.computer.ts
+
+export interface MarkdownComputer {
+  readonly extractHeadings: (content: string) => readonly string[];
+}
+
+export function createMarkdownComputer(): MarkdownComputer {
+  // Pure function — NO I/O, NO file reads, NO side effects
+  function extractHeadings(content: string): readonly string[] {
+    return content.split('\n')
+      .filter(line => line.startsWith('# '))
+      .map(line => line.replace(/^#+\s*/, ''));
+  }
+
+  return { extractHeadings };
+}
+```
+
+### Step 2: Inject where needed
+
+```typescript
+// BEFORE: orchestrator.ts
+const taskHandler = createTaskHandler({ fs, xmlParser });
+
+// AFTER: orchestrator.ts
+const markdownComputer = createMarkdownComputer();
+const taskHandler = createTaskHandler({ fs, xmlParser, markdown: markdownComputer });
+```
+
+### Key Rule
+
+Computers receive **data as arguments**, never fetch it themselves. If your computer needs file content, the handler reads the file and passes the content string.
 
 ## Common Violations
 

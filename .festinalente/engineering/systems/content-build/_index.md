@@ -10,7 +10,7 @@ boundary: "Does not execute skills - only compiles them"
 references: [systems/distribution, systems/cli]
 uses: []
 paths: [apps/festinalente/src/content, apps/festinalente/tools]
-updated: 2026-03-01
+updated: 2026-03-23
 ---
 
 # Content Build System
@@ -139,3 +139,74 @@ What this system does NOT handle:
 **Pitfalls:**
 - Forgetting to rebuild after partial changes
 - Invalid Handlebars syntax in skill files
+
+## Known Risks
+
+### Silent Handlebars Fallback
+
+**Location:** `tools/build.ts` lines 58–79
+
+When Handlebars compilation fails for a skill file, the build script **does not fail**. Instead it:
+
+1. Logs the error to console
+2. Copies the raw source file (with uncompiled `{{> partial-name}}` syntax) to `dist/`
+
+```typescript
+// tools/build.ts — simplified
+try {
+  const template = Handlebars.compile(content, { strict: false });
+  const output = template({});
+  await fs.writeFile(distFile, output);
+} catch (error) {
+  console.error(`  Error compiling ${srcFile}:`, error);
+  // Fall back to copying the file as-is
+  await fs.copyFile(srcFile, distFile);
+}
+```
+
+**Impact:** Raw Handlebars syntax (`{{> helper-scripts}}`) passes through to distributed files. AI runtimes consuming these skills will see literal partial references instead of compiled content.
+
+**Trade-off:** This is intentional — the build should not crash on one bad skill. However, there is no post-build check to flag which skills fell back to raw copy, so failures are easy to miss.
+
+### Build Validation Gap
+
+Compiled output in `dist/` is **never validated** against doc quality standards. The validation system (`validation.computer.ts`) has 8 quality checks (tldr length, summary presence, keyword count, etc.) but these run **only at CLI runtime** — not during the build pipeline.
+
+This means:
+- Malformed skills compile and ship silently
+- Quality issues are discovered only when users load the content
+- No integration between `pnpm build:content` and `festinalente validate-docs`
+
+## Skill-to-Partial Dependency Table
+
+Which of the 18 skills depend on which of the 10 partials:
+
+| Skill | dir-ref | helper | load-dir | dir-comp | skill-comp | wf-load | col-trans | prod-docs | eng-docs | diagram |
+|-------|:-------:|:------:|:--------:|:--------:|:----------:|:-------:|:---------:|:---------:|:--------:|:-------:|
+| festina-complete | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | | | |
+| festina-complete-project | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | | | |
+| festina-create | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
+| festina-create-project | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
+| festina-define | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | | ✓ | ✓ | |
+| festina-delete | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | | | |
+| festina-directive | ✓ | ✓ | ✓ | ✓ | ✓ | | | ✓ | ✓ | |
+| festina-discover | ✓ | ✓ | ✓ | ✓ | ✓ | | | ✓ | ✓ | |
+| festina-finalize | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| festina-implement | ✓ | ✓ | ✓ | | ✓ | ✓ | ✓ | ✓ | ✓ | |
+| festina-map-engineering | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | | | ✓ | ✓ |
+| festina-map-product | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | | ✓ | | ✓ |
+| festina-overview | ✓ | ✓ | ✓ | ✓ | ✓ | | | ✓ | ✓ | |
+| festina-plan | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
+| festina-quick | ✓ | ✓ | ✓ | ✓ | | ✓ | | ✓ | ✓ | |
+| festina-rework | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | | ✓ | ✓ | |
+| festina-save | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
+| festina-scope | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
+
+**Legend:** dir-ref = directory-reference, helper = helper-scripts, load-dir = load-directives, dir-comp = directive-compliance, skill-comp = skill-complete, wf-load = workflow-load, col-trans = column-transition, prod-docs = product-docs-scripts, eng-docs = engineering-docs-scripts, diagram = diagram-guidelines
+
+**Observations:**
+- **Universal (18/18):** directory-reference, helper-scripts, load-directives
+- **Near-universal (17/18):** directive-compliance, skill-complete
+- **Most skills (15–16/18):** workflow-load, column-transition
+- **Doc-aware skills (14/18):** product-docs-scripts, engineering-docs-scripts
+- **Visual skills only (3/18):** diagram-guidelines (finalize, map-product, map-engineering)

@@ -337,3 +337,70 @@ terms:
     domain: docs
     definition: 'Mermaid diagram type showing class relationships and interfaces'
     auto_generated: true
+
+  # Terms added 2026-03-23 (audit gap-fill)
+  - term: 'contracts'
+    aliases: ['precondition', 'postcondition', 'invariant', 'contract-test']
+    domain: tasks
+    definition: 'Spec.xml element defining preconditions, postconditions, and invariants that flow into plan.xml as contract verification tests'
+    auto_generated: true
+
+  - term: 'valid-phases'
+    aliases: ['directive-phases', 'phase-tags']
+    domain: validation
+    definition: '18 recognized phase tags for directive rules (scope, plan, implement, finalize, etc.)'
+    auto_generated: true
+
+  - term: 'doc-quality-checks'
+    aliases: ['quality-thresholds', 'doc-checks', 'validation-checks']
+    domain: validation
+    definition: '8 automated checks for documentation quality (tldr, summary, keywords, overview, examples, boundaries, length)'
+    auto_generated: true
+
+  - term: 'branded-type'
+    aliases: ['nominal-type', 'opaque-type', 'type-brand']
+    domain: engineering
+    definition: 'TypeScript pattern using intersection with __brand to prevent mixing structurally similar types (e.g., TaskId vs ProjectId)'
+    auto_generated: true
+
+  - term: 'partial'
+    aliases: ['handlebars-partial', 'template-partial', 'reusable-snippet']
+    domain: engineering
+    definition: 'Reusable Handlebars Markdown snippet included in skills via {{> name}} syntax'
+    auto_generated: true
+
+  - term: 'silent-fallback'
+    aliases: ['build-fallback', 'compilation-fallback']
+    domain: engineering
+    definition: 'Content-build behavior where Handlebars compilation failure copies raw source to dist/ instead of failing the build'
+    auto_generated: true
+
+  - term: 'project-grouping'
+    aliases: ['task-grouping', 'project-tasks', 'requirement-mapping']
+    domain: tasks
+    definition: 'Bidirectional relationship between project.xml tasks element and task.xml project-id attribute'
+    auto_generated: true
+
+  - term: 'project'
+    aliases: ['mini-prd', 'project.xml', 'multi-task']
+    domain: projects
+    definition: 'Lightweight grouping layer that decomposes work into 2-5 vertically-sliced tasks with requirement traceability'
+    auto_generated: true
+
+  - term: 'requirement-traceability'
+    aliases: ['R1-Rn', 'requirement-coverage', 'coverage-matrix']
+    domain: projects
+    definition: 'System ensuring every numbered requirement maps to at least one decomposed task'
+    auto_generated: true
+
+  - term: 'vertical-slice'
+    aliases: ['vertical-slicing', 'end-to-end-slice']
+    domain: projects
+    definition: 'Task decomposition strategy where each task delivers complete end-to-end value rather than a horizontal layer'
+    auto_generated: true
+
+  - term: 'project-id'
+    aliases: ['P-prefix', 'project-number']
+    domain: projects
+    definition: 'Project identifier in format P{3-digit}-{slug} (e.g., P001-user-authentication)'
+    auto_generated: true

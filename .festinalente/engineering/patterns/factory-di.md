@@ -10,7 +10,7 @@ boundary: "Does not use DI containers - plain function composition"
 references: [patterns/dag-architecture]
 uses: [systems/cli, systems/vscode-extension]
 paths: [apps/festinalente/src/cli, apps/vscode/src]
-updated: 2026-03-01
+updated: 2026-03-23
 ---
 
 # Factory Function Dependency Injection
@@ -239,6 +239,74 @@ What this pattern does NOT apply to:
 
 - [cli](../systems/cli/_index.md) - All handlers use factory DI
 - [vscode-extension](../systems/vscode-extension/_index.md) - All orchestrators use factory DI
+
+## How to Add a New Factory
+
+Step-by-step walkthrough for creating a factory-injected component.
+
+### Step 1: Define the Deps interface
+
+```typescript
+// BEFORE: You have a component that creates its own dependencies
+function readConfig() {
+  const content = fs.readFileSync('.festinalente/config.yaml', 'utf8');  // ❌ Direct I/O
+  return yaml.parse(content);
+}
+```
+
+```typescript
+// AFTER: Step 1 — define what you need
+export interface ConfigReaderDeps {
+  readonly fs: FileSystemCapability;      // I/O abstraction
+  readonly yamlParser: YamlParserComputer; // Pure parser
+}
+```
+
+### Step 2: Define the return interface
+
+```typescript
+export interface ConfigReader {
+  readonly readConfig: () => Result<Config, Error>;
+  readonly readDirectives: () => Result<DirectiveMap, Error>;
+}
+```
+
+### Step 3: Create the factory
+
+```typescript
+export function createConfigReader(deps: ConfigReaderDeps): ConfigReader {
+  const { fs, yamlParser } = deps;  // Destructure immediately
+
+  function readConfig(): Result<Config, Error> {
+    const readResult = fs.readFile('.festinalente/config.yaml');
+    if (!readResult.ok) return readResult;
+    return ok(yamlParser.parseYaml(readResult.value));
+  }
+
+  function readDirectives(): Result<DirectiveMap, Error> {
+    // ... uses same deps
+  }
+
+  return { readConfig, readDirectives };  // Only public API
+}
+```
+
+### Step 4: Wire in orchestrator
+
+```typescript
+// orchestrator.ts
+const configReader = createConfigReader({ fs, yamlParser });
+const handler = createSomeHandler({ configReader, /* ... */ });
+```
+
+### When to Extract vs Extend
+
+| Situation | Action |
+|-----------|--------|
+| New independent concern | Create new factory |
+| New method on existing concern | Add to existing factory's return interface |
+| Shared logic across handlers | Extract to new computer (pure) or capability (I/O) |
+| One-off helper with no deps | Plain function, no factory needed |
 
 ## Common Violations
 

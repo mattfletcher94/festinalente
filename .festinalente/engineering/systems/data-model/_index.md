@@ -10,7 +10,7 @@ boundary: "Does not enforce workflow transitions - skills do that"
 references: [systems/cli, systems/vscode-extension]
 uses: []
 paths: [.festinalente]
-updated: 2026-03-16
+updated: 2026-03-23
 ---
 
 # Data Model & Storage
@@ -105,6 +105,10 @@ stateDiagram-v2
 | problem | text | Problem statement |
 | value | text | Value proposition |
 | acceptance-criteria | text | Markdown list of criteria |
+| project-id | string | Optional. References parent project ID (e.g., "P001") |
+| project-requirements | string | Optional. Comma-separated requirement IDs from parent project (e.g., "R1,R3") |
+
+> **Project Grouping:** When a task belongs to a project, `project-id` links it to the parent `project.xml` and `project-requirements` maps which project requirements this task addresses. This creates a bidirectional relationship: `project.xml` lists tasks in its `<tasks>` element, and each task references the project via `project-id`.
 
 ### project.xml
 
@@ -158,15 +162,33 @@ stateDiagram-v2
     <in-scope>What's included</in-scope>
     <out-of-scope>What's excluded</out-of-scope>
   </scope>
+  <delta>What changes from current state</delta>
+  <boundaries>Hard constraints</boundaries>
+  <contracts>
+    <contract name="contract-name">
+      <precondition>What must be true before</precondition>
+      <postcondition>What must be true after</postcondition>
+      <invariant>What must always remain true</invariant>
+      <property>Verifiable property</property>
+    </contract>
+  </contracts>
   <requirements>
     <functional>...</functional>
     <non-functional>...</non-functional>
   </requirements>
+  <files>
+    <file path="src/foo.ts" action="create">Description</file>
+  </files>
   <patterns>Patterns to use</patterns>
   <research>Research findings</research>
+  <constraints>Technical constraints</constraints>
+  <dependencies>External dependencies</dependencies>
   <risks>Risk assessment</risks>
+  <open-questions>Unresolved questions</open-questions>
 </spec>
 ```
+
+> **Contracts** (added in task 007): Define preconditions, postconditions, invariants, and verifiable properties for the implementation. These flow into plan.xml as contract verification tests.
 
 ### plan.xml
 
@@ -176,16 +198,32 @@ stateDiagram-v2
     <file path="src/foo.ts" action="create">Description</file>
     <file path="src/bar.ts" action="modify">Description</file>
   </files>
-  <steps>
-    <step>Step 1 description</step>
-    <step>Step 2 description</step>
-  </steps>
+  <tasks>
+    <task id="1" title="Task title">
+      <steps>
+        <step>Step 1 description</step>
+        <step>Step 2 description</step>
+      </steps>
+      <contract-verification>
+        <result contract="contract-name" status="pass|fail">Verification notes</result>
+      </contract-verification>
+    </task>
+  </tasks>
+  <testing>
+    <contract-test contract="contract-name">
+      <test type="precondition">Test description</test>
+      <test type="postcondition">Test description</test>
+      <test type="invariant">Test description</test>
+    </contract-test>
+  </testing>
   <verify>
     <check>Verification step 1</check>
     <check>Verification step 2</check>
   </verify>
 </plan>
 ```
+
+> **Contract Testing** (added in task 007): The `<testing>` section includes `<contract-test>` elements that map to contracts defined in spec.xml. Each task's `<contract-verification>` records whether contracts pass or fail during implementation.
 
 ### config.yaml
 

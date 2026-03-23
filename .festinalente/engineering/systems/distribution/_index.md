@@ -10,7 +10,7 @@ boundary: "Does not build content - see content-build"
 references: [systems/content-build, systems/cli, systems/vscode-extension]
 uses: []
 paths: [apps/festinalente, apps/vscode]
-updated: 2026-03-01
+updated: 2026-03-23
 ---
 
 # Package Distribution
@@ -132,6 +132,50 @@ What this system does NOT handle:
 - **Does NOT:** Compile content → See [content-build](../content-build/_index.md)
 - **Does NOT:** Define CLI commands → See [cli](../cli/_index.md)
 - **Does NOT:** Define extension UI → See [vscode-extension](../vscode-extension/_index.md)
+- **Does NOT:** Validate content before publishing
+- **Does NOT:** Verify dist/ completeness after build
+
+## Known Gaps
+
+### No Pre-Publish Validation Gate
+
+The `prepublishOnly` hook in both packages runs only the build step — no validation occurs before publishing:
+
+- **CLI:** `prepublishOnly: "pnpm build"` — builds but does not run `festinalente validate-docs`
+- **Extension:** `prepublishOnly: "npm run package"` — packages but does not verify content
+
+This means malformed or incomplete content (including skills that fell back to raw Handlebars copy — see [content-build known risks](../content-build/_index.md#known-risks)) can ship to users.
+
+### No dist/ Completeness Verification
+
+After the build completes, nothing verifies that `dist/` contains all expected artifacts:
+
+- `dist/cli/` — compiled CLI code
+- `dist/content/skills/` — all 18 compiled skills
+- `dist/content/templates/` — all XML/YAML templates
+- `dist/content/workflow.yaml` — workflow schema
+
+A partial build (e.g., content compilation fails silently) produces an incomplete package with no error.
+
+### Missing Skill/Partial Dependency Manifest
+
+There is no build-time manifest that records which skills depend on which partials. The existing `manifest.json` tracks installation metadata (version, installed date, runtime), not content dependencies.
+
+**Current `manifest.json` structure:**
+```json
+{
+  "_version": "1.0.2",
+  "_installedAt": "2026-03-23T09:19:13.414Z",
+  "runtimes": ["claude"],
+  "skillsDirs": [".claude/skills"],
+  "festinalenteDir": ".festinalente/"
+}
+```
+
+A dependency manifest would enable:
+- Detecting which skills are affected when a partial changes
+- Verifying all partial references resolve after build
+- Auditing distribution completeness
 
 ## Configuration
 

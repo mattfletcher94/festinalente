@@ -10,7 +10,7 @@ boundary: "Does not apply to unexpected errors - use try-catch for those"
 references: []
 uses: [systems/cli]
 paths: [apps/festinalente/src/cli]
-updated: 2026-03-01
+updated: 2026-03-23
 ---
 
 # Tagged Union Error Handling
@@ -228,6 +228,65 @@ What this pattern does NOT apply to:
 
 - [cli](../systems/cli/_index.md) - All handlers return CliResult<T>
 - Capabilities use Result<T, Error>
+
+## How to Add Error Handling to a New Capability
+
+### Step 1: Wrap I/O in Result
+
+```typescript
+// BEFORE: Throws on failure
+function readConfig(path: string): string {
+  return fs.readFileSync(path, 'utf8');  // ❌ Throws
+}
+```
+
+```typescript
+// AFTER: Returns Result
+function readConfig(path: string): Result<string, Error> {
+  try {
+    const content = fs.readFileSync(path, 'utf8');
+    return ok(content);
+  } catch (e) {
+    return err(e instanceof Error ? e : new Error(String(e)));
+  }
+}
+```
+
+### Step 2: Propagate in handlers
+
+```typescript
+// Handler converts Result<T,E> → CliResult<T>
+function getConfig(args: string[]): CliResult<Config> {
+  const readResult = fs.readConfig('.festinalente/config.yaml');
+  if (!readResult.ok) {
+    return error(`Config read failed: ${readResult.error.message}`);
+  }
+
+  const parseResult = yamlParser.parseYaml(readResult.value);
+  if (!parseResult.ok) {
+    return error(`Config parse failed: ${parseResult.error.message}`);
+  }
+
+  return success(parseResult.value);
+}
+```
+
+### Error Propagation Across Layers
+
+```
+Capability (Layer 4)     → Result<T, Error>     Raw I/O errors
+    ↓
+Handler (Layer 3)        → CliResult<T>          User-facing messages
+    ↓
+Dispatcher (Layer 1)     → JSON stdout           { success: true, data } or { error: true, message }
+```
+
+### Key Rules
+
+1. **Capabilities** return `Result<T, Error>` — wrap all I/O in try-catch
+2. **Handlers** return `CliResult<T>` — convert capability errors to user messages
+3. **Computers** return plain values (pure functions don't fail with I/O errors)
+4. **Never access `.value` or `.data` without checking `.ok` or `.success` first**
 
 ## Common Violations
 
