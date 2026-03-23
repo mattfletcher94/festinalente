@@ -174,8 +174,7 @@ These tasks must be completed before the project can be closed.
     <action>Read project.xml affects and engineering fields</action>
     <action>For each doc ID in project-level affects/engineering:
       - Check if any child task listed this doc in its affects/engineering
-      - Check git log for commits touching the doc path during the project timeframe
-      - Check the doc file's updated frontmatter field</action>
+      - Check the doc file's updated frontmatter field against the project creation date</action>
 
     <branch condition="some project-level docs were never updated by any child task">
       <output>Warning: The following project-level docs were never updated by any task:

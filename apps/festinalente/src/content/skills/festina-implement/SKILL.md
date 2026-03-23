@@ -463,8 +463,8 @@ WARNING: New files created but not imported anywhere:
     This step is advisory only — it does NOT modify task.xml. Finalize will handle
     autonomous doc detection.</note>
 
-    <command>git diff --name-only</command>
-    <action>Identify new files that appear to be entry points (handlers, routes, commands, exports):
+    <action>Extract all file paths from each completed plan task's files element</action>
+    <action>Identify files marked as (create) that appear to be entry points:
     - Handlers (*.handler.ts, *Handler.ts)
     - Routes (*.route.ts, routes/*)
     - Commands (*.command.ts, commands/*)

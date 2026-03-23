@@ -23,13 +23,13 @@ Determine which product docs need attention:
 ### Autonomous Unlisted-Impact Detection
 
 ```
-1. Read task description, spec summary, and implementation context (git diff --name-only)
-2. Extract keywords from: task title, task description, spec summary, changed file paths
+1. Read task description, spec summary, and plan task inventory (files elements from plan.xml)
+2. Extract keywords from: task title, task description, spec summary, plan file paths
 3. Run: node .festinalente/scripts/festinalente.cjs search-product {expanded keywords}
 4. For any doc with score >= 0.3 NOT already in affects:
    - Auto-add to task.xml affects (no user confirmation)
    - Log: "Finalize auto-added {doc-ids} to affects (scores: {scores})"
-5. For each new file in git diff that looks like a handler/route/command:
+5. For each file marked as (create) in plan tasks that looks like a handler/route/command:
    - Check if a product doc should describe it
    - If no doc covers it, add expected doc ID to affects as "missing"
      (finalize's doc agent already handles missing docs by creating from template)
