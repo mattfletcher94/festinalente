@@ -8,7 +8,8 @@ keywords: []
 aliases: []
 boundary: "{What this domain does NOT cover}"
 contains: []
-updated: YYYY-MM-DD
+intent: reference
+prerequisites: []
 ---
 
 # {Domain Name}
@@ -17,11 +18,15 @@ updated: YYYY-MM-DD
 
 ## Overview
 
+<!-- Each section must be self-contained: open with a context sentence, no back-references -->
+
 The {Domain Name} domain handles {core responsibility}.
 
 **Why it exists:** {Business reason}
 
 **Summary:** This domain provides {key value proposition}.
+
+<!-- Tier 2 boundary: content above this line is loaded at standard tier -->
 
 ## Domain Structure
 

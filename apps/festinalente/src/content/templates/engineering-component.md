@@ -8,7 +8,8 @@ keywords: []
 aliases: []
 boundary: "{What this component does NOT handle}"
 paths: []
-updated: YYYY-MM-DD
+intent: reference
+prerequisites: []
 ---
 
 # {Component Name}
@@ -17,11 +18,15 @@ updated: YYYY-MM-DD
 
 ## Overview
 
+<!-- Each section must be self-contained: open with a context sentence, no back-references -->
+
 {What this component does}
 
 **Why it exists:** {Reason for this component}
 
 **Summary:** {Brief recap of purpose}
+
+<!-- Tier 2 boundary: content above this line is loaded at standard tier -->
 
 ## Data Flow
 

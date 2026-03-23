@@ -10,7 +10,8 @@ boundary: "{What this system does NOT handle}"
 references: []
 uses: []
 paths: []
-updated: YYYY-MM-DD
+intent: reference
+prerequisites: []
 ---
 
 # {System Name}
@@ -19,11 +20,15 @@ updated: YYYY-MM-DD
 
 ## Overview
 
+<!-- Each section must be self-contained: open with a context sentence, no back-references -->
+
 {What this system does and its responsibilities}
 
 **Why it exists:** {Architectural reason}
 
 **Summary:** {Brief recap of system purpose}
+
+<!-- Tier 2 boundary: content above this line is loaded at standard tier -->
 
 ## Components
 

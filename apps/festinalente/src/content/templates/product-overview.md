@@ -7,7 +7,8 @@ summary: "{One sentence product description}"
 keywords: []
 aliases: []
 boundary: "{What this product overview does NOT cover}"
-updated: YYYY-MM-DD
+intent: conceptual
+prerequisites: []
 ---
 
 # {Product Name}
@@ -16,9 +17,13 @@ updated: YYYY-MM-DD
 
 ## What is this?
 
+<!-- Each section must be self-contained: open with a context sentence, no back-references -->
+
 {Product Name} is a {type of product} that helps {target users} {accomplish what goal}.
 
 **Summary:** {Brief recap of the product's core purpose}
+
+<!-- Tier 2 boundary: content above this line is loaded at standard tier -->
 
 ## Key Capabilities
 

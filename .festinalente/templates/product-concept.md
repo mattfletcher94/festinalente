@@ -9,7 +9,8 @@ aliases: []
 boundary: "{What this concept does NOT cover}"
 references: []
 uses: []
-updated: YYYY-MM-DD
+intent: conceptual
+prerequisites: []
 ---
 
 # {Concept Name}
@@ -18,9 +19,13 @@ updated: YYYY-MM-DD
 
 ## Definition
 
+<!-- Each section must be self-contained: open with a context sentence, no back-references -->
+
 A {Concept Name} is {definition}. It represents {what it models/represents}.
 
 **Summary:** {Brief recap of the definition}
+
+<!-- Tier 2 boundary: content above this line is loaded at standard tier -->
 
 ## Examples
 

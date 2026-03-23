@@ -83,7 +83,32 @@ Fill ALL of these (same as product docs):
 | `keywords` | 3-5 technical terms | [cache, redis, api, ttl, performance] |
 | `aliases` | Alternative names | [api cache, response cache, redis cache] |
 | `boundary` | What this does NOT cover | "Does not handle database query caching" |
-| `updated` | Current date | 2026-02-27 |
+| `intent` | Doc type classification | "reference" (systems), "conceptual" (patterns), "reference" (conventions) |
+| `prerequisites` | Doc IDs that must be read first | [patterns/factory-di] |
+
+### Intent Classification
+
+Populate intent based on doc content:
+- `reference`: schemas, APIs, field definitions, lookup tables, indexes, architecture docs
+- `procedural`: workflows, how-tos, step-by-step guides
+- `conceptual`: explanations, rationale, architectural reasoning
+
+Default intents by doc type are guidance, not enforcement. A system doc that's primarily "how to extend" could be `procedural`. Use judgment based on actual content.
+
+### Prerequisites
+
+Populate prerequisites with doc IDs that a reader must understand before this doc makes sense. Prerequisites must be a strict subset of references — every prerequisite is also a reference, but not vice versa.
+
+### Self-Containment Rule
+
+Every H2 section must open with a one-line context sentence. Never use:
+- "see above", "as mentioned previously", "the previous section"
+- Vague pronouns without antecedent ("it" without naming the subject)
+- Context-dependent statements that only make sense when read top-to-bottom
+
+### Tier-Aware Writing
+
+The TL;DR blockquote and Overview section together form the Tier 2 content. Write the Overview to work as a standalone summary — an agent reading only Tier 2 should understand what this doc covers, why it exists, and whether it needs Tier 3 (full content).
 
 ### Required Content Sections by Type
 

@@ -10,7 +10,8 @@ boundary: "Does not execute skills - only compiles them"
 references: [systems/distribution, systems/cli]
 uses: []
 paths: [apps/festinalente/src/content, apps/festinalente/tools]
-updated: 2026-03-23
+intent: reference
+prerequisites: []
 ---
 
 # Content Build System
@@ -170,7 +171,7 @@ try {
 
 ### Build Validation Gap
 
-Compiled output in `dist/` is **never validated** against doc quality standards. The validation system (`validation.computer.ts`) has 8 quality checks (tldr length, summary presence, keyword count, etc.) but these run **only at CLI runtime** — not during the build pipeline.
+Compiled output in `dist/` is **never validated** against doc quality standards. The validation system (`validation.computer.ts`) has 9 quality checks (tldr length, summary presence, keyword count, etc.) but these run **only at CLI runtime** — not during the build pipeline.
 
 This means:
 - Malformed skills compile and ship silently

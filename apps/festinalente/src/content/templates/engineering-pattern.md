@@ -10,7 +10,8 @@ boundary: "{When NOT to use this pattern}"
 references: []
 uses: []
 paths: []
-updated: YYYY-MM-DD
+intent: conceptual
+prerequisites: []
 ---
 
 # {Pattern Name}
@@ -19,6 +20,8 @@ updated: YYYY-MM-DD
 
 ## Problem
 
+<!-- Each section must be self-contained: open with a context sentence, no back-references -->
+
 {What problem does this pattern solve?}
 
 ## Solution
@@ -26,6 +29,8 @@ updated: YYYY-MM-DD
 {How does the pattern solve it?}
 
 **Summary:** {Brief recap of solution}
+
+<!-- Tier 2 boundary: content above this line is loaded at standard tier -->
 
 ## Structure
 

@@ -9,7 +9,8 @@ aliases: []
 boundary: "{What this feature does NOT cover}"
 references: []
 uses: []
-updated: YYYY-MM-DD
+intent: procedural
+prerequisites: []
 ---
 
 # {Feature Name}
@@ -18,9 +19,13 @@ updated: YYYY-MM-DD
 
 ## Overview
 
+<!-- Each section must be self-contained: open with a context sentence, no back-references -->
+
 {Feature Name} allows users to {do what}. This is important because {reason/value}.
 
 **Summary:** {Brief recap of the feature's purpose}
+
+<!-- Tier 2 boundary: content above this line is loaded at standard tier -->
 
 ## How It Works
 

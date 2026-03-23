@@ -8,7 +8,8 @@ keywords: [architecture, tech-stack, overview]
 aliases: []
 boundary: "{What this overview does NOT cover}"
 paths: []
-updated: YYYY-MM-DD
+intent: reference
+prerequisites: []
 ---
 
 # {Project Name} Engineering Overview
@@ -16,6 +17,8 @@ updated: YYYY-MM-DD
 > **TL;DR:** {tldr repeated}
 
 ## Tech Stack
+
+<!-- Each section must be self-contained: open with a context sentence, no back-references -->
 
 | Category | Technology |
 |----------|------------|
@@ -26,6 +29,8 @@ updated: YYYY-MM-DD
 | Testing | |
 
 **Summary:** {Brief recap of stack choices}
+
+<!-- Tier 2 boundary: content above this line is loaded at standard tier -->
 
 ## Architecture Summary
 

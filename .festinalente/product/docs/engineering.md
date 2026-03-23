@@ -9,7 +9,8 @@ aliases: [engineering-docs, technical-docs]
 boundary: "Does not cover user-facing features - see product docs"
 references: [docs/product]
 uses: [systems/data-model]
-updated: 2026-03-01
+intent: reference
+prerequisites: []
 ---
 
 # Engineering Documentation

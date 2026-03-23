@@ -9,7 +9,8 @@ aliases: [festina-finalize, finish]
 boundary: "Does not implement code or close tasks - only validates, documents, and transitions to awaiting-completion. Task closure is handled by /festina-complete."
 references: [skills/implement, skills/complete, docs/product, docs/engineering]
 uses: [systems/cli, systems/data-model]
-updated: 2026-03-23
+intent: procedural
+prerequisites: []
 ---
 
 # Finalize Task
@@ -65,7 +66,7 @@ flowchart LR
 1. **Search for unlisted impacts** - Autonomously scans for docs affected by the implementation but not listed in `affects`/`engineering`; auto-adds docs with relevance score >= 0.3 to task.xml without user confirmation
 2. **Analyze impact** - Categorize docs as complete/update/create
 3. **Pre-load context** - Smart context for doc agents
-4. **Spawn parallel agents** - Product and/or Engineering doc agents, which maintain bidirectional `references`/`uses` fields across affected docs
+4. **Spawn parallel agents** - Product and/or Engineering doc agents, which populate `intent` and `prerequisites` frontmatter fields, enforce self-contained H2 sections, maintain bidirectional `references`/`uses` fields, and no longer write the `updated` field
 5. **Validate outputs** - Check agent results
 6. **Update glossary/indexes** - Orchestrator handles these
 

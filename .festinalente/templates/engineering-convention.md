@@ -10,7 +10,8 @@ boundary: "{When this convention does NOT apply}"
 references: []
 uses: []
 paths: []
-updated: YYYY-MM-DD
+intent: reference
+prerequisites: []
 ---
 
 # {Convention Name}
@@ -19,7 +20,11 @@ updated: YYYY-MM-DD
 
 ## Rule
 
+<!-- Each section must be self-contained: open with a context sentence, no back-references -->
+
 {Clear statement of the convention}
+
+<!-- Tier 2 boundary: content above this line is loaded at standard tier -->
 
 ## Rationale
 

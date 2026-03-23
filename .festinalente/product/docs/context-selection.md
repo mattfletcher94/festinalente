@@ -7,9 +7,10 @@ summary: "Context selection loads documentation at configurable detail levels (m
 keywords: [context, tiers, tokens, budget, minimal, standard, full]
 aliases: [smart-context, context-tiers]
 boundary: "Does not handle code context - only documentation"
-references: [docs/search]
+references: [docs/search, conventions/documentation-format]
 uses: [systems/cli]
-updated: 2026-03-01
+intent: conceptual
+prerequisites: []
 ---
 
 # Context Selection
@@ -24,11 +25,13 @@ Context selection determines how much documentation to load for a given task. Th
 
 ## Tiers
 
+Tier definitions are formalized in the [documentation-format convention](../../engineering/conventions/documentation-format.md).
+
 | Tier | Tokens | Content Included |
 |------|--------|------------------|
-| minimal | ~50 | tldr only |
-| standard | ~200 | overview + key sections |
-| full | ~500-1000 | complete document |
+| minimal | ~50 | Frontmatter only (id, title, tldr, keywords, boundary) |
+| standard | ~200 | Frontmatter + TL;DR + Overview section |
+| full | ~500-1000 | Complete document |
 
 ## Selection Logic
 
