@@ -458,6 +458,29 @@ WARNING: New files created but not imported anywhere:
     </output>
   </step>
 
+  <step name="post_implementation_doc_check">
+    <note>Advisory check: identify new entry points not covered by task.xml affects.
+    This step is advisory only — it does NOT modify task.xml. Finalize will handle
+    autonomous doc detection.</note>
+
+    <command>git diff --name-only</command>
+    <action>Identify new files that appear to be entry points (handlers, routes, commands, exports):
+    - Handlers (*.handler.ts, *Handler.ts)
+    - Routes (*.route.ts, routes/*)
+    - Commands (*.command.ts, commands/*)
+    - Exports (index.ts files, barrel exports)</action>
+    <action>Check whether each new entry point maps to a doc in task.xml affects/engineering</action>
+
+    <branch condition="unmapped entry points found">
+      <output>Advisory: New entry points detected not in affects: {files}. Finalize will attempt autonomous detection.</output>
+      <note>Do NOT modify task.xml — this is advisory only</note>
+    </branch>
+
+    <branch condition="no unmapped entry points">
+      <note>Silent pass-through — all entry points covered by affects</note>
+    </branch>
+  </step>
+
   <step name="check_completion">
     <branch condition="all tasks have completed='true' AND verification passed">
       <action>Update task status to `finalize`</action>

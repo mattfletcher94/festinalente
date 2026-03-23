@@ -406,6 +406,26 @@ Run: /festina-scope {taskId}
 6. SELF-CONTAINED: `<action>` has enough detail to implement without re-reading spec</note>
   </step>
 
+  <step name="flag_doc_needs">
+    <note>Advisory check: scan plan tasks for new public surface area that may need documentation.
+    This step is advisory only — it does NOT modify task.xml. Scope should have caught doc gaps,
+    and finalize will catch them autonomously. Plan just provides early signal.</note>
+
+    <action>Re-read the plan.xml just created</action>
+    <action>Scan each task's action and files elements for indicators of new public surface area:
+    keywords like "create handler", "add command", "new route", "export", "new feature",
+    "new endpoint", "add API", "create file"</action>
+
+    <branch condition="new surface area detected not mapped to affects">
+      <output>Advisory: Plan task #{n} creates {thing} — may need new doc in affects</output>
+      <note>Do NOT modify task.xml — this is advisory only</note>
+    </branch>
+
+    <branch condition="no new surface area detected OR all mapped to affects">
+      <note>Silent pass-through — no advisory needed</note>
+    </branch>
+  </step>
+
   <step name="verify_plan_completeness">
     <note>Critical self-check: Ensure plan is implementable without conversation context.</note>
 

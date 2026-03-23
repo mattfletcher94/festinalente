@@ -330,7 +330,15 @@ Avoid loading more than 2-3 related docs to preserve context window.</note>
       - project-requirements="{comma-separated R-ids this task covers}" attribute (AC-B7)
       - title, description (including sibling context and boundary notes)
       - problem, value, acceptance-criteria (scoped to this task)
-      - affects and engineering inherited from project where relevant</action>
+      - For each project-level affects/engineering doc:
+        - Determine which task(s) are most likely to impact this doc based on
+          task description and requirements coverage
+        - Assign the doc to those task(s)
+      - Validate: every project-level doc is assigned to at least one task
+      - Fallback: unassigned docs go to the task with broadest scope
+      - Log assignment table: "Doc assignments: {doc} → {task-ids}"
+      - affects: the specific subset of project docs assigned to THIS task
+      - engineering: the specific subset of project engineering docs assigned to THIS task</action>
 
     <action>Update project.xml `<tasks>` element with task reference:</action>
     <example_code lang="xml">
