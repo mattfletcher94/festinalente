@@ -577,44 +577,6 @@ To save progress now:
     </branch>
   </step>
 
-  <step name="directive_compliance">
-    <note>Verify compliance with all loaded directives</note>
-  
-    <action>For each directive loaded in load_directives step:</action>
-    <action>Re-read the directive XML file</action>
-  
-    <action>Run each `<validation>` check:</action>
-  
-    <branch condition="check type=command">
-      <command>{content of <run> element}</command>
-      <validate>{content of <expect> element}</validate>
-    </branch>
-  
-    <branch condition="check type=pattern">
-      <action>For each file matching `files` glob that was modified:</action>
-      <action>Check content against `<forbidden>` or `<required>` regex</action>
-    </branch>
-  
-    <branch condition="check type=checklist">
-      <action>Self-assess each `<item>` as Y/N</action>
-    </branch>
-  
-    <branch condition="any check fails">
-      <output>Directive violation: {check id} - {reason}</output>
-      <action>Find `<example>` elements where ref matches failed check</action>
-      <action>Show violation examples to illustrate the problem</action>
-      <action>Show correct examples to illustrate the fix</action>
-      <action>Use AskUserQuestion tool with:
-        - header: "Violation"
-        - question: "Directive check failed. How would you like to proceed?"
-        - options:
-          - label: "Fix now", description: "Address the violation before continuing"
-          - label: "Continue anyway", description: "Acknowledge and proceed despite violation"
-        - multiSelect: false
-      </action>
-    </branch>
-  </step>
-
   <step name="validate_xml">
     <command description="Validate XML in task files">node .festinalente/scripts/festinalente.cjs validate-xml {taskId}</command>
     <branch condition="validation fails">
@@ -760,6 +722,85 @@ All implementation tasks complete. Moving to finalize.
 Next:
 /clear
 /festina-finalize 002
+```
+
+**Directive Violation During Implementation:**
+
+User: `/festina-implement 003`
+
+```
+Implementing task 003 "Add user auth"...
+
+Task 003 moved to In Progress
+
+Reading spec: .festinalente/tasks/003/spec.xml
+Reading plan: .festinalente/tasks/003/plan.xml
+Found 3 tasks, 0 completed, execution order: 1, 2, 3
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[1/3] Create auth module
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+**Files:** src/routes/auth.ts (create)
+**Requirements:** FR1
+
+Creating src/routes/auth.ts...
+Running verification: npx tsc --noEmit
+✓ Verification passed
+
+Running per-task directive validation...
+✓ All directive checks passed
+✓ Task 1 completed
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2/3] Add login endpoint
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+**Files:** src/routes/auth.ts (modify)
+**Requirements:** FR2
+
+Adding POST /login handler...
+Running verification: npx tsc --noEmit
+✓ Verification passed
+
+Running per-task directive validation...
+Directive violation in task 2 'Add login endpoint': V-T1 - Found `: any` in src/routes/auth.ts:23
+
+  // VIOLATION: line 23
+  function parseBody(req: any): LoginRequest {
+
+  // CORRECT: use unknown and narrow
+  function parseBody(req: unknown): LoginRequest {
+    if (!isLoginRequest(req)) throw new Error('Invalid request');
+    return req;
+  }
+
+> How would you like to proceed?
+> [Fix now] [Continue anyway]
+
+User selects: Fix now
+
+Fixing violation: narrowing `any` to `unknown` with type guard...
+Re-running directive validation for task 2 files...
+✓ V-T1 passed — no forbidden `: any` patterns
+
+✓ Task 2 completed
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[3/3] Register auth routes
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+**Files:** src/index.ts (modify)
+**Requirements:** FR3
+
+Registering auth routes in app...
+Running verification: npx tsc --noEmit
+✓ Verification passed
+✓ Task 3 completed
+
+All implementation tasks complete. Moving to finalize.
+- Status: finalize
+- Files modified: 2
+Next:
+/clear
+/festina-finalize 003
 ```
 </example>
 

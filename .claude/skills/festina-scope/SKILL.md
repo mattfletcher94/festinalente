@@ -1496,6 +1496,67 @@ Proceeding to technical Q&A. You can raise any concerns about the standard mitig
 ```
 </example>
 
+<example label="Self-Critique Finds Vague Requirement">
+User: `/festina-scope 004`
+
+```
+Scoping task 004 "Add data processing pipeline"...
+
+Reading task details...
+- Problem: Raw data files need automated processing before analysis
+- Value: Eliminate manual data prep, reduce errors
+- Acceptance: Pipeline processes all supported formats, outputs are validated
+
+How thorough should the codebase research be?
+> Quick
+
+Researching (sequential)...
+
+Found:
+- Parser module in src/parsers/csv.ts
+- Validation utilities in src/utils/validate.ts
+- Similar pipeline in src/pipelines/import.ts:12
+
+[Research synthesis presented, confirmed by user]
+
+[Q&A dialogue gathers requirements...]
+- FR1: Pipeline accepts CSV, JSON, and XML input formats
+- FR2: Data should be processed efficiently
+- FR3: Output files are written to the configured output directory
+- FR4: Invalid rows are logged and skipped without halting the pipeline
+
+Running self-critique...
+
+**Quality Issue (CRITICAL)**
+
+FR2: "Data should be processed efficiently" — subjective adjective
+"efficiently" without measurable criteria (check_testability).
+
+Suggestion: Define a target metric, e.g., "Data processing completes
+within 200ms for datasets under 10MB"
+
+> How would you like to proceed?
+> [Address now] [Defer to open-questions] [Dismiss]
+
+User selects: Address now
+
+> Please provide the revised requirement text:
+User: "FR2: Data processing completes within 200ms for datasets under 10MB"
+
+Re-running quality checks on revised FR2...
+✓ No issues found on revised requirement
+
+Self-critique complete. 1 finding addressed, 0 deferred.
+
+Creating spec file...
+Spec created at .festinalente/tasks/004/spec.xml
+
+Next:
+/clear
+/festina-plan 004
+```
+</example>
+
 <next_steps>
 ```
 /clear

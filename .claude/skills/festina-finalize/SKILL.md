@@ -1193,6 +1193,76 @@ Task 003 moved to Awaiting Completion!
 ```
 </example>
 
+<example>
+**Goal Verification Failure:**
+
+User: `/festina-finalize 005`
+
+```
+Finalizing task 005 "Add input validation"...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 1: VALIDATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Running check: TypeScript...
+PASS: TypeScript
+
+All automated checks passed!
+
+Goal-backward verification:
+
+Extracting acceptance criteria from task.xml...
+Translating to observable behaviors:
+1. When a user submits valid input, then the data is saved successfully
+2. When a user submits invalid input, then a validation error is displayed
+3. When a user corrects invalid input and resubmits, then the data is saved
+
+Verify Behavior 1/3:
+"When a user submits valid input, then the data is saved successfully"
+> YES
+
+Verify Behavior 2/3:
+"When a user submits invalid input, then a validation error is displayed"
+> NO
+
+Verify Behavior 3/3:
+"When a user corrects invalid input and resubmits, then the data is saved"
+> YES
+
+Failed behaviors detected. Running diagnostics...
+
+Spawning Explore subagent on modified files...
+Diagnostic findings:
+- src/routes/auth.ts:45 — Missing wiring: validateInput() is defined
+  but not registered in the route handler chain. The handler processes
+  the request without calling validation first.
+
+Diagnostic Results:
+> How should I proceed with the failed behaviors?
+> [Fix now] [Rework] [Acknowledge]
+
+User selects: Fix now
+
+Fixing: Wiring validateInput() into the route handler chain at
+src/routes/auth.ts:45...
+
+Re-verifying failed behavior 2/3:
+"When a user submits invalid input, then a validation error is displayed"
+> YES
+
+All behaviors verified after fix.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 2: DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[Documentation flow continues...]
+
+Task 005 moved to Awaiting Completion!
+```
+</example>
+
 <next_steps>
 Task has passed validation and documentation. Complete it:
 ```
