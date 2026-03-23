@@ -113,7 +113,7 @@ flowchart LR
 | From → To | Artifact | Key Data Carried Forward |
 |-----------|----------|--------------------------|
 | discover → create | Conversation context | Opportunity title, problem, value, evidence |
-| create → scope | `task.xml` | Problem, value, acceptance criteria, affects, engineering doc refs |
+| create → scope | `task.xml` | Problem, value, acceptance criteria, affects, engineering doc refs (scope may add to affects/engineering based on research) |
 | scope → plan | `spec.xml` | Functional requirements (FRs), affected files, patterns, risks, contracts (optional), boundaries (optional) |
 | plan → implement | `plan.xml` | Ordered tasks with context files, verification commands, contract-tests, done criteria |
 | implement → finalize | `plan.xml` (updated) | All tasks marked `completed="true"`, contract-verification results |
@@ -124,7 +124,7 @@ flowchart LR
 | Element | Created By | Read By | Purpose |
 |---------|-----------|---------|---------|
 | `<acceptance-criteria>` | create | scope, finalize | Gherkin-format done criteria |
-| `<affects>` / `<engineering>` | create/scope | finalize | Doc IDs to update |
+| `<affects>` / `<engineering>` | create, scope | scope, finalize | Doc IDs to update (scope auto-adds docs discovered during research) |
 | `<contracts>` | scope | plan, implement | Behavioral specifications (precondition, postcondition, invariant, property) |
 | `<contract-verification>` | implement | finalize | Pass/fail results with evidence |
 | `<boundaries>` | scope | implement | Always/ask-first/never rules for the implementation agent |

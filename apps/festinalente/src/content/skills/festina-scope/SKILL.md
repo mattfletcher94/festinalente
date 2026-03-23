@@ -500,6 +500,27 @@ Output as a structured list.
     </branch>
   </step>
 
+  <step name="update_doc_links">
+    <note>Re-evaluate doc impacts using research context. Auto-add newly discovered docs to task.xml.
+    This step ensures affects/engineering fields reflect what scope learned, not just what CREATE guessed.</note>
+
+    <action>Extract keywords from research findings, functional requirements, and affected files discovered during exploration</action>
+    <command>node .festinalente/scripts/festinalente.cjs search-product {keywords}</command>
+    <command>node .festinalente/scripts/festinalente.cjs search-engineering {keywords}</command>
+
+    <action>Compare search results against current task.xml affects/engineering fields</action>
+
+    <branch condition="new docs found with score >= 0.5 not already in affects/engineering">
+      <action>Add new doc IDs to task.xml affects/engineering (preserve existing entries, no duplicates)</action>
+      <action>Write updated task.xml to disk</action>
+      <output>Scope added {doc-ids} to affects based on research findings</output>
+    </branch>
+
+    <branch condition="no new docs discovered">
+      <note>Silent pass-through — existing affects/engineering list is already complete</note>
+    </branch>
+  </step>
+
   <step name="resolve_pitfalls" outputs="resolvedPitfalls">
     <note>For each pitfall categorized as "decision", ask the user how to handle it.</note>
     <note>Follow the structured AskUserQuestion pattern used in festina-rework and festina-create.</note>

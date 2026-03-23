@@ -50,7 +50,8 @@ flowchart LR
     Recommend --> Deep
     Quick --> Synthesis
     Deep --> Synthesis
-    Synthesis --> Pitfalls
+    Synthesis --> DocLinks[Update Doc Links]
+    DocLinks --> Pitfalls
     Pitfalls --> QA
     QA --> Contracts[Derive Contracts]
     Contracts --> GapVal
@@ -280,7 +281,7 @@ What this skill does NOT do:
 
 ## Interactions
 
-- **Product Docs**: Reads docs listed in task's `affects` field (also used for brownfield detection)
+- **Product Docs**: Reads docs listed in task's `affects` field (also used for brownfield detection). After synthesis, auto-adds newly discovered docs (relevance score >= 0.5) to task.xml `affects`/`engineering` fields
 - **Engineering Docs**: Reads docs listed in task's `engineering` field
 - **Project Context**: When a task has a `project-id` attribute, loads the parent project's goal, requirements, and scope, plus sibling task summaries for cross-task awareness. Spec requirements trace back to project requirement IDs (e.g., FR1 traces-to R2)
 - **Directives**: Applies any `phase="scope"` rules

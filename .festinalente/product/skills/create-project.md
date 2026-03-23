@@ -9,7 +9,7 @@ aliases: [festina-create-project, new-project, add-project]
 boundary: "Does not scope, plan, or implement tasks - only captures project requirements and decomposes into tasks"
 references: [skills/create, skills/scope, skills/plan, skills/complete-project]
 uses: [systems/cli, systems/data-model]
-updated: 2026-03-16
+updated: 2026-03-23
 ---
 
 # Create Project
@@ -74,12 +74,14 @@ The skill reasons about all tasks simultaneously to guarantee no overlap. Each d
 - A `project-requirements` attribute listing which R-ids it covers (e.g., "R1,R3")
 - Sibling context in its description explaining how it fits with other project tasks
 - Boundary notes clarifying what it does NOT cover (handled by sibling tasks)
+- Explicit doc-to-task assignment: project-level `affects`/`engineering` docs are assigned to specific tasks, guaranteeing every doc is covered by at least one task
 - Acceptance criteria scoped to that task only (not duplicating project-level criteria)
 
 | Constraint | Rule |
 |------------|------|
 | Task count | 2-5 recommended; warns if 6+ and offers to split or reduce scope |
 | Requirement coverage | Every R1-Rn must map to at least one task |
+| Doc coverage | Every project-level doc assigned to >= 1 task |
 | Overlap | No two tasks may cover the same scope |
 | Slicing | Vertical slices preferred (each task delivers end-to-end value) |
 

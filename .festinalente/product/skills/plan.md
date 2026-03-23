@@ -33,7 +33,8 @@ flowchart LR
     Research --> Derive[Derive Sections]
     Derive --> Create[Create Tasks]
     Create --> Validate[Validate Plan]
-    Validate --> Plan[plan.xml]
+    Validate --> DocFlag[Flag Doc Needs]
+    DocFlag --> Plan[plan.xml]
 ```
 
 ### Complexity Assessment
@@ -167,7 +168,7 @@ What this skill does NOT do:
 
 ## Interactions
 
-- **Product Docs**: Reads affected docs for implementation context
+- **Product Docs**: Reads affected docs for implementation context. After plan creation, scans tasks for new surface area and logs advisory warnings about docs that may need updating (does not modify task.xml)
 - **Engineering Docs**: Reads patterns to reference in plan tasks
 - **Directives**: Uses verification commands from directives
 

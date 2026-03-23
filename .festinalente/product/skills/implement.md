@@ -53,7 +53,8 @@ flowchart TB
     DirVal --> |pass or continue| Persist
     DirVal --> |fix now| Execute
     Persist --> |next task| ReadCtx
-    Persist --> |all done| Quality
+    Persist --> |all done| DocCheck[Post-Implementation Doc Check]
+    DocCheck --> Quality
 ```
 
 ### Direct Execution
@@ -211,6 +212,7 @@ What this skill does NOT do:
 
 - **Spec Boundaries**: If spec.xml contains `<boundaries>`, the always/ask-first/never rules are available in context during execution
 - **Spec Contracts**: If spec.xml contains `<contracts>`, structured contract verification runs after each task with pass/fail results persisted in plan.xml
+- **Post-Implementation Doc Check**: After all tasks complete, identifies new entry points not listed in the task's `affects` field and logs advisory warnings (does not modify task.xml)
 - **Directives**: Applies `phase="implement"` rules. Directives are loaded once and remain in context. Per-task directive validation runs after each task completes, before marking the task complete
 
 ## Limitations

@@ -323,7 +323,8 @@ implementation, optional review, optional doc updates.
   </step>
 
   <step name="detect_docs">
-    <note>Auto-detect whether relevant docs exist for the changes made.</note>
+    <note>Auto-detect whether relevant docs exist for the changes made.
+    If code introduces new features with no matching doc, create a stub.</note>
     <action>Analyze the code changes to detect which docs might be affected</action>
     <command>node .festinalente/scripts/festinalente.cjs search-product {keywords from changes}</command>
     <command>node .festinalente/scripts/festinalente.cjs search-engineering {keywords from changes}</command>
@@ -332,7 +333,15 @@ implementation, optional review, optional doc updates.
       <action>Update `<docs>` section in quick.xml</action>
       <output>Updated docs: {doc ids}</output>
     </branch>
-    <branch condition="no relevant docs found">
+    <branch condition="no relevant docs found AND code introduces new exports/handlers/features">
+      <note>New feature detected with no matching product doc — create stub</note>
+      <action>Determine appropriate doc ID based on the new feature (e.g., cli/new-command, skills/new-skill)</action>
+      <action>Create stub product doc at .festinalente/product/{doc-id}.md with frontmatter:
+        stub: true, title, tldr, summary, keywords, updated: {current date}</action>
+      <action>Add stub doc ID to quick.xml affects field</action>
+      <output>Quick created stub doc: {path}</output>
+    </branch>
+    <branch condition="no relevant docs found AND no new features detected">
       <output>No existing docs to update for this change.</output>
     </branch>
   </step>

@@ -167,6 +167,26 @@ These tasks must be completed before the project can be closed.
     </branch>
   </step>
 
+  <step name="audit_documentation">
+    <note>Verify that project-level documentation was actually updated during the project.
+    This is a non-blocking audit — warnings are emitted but completion proceeds regardless.</note>
+
+    <action>Read project.xml affects and engineering fields</action>
+    <action>For each doc ID in project-level affects/engineering:
+      - Check if any child task listed this doc in its affects/engineering
+      - Check the doc file's updated frontmatter field against the project creation date</action>
+
+    <branch condition="some project-level docs were never updated by any child task">
+      <output>Warning: The following project-level docs were never updated by any task:
+      {doc-ids}. Consider running /festina-map-product or /festina-map-engineering to fill gaps.</output>
+      <note>This is a warning only — project completion proceeds regardless</note>
+    </branch>
+
+    <branch condition="all project-level docs were updated">
+      <note>All project documentation was updated — no warnings</note>
+    </branch>
+  </step>
+
   <step name="update_project">
     <command>node .festinalente/scripts/festinalente.cjs get-date-time</command>
     <action>Update project.xml:

@@ -1,7 +1,11 @@
 {
   "_version": "1.0.2",
-  "_installedAt": "2026-03-23T09:19:13.414Z",
-  "runtimes": ["claude"],
-  "skillsDirs": [".claude/skills"],
+  "_installedAt": "2026-03-23T11:12:38.513Z",
+  "runtimes": [
+    "claude"
+  ],
+  "skillsDirs": [
+    ".claude/skills"
+  ],
   "festinalenteDir": ".festinalente/"
 }
