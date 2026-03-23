@@ -3,7 +3,7 @@ name: festina-discover
 description: Systematically surface feature opportunities, gaps, and improvements through multi-perspective analysis. Handles both generative ("find opportunities") and evaluative ("is X worth doing?") use cases, replacing /festina-explore.
 allowed-tools: Read, Glob, Grep, Bash(node *, git log *), Agent, Skill
 argument-hint: "[area to focus on, or question to evaluate]"
-disable-model-invocation: false
+disable-model-invocation: true
 ---
 
 # Discover Opportunities

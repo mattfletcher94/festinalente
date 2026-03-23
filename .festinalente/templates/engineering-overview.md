@@ -7,7 +7,6 @@ summary: "High-level technical overview of {project}"
 keywords: [architecture, tech-stack, overview]
 aliases: []
 boundary: "{What this overview does NOT cover}"
-references: []
 paths: []
 updated: YYYY-MM-DD
 ---
