@@ -3754,11 +3754,11 @@ function getNumberFlag(flags, key) {
 */
 function createCommandRegistry() {
 	const commands = new Map();
-	function register$1(command) {
+	function register(command) {
 		if (commands.has(command.name)) throw new Error(`Command "${command.name}" is already registered`);
 		commands.set(command.name, command);
 	}
-	function get$1(name) {
+	function get(name) {
 		return commands.get(name);
 	}
 	function list() {
@@ -3768,8 +3768,8 @@ function createCommandRegistry() {
 		return commands.has(name);
 	}
 	return {
-		register: register$1,
-		get: get$1,
+		register,
+		get,
 		list,
 		has
 	};
@@ -4835,1210 +4835,1908 @@ function createQuickHandler(deps) {
 }
 
 //#endregion
-//#region ../../node_modules/.pnpm/fuse.js@7.1.0/node_modules/fuse.js/dist/fuse.mjs
+//#region src/cli/computers/graph.computer.ts
 /**
-* Fuse.js v7.1.0 - Lightweight fuzzy-search (http://fusejs.io)
+* Create a graph computer for document relationship traversal.
 *
-* Copyright (c) 2025 Kiro Risk (http://kiro.me)
-* All Rights Reserved. Apache Software License 2.0
-*
-* http://www.apache.org/licenses/LICENSE-2.0
+* @returns A GraphComputer instance.
 */
-function isArray$1(value) {
-	return !Array.isArray ? getTag(value) === "[object Array]" : Array.isArray(value);
-}
-const INFINITY = Infinity;
-function baseToString(value) {
-	if (typeof value == "string") return value;
-	let result = value + "";
-	return result == "0" && 1 / value == -INFINITY ? "-0" : result;
-}
-function toString$1(value) {
-	return value == null ? "" : baseToString(value);
-}
-function isString(value) {
-	return typeof value === "string";
-}
-function isNumber(value) {
-	return typeof value === "number";
-}
-function isBoolean$2(value) {
-	return value === true || value === false || isObjectLike(value) && getTag(value) == "[object Boolean]";
-}
-function isObject$3(value) {
-	return typeof value === "object";
-}
-function isObjectLike(value) {
-	return isObject$3(value) && value !== null;
-}
-function isDefined(value) {
-	return value !== void 0 && value !== null;
-}
-function isBlank(value) {
-	return !value.trim().length;
-}
-function getTag(value) {
-	return value == null ? value === void 0 ? "[object Undefined]" : "[object Null]" : Object.prototype.toString.call(value);
-}
-const INCORRECT_INDEX_TYPE = "Incorrect 'index' type";
-const LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY = (key) => `Invalid value for key ${key}`;
-const PATTERN_LENGTH_TOO_LARGE = (max) => `Pattern length exceeds max of ${max}.`;
-const MISSING_KEY_PROPERTY = (name) => `Missing ${name} property in key`;
-const INVALID_KEY_WEIGHT_VALUE = (key) => `Property 'weight' in key '${key}' must be a positive integer`;
-const hasOwn$1 = Object.prototype.hasOwnProperty;
-var KeyStore = class {
-	constructor(keys) {
-		this._keys = [];
-		this._keyMap = {};
-		let totalWeight = 0;
-		keys.forEach((key) => {
-			let obj = createKey(key);
-			this._keys.push(obj);
-			this._keyMap[obj.id] = obj;
-			totalWeight += obj.weight;
-		});
-		this._keys.forEach((key) => {
-			key.weight /= totalWeight;
-		});
-	}
-	get(keyId) {
-		return this._keyMap[keyId];
-	}
-	keys() {
-		return this._keys;
-	}
-	toJSON() {
-		return JSON.stringify(this._keys);
-	}
-};
-function createKey(key) {
-	let path$2 = null;
-	let id = null;
-	let src = null;
-	let weight = 1;
-	let getFn = null;
-	if (isString(key) || isArray$1(key)) {
-		src = key;
-		path$2 = createKeyPath(key);
-		id = createKeyId(key);
-	} else {
-		if (!hasOwn$1.call(key, "name")) throw new Error(MISSING_KEY_PROPERTY("name"));
-		const name = key.name;
-		src = name;
-		if (hasOwn$1.call(key, "weight")) {
-			weight = key.weight;
-			if (weight <= 0) throw new Error(INVALID_KEY_WEIGHT_VALUE(name));
-		}
-		path$2 = createKeyPath(name);
-		id = createKeyId(name);
-		getFn = key.getFn;
-	}
-	return {
-		path: path$2,
-		id,
-		weight,
-		src,
-		getFn
-	};
-}
-function createKeyPath(key) {
-	return isArray$1(key) ? key : key.split(".");
-}
-function createKeyId(key) {
-	return isArray$1(key) ? key.join(".") : key;
-}
-function get(obj, path$2) {
-	let list = [];
-	let arr = false;
-	const deepGet = (obj$1, path$3, index) => {
-		if (!isDefined(obj$1)) return;
-		if (!path$3[index]) list.push(obj$1);
-		else {
-			let key = path$3[index];
-			const value = obj$1[key];
-			if (!isDefined(value)) return;
-			if (index === path$3.length - 1 && (isString(value) || isNumber(value) || isBoolean$2(value))) list.push(toString$1(value));
-			else if (isArray$1(value)) {
-				arr = true;
-				for (let i$2 = 0, len = value.length; i$2 < len; i$2 += 1) deepGet(value[i$2], path$3, index + 1);
-			} else if (path$3.length) deepGet(value, path$3, index + 1);
-		}
-	};
-	deepGet(obj, isString(path$2) ? path$2.split(".") : path$2, 0);
-	return arr ? list : list[0];
-}
-const MatchOptions = {
-	includeMatches: false,
-	findAllMatches: false,
-	minMatchCharLength: 1
-};
-const BasicOptions = {
-	isCaseSensitive: false,
-	ignoreDiacritics: false,
-	includeScore: false,
-	keys: [],
-	shouldSort: true,
-	sortFn: (a, b) => a.score === b.score ? a.idx < b.idx ? -1 : 1 : a.score < b.score ? -1 : 1
-};
-const FuzzyOptions = {
-	location: 0,
-	threshold: .6,
-	distance: 100
-};
-const AdvancedOptions = {
-	useExtendedSearch: false,
-	getFn: get,
-	ignoreLocation: false,
-	ignoreFieldNorm: false,
-	fieldNormWeight: 1
-};
-var Config = {
-	...BasicOptions,
-	...MatchOptions,
-	...FuzzyOptions,
-	...AdvancedOptions
-};
-const SPACE = /[^ ]+/g;
-function norm(weight = 1, mantissa = 3) {
-	const cache = new Map();
-	const m = Math.pow(10, mantissa);
-	return {
-		get(value) {
-			const numTokens = value.match(SPACE).length;
-			if (cache.has(numTokens)) return cache.get(numTokens);
-			const norm$1 = 1 / Math.pow(numTokens, .5 * weight);
-			const n = parseFloat(Math.round(norm$1 * m) / m);
-			cache.set(numTokens, n);
-			return n;
-		},
-		clear() {
-			cache.clear();
-		}
-	};
-}
-var FuseIndex = class {
-	constructor({ getFn = Config.getFn, fieldNormWeight = Config.fieldNormWeight } = {}) {
-		this.norm = norm(fieldNormWeight, 3);
-		this.getFn = getFn;
-		this.isCreated = false;
-		this.setIndexRecords();
-	}
-	setSources(docs = []) {
-		this.docs = docs;
-	}
-	setIndexRecords(records = []) {
-		this.records = records;
-	}
-	setKeys(keys = []) {
-		this.keys = keys;
-		this._keysMap = {};
-		keys.forEach((key, idx) => {
-			this._keysMap[key.id] = idx;
-		});
-	}
-	create() {
-		if (this.isCreated || !this.docs.length) return;
-		this.isCreated = true;
-		if (isString(this.docs[0])) this.docs.forEach((doc, docIndex) => {
-			this._addString(doc, docIndex);
-		});
-		else this.docs.forEach((doc, docIndex) => {
-			this._addObject(doc, docIndex);
-		});
-		this.norm.clear();
-	}
-	add(doc) {
-		const idx = this.size();
-		if (isString(doc)) this._addString(doc, idx);
-		else this._addObject(doc, idx);
-	}
-	removeAt(idx) {
-		this.records.splice(idx, 1);
-		for (let i$2 = idx, len = this.size(); i$2 < len; i$2 += 1) this.records[i$2].i -= 1;
-	}
-	getValueForItemAtKeyId(item, keyId) {
-		return item[this._keysMap[keyId]];
-	}
-	size() {
-		return this.records.length;
-	}
-	_addString(doc, docIndex) {
-		if (!isDefined(doc) || isBlank(doc)) return;
-		let record = {
-			v: doc,
-			i: docIndex,
-			n: this.norm.get(doc)
-		};
-		this.records.push(record);
-	}
-	_addObject(doc, docIndex) {
-		let record = {
-			i: docIndex,
-			$: {}
-		};
-		this.keys.forEach((key, keyIndex) => {
-			let value = key.getFn ? key.getFn(doc) : this.getFn(doc, key.path);
-			if (!isDefined(value)) return;
-			if (isArray$1(value)) {
-				let subRecords = [];
-				const stack = [{
-					nestedArrIndex: -1,
-					value
-				}];
-				while (stack.length) {
-					const { nestedArrIndex, value: value$1 } = stack.pop();
-					if (!isDefined(value$1)) continue;
-					if (isString(value$1) && !isBlank(value$1)) {
-						let subRecord = {
-							v: value$1,
-							i: nestedArrIndex,
-							n: this.norm.get(value$1)
-						};
-						subRecords.push(subRecord);
-					} else if (isArray$1(value$1)) value$1.forEach((item, k) => {
-						stack.push({
-							nestedArrIndex: k,
-							value: item
-						});
-					});
-				}
-				record.$[keyIndex] = subRecords;
-			} else if (isString(value) && !isBlank(value)) {
-				let subRecord = {
-					v: value,
-					n: this.norm.get(value)
-				};
-				record.$[keyIndex] = subRecord;
+function createGraphComputer() {
+	function buildGraph(docs) {
+		const forward = new Map();
+		const backward = new Map();
+		const viaMap = new Map();
+		for (const doc of docs) {
+			const docVia = new Map();
+			for (const ref of doc.references) {
+				if (!forward.has(doc.id)) forward.set(doc.id, new Set());
+				forward.get(doc.id).add(ref);
+				docVia.set(ref, `${doc.id}.references`);
+				if (!backward.has(ref)) backward.set(ref, new Set());
+				backward.get(ref).add(doc.id);
 			}
-		});
-		this.records.push(record);
+			for (const use of doc.uses) {
+				if (!forward.has(doc.id)) forward.set(doc.id, new Set());
+				forward.get(doc.id).add(use);
+				if (!docVia.has(use)) docVia.set(use, `${doc.id}.uses`);
+				if (!backward.has(use)) backward.set(use, new Set());
+				backward.get(use).add(doc.id);
+			}
+			viaMap.set(doc.id, docVia);
+		}
+		function expand(resultIds, excludeIds) {
+			const seen = new Map();
+			for (const resultId of resultIds) {
+				const fwd = forward.get(resultId);
+				if (fwd) for (const neighborId of fwd) {
+					if (excludeIds.has(neighborId) || neighborId === resultId || seen.has(neighborId)) continue;
+					seen.set(neighborId, viaMap.get(resultId)?.get(neighborId) ?? `${resultId}.references`);
+				}
+				const bwd = backward.get(resultId);
+				if (bwd) for (const neighborId of bwd) {
+					if (excludeIds.has(neighborId) || neighborId === resultId || seen.has(neighborId)) continue;
+					seen.set(neighborId, viaMap.get(neighborId)?.get(resultId) ?? `${neighborId}.references`);
+				}
+			}
+			return Array.from(seen.entries()).map(([id, via]) => ({
+				id,
+				via
+			})).sort((a, b) => a.id.localeCompare(b.id));
+		}
+		return { expand };
 	}
-	toJSON() {
-		return {
-			keys: this.keys,
-			records: this.records
+	return { buildGraph };
+}
+
+//#endregion
+//#region ../../node_modules/.pnpm/minisearch@7.2.0/node_modules/minisearch/dist/es/index.js
+/** @ignore */
+const ENTRIES = "ENTRIES";
+/** @ignore */
+const KEYS = "KEYS";
+/** @ignore */
+const VALUES = "VALUES";
+/** @ignore */
+const LEAF = "";
+/**
+* @private
+*/
+var TreeIterator = class {
+	constructor(set$1, type$1) {
+		const node = set$1._tree;
+		const keys = Array.from(node.keys());
+		this.set = set$1;
+		this._type = type$1;
+		this._path = keys.length > 0 ? [{
+			node,
+			keys
+		}] : [];
+	}
+	next() {
+		const value = this.dive();
+		this.backtrack();
+		return value;
+	}
+	dive() {
+		if (this._path.length === 0) return {
+			done: true,
+			value: void 0
 		};
+		const { node, keys } = last$1(this._path);
+		if (last$1(keys) === LEAF) return {
+			done: false,
+			value: this.result()
+		};
+		const child = node.get(last$1(keys));
+		this._path.push({
+			node: child,
+			keys: Array.from(child.keys())
+		});
+		return this.dive();
 	}
-};
-function createIndex(keys, docs, { getFn = Config.getFn, fieldNormWeight = Config.fieldNormWeight } = {}) {
-	const myIndex = new FuseIndex({
-		getFn,
-		fieldNormWeight
-	});
-	myIndex.setKeys(keys.map(createKey));
-	myIndex.setSources(docs);
-	myIndex.create();
-	return myIndex;
-}
-function parseIndex(data, { getFn = Config.getFn, fieldNormWeight = Config.fieldNormWeight } = {}) {
-	const { keys, records } = data;
-	const myIndex = new FuseIndex({
-		getFn,
-		fieldNormWeight
-	});
-	myIndex.setKeys(keys);
-	myIndex.setIndexRecords(records);
-	return myIndex;
-}
-function computeScore$1(pattern, { errors = 0, currentLocation = 0, expectedLocation = 0, distance = Config.distance, ignoreLocation = Config.ignoreLocation } = {}) {
-	const accuracy = errors / pattern.length;
-	if (ignoreLocation) return accuracy;
-	const proximity = Math.abs(expectedLocation - currentLocation);
-	if (!distance) return proximity ? 1 : accuracy;
-	return accuracy + proximity / distance;
-}
-function convertMaskToIndices(matchmask = [], minMatchCharLength = Config.minMatchCharLength) {
-	let indices = [];
-	let start = -1;
-	let end = -1;
-	let i$2 = 0;
-	for (let len = matchmask.length; i$2 < len; i$2 += 1) {
-		let match = matchmask[i$2];
-		if (match && start === -1) start = i$2;
-		else if (!match && start !== -1) {
-			end = i$2 - 1;
-			if (end - start + 1 >= minMatchCharLength) indices.push([start, end]);
-			start = -1;
+	backtrack() {
+		if (this._path.length === 0) return;
+		const keys = last$1(this._path).keys;
+		keys.pop();
+		if (keys.length > 0) return;
+		this._path.pop();
+		this.backtrack();
+	}
+	key() {
+		return this.set._prefix + this._path.map(({ keys }) => last$1(keys)).filter((key) => key !== LEAF).join("");
+	}
+	value() {
+		return last$1(this._path).node.get(LEAF);
+	}
+	result() {
+		switch (this._type) {
+			case VALUES: return this.value();
+			case KEYS: return this.key();
+			default: return [this.key(), this.value()];
 		}
 	}
-	if (matchmask[i$2 - 1] && i$2 - start >= minMatchCharLength) indices.push([start, i$2 - 1]);
-	return indices;
-}
-const MAX_BITS = 32;
-function search(text, pattern, patternAlphabet, { location = Config.location, distance = Config.distance, threshold = Config.threshold, findAllMatches = Config.findAllMatches, minMatchCharLength = Config.minMatchCharLength, includeMatches = Config.includeMatches, ignoreLocation = Config.ignoreLocation } = {}) {
-	if (pattern.length > MAX_BITS) throw new Error(PATTERN_LENGTH_TOO_LARGE(MAX_BITS));
-	const patternLen = pattern.length;
-	const textLen = text.length;
-	const expectedLocation = Math.max(0, Math.min(location, textLen));
-	let currentThreshold = threshold;
-	let bestLocation = expectedLocation;
-	const computeMatches = minMatchCharLength > 1 || includeMatches;
-	const matchMask = computeMatches ? Array(textLen) : [];
-	let index;
-	while ((index = text.indexOf(pattern, bestLocation)) > -1) {
-		let score = computeScore$1(pattern, {
-			currentLocation: index,
-			expectedLocation,
-			distance,
-			ignoreLocation
+	[Symbol.iterator]() {
+		return this;
+	}
+};
+const last$1 = (array) => {
+	return array[array.length - 1];
+};
+/**
+* @ignore
+*/
+const fuzzySearch = (node, query, maxDistance) => {
+	const results = new Map();
+	if (query === void 0) return results;
+	const n = query.length + 1;
+	const m = n + maxDistance;
+	const matrix = new Uint8Array(m * n).fill(maxDistance + 1);
+	for (let j = 0; j < n; ++j) matrix[j] = j;
+	for (let i$2 = 1; i$2 < m; ++i$2) matrix[i$2 * n] = i$2;
+	recurse(node, query, maxDistance, results, matrix, 1, n, "");
+	return results;
+};
+const recurse = (node, query, maxDistance, results, matrix, m, n, prefix) => {
+	const offset = m * n;
+	key: for (const key of node.keys()) if (key === LEAF) {
+		const distance = matrix[offset - 1];
+		if (distance <= maxDistance) results.set(prefix, [node.get(key), distance]);
+	} else {
+		let i$2 = m;
+		for (let pos = 0; pos < key.length; ++pos, ++i$2) {
+			const char = key[pos];
+			const thisRowOffset = n * i$2;
+			const prevRowOffset = thisRowOffset - n;
+			let minDistance = matrix[thisRowOffset];
+			const jmin = Math.max(0, i$2 - maxDistance - 1);
+			const jmax = Math.min(n - 1, i$2 + maxDistance);
+			for (let j = jmin; j < jmax; ++j) {
+				const different = char !== query[j];
+				const rpl = matrix[prevRowOffset + j] + +different;
+				const del = matrix[prevRowOffset + j + 1] + 1;
+				const ins = matrix[thisRowOffset + j] + 1;
+				const dist = matrix[thisRowOffset + j + 1] = Math.min(rpl, del, ins);
+				if (dist < minDistance) minDistance = dist;
+			}
+			if (minDistance > maxDistance) continue key;
+		}
+		recurse(node.get(key), query, maxDistance, results, matrix, i$2, n, prefix + key);
+	}
+};
+/**
+* A class implementing the same interface as a standard JavaScript
+* [`Map`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map)
+* with string keys, but adding support for efficiently searching entries with
+* prefix or fuzzy search. This class is used internally by {@link MiniSearch}
+* as the inverted index data structure. The implementation is a radix tree
+* (compressed prefix tree).
+*
+* Since this class can be of general utility beyond _MiniSearch_, it is
+* exported by the `minisearch` package and can be imported (or required) as
+* `minisearch/SearchableMap`.
+*
+* @typeParam T  The type of the values stored in the map.
+*/
+var SearchableMap = class SearchableMap {
+	/**
+	* The constructor is normally called without arguments, creating an empty
+	* map. In order to create a {@link SearchableMap} from an iterable or from an
+	* object, check {@link SearchableMap.from} and {@link
+	* SearchableMap.fromObject}.
+	*
+	* The constructor arguments are for internal use, when creating derived
+	* mutable views of a map at a prefix.
+	*/
+	constructor(tree = new Map(), prefix = "") {
+		this._size = void 0;
+		this._tree = tree;
+		this._prefix = prefix;
+	}
+	/**
+	* Creates and returns a mutable view of this {@link SearchableMap},
+	* containing only entries that share the given prefix.
+	*
+	* ### Usage:
+	*
+	* ```javascript
+	* let map = new SearchableMap()
+	* map.set("unicorn", 1)
+	* map.set("universe", 2)
+	* map.set("university", 3)
+	* map.set("unique", 4)
+	* map.set("hello", 5)
+	*
+	* let uni = map.atPrefix("uni")
+	* uni.get("unique") // => 4
+	* uni.get("unicorn") // => 1
+	* uni.get("hello") // => undefined
+	*
+	* let univer = map.atPrefix("univer")
+	* univer.get("unique") // => undefined
+	* univer.get("universe") // => 2
+	* univer.get("university") // => 3
+	* ```
+	*
+	* @param prefix  The prefix
+	* @return A {@link SearchableMap} representing a mutable view of the original
+	* Map at the given prefix
+	*/
+	atPrefix(prefix) {
+		if (!prefix.startsWith(this._prefix)) throw new Error("Mismatched prefix");
+		const [node, path$2] = trackDown(this._tree, prefix.slice(this._prefix.length));
+		if (node === void 0) {
+			const [parentNode, key] = last(path$2);
+			for (const k of parentNode.keys()) if (k !== LEAF && k.startsWith(key)) {
+				const node$1 = new Map();
+				node$1.set(k.slice(key.length), parentNode.get(k));
+				return new SearchableMap(node$1, prefix);
+			}
+		}
+		return new SearchableMap(node, prefix);
+	}
+	/**
+	* @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/clear
+	*/
+	clear() {
+		this._size = void 0;
+		this._tree.clear();
+	}
+	/**
+	* @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/delete
+	* @param key  Key to delete
+	*/
+	delete(key) {
+		this._size = void 0;
+		return remove(this._tree, key);
+	}
+	/**
+	* @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/entries
+	* @return An iterator iterating through `[key, value]` entries.
+	*/
+	entries() {
+		return new TreeIterator(this, ENTRIES);
+	}
+	/**
+	* @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/forEach
+	* @param fn  Iteration function
+	*/
+	forEach(fn) {
+		for (const [key, value] of this) fn(key, value, this);
+	}
+	/**
+	* Returns a Map of all the entries that have a key within the given edit
+	* distance from the search key. The keys of the returned Map are the matching
+	* keys, while the values are two-element arrays where the first element is
+	* the value associated to the key, and the second is the edit distance of the
+	* key to the search key.
+	*
+	* ### Usage:
+	*
+	* ```javascript
+	* let map = new SearchableMap()
+	* map.set('hello', 'world')
+	* map.set('hell', 'yeah')
+	* map.set('ciao', 'mondo')
+	*
+	* // Get all entries that match the key 'hallo' with a maximum edit distance of 2
+	* map.fuzzyGet('hallo', 2)
+	* // => Map(2) { 'hello' => ['world', 1], 'hell' => ['yeah', 2] }
+	*
+	* // In the example, the "hello" key has value "world" and edit distance of 1
+	* // (change "e" to "a"), the key "hell" has value "yeah" and edit distance of 2
+	* // (change "e" to "a", delete "o")
+	* ```
+	*
+	* @param key  The search key
+	* @param maxEditDistance  The maximum edit distance (Levenshtein)
+	* @return A Map of the matching keys to their value and edit distance
+	*/
+	fuzzyGet(key, maxEditDistance) {
+		return fuzzySearch(this._tree, key, maxEditDistance);
+	}
+	/**
+	* @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get
+	* @param key  Key to get
+	* @return Value associated to the key, or `undefined` if the key is not
+	* found.
+	*/
+	get(key) {
+		const node = lookup(this._tree, key);
+		return node !== void 0 ? node.get(LEAF) : void 0;
+	}
+	/**
+	* @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
+	* @param key  Key
+	* @return True if the key is in the map, false otherwise
+	*/
+	has(key) {
+		const node = lookup(this._tree, key);
+		return node !== void 0 && node.has(LEAF);
+	}
+	/**
+	* @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/keys
+	* @return An `Iterable` iterating through keys
+	*/
+	keys() {
+		return new TreeIterator(this, KEYS);
+	}
+	/**
+	* @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/set
+	* @param key  Key to set
+	* @param value  Value to associate to the key
+	* @return The {@link SearchableMap} itself, to allow chaining
+	*/
+	set(key, value) {
+		if (typeof key !== "string") throw new Error("key must be a string");
+		this._size = void 0;
+		const node = createPath(this._tree, key);
+		node.set(LEAF, value);
+		return this;
+	}
+	/**
+	* @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/size
+	*/
+	get size() {
+		if (this._size) return this._size;
+		/** @ignore */
+		this._size = 0;
+		const iter = this.entries();
+		while (!iter.next().done) this._size += 1;
+		return this._size;
+	}
+	/**
+	* Updates the value at the given key using the provided function. The function
+	* is called with the current value at the key, and its return value is used as
+	* the new value to be set.
+	*
+	* ### Example:
+	*
+	* ```javascript
+	* // Increment the current value by one
+	* searchableMap.update('somekey', (currentValue) => currentValue == null ? 0 : currentValue + 1)
+	* ```
+	*
+	* If the value at the given key is or will be an object, it might not require
+	* re-assignment. In that case it is better to use `fetch()`, because it is
+	* faster.
+	*
+	* @param key  The key to update
+	* @param fn  The function used to compute the new value from the current one
+	* @return The {@link SearchableMap} itself, to allow chaining
+	*/
+	update(key, fn) {
+		if (typeof key !== "string") throw new Error("key must be a string");
+		this._size = void 0;
+		const node = createPath(this._tree, key);
+		node.set(LEAF, fn(node.get(LEAF)));
+		return this;
+	}
+	/**
+	* Fetches the value of the given key. If the value does not exist, calls the
+	* given function to create a new value, which is inserted at the given key
+	* and subsequently returned.
+	*
+	* ### Example:
+	*
+	* ```javascript
+	* const map = searchableMap.fetch('somekey', () => new Map())
+	* map.set('foo', 'bar')
+	* ```
+	*
+	* @param key  The key to update
+	* @param initial  A function that creates a new value if the key does not exist
+	* @return The existing or new value at the given key
+	*/
+	fetch(key, initial) {
+		if (typeof key !== "string") throw new Error("key must be a string");
+		this._size = void 0;
+		const node = createPath(this._tree, key);
+		let value = node.get(LEAF);
+		if (value === void 0) node.set(LEAF, value = initial());
+		return value;
+	}
+	/**
+	* @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/values
+	* @return An `Iterable` iterating through values.
+	*/
+	values() {
+		return new TreeIterator(this, VALUES);
+	}
+	/**
+	* @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/@@iterator
+	*/
+	[Symbol.iterator]() {
+		return this.entries();
+	}
+	/**
+	* Creates a {@link SearchableMap} from an `Iterable` of entries
+	*
+	* @param entries  Entries to be inserted in the {@link SearchableMap}
+	* @return A new {@link SearchableMap} with the given entries
+	*/
+	static from(entries) {
+		const tree = new SearchableMap();
+		for (const [key, value] of entries) tree.set(key, value);
+		return tree;
+	}
+	/**
+	* Creates a {@link SearchableMap} from the iterable properties of a JavaScript object
+	*
+	* @param object  Object of entries for the {@link SearchableMap}
+	* @return A new {@link SearchableMap} with the given entries
+	*/
+	static fromObject(object) {
+		return SearchableMap.from(Object.entries(object));
+	}
+};
+const trackDown = (tree, key, path$2 = []) => {
+	if (key.length === 0 || tree == null) return [tree, path$2];
+	for (const k of tree.keys()) if (k !== LEAF && key.startsWith(k)) {
+		path$2.push([tree, k]);
+		return trackDown(tree.get(k), key.slice(k.length), path$2);
+	}
+	path$2.push([tree, key]);
+	return trackDown(void 0, "", path$2);
+};
+const lookup = (tree, key) => {
+	if (key.length === 0 || tree == null) return tree;
+	for (const k of tree.keys()) if (k !== LEAF && key.startsWith(k)) return lookup(tree.get(k), key.slice(k.length));
+};
+const createPath = (node, key) => {
+	const keyLength = key.length;
+	outer: for (let pos = 0; node && pos < keyLength;) {
+		for (const k of node.keys()) if (k !== LEAF && key[pos] === k[0]) {
+			const len = Math.min(keyLength - pos, k.length);
+			let offset = 1;
+			while (offset < len && key[pos + offset] === k[offset]) ++offset;
+			const child$1 = node.get(k);
+			if (offset === k.length) node = child$1;
+			else {
+				const intermediate = new Map();
+				intermediate.set(k.slice(offset), child$1);
+				node.set(key.slice(pos, pos + offset), intermediate);
+				node.delete(k);
+				node = intermediate;
+			}
+			pos += offset;
+			continue outer;
+		}
+		const child = new Map();
+		node.set(key.slice(pos), child);
+		return child;
+	}
+	return node;
+};
+const remove = (tree, key) => {
+	const [node, path$2] = trackDown(tree, key);
+	if (node === void 0) return;
+	node.delete(LEAF);
+	if (node.size === 0) cleanup(path$2);
+	else if (node.size === 1) {
+		const [key$1, value] = node.entries().next().value;
+		merge$1(path$2, key$1, value);
+	}
+};
+const cleanup = (path$2) => {
+	if (path$2.length === 0) return;
+	const [node, key] = last(path$2);
+	node.delete(key);
+	if (node.size === 0) cleanup(path$2.slice(0, -1));
+	else if (node.size === 1) {
+		const [key$1, value] = node.entries().next().value;
+		if (key$1 !== LEAF) merge$1(path$2.slice(0, -1), key$1, value);
+	}
+};
+const merge$1 = (path$2, key, value) => {
+	if (path$2.length === 0) return;
+	const [node, nodeKey] = last(path$2);
+	node.set(nodeKey + key, value);
+	node.delete(nodeKey);
+};
+const last = (array) => {
+	return array[array.length - 1];
+};
+const OR = "or";
+const AND = "and";
+const AND_NOT = "and_not";
+/**
+* {@link MiniSearch} is the main entrypoint class, implementing a full-text
+* search engine in memory.
+*
+* @typeParam T  The type of the documents being indexed.
+*
+* ### Basic example:
+*
+* ```javascript
+* const documents = [
+*   {
+*     id: 1,
+*     title: 'Moby Dick',
+*     text: 'Call me Ishmael. Some years ago...',
+*     category: 'fiction'
+*   },
+*   {
+*     id: 2,
+*     title: 'Zen and the Art of Motorcycle Maintenance',
+*     text: 'I can see by my watch...',
+*     category: 'fiction'
+*   },
+*   {
+*     id: 3,
+*     title: 'Neuromancer',
+*     text: 'The sky above the port was...',
+*     category: 'fiction'
+*   },
+*   {
+*     id: 4,
+*     title: 'Zen and the Art of Archery',
+*     text: 'At first sight it must seem...',
+*     category: 'non-fiction'
+*   },
+*   // ...and more
+* ]
+*
+* // Create a search engine that indexes the 'title' and 'text' fields for
+* // full-text search. Search results will include 'title' and 'category' (plus the
+* // id field, that is always stored and returned)
+* const miniSearch = new MiniSearch({
+*   fields: ['title', 'text'],
+*   storeFields: ['title', 'category']
+* })
+*
+* // Add documents to the index
+* miniSearch.addAll(documents)
+*
+* // Search for documents:
+* let results = miniSearch.search('zen art motorcycle')
+* // => [
+* //   { id: 2, title: 'Zen and the Art of Motorcycle Maintenance', category: 'fiction', score: 2.77258 },
+* //   { id: 4, title: 'Zen and the Art of Archery', category: 'non-fiction', score: 1.38629 }
+* // ]
+* ```
+*/
+var MiniSearch = class MiniSearch {
+	/**
+	* @param options  Configuration options
+	*
+	* ### Examples:
+	*
+	* ```javascript
+	* // Create a search engine that indexes the 'title' and 'text' fields of your
+	* // documents:
+	* const miniSearch = new MiniSearch({ fields: ['title', 'text'] })
+	* ```
+	*
+	* ### ID Field:
+	*
+	* ```javascript
+	* // Your documents are assumed to include a unique 'id' field, but if you want
+	* // to use a different field for document identification, you can set the
+	* // 'idField' option:
+	* const miniSearch = new MiniSearch({ idField: 'key', fields: ['title', 'text'] })
+	* ```
+	*
+	* ### Options and defaults:
+	*
+	* ```javascript
+	* // The full set of options (here with their default value) is:
+	* const miniSearch = new MiniSearch({
+	*   // idField: field that uniquely identifies a document
+	*   idField: 'id',
+	*
+	*   // extractField: function used to get the value of a field in a document.
+	*   // By default, it assumes the document is a flat object with field names as
+	*   // property keys and field values as string property values, but custom logic
+	*   // can be implemented by setting this option to a custom extractor function.
+	*   extractField: (document, fieldName) => document[fieldName],
+	*
+	*   // tokenize: function used to split fields into individual terms. By
+	*   // default, it is also used to tokenize search queries, unless a specific
+	*   // `tokenize` search option is supplied. When tokenizing an indexed field,
+	*   // the field name is passed as the second argument.
+	*   tokenize: (string, _fieldName) => string.split(SPACE_OR_PUNCTUATION),
+	*
+	*   // processTerm: function used to process each tokenized term before
+	*   // indexing. It can be used for stemming and normalization. Return a falsy
+	*   // value in order to discard a term. By default, it is also used to process
+	*   // search queries, unless a specific `processTerm` option is supplied as a
+	*   // search option. When processing a term from a indexed field, the field
+	*   // name is passed as the second argument.
+	*   processTerm: (term, _fieldName) => term.toLowerCase(),
+	*
+	*   // searchOptions: default search options, see the `search` method for
+	*   // details
+	*   searchOptions: undefined,
+	*
+	*   // fields: document fields to be indexed. Mandatory, but not set by default
+	*   fields: undefined
+	*
+	*   // storeFields: document fields to be stored and returned as part of the
+	*   // search results.
+	*   storeFields: []
+	* })
+	* ```
+	*/
+	constructor(options) {
+		if ((options === null || options === void 0 ? void 0 : options.fields) == null) throw new Error("MiniSearch: option \"fields\" must be provided");
+		const autoVacuum = options.autoVacuum == null || options.autoVacuum === true ? defaultAutoVacuumOptions : options.autoVacuum;
+		this._options = {
+			...defaultOptions$2,
+			...options,
+			autoVacuum,
+			searchOptions: {
+				...defaultSearchOptions,
+				...options.searchOptions || {}
+			},
+			autoSuggestOptions: {
+				...defaultAutoSuggestOptions,
+				...options.autoSuggestOptions || {}
+			}
+		};
+		this._index = new SearchableMap();
+		this._documentCount = 0;
+		this._documentIds = new Map();
+		this._idToShortId = new Map();
+		this._fieldIds = {};
+		this._fieldLength = new Map();
+		this._avgFieldLength = [];
+		this._nextId = 0;
+		this._storedFields = new Map();
+		this._dirtCount = 0;
+		this._currentVacuum = null;
+		this._enqueuedVacuum = null;
+		this._enqueuedVacuumConditions = defaultVacuumConditions;
+		this.addFields(this._options.fields);
+	}
+	/**
+	* Adds a document to the index
+	*
+	* @param document  The document to be indexed
+	*/
+	add(document) {
+		const { extractField, stringifyField, tokenize, processTerm, fields, idField } = this._options;
+		const id = extractField(document, idField);
+		if (id == null) throw new Error(`MiniSearch: document does not have ID field "${idField}"`);
+		if (this._idToShortId.has(id)) throw new Error(`MiniSearch: duplicate ID ${id}`);
+		const shortDocumentId = this.addDocumentId(id);
+		this.saveStoredFields(shortDocumentId, document);
+		for (const field of fields) {
+			const fieldValue = extractField(document, field);
+			if (fieldValue == null) continue;
+			const tokens = tokenize(stringifyField(fieldValue, field), field);
+			const fieldId = this._fieldIds[field];
+			const uniqueTerms = new Set(tokens).size;
+			this.addFieldLength(shortDocumentId, fieldId, this._documentCount - 1, uniqueTerms);
+			for (const term of tokens) {
+				const processedTerm = processTerm(term, field);
+				if (Array.isArray(processedTerm)) for (const t of processedTerm) this.addTerm(fieldId, shortDocumentId, t);
+				else if (processedTerm) this.addTerm(fieldId, shortDocumentId, processedTerm);
+			}
+		}
+	}
+	/**
+	* Adds all the given documents to the index
+	*
+	* @param documents  An array of documents to be indexed
+	*/
+	addAll(documents) {
+		for (const document of documents) this.add(document);
+	}
+	/**
+	* Adds all the given documents to the index asynchronously.
+	*
+	* Returns a promise that resolves (to `undefined`) when the indexing is done.
+	* This method is useful when index many documents, to avoid blocking the main
+	* thread. The indexing is performed asynchronously and in chunks.
+	*
+	* @param documents  An array of documents to be indexed
+	* @param options  Configuration options
+	* @return A promise resolving to `undefined` when the indexing is done
+	*/
+	addAllAsync(documents, options = {}) {
+		const { chunkSize = 10 } = options;
+		const acc = {
+			chunk: [],
+			promise: Promise.resolve()
+		};
+		const { chunk, promise } = documents.reduce(({ chunk: chunk$1, promise: promise$1 }, document, i$2) => {
+			chunk$1.push(document);
+			if ((i$2 + 1) % chunkSize === 0) return {
+				chunk: [],
+				promise: promise$1.then(() => new Promise((resolve) => setTimeout(resolve, 0))).then(() => this.addAll(chunk$1))
+			};
+			else return {
+				chunk: chunk$1,
+				promise: promise$1
+			};
+		}, acc);
+		return promise.then(() => this.addAll(chunk));
+	}
+	/**
+	* Removes the given document from the index.
+	*
+	* The document to remove must NOT have changed between indexing and removal,
+	* otherwise the index will be corrupted.
+	*
+	* This method requires passing the full document to be removed (not just the
+	* ID), and immediately removes the document from the inverted index, allowing
+	* memory to be released. A convenient alternative is {@link
+	* MiniSearch#discard}, which needs only the document ID, and has the same
+	* visible effect, but delays cleaning up the index until the next vacuuming.
+	*
+	* @param document  The document to be removed
+	*/
+	remove(document) {
+		const { tokenize, processTerm, extractField, stringifyField, fields, idField } = this._options;
+		const id = extractField(document, idField);
+		if (id == null) throw new Error(`MiniSearch: document does not have ID field "${idField}"`);
+		const shortId = this._idToShortId.get(id);
+		if (shortId == null) throw new Error(`MiniSearch: cannot remove document with ID ${id}: it is not in the index`);
+		for (const field of fields) {
+			const fieldValue = extractField(document, field);
+			if (fieldValue == null) continue;
+			const tokens = tokenize(stringifyField(fieldValue, field), field);
+			const fieldId = this._fieldIds[field];
+			const uniqueTerms = new Set(tokens).size;
+			this.removeFieldLength(shortId, fieldId, this._documentCount, uniqueTerms);
+			for (const term of tokens) {
+				const processedTerm = processTerm(term, field);
+				if (Array.isArray(processedTerm)) for (const t of processedTerm) this.removeTerm(fieldId, shortId, t);
+				else if (processedTerm) this.removeTerm(fieldId, shortId, processedTerm);
+			}
+		}
+		this._storedFields.delete(shortId);
+		this._documentIds.delete(shortId);
+		this._idToShortId.delete(id);
+		this._fieldLength.delete(shortId);
+		this._documentCount -= 1;
+	}
+	/**
+	* Removes all the given documents from the index. If called with no arguments,
+	* it removes _all_ documents from the index.
+	*
+	* @param documents  The documents to be removed. If this argument is omitted,
+	* all documents are removed. Note that, for removing all documents, it is
+	* more efficient to call this method with no arguments than to pass all
+	* documents.
+	*/
+	removeAll(documents) {
+		if (documents) for (const document of documents) this.remove(document);
+		else if (arguments.length > 0) throw new Error("Expected documents to be present. Omit the argument to remove all documents.");
+		else {
+			this._index = new SearchableMap();
+			this._documentCount = 0;
+			this._documentIds = new Map();
+			this._idToShortId = new Map();
+			this._fieldLength = new Map();
+			this._avgFieldLength = [];
+			this._storedFields = new Map();
+			this._nextId = 0;
+		}
+	}
+	/**
+	* Discards the document with the given ID, so it won't appear in search results
+	*
+	* It has the same visible effect of {@link MiniSearch.remove} (both cause the
+	* document to stop appearing in searches), but a different effect on the
+	* internal data structures:
+	*
+	*   - {@link MiniSearch#remove} requires passing the full document to be
+	*   removed as argument, and removes it from the inverted index immediately.
+	*
+	*   - {@link MiniSearch#discard} instead only needs the document ID, and
+	*   works by marking the current version of the document as discarded, so it
+	*   is immediately ignored by searches. This is faster and more convenient
+	*   than {@link MiniSearch#remove}, but the index is not immediately
+	*   modified. To take care of that, vacuuming is performed after a certain
+	*   number of documents are discarded, cleaning up the index and allowing
+	*   memory to be released.
+	*
+	* After discarding a document, it is possible to re-add a new version, and
+	* only the new version will appear in searches. In other words, discarding
+	* and re-adding a document works exactly like removing and re-adding it. The
+	* {@link MiniSearch.replace} method can also be used to replace a document
+	* with a new version.
+	*
+	* #### Details about vacuuming
+	*
+	* Repetite calls to this method would leave obsolete document references in
+	* the index, invisible to searches. Two mechanisms take care of cleaning up:
+	* clean up during search, and vacuuming.
+	*
+	*   - Upon search, whenever a discarded ID is found (and ignored for the
+	*   results), references to the discarded document are removed from the
+	*   inverted index entries for the search terms. This ensures that subsequent
+	*   searches for the same terms do not need to skip these obsolete references
+	*   again.
+	*
+	*   - In addition, vacuuming is performed automatically by default (see the
+	*   `autoVacuum` field in {@link Options}) after a certain number of
+	*   documents are discarded. Vacuuming traverses all terms in the index,
+	*   cleaning up all references to discarded documents. Vacuuming can also be
+	*   triggered manually by calling {@link MiniSearch#vacuum}.
+	*
+	* @param id  The ID of the document to be discarded
+	*/
+	discard(id) {
+		const shortId = this._idToShortId.get(id);
+		if (shortId == null) throw new Error(`MiniSearch: cannot discard document with ID ${id}: it is not in the index`);
+		this._idToShortId.delete(id);
+		this._documentIds.delete(shortId);
+		this._storedFields.delete(shortId);
+		(this._fieldLength.get(shortId) || []).forEach((fieldLength, fieldId) => {
+			this.removeFieldLength(shortId, fieldId, this._documentCount, fieldLength);
 		});
-		currentThreshold = Math.min(score, currentThreshold);
-		bestLocation = index + patternLen;
-		if (computeMatches) {
-			let i$2 = 0;
-			while (i$2 < patternLen) {
-				matchMask[index + i$2] = 1;
+		this._fieldLength.delete(shortId);
+		this._documentCount -= 1;
+		this._dirtCount += 1;
+		this.maybeAutoVacuum();
+	}
+	maybeAutoVacuum() {
+		if (this._options.autoVacuum === false) return;
+		const { minDirtFactor, minDirtCount, batchSize, batchWait } = this._options.autoVacuum;
+		this.conditionalVacuum({
+			batchSize,
+			batchWait
+		}, {
+			minDirtCount,
+			minDirtFactor
+		});
+	}
+	/**
+	* Discards the documents with the given IDs, so they won't appear in search
+	* results
+	*
+	* It is equivalent to calling {@link MiniSearch#discard} for all the given
+	* IDs, but with the optimization of triggering at most one automatic
+	* vacuuming at the end.
+	*
+	* Note: to remove all documents from the index, it is faster and more
+	* convenient to call {@link MiniSearch.removeAll} with no argument, instead
+	* of passing all IDs to this method.
+	*/
+	discardAll(ids) {
+		const autoVacuum = this._options.autoVacuum;
+		try {
+			this._options.autoVacuum = false;
+			for (const id of ids) this.discard(id);
+		} finally {
+			this._options.autoVacuum = autoVacuum;
+		}
+		this.maybeAutoVacuum();
+	}
+	/**
+	* It replaces an existing document with the given updated version
+	*
+	* It works by discarding the current version and adding the updated one, so
+	* it is functionally equivalent to calling {@link MiniSearch#discard}
+	* followed by {@link MiniSearch#add}. The ID of the updated document should
+	* be the same as the original one.
+	*
+	* Since it uses {@link MiniSearch#discard} internally, this method relies on
+	* vacuuming to clean up obsolete document references from the index, allowing
+	* memory to be released (see {@link MiniSearch#discard}).
+	*
+	* @param updatedDocument  The updated document to replace the old version
+	* with
+	*/
+	replace(updatedDocument) {
+		const { idField, extractField } = this._options;
+		const id = extractField(updatedDocument, idField);
+		this.discard(id);
+		this.add(updatedDocument);
+	}
+	/**
+	* Triggers a manual vacuuming, cleaning up references to discarded documents
+	* from the inverted index
+	*
+	* Vacuuming is only useful for applications that use the {@link
+	* MiniSearch#discard} or {@link MiniSearch#replace} methods.
+	*
+	* By default, vacuuming is performed automatically when needed (controlled by
+	* the `autoVacuum` field in {@link Options}), so there is usually no need to
+	* call this method, unless one wants to make sure to perform vacuuming at a
+	* specific moment.
+	*
+	* Vacuuming traverses all terms in the inverted index in batches, and cleans
+	* up references to discarded documents from the posting list, allowing memory
+	* to be released.
+	*
+	* The method takes an optional object as argument with the following keys:
+	*
+	*   - `batchSize`: the size of each batch (1000 by default)
+	*
+	*   - `batchWait`: the number of milliseconds to wait between batches (10 by
+	*   default)
+	*
+	* On large indexes, vacuuming could have a non-negligible cost: batching
+	* avoids blocking the thread for long, diluting this cost so that it is not
+	* negatively affecting the application. Nonetheless, this method should only
+	* be called when necessary, and relying on automatic vacuuming is usually
+	* better.
+	*
+	* It returns a promise that resolves (to undefined) when the clean up is
+	* completed. If vacuuming is already ongoing at the time this method is
+	* called, a new one is enqueued immediately after the ongoing one, and a
+	* corresponding promise is returned. However, no more than one vacuuming is
+	* enqueued on top of the ongoing one, even if this method is called more
+	* times (enqueuing multiple ones would be useless).
+	*
+	* @param options  Configuration options for the batch size and delay. See
+	* {@link VacuumOptions}.
+	*/
+	vacuum(options = {}) {
+		return this.conditionalVacuum(options);
+	}
+	conditionalVacuum(options, conditions) {
+		if (this._currentVacuum) {
+			this._enqueuedVacuumConditions = this._enqueuedVacuumConditions && conditions;
+			if (this._enqueuedVacuum != null) return this._enqueuedVacuum;
+			this._enqueuedVacuum = this._currentVacuum.then(() => {
+				const conditions$1 = this._enqueuedVacuumConditions;
+				this._enqueuedVacuumConditions = defaultVacuumConditions;
+				return this.performVacuuming(options, conditions$1);
+			});
+			return this._enqueuedVacuum;
+		}
+		if (this.vacuumConditionsMet(conditions) === false) return Promise.resolve();
+		this._currentVacuum = this.performVacuuming(options);
+		return this._currentVacuum;
+	}
+	async performVacuuming(options, conditions) {
+		const initialDirtCount = this._dirtCount;
+		if (this.vacuumConditionsMet(conditions)) {
+			const batchSize = options.batchSize || defaultVacuumOptions.batchSize;
+			const batchWait = options.batchWait || defaultVacuumOptions.batchWait;
+			let i$2 = 1;
+			for (const [term, fieldsData] of this._index) {
+				for (const [fieldId, fieldIndex] of fieldsData) for (const [shortId] of fieldIndex) {
+					if (this._documentIds.has(shortId)) continue;
+					if (fieldIndex.size <= 1) fieldsData.delete(fieldId);
+					else fieldIndex.delete(shortId);
+				}
+				if (this._index.get(term).size === 0) this._index.delete(term);
+				if (i$2 % batchSize === 0) await new Promise((resolve) => setTimeout(resolve, batchWait));
 				i$2 += 1;
 			}
+			this._dirtCount -= initialDirtCount;
 		}
+		await null;
+		this._currentVacuum = this._enqueuedVacuum;
+		this._enqueuedVacuum = null;
 	}
-	bestLocation = -1;
-	let lastBitArr = [];
-	let finalScore = 1;
-	let binMax = patternLen + textLen;
-	const mask = 1 << patternLen - 1;
-	for (let i$2 = 0; i$2 < patternLen; i$2 += 1) {
-		let binMin = 0;
-		let binMid = binMax;
-		while (binMin < binMid) {
-			const score$1 = computeScore$1(pattern, {
-				errors: i$2,
-				currentLocation: expectedLocation + binMid,
-				expectedLocation,
-				distance,
-				ignoreLocation
-			});
-			if (score$1 <= currentThreshold) binMin = binMid;
-			else binMax = binMid;
-			binMid = Math.floor((binMax - binMin) / 2 + binMin);
-		}
-		binMax = binMid;
-		let start = Math.max(1, expectedLocation - binMid + 1);
-		let finish = findAllMatches ? textLen : Math.min(expectedLocation + binMid, textLen) + patternLen;
-		let bitArr = Array(finish + 2);
-		bitArr[finish + 1] = (1 << i$2) - 1;
-		for (let j = finish; j >= start; j -= 1) {
-			let currentLocation = j - 1;
-			let charMatch = patternAlphabet[text.charAt(currentLocation)];
-			if (computeMatches) matchMask[currentLocation] = +!!charMatch;
-			bitArr[j] = (bitArr[j + 1] << 1 | 1) & charMatch;
-			if (i$2) bitArr[j] |= (lastBitArr[j + 1] | lastBitArr[j]) << 1 | 1 | lastBitArr[j + 1];
-			if (bitArr[j] & mask) {
-				finalScore = computeScore$1(pattern, {
-					errors: i$2,
-					currentLocation,
-					expectedLocation,
-					distance,
-					ignoreLocation
-				});
-				if (finalScore <= currentThreshold) {
-					currentThreshold = finalScore;
-					bestLocation = currentLocation;
-					if (bestLocation <= expectedLocation) break;
-					start = Math.max(1, 2 * expectedLocation - bestLocation);
-				}
-			}
-		}
-		const score = computeScore$1(pattern, {
-			errors: i$2 + 1,
-			currentLocation: expectedLocation,
-			expectedLocation,
-			distance,
-			ignoreLocation
-		});
-		if (score > currentThreshold) break;
-		lastBitArr = bitArr;
+	vacuumConditionsMet(conditions) {
+		if (conditions == null) return true;
+		let { minDirtCount, minDirtFactor } = conditions;
+		minDirtCount = minDirtCount || defaultAutoVacuumOptions.minDirtCount;
+		minDirtFactor = minDirtFactor || defaultAutoVacuumOptions.minDirtFactor;
+		return this.dirtCount >= minDirtCount && this.dirtFactor >= minDirtFactor;
 	}
-	const result = {
-		isMatch: bestLocation >= 0,
-		score: Math.max(.001, finalScore)
-	};
-	if (computeMatches) {
-		const indices = convertMaskToIndices(matchMask, minMatchCharLength);
-		if (!indices.length) result.isMatch = false;
-		else if (includeMatches) result.indices = indices;
+	/**
+	* Is `true` if a vacuuming operation is ongoing, `false` otherwise
+	*/
+	get isVacuuming() {
+		return this._currentVacuum != null;
 	}
-	return result;
-}
-function createPatternAlphabet(pattern) {
-	let mask = {};
-	for (let i$2 = 0, len = pattern.length; i$2 < len; i$2 += 1) {
-		const char = pattern.charAt(i$2);
-		mask[char] = (mask[char] || 0) | 1 << len - i$2 - 1;
+	/**
+	* The number of documents discarded since the most recent vacuuming
+	*/
+	get dirtCount() {
+		return this._dirtCount;
 	}
-	return mask;
-}
-const stripDiacritics = String.prototype.normalize ? (str$1) => str$1.normalize("NFD").replace(/[\u0300-\u036F\u0483-\u0489\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED\u0711\u0730-\u074A\u07A6-\u07B0\u07EB-\u07F3\u07FD\u0816-\u0819\u081B-\u0823\u0825-\u0827\u0829-\u082D\u0859-\u085B\u08D3-\u08E1\u08E3-\u0903\u093A-\u093C\u093E-\u094F\u0951-\u0957\u0962\u0963\u0981-\u0983\u09BC\u09BE-\u09C4\u09C7\u09C8\u09CB-\u09CD\u09D7\u09E2\u09E3\u09FE\u0A01-\u0A03\u0A3C\u0A3E-\u0A42\u0A47\u0A48\u0A4B-\u0A4D\u0A51\u0A70\u0A71\u0A75\u0A81-\u0A83\u0ABC\u0ABE-\u0AC5\u0AC7-\u0AC9\u0ACB-\u0ACD\u0AE2\u0AE3\u0AFA-\u0AFF\u0B01-\u0B03\u0B3C\u0B3E-\u0B44\u0B47\u0B48\u0B4B-\u0B4D\u0B56\u0B57\u0B62\u0B63\u0B82\u0BBE-\u0BC2\u0BC6-\u0BC8\u0BCA-\u0BCD\u0BD7\u0C00-\u0C04\u0C3E-\u0C44\u0C46-\u0C48\u0C4A-\u0C4D\u0C55\u0C56\u0C62\u0C63\u0C81-\u0C83\u0CBC\u0CBE-\u0CC4\u0CC6-\u0CC8\u0CCA-\u0CCD\u0CD5\u0CD6\u0CE2\u0CE3\u0D00-\u0D03\u0D3B\u0D3C\u0D3E-\u0D44\u0D46-\u0D48\u0D4A-\u0D4D\u0D57\u0D62\u0D63\u0D82\u0D83\u0DCA\u0DCF-\u0DD4\u0DD6\u0DD8-\u0DDF\u0DF2\u0DF3\u0E31\u0E34-\u0E3A\u0E47-\u0E4E\u0EB1\u0EB4-\u0EB9\u0EBB\u0EBC\u0EC8-\u0ECD\u0F18\u0F19\u0F35\u0F37\u0F39\u0F3E\u0F3F\u0F71-\u0F84\u0F86\u0F87\u0F8D-\u0F97\u0F99-\u0FBC\u0FC6\u102B-\u103E\u1056-\u1059\u105E-\u1060\u1062-\u1064\u1067-\u106D\u1071-\u1074\u1082-\u108D\u108F\u109A-\u109D\u135D-\u135F\u1712-\u1714\u1732-\u1734\u1752\u1753\u1772\u1773\u17B4-\u17D3\u17DD\u180B-\u180D\u1885\u1886\u18A9\u1920-\u192B\u1930-\u193B\u1A17-\u1A1B\u1A55-\u1A5E\u1A60-\u1A7C\u1A7F\u1AB0-\u1ABE\u1B00-\u1B04\u1B34-\u1B44\u1B6B-\u1B73\u1B80-\u1B82\u1BA1-\u1BAD\u1BE6-\u1BF3\u1C24-\u1C37\u1CD0-\u1CD2\u1CD4-\u1CE8\u1CED\u1CF2-\u1CF4\u1CF7-\u1CF9\u1DC0-\u1DF9\u1DFB-\u1DFF\u20D0-\u20F0\u2CEF-\u2CF1\u2D7F\u2DE0-\u2DFF\u302A-\u302F\u3099\u309A\uA66F-\uA672\uA674-\uA67D\uA69E\uA69F\uA6F0\uA6F1\uA802\uA806\uA80B\uA823-\uA827\uA880\uA881\uA8B4-\uA8C5\uA8E0-\uA8F1\uA8FF\uA926-\uA92D\uA947-\uA953\uA980-\uA983\uA9B3-\uA9C0\uA9E5\uAA29-\uAA36\uAA43\uAA4C\uAA4D\uAA7B-\uAA7D\uAAB0\uAAB2-\uAAB4\uAAB7\uAAB8\uAABE\uAABF\uAAC1\uAAEB-\uAAEF\uAAF5\uAAF6\uABE3-\uABEA\uABEC\uABED\uFB1E\uFE00-\uFE0F\uFE20-\uFE2F]/g, "") : (str$1) => str$1;
-var BitapSearch = class {
-	constructor(pattern, { location = Config.location, threshold = Config.threshold, distance = Config.distance, includeMatches = Config.includeMatches, findAllMatches = Config.findAllMatches, minMatchCharLength = Config.minMatchCharLength, isCaseSensitive = Config.isCaseSensitive, ignoreDiacritics = Config.ignoreDiacritics, ignoreLocation = Config.ignoreLocation } = {}) {
-		this.options = {
-			location,
-			threshold,
-			distance,
-			includeMatches,
-			findAllMatches,
-			minMatchCharLength,
-			isCaseSensitive,
-			ignoreDiacritics,
-			ignoreLocation
+	/**
+	* A number between 0 and 1 giving an indication about the proportion of
+	* documents that are discarded, and can therefore be cleaned up by vacuuming.
+	* A value close to 0 means that the index is relatively clean, while a higher
+	* value means that the index is relatively dirty, and vacuuming could release
+	* memory.
+	*/
+	get dirtFactor() {
+		return this._dirtCount / (1 + this._documentCount + this._dirtCount);
+	}
+	/**
+	* Returns `true` if a document with the given ID is present in the index and
+	* available for search, `false` otherwise
+	*
+	* @param id  The document ID
+	*/
+	has(id) {
+		return this._idToShortId.has(id);
+	}
+	/**
+	* Returns the stored fields (as configured in the `storeFields` constructor
+	* option) for the given document ID. Returns `undefined` if the document is
+	* not present in the index.
+	*
+	* @param id  The document ID
+	*/
+	getStoredFields(id) {
+		const shortId = this._idToShortId.get(id);
+		if (shortId == null) return void 0;
+		return this._storedFields.get(shortId);
+	}
+	/**
+	* Search for documents matching the given search query.
+	*
+	* The result is a list of scored document IDs matching the query, sorted by
+	* descending score, and each including data about which terms were matched and
+	* in which fields.
+	*
+	* ### Basic usage:
+	*
+	* ```javascript
+	* // Search for "zen art motorcycle" with default options: terms have to match
+	* // exactly, and individual terms are joined with OR
+	* miniSearch.search('zen art motorcycle')
+	* // => [ { id: 2, score: 2.77258, match: { ... } }, { id: 4, score: 1.38629, match: { ... } } ]
+	* ```
+	*
+	* ### Restrict search to specific fields:
+	*
+	* ```javascript
+	* // Search only in the 'title' field
+	* miniSearch.search('zen', { fields: ['title'] })
+	* ```
+	*
+	* ### Field boosting:
+	*
+	* ```javascript
+	* // Boost a field
+	* miniSearch.search('zen', { boost: { title: 2 } })
+	* ```
+	*
+	* ### Prefix search:
+	*
+	* ```javascript
+	* // Search for "moto" with prefix search (it will match documents
+	* // containing terms that start with "moto" or "neuro")
+	* miniSearch.search('moto neuro', { prefix: true })
+	* ```
+	*
+	* ### Fuzzy search:
+	*
+	* ```javascript
+	* // Search for "ismael" with fuzzy search (it will match documents containing
+	* // terms similar to "ismael", with a maximum edit distance of 0.2 term.length
+	* // (rounded to nearest integer)
+	* miniSearch.search('ismael', { fuzzy: 0.2 })
+	* ```
+	*
+	* ### Combining strategies:
+	*
+	* ```javascript
+	* // Mix of exact match, prefix search, and fuzzy search
+	* miniSearch.search('ismael mob', {
+	*  prefix: true,
+	*  fuzzy: 0.2
+	* })
+	* ```
+	*
+	* ### Advanced prefix and fuzzy search:
+	*
+	* ```javascript
+	* // Perform fuzzy and prefix search depending on the search term. Here
+	* // performing prefix and fuzzy search only on terms longer than 3 characters
+	* miniSearch.search('ismael mob', {
+	*  prefix: term => term.length > 3
+	*  fuzzy: term => term.length > 3 ? 0.2 : null
+	* })
+	* ```
+	*
+	* ### Combine with AND:
+	*
+	* ```javascript
+	* // Combine search terms with AND (to match only documents that contain both
+	* // "motorcycle" and "art")
+	* miniSearch.search('motorcycle art', { combineWith: 'AND' })
+	* ```
+	*
+	* ### Combine with AND_NOT:
+	*
+	* There is also an AND_NOT combinator, that finds documents that match the
+	* first term, but do not match any of the other terms. This combinator is
+	* rarely useful with simple queries, and is meant to be used with advanced
+	* query combinations (see later for more details).
+	*
+	* ### Filtering results:
+	*
+	* ```javascript
+	* // Filter only results in the 'fiction' category (assuming that 'category'
+	* // is a stored field)
+	* miniSearch.search('motorcycle art', {
+	*   filter: (result) => result.category === 'fiction'
+	* })
+	* ```
+	*
+	* ### Wildcard query
+	*
+	* Searching for an empty string (assuming the default tokenizer) returns no
+	* results. Sometimes though, one needs to match all documents, like in a
+	* "wildcard" search. This is possible by passing the special value
+	* {@link MiniSearch.wildcard} as the query:
+	*
+	* ```javascript
+	* // Return search results for all documents
+	* miniSearch.search(MiniSearch.wildcard)
+	* ```
+	*
+	* Note that search options such as `filter` and `boostDocument` are still
+	* applied, influencing which results are returned, and their order:
+	*
+	* ```javascript
+	* // Return search results for all documents in the 'fiction' category
+	* miniSearch.search(MiniSearch.wildcard, {
+	*   filter: (result) => result.category === 'fiction'
+	* })
+	* ```
+	*
+	* ### Advanced combination of queries:
+	*
+	* It is possible to combine different subqueries with OR, AND, and AND_NOT,
+	* and even with different search options, by passing a query expression
+	* tree object as the first argument, instead of a string.
+	*
+	* ```javascript
+	* // Search for documents that contain "zen" and ("motorcycle" or "archery")
+	* miniSearch.search({
+	*   combineWith: 'AND',
+	*   queries: [
+	*     'zen',
+	*     {
+	*       combineWith: 'OR',
+	*       queries: ['motorcycle', 'archery']
+	*     }
+	*   ]
+	* })
+	*
+	* // Search for documents that contain ("apple" or "pear") but not "juice" and
+	* // not "tree"
+	* miniSearch.search({
+	*   combineWith: 'AND_NOT',
+	*   queries: [
+	*     {
+	*       combineWith: 'OR',
+	*       queries: ['apple', 'pear']
+	*     },
+	*     'juice',
+	*     'tree'
+	*   ]
+	* })
+	* ```
+	*
+	* Each node in the expression tree can be either a string, or an object that
+	* supports all {@link SearchOptions} fields, plus a `queries` array field for
+	* subqueries.
+	*
+	* Note that, while this can become complicated to do by hand for complex or
+	* deeply nested queries, it provides a formalized expression tree API for
+	* external libraries that implement a parser for custom query languages.
+	*
+	* @param query  Search query
+	* @param searchOptions  Search options. Each option, if not given, defaults to the corresponding value of `searchOptions` given to the constructor, or to the library default.
+	*/
+	search(query, searchOptions = {}) {
+		const { searchOptions: globalSearchOptions } = this._options;
+		const searchOptionsWithDefaults = {
+			...globalSearchOptions,
+			...searchOptions
 		};
-		pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
-		pattern = ignoreDiacritics ? stripDiacritics(pattern) : pattern;
-		this.pattern = pattern;
-		this.chunks = [];
-		if (!this.pattern.length) return;
-		const addChunk = (pattern$1, startIndex) => {
-			this.chunks.push({
-				pattern: pattern$1,
-				alphabet: createPatternAlphabet(pattern$1),
-				startIndex
-			});
-		};
-		const len = this.pattern.length;
-		if (len > MAX_BITS) {
-			let i$2 = 0;
-			const remainder = len % MAX_BITS;
-			const end = len - remainder;
-			while (i$2 < end) {
-				addChunk(this.pattern.substr(i$2, MAX_BITS), i$2);
-				i$2 += MAX_BITS;
-			}
-			if (remainder) {
-				const startIndex = len - MAX_BITS;
-				addChunk(this.pattern.substr(startIndex), startIndex);
-			}
-		} else addChunk(this.pattern, 0);
-	}
-	searchIn(text) {
-		const { isCaseSensitive, ignoreDiacritics, includeMatches } = this.options;
-		text = isCaseSensitive ? text : text.toLowerCase();
-		text = ignoreDiacritics ? stripDiacritics(text) : text;
-		if (this.pattern === text) {
-			let result$1 = {
-				isMatch: true,
-				score: 0
+		const rawResults = this.executeQuery(query, searchOptions);
+		const results = [];
+		for (const [docId, { score, terms, match }] of rawResults) {
+			const quality = terms.length || 1;
+			const result = {
+				id: this._documentIds.get(docId),
+				score: score * quality,
+				terms: Object.keys(match),
+				queryTerms: terms,
+				match
 			};
-			if (includeMatches) result$1.indices = [[0, text.length - 1]];
-			return result$1;
+			Object.assign(result, this._storedFields.get(docId));
+			if (searchOptionsWithDefaults.filter == null || searchOptionsWithDefaults.filter(result)) results.push(result);
 		}
-		const { location, distance, threshold, findAllMatches, minMatchCharLength, ignoreLocation } = this.options;
-		let allIndices = [];
-		let totalScore = 0;
-		let hasMatches = false;
-		this.chunks.forEach(({ pattern, alphabet, startIndex }) => {
-			const { isMatch, score, indices } = search(text, pattern, alphabet, {
-				location: location + startIndex,
-				distance,
-				threshold,
-				findAllMatches,
-				minMatchCharLength,
-				includeMatches,
-				ignoreLocation
-			});
-			if (isMatch) hasMatches = true;
-			totalScore += score;
-			if (isMatch && indices) allIndices = [...allIndices, ...indices];
-		});
-		let result = {
-			isMatch: hasMatches,
-			score: hasMatches ? totalScore / this.chunks.length : 1
-		};
-		if (hasMatches && includeMatches) result.indices = allIndices;
-		return result;
-	}
-};
-var BaseMatch = class {
-	constructor(pattern) {
-		this.pattern = pattern;
-	}
-	static isMultiMatch(pattern) {
-		return getMatch(pattern, this.multiRegex);
-	}
-	static isSingleMatch(pattern) {
-		return getMatch(pattern, this.singleRegex);
-	}
-	search() {}
-};
-function getMatch(pattern, exp) {
-	const matches = pattern.match(exp);
-	return matches ? matches[1] : null;
-}
-var ExactMatch = class extends BaseMatch {
-	constructor(pattern) {
-		super(pattern);
-	}
-	static get type() {
-		return "exact";
-	}
-	static get multiRegex() {
-		return /^="(.*)"$/;
-	}
-	static get singleRegex() {
-		return /^=(.*)$/;
-	}
-	search(text) {
-		const isMatch = text === this.pattern;
-		return {
-			isMatch,
-			score: isMatch ? 0 : 1,
-			indices: [0, this.pattern.length - 1]
-		};
-	}
-};
-var InverseExactMatch = class extends BaseMatch {
-	constructor(pattern) {
-		super(pattern);
-	}
-	static get type() {
-		return "inverse-exact";
-	}
-	static get multiRegex() {
-		return /^!"(.*)"$/;
-	}
-	static get singleRegex() {
-		return /^!(.*)$/;
-	}
-	search(text) {
-		const index = text.indexOf(this.pattern);
-		const isMatch = index === -1;
-		return {
-			isMatch,
-			score: isMatch ? 0 : 1,
-			indices: [0, text.length - 1]
-		};
-	}
-};
-var PrefixExactMatch = class extends BaseMatch {
-	constructor(pattern) {
-		super(pattern);
-	}
-	static get type() {
-		return "prefix-exact";
-	}
-	static get multiRegex() {
-		return /^\^"(.*)"$/;
-	}
-	static get singleRegex() {
-		return /^\^(.*)$/;
-	}
-	search(text) {
-		const isMatch = text.startsWith(this.pattern);
-		return {
-			isMatch,
-			score: isMatch ? 0 : 1,
-			indices: [0, this.pattern.length - 1]
-		};
-	}
-};
-var InversePrefixExactMatch = class extends BaseMatch {
-	constructor(pattern) {
-		super(pattern);
-	}
-	static get type() {
-		return "inverse-prefix-exact";
-	}
-	static get multiRegex() {
-		return /^!\^"(.*)"$/;
-	}
-	static get singleRegex() {
-		return /^!\^(.*)$/;
-	}
-	search(text) {
-		const isMatch = !text.startsWith(this.pattern);
-		return {
-			isMatch,
-			score: isMatch ? 0 : 1,
-			indices: [0, text.length - 1]
-		};
-	}
-};
-var SuffixExactMatch = class extends BaseMatch {
-	constructor(pattern) {
-		super(pattern);
-	}
-	static get type() {
-		return "suffix-exact";
-	}
-	static get multiRegex() {
-		return /^"(.*)"\$$/;
-	}
-	static get singleRegex() {
-		return /^(.*)\$$/;
-	}
-	search(text) {
-		const isMatch = text.endsWith(this.pattern);
-		return {
-			isMatch,
-			score: isMatch ? 0 : 1,
-			indices: [text.length - this.pattern.length, text.length - 1]
-		};
-	}
-};
-var InverseSuffixExactMatch = class extends BaseMatch {
-	constructor(pattern) {
-		super(pattern);
-	}
-	static get type() {
-		return "inverse-suffix-exact";
-	}
-	static get multiRegex() {
-		return /^!"(.*)"\$$/;
-	}
-	static get singleRegex() {
-		return /^!(.*)\$$/;
-	}
-	search(text) {
-		const isMatch = !text.endsWith(this.pattern);
-		return {
-			isMatch,
-			score: isMatch ? 0 : 1,
-			indices: [0, text.length - 1]
-		};
-	}
-};
-var FuzzyMatch = class extends BaseMatch {
-	constructor(pattern, { location = Config.location, threshold = Config.threshold, distance = Config.distance, includeMatches = Config.includeMatches, findAllMatches = Config.findAllMatches, minMatchCharLength = Config.minMatchCharLength, isCaseSensitive = Config.isCaseSensitive, ignoreDiacritics = Config.ignoreDiacritics, ignoreLocation = Config.ignoreLocation } = {}) {
-		super(pattern);
-		this._bitapSearch = new BitapSearch(pattern, {
-			location,
-			threshold,
-			distance,
-			includeMatches,
-			findAllMatches,
-			minMatchCharLength,
-			isCaseSensitive,
-			ignoreDiacritics,
-			ignoreLocation
-		});
-	}
-	static get type() {
-		return "fuzzy";
-	}
-	static get multiRegex() {
-		return /^"(.*)"$/;
-	}
-	static get singleRegex() {
-		return /^(.*)$/;
-	}
-	search(text) {
-		return this._bitapSearch.searchIn(text);
-	}
-};
-var IncludeMatch = class extends BaseMatch {
-	constructor(pattern) {
-		super(pattern);
-	}
-	static get type() {
-		return "include";
-	}
-	static get multiRegex() {
-		return /^'"(.*)"$/;
-	}
-	static get singleRegex() {
-		return /^'(.*)$/;
-	}
-	search(text) {
-		let location = 0;
-		let index;
-		const indices = [];
-		const patternLen = this.pattern.length;
-		while ((index = text.indexOf(this.pattern, location)) > -1) {
-			location = index + patternLen;
-			indices.push([index, location - 1]);
-		}
-		const isMatch = !!indices.length;
-		return {
-			isMatch,
-			score: isMatch ? 0 : 1,
-			indices
-		};
-	}
-};
-const searchers = [
-	ExactMatch,
-	IncludeMatch,
-	PrefixExactMatch,
-	InversePrefixExactMatch,
-	InverseSuffixExactMatch,
-	SuffixExactMatch,
-	InverseExactMatch,
-	FuzzyMatch
-];
-const searchersLen = searchers.length;
-const SPACE_RE = / +(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/;
-const OR_TOKEN = "|";
-function parseQuery(pattern, options = {}) {
-	return pattern.split(OR_TOKEN).map((item) => {
-		let query = item.trim().split(SPACE_RE).filter((item$1) => item$1 && !!item$1.trim());
-		let results = [];
-		for (let i$2 = 0, len = query.length; i$2 < len; i$2 += 1) {
-			const queryItem = query[i$2];
-			let found = false;
-			let idx = -1;
-			while (!found && ++idx < searchersLen) {
-				const searcher = searchers[idx];
-				let token = searcher.isMultiMatch(queryItem);
-				if (token) {
-					results.push(new searcher(token, options));
-					found = true;
-				}
-			}
-			if (found) continue;
-			idx = -1;
-			while (++idx < searchersLen) {
-				const searcher = searchers[idx];
-				let token = searcher.isSingleMatch(queryItem);
-				if (token) {
-					results.push(new searcher(token, options));
-					break;
-				}
-			}
-		}
+		if (query === MiniSearch.wildcard && searchOptionsWithDefaults.boostDocument == null) return results;
+		results.sort(byScore);
 		return results;
-	});
-}
-const MultiMatchSet = new Set([FuzzyMatch.type, IncludeMatch.type]);
-/**
-* Command-like searching
-* ======================
-*
-* Given multiple search terms delimited by spaces.e.g. `^jscript .python$ ruby !java`,
-* search in a given text.
-*
-* Search syntax:
-*
-* | Token       | Match type                 | Description                            |
-* | ----------- | -------------------------- | -------------------------------------- |
-* | `jscript`   | fuzzy-match                | Items that fuzzy match `jscript`       |
-* | `=scheme`   | exact-match                | Items that are `scheme`                |
-* | `'python`   | include-match              | Items that include `python`            |
-* | `!ruby`     | inverse-exact-match        | Items that do not include `ruby`       |
-* | `^java`     | prefix-exact-match         | Items that start with `java`           |
-* | `!^earlang` | inverse-prefix-exact-match | Items that do not start with `earlang` |
-* | `.js$`      | suffix-exact-match         | Items that end with `.js`              |
-* | `!.go$`     | inverse-suffix-exact-match | Items that do not end with `.go`       |
-*
-* A single pipe character acts as an OR operator. For example, the following
-* query matches entries that start with `core` and end with either`go`, `rb`,
-* or`py`.
-*
-* ```
-* ^core go$ | rb$ | py$
-* ```
-*/
-var ExtendedSearch = class {
-	constructor(pattern, { isCaseSensitive = Config.isCaseSensitive, ignoreDiacritics = Config.ignoreDiacritics, includeMatches = Config.includeMatches, minMatchCharLength = Config.minMatchCharLength, ignoreLocation = Config.ignoreLocation, findAllMatches = Config.findAllMatches, location = Config.location, threshold = Config.threshold, distance = Config.distance } = {}) {
-		this.query = null;
-		this.options = {
-			isCaseSensitive,
-			ignoreDiacritics,
-			includeMatches,
-			minMatchCharLength,
-			findAllMatches,
-			ignoreLocation,
-			location,
-			threshold,
-			distance
-		};
-		pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
-		pattern = ignoreDiacritics ? stripDiacritics(pattern) : pattern;
-		this.pattern = pattern;
-		this.query = parseQuery(this.pattern, this.options);
 	}
-	static condition(_, options) {
-		return options.useExtendedSearch;
-	}
-	searchIn(text) {
-		const query = this.query;
-		if (!query) return {
-			isMatch: false,
-			score: 1
-		};
-		const { includeMatches, isCaseSensitive, ignoreDiacritics } = this.options;
-		text = isCaseSensitive ? text : text.toLowerCase();
-		text = ignoreDiacritics ? stripDiacritics(text) : text;
-		let numMatches = 0;
-		let allIndices = [];
-		let totalScore = 0;
-		for (let i$2 = 0, qLen = query.length; i$2 < qLen; i$2 += 1) {
-			const searchers$1 = query[i$2];
-			allIndices.length = 0;
-			numMatches = 0;
-			for (let j = 0, pLen = searchers$1.length; j < pLen; j += 1) {
-				const searcher = searchers$1[j];
-				const { isMatch, indices, score } = searcher.search(text);
-				if (isMatch) {
-					numMatches += 1;
-					totalScore += score;
-					if (includeMatches) {
-						const type$1 = searcher.constructor.type;
-						if (MultiMatchSet.has(type$1)) allIndices = [...allIndices, ...indices];
-						else allIndices.push(indices);
-					}
-				} else {
-					totalScore = 0;
-					numMatches = 0;
-					allIndices.length = 0;
-					break;
-				}
-			}
-			if (numMatches) {
-				let result = {
-					isMatch: true,
-					score: totalScore / numMatches
-				};
-				if (includeMatches) result.indices = allIndices;
-				return result;
-			}
-		}
-		return {
-			isMatch: false,
-			score: 1
-		};
-	}
-};
-const registeredSearchers = [];
-function register(...args) {
-	registeredSearchers.push(...args);
-}
-function createSearcher(pattern, options) {
-	for (let i$2 = 0, len = registeredSearchers.length; i$2 < len; i$2 += 1) {
-		let searcherClass = registeredSearchers[i$2];
-		if (searcherClass.condition(pattern, options)) return new searcherClass(pattern, options);
-	}
-	return new BitapSearch(pattern, options);
-}
-const LogicalOperator = {
-	AND: "$and",
-	OR: "$or"
-};
-const KeyType = {
-	PATH: "$path",
-	PATTERN: "$val"
-};
-const isExpression = (query) => !!(query[LogicalOperator.AND] || query[LogicalOperator.OR]);
-const isPath = (query) => !!query[KeyType.PATH];
-const isLeaf = (query) => !isArray$1(query) && isObject$3(query) && !isExpression(query);
-const convertToExplicit = (query) => ({ [LogicalOperator.AND]: Object.keys(query).map((key) => ({ [key]: query[key] })) });
-function parse$1(query, options, { auto = true } = {}) {
-	const next = (query$1) => {
-		let keys = Object.keys(query$1);
-		const isQueryPath = isPath(query$1);
-		if (!isQueryPath && keys.length > 1 && !isExpression(query$1)) return next(convertToExplicit(query$1));
-		if (isLeaf(query$1)) {
-			const key = isQueryPath ? query$1[KeyType.PATH] : keys[0];
-			const pattern = isQueryPath ? query$1[KeyType.PATTERN] : query$1[key];
-			if (!isString(pattern)) throw new Error(LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY(key));
-			const obj = {
-				keyId: createKeyId(key),
-				pattern
-			};
-			if (auto) obj.searcher = createSearcher(pattern, options);
-			return obj;
-		}
-		let node = {
-			children: [],
-			operator: keys[0]
-		};
-		keys.forEach((key) => {
-			const value = query$1[key];
-			if (isArray$1(value)) value.forEach((item) => {
-				node.children.push(next(item));
-			});
-		});
-		return node;
-	};
-	if (!isExpression(query)) query = convertToExplicit(query);
-	return next(query);
-}
-function computeScore(results, { ignoreFieldNorm = Config.ignoreFieldNorm }) {
-	results.forEach((result) => {
-		let totalScore = 1;
-		result.matches.forEach(({ key, norm: norm$1, score }) => {
-			const weight = key ? key.weight : null;
-			totalScore *= Math.pow(score === 0 && weight ? Number.EPSILON : score, (weight || 1) * (ignoreFieldNorm ? 1 : norm$1));
-		});
-		result.score = totalScore;
-	});
-}
-function transformMatches(result, data) {
-	const matches = result.matches;
-	data.matches = [];
-	if (!isDefined(matches)) return;
-	matches.forEach((match) => {
-		if (!isDefined(match.indices) || !match.indices.length) return;
-		const { indices, value } = match;
-		let obj = {
-			indices,
-			value
-		};
-		if (match.key) obj.key = match.key.src;
-		if (match.idx > -1) obj.refIndex = match.idx;
-		data.matches.push(obj);
-	});
-}
-function transformScore(result, data) {
-	data.score = result.score;
-}
-function format(results, docs, { includeMatches = Config.includeMatches, includeScore = Config.includeScore } = {}) {
-	const transformers = [];
-	if (includeMatches) transformers.push(transformMatches);
-	if (includeScore) transformers.push(transformScore);
-	return results.map((result) => {
-		const { idx } = result;
-		const data = {
-			item: docs[idx],
-			refIndex: idx
-		};
-		if (transformers.length) transformers.forEach((transformer) => {
-			transformer(result, data);
-		});
-		return data;
-	});
-}
-var Fuse = class {
-	constructor(docs, options = {}, index) {
-		this.options = {
-			...Config,
+	/**
+	* Provide suggestions for the given search query
+	*
+	* The result is a list of suggested modified search queries, derived from the
+	* given search query, each with a relevance score, sorted by descending score.
+	*
+	* By default, it uses the same options used for search, except that by
+	* default it performs prefix search on the last term of the query, and
+	* combine terms with `'AND'` (requiring all query terms to match). Custom
+	* options can be passed as a second argument. Defaults can be changed upon
+	* calling the {@link MiniSearch} constructor, by passing a
+	* `autoSuggestOptions` option.
+	*
+	* ### Basic usage:
+	*
+	* ```javascript
+	* // Get suggestions for 'neuro':
+	* miniSearch.autoSuggest('neuro')
+	* // => [ { suggestion: 'neuromancer', terms: [ 'neuromancer' ], score: 0.46240 } ]
+	* ```
+	*
+	* ### Multiple words:
+	*
+	* ```javascript
+	* // Get suggestions for 'zen ar':
+	* miniSearch.autoSuggest('zen ar')
+	* // => [
+	* //  { suggestion: 'zen archery art', terms: [ 'zen', 'archery', 'art' ], score: 1.73332 },
+	* //  { suggestion: 'zen art', terms: [ 'zen', 'art' ], score: 1.21313 }
+	* // ]
+	* ```
+	*
+	* ### Fuzzy suggestions:
+	*
+	* ```javascript
+	* // Correct spelling mistakes using fuzzy search:
+	* miniSearch.autoSuggest('neromancer', { fuzzy: 0.2 })
+	* // => [ { suggestion: 'neuromancer', terms: [ 'neuromancer' ], score: 1.03998 } ]
+	* ```
+	*
+	* ### Filtering:
+	*
+	* ```javascript
+	* // Get suggestions for 'zen ar', but only within the 'fiction' category
+	* // (assuming that 'category' is a stored field):
+	* miniSearch.autoSuggest('zen ar', {
+	*   filter: (result) => result.category === 'fiction'
+	* })
+	* // => [
+	* //  { suggestion: 'zen archery art', terms: [ 'zen', 'archery', 'art' ], score: 1.73332 },
+	* //  { suggestion: 'zen art', terms: [ 'zen', 'art' ], score: 1.21313 }
+	* // ]
+	* ```
+	*
+	* @param queryString  Query string to be expanded into suggestions
+	* @param options  Search options. The supported options and default values
+	* are the same as for the {@link MiniSearch#search} method, except that by
+	* default prefix search is performed on the last term in the query, and terms
+	* are combined with `'AND'`.
+	* @return  A sorted array of suggestions sorted by relevance score.
+	*/
+	autoSuggest(queryString, options = {}) {
+		options = {
+			...this._options.autoSuggestOptions,
 			...options
 		};
-		if (this.options.useExtendedSearch && false);
-		this._keyStore = new KeyStore(this.options.keys);
-		this.setCollection(docs, index);
-	}
-	setCollection(docs, index) {
-		this._docs = docs;
-		if (index && !(index instanceof FuseIndex)) throw new Error(INCORRECT_INDEX_TYPE);
-		this._myIndex = index || createIndex(this.options.keys, this._docs, {
-			getFn: this.options.getFn,
-			fieldNormWeight: this.options.fieldNormWeight
-		});
-	}
-	add(doc) {
-		if (!isDefined(doc)) return;
-		this._docs.push(doc);
-		this._myIndex.add(doc);
-	}
-	remove(predicate = () => false) {
-		const results = [];
-		for (let i$2 = 0, len = this._docs.length; i$2 < len; i$2 += 1) {
-			const doc = this._docs[i$2];
-			if (predicate(doc, i$2)) {
-				this.removeAt(i$2);
-				i$2 -= 1;
-				len -= 1;
-				results.push(doc);
-			}
-		}
-		return results;
-	}
-	removeAt(idx) {
-		this._docs.splice(idx, 1);
-		this._myIndex.removeAt(idx);
-	}
-	getIndex() {
-		return this._myIndex;
-	}
-	search(query, { limit = -1 } = {}) {
-		const { includeMatches, includeScore, shouldSort, sortFn, ignoreFieldNorm } = this.options;
-		let results = isString(query) ? isString(this._docs[0]) ? this._searchStringList(query) : this._searchObjectList(query) : this._searchLogical(query);
-		computeScore(results, { ignoreFieldNorm });
-		if (shouldSort) results.sort(sortFn);
-		if (isNumber(limit) && limit > -1) results = results.slice(0, limit);
-		return format(results, this._docs, {
-			includeMatches,
-			includeScore
-		});
-	}
-	_searchStringList(query) {
-		const searcher = createSearcher(query, this.options);
-		const { records } = this._myIndex;
-		const results = [];
-		records.forEach(({ v: text, i: idx, n: norm$1 }) => {
-			if (!isDefined(text)) return;
-			const { isMatch, score, indices } = searcher.searchIn(text);
-			if (isMatch) results.push({
-				item: text,
-				idx,
-				matches: [{
-					score,
-					value: text,
-					norm: norm$1,
-					indices
-				}]
+		const suggestions = new Map();
+		for (const { score, terms } of this.search(queryString, options)) {
+			const phrase = terms.join(" ");
+			const suggestion = suggestions.get(phrase);
+			if (suggestion != null) {
+				suggestion.score += score;
+				suggestion.count += 1;
+			} else suggestions.set(phrase, {
+				score,
+				terms,
+				count: 1
 			});
+		}
+		const results = [];
+		for (const [suggestion, { score, terms, count }] of suggestions) results.push({
+			suggestion,
+			terms,
+			score: score / count
 		});
+		results.sort(byScore);
 		return results;
 	}
-	_searchLogical(query) {
-		const expression = parse$1(query, this.options);
-		const evaluate = (node, item, idx) => {
-			if (!node.children) {
-				const { keyId, searcher } = node;
-				const matches = this._findMatches({
-					key: this._keyStore.get(keyId),
-					value: this._myIndex.getValueForItemAtKeyId(item, keyId),
-					searcher
-				});
-				if (matches && matches.length) return [{
-					idx,
-					item,
-					matches
-				}];
-				return [];
+	/**
+	* Total number of documents available to search
+	*/
+	get documentCount() {
+		return this._documentCount;
+	}
+	/**
+	* Number of terms in the index
+	*/
+	get termCount() {
+		return this._index.size;
+	}
+	/**
+	* Deserializes a JSON index (serialized with `JSON.stringify(miniSearch)`)
+	* and instantiates a MiniSearch instance. It should be given the same options
+	* originally used when serializing the index.
+	*
+	* ### Usage:
+	*
+	* ```javascript
+	* // If the index was serialized with:
+	* let miniSearch = new MiniSearch({ fields: ['title', 'text'] })
+	* miniSearch.addAll(documents)
+	*
+	* const json = JSON.stringify(miniSearch)
+	* // It can later be deserialized like this:
+	* miniSearch = MiniSearch.loadJSON(json, { fields: ['title', 'text'] })
+	* ```
+	*
+	* @param json  JSON-serialized index
+	* @param options  configuration options, same as the constructor
+	* @return An instance of MiniSearch deserialized from the given JSON.
+	*/
+	static loadJSON(json$1, options) {
+		if (options == null) throw new Error("MiniSearch: loadJSON should be given the same options used when serializing the index");
+		return this.loadJS(JSON.parse(json$1), options);
+	}
+	/**
+	* Async equivalent of {@link MiniSearch.loadJSON}
+	*
+	* This function is an alternative to {@link MiniSearch.loadJSON} that returns
+	* a promise, and loads the index in batches, leaving pauses between them to avoid
+	* blocking the main thread. It tends to be slower than the synchronous
+	* version, but does not block the main thread, so it can be a better choice
+	* when deserializing very large indexes.
+	*
+	* @param json  JSON-serialized index
+	* @param options  configuration options, same as the constructor
+	* @return A Promise that will resolve to an instance of MiniSearch deserialized from the given JSON.
+	*/
+	static async loadJSONAsync(json$1, options) {
+		if (options == null) throw new Error("MiniSearch: loadJSON should be given the same options used when serializing the index");
+		return this.loadJSAsync(JSON.parse(json$1), options);
+	}
+	/**
+	* Returns the default value of an option. It will throw an error if no option
+	* with the given name exists.
+	*
+	* @param optionName  Name of the option
+	* @return The default value of the given option
+	*
+	* ### Usage:
+	*
+	* ```javascript
+	* // Get default tokenizer
+	* MiniSearch.getDefault('tokenize')
+	*
+	* // Get default term processor
+	* MiniSearch.getDefault('processTerm')
+	*
+	* // Unknown options will throw an error
+	* MiniSearch.getDefault('notExisting')
+	* // => throws 'MiniSearch: unknown option "notExisting"'
+	* ```
+	*/
+	static getDefault(optionName) {
+		if (defaultOptions$2.hasOwnProperty(optionName)) return getOwnProperty(defaultOptions$2, optionName);
+		else throw new Error(`MiniSearch: unknown option "${optionName}"`);
+	}
+	/**
+	* @ignore
+	*/
+	static loadJS(js, options) {
+		const { index, documentIds, fieldLength, storedFields, serializationVersion } = js;
+		const miniSearch = this.instantiateMiniSearch(js, options);
+		miniSearch._documentIds = objectToNumericMap(documentIds);
+		miniSearch._fieldLength = objectToNumericMap(fieldLength);
+		miniSearch._storedFields = objectToNumericMap(storedFields);
+		for (const [shortId, id] of miniSearch._documentIds) miniSearch._idToShortId.set(id, shortId);
+		for (const [term, data] of index) {
+			const dataMap = new Map();
+			for (const fieldId of Object.keys(data)) {
+				let indexEntry = data[fieldId];
+				if (serializationVersion === 1) indexEntry = indexEntry.ds;
+				dataMap.set(parseInt(fieldId, 10), objectToNumericMap(indexEntry));
 			}
-			const res = [];
-			for (let i$2 = 0, len = node.children.length; i$2 < len; i$2 += 1) {
-				const child = node.children[i$2];
-				const result = evaluate(child, item, idx);
-				if (result.length) res.push(...result);
-				else if (node.operator === LogicalOperator.AND) return [];
+			miniSearch._index.set(term, dataMap);
+		}
+		return miniSearch;
+	}
+	/**
+	* @ignore
+	*/
+	static async loadJSAsync(js, options) {
+		const { index, documentIds, fieldLength, storedFields, serializationVersion } = js;
+		const miniSearch = this.instantiateMiniSearch(js, options);
+		miniSearch._documentIds = await objectToNumericMapAsync(documentIds);
+		miniSearch._fieldLength = await objectToNumericMapAsync(fieldLength);
+		miniSearch._storedFields = await objectToNumericMapAsync(storedFields);
+		for (const [shortId, id] of miniSearch._documentIds) miniSearch._idToShortId.set(id, shortId);
+		let count = 0;
+		for (const [term, data] of index) {
+			const dataMap = new Map();
+			for (const fieldId of Object.keys(data)) {
+				let indexEntry = data[fieldId];
+				if (serializationVersion === 1) indexEntry = indexEntry.ds;
+				dataMap.set(parseInt(fieldId, 10), await objectToNumericMapAsync(indexEntry));
 			}
-			return res;
+			if (++count % 1e3 === 0) await wait(0);
+			miniSearch._index.set(term, dataMap);
+		}
+		return miniSearch;
+	}
+	/**
+	* @ignore
+	*/
+	static instantiateMiniSearch(js, options) {
+		const { documentCount, nextId, fieldIds, averageFieldLength, dirtCount, serializationVersion } = js;
+		if (serializationVersion !== 1 && serializationVersion !== 2) throw new Error("MiniSearch: cannot deserialize an index created with an incompatible version");
+		const miniSearch = new MiniSearch(options);
+		miniSearch._documentCount = documentCount;
+		miniSearch._nextId = nextId;
+		miniSearch._idToShortId = new Map();
+		miniSearch._fieldIds = fieldIds;
+		miniSearch._avgFieldLength = averageFieldLength;
+		miniSearch._dirtCount = dirtCount || 0;
+		miniSearch._index = new SearchableMap();
+		return miniSearch;
+	}
+	/**
+	* @ignore
+	*/
+	executeQuery(query, searchOptions = {}) {
+		if (query === MiniSearch.wildcard) return this.executeWildcardQuery(searchOptions);
+		if (typeof query !== "string") {
+			const options$1 = {
+				...searchOptions,
+				...query,
+				queries: void 0
+			};
+			const results$1 = query.queries.map((subquery) => this.executeQuery(subquery, options$1));
+			return this.combineResults(results$1, options$1.combineWith);
+		}
+		const { tokenize, processTerm, searchOptions: globalSearchOptions } = this._options;
+		const options = {
+			tokenize,
+			processTerm,
+			...globalSearchOptions,
+			...searchOptions
 		};
-		const records = this._myIndex.records;
-		const resultMap = {};
-		const results = [];
-		records.forEach(({ $: item, i: idx }) => {
-			if (isDefined(item)) {
-				let expResults = evaluate(expression, item, idx);
-				if (expResults.length) {
-					if (!resultMap[idx]) {
-						resultMap[idx] = {
-							idx,
-							item,
-							matches: []
-						};
-						results.push(resultMap[idx]);
-					}
-					expResults.forEach(({ matches }) => {
-						resultMap[idx].matches.push(...matches);
-					});
-				}
-			}
-		});
+		const { tokenize: searchTokenize, processTerm: searchProcessTerm } = options;
+		const terms = searchTokenize(query).flatMap((term) => searchProcessTerm(term)).filter((term) => !!term);
+		const queries = terms.map(termToQuerySpec(options));
+		const results = queries.map((query$1) => this.executeQuerySpec(query$1, options));
+		return this.combineResults(results, options.combineWith);
+	}
+	/**
+	* @ignore
+	*/
+	executeQuerySpec(query, searchOptions) {
+		const options = {
+			...this._options.searchOptions,
+			...searchOptions
+		};
+		const boosts = (options.fields || this._options.fields).reduce((boosts$1, field) => ({
+			...boosts$1,
+			[field]: getOwnProperty(options.boost, field) || 1
+		}), {});
+		const { boostDocument, weights, maxFuzzy, bm25: bm25params } = options;
+		const { fuzzy: fuzzyWeight, prefix: prefixWeight } = {
+			...defaultSearchOptions.weights,
+			...weights
+		};
+		const data = this._index.get(query.term);
+		const results = this.termResults(query.term, query.term, 1, query.termBoost, data, boosts, boostDocument, bm25params);
+		let prefixMatches;
+		let fuzzyMatches;
+		if (query.prefix) prefixMatches = this._index.atPrefix(query.term);
+		if (query.fuzzy) {
+			const fuzzy = query.fuzzy === true ? .2 : query.fuzzy;
+			const maxDistance = fuzzy < 1 ? Math.min(maxFuzzy, Math.round(query.term.length * fuzzy)) : fuzzy;
+			if (maxDistance) fuzzyMatches = this._index.fuzzyGet(query.term, maxDistance);
+		}
+		if (prefixMatches) for (const [term, data$1] of prefixMatches) {
+			const distance = term.length - query.term.length;
+			if (!distance) continue;
+			fuzzyMatches === null || fuzzyMatches === void 0 || fuzzyMatches.delete(term);
+			const weight = prefixWeight * term.length / (term.length + .3 * distance);
+			this.termResults(query.term, term, weight, query.termBoost, data$1, boosts, boostDocument, bm25params, results);
+		}
+		if (fuzzyMatches) for (const term of fuzzyMatches.keys()) {
+			const [data$1, distance] = fuzzyMatches.get(term);
+			if (!distance) continue;
+			const weight = fuzzyWeight * term.length / (term.length + distance);
+			this.termResults(query.term, term, weight, query.termBoost, data$1, boosts, boostDocument, bm25params, results);
+		}
 		return results;
 	}
-	_searchObjectList(query) {
-		const searcher = createSearcher(query, this.options);
-		const { keys, records } = this._myIndex;
-		const results = [];
-		records.forEach(({ $: item, i: idx }) => {
-			if (!isDefined(item)) return;
-			let matches = [];
-			keys.forEach((key, keyIndex) => {
-				matches.push(...this._findMatches({
-					key,
-					value: item[keyIndex],
-					searcher
-				}));
-			});
-			if (matches.length) results.push({
-				idx,
-				item,
-				matches
-			});
-		});
-		return results;
-	}
-	_findMatches({ key, value, searcher }) {
-		if (!isDefined(value)) return [];
-		let matches = [];
-		if (isArray$1(value)) value.forEach(({ v: text, i: idx, n: norm$1 }) => {
-			if (!isDefined(text)) return;
-			const { isMatch, score, indices } = searcher.searchIn(text);
-			if (isMatch) matches.push({
+	/**
+	* @ignore
+	*/
+	executeWildcardQuery(searchOptions) {
+		const results = new Map();
+		const options = {
+			...this._options.searchOptions,
+			...searchOptions
+		};
+		for (const [shortId, id] of this._documentIds) {
+			const score = options.boostDocument ? options.boostDocument(id, "", this._storedFields.get(shortId)) : 1;
+			results.set(shortId, {
 				score,
-				key,
-				value: text,
-				idx,
-				norm: norm$1,
-				indices
-			});
-		});
-		else {
-			const { v: text, n: norm$1 } = value;
-			const { isMatch, score, indices } = searcher.searchIn(text);
-			if (isMatch) matches.push({
-				score,
-				key,
-				value: text,
-				norm: norm$1,
-				indices
+				terms: [],
+				match: {}
 			});
 		}
-		return matches;
+		return results;
+	}
+	/**
+	* @ignore
+	*/
+	combineResults(results, combineWith = OR) {
+		if (results.length === 0) return new Map();
+		const operator = combineWith.toLowerCase();
+		const combinator = combinators[operator];
+		if (!combinator) throw new Error(`Invalid combination operator: ${combineWith}`);
+		return results.reduce(combinator) || new Map();
+	}
+	/**
+	* Allows serialization of the index to JSON, to possibly store it and later
+	* deserialize it with {@link MiniSearch.loadJSON}.
+	*
+	* Normally one does not directly call this method, but rather call the
+	* standard JavaScript `JSON.stringify()` passing the {@link MiniSearch}
+	* instance, and JavaScript will internally call this method. Upon
+	* deserialization, one must pass to {@link MiniSearch.loadJSON} the same
+	* options used to create the original instance that was serialized.
+	*
+	* ### Usage:
+	*
+	* ```javascript
+	* // Serialize the index:
+	* let miniSearch = new MiniSearch({ fields: ['title', 'text'] })
+	* miniSearch.addAll(documents)
+	* const json = JSON.stringify(miniSearch)
+	*
+	* // Later, to deserialize it:
+	* miniSearch = MiniSearch.loadJSON(json, { fields: ['title', 'text'] })
+	* ```
+	*
+	* @return A plain-object serializable representation of the search index.
+	*/
+	toJSON() {
+		const index = [];
+		for (const [term, fieldIndex] of this._index) {
+			const data = {};
+			for (const [fieldId, freqs] of fieldIndex) data[fieldId] = Object.fromEntries(freqs);
+			index.push([term, data]);
+		}
+		return {
+			documentCount: this._documentCount,
+			nextId: this._nextId,
+			documentIds: Object.fromEntries(this._documentIds),
+			fieldIds: this._fieldIds,
+			fieldLength: Object.fromEntries(this._fieldLength),
+			averageFieldLength: this._avgFieldLength,
+			storedFields: Object.fromEntries(this._storedFields),
+			dirtCount: this._dirtCount,
+			index,
+			serializationVersion: 2
+		};
+	}
+	/**
+	* @ignore
+	*/
+	termResults(sourceTerm, derivedTerm, termWeight, termBoost, fieldTermData, fieldBoosts, boostDocumentFn, bm25params, results = new Map()) {
+		if (fieldTermData == null) return results;
+		for (const field of Object.keys(fieldBoosts)) {
+			const fieldBoost = fieldBoosts[field];
+			const fieldId = this._fieldIds[field];
+			const fieldTermFreqs = fieldTermData.get(fieldId);
+			if (fieldTermFreqs == null) continue;
+			let matchingFields = fieldTermFreqs.size;
+			const avgFieldLength = this._avgFieldLength[fieldId];
+			for (const docId of fieldTermFreqs.keys()) {
+				if (!this._documentIds.has(docId)) {
+					this.removeTerm(fieldId, docId, derivedTerm);
+					matchingFields -= 1;
+					continue;
+				}
+				const docBoost = boostDocumentFn ? boostDocumentFn(this._documentIds.get(docId), derivedTerm, this._storedFields.get(docId)) : 1;
+				if (!docBoost) continue;
+				const termFreq = fieldTermFreqs.get(docId);
+				const fieldLength = this._fieldLength.get(docId)[fieldId];
+				const rawScore = calcBM25Score(termFreq, matchingFields, this._documentCount, fieldLength, avgFieldLength, bm25params);
+				const weightedScore = termWeight * termBoost * fieldBoost * docBoost * rawScore;
+				const result = results.get(docId);
+				if (result) {
+					result.score += weightedScore;
+					assignUniqueTerm(result.terms, sourceTerm);
+					const match = getOwnProperty(result.match, derivedTerm);
+					if (match) match.push(field);
+					else result.match[derivedTerm] = [field];
+				} else results.set(docId, {
+					score: weightedScore,
+					terms: [sourceTerm],
+					match: { [derivedTerm]: [field] }
+				});
+			}
+		}
+		return results;
+	}
+	/**
+	* @ignore
+	*/
+	addTerm(fieldId, documentId, term) {
+		const indexData = this._index.fetch(term, createMap);
+		let fieldIndex = indexData.get(fieldId);
+		if (fieldIndex == null) {
+			fieldIndex = new Map();
+			fieldIndex.set(documentId, 1);
+			indexData.set(fieldId, fieldIndex);
+		} else {
+			const docs = fieldIndex.get(documentId);
+			fieldIndex.set(documentId, (docs || 0) + 1);
+		}
+	}
+	/**
+	* @ignore
+	*/
+	removeTerm(fieldId, documentId, term) {
+		if (!this._index.has(term)) {
+			this.warnDocumentChanged(documentId, fieldId, term);
+			return;
+		}
+		const indexData = this._index.fetch(term, createMap);
+		const fieldIndex = indexData.get(fieldId);
+		if (fieldIndex == null || fieldIndex.get(documentId) == null) this.warnDocumentChanged(documentId, fieldId, term);
+		else if (fieldIndex.get(documentId) <= 1) if (fieldIndex.size <= 1) indexData.delete(fieldId);
+		else fieldIndex.delete(documentId);
+		else fieldIndex.set(documentId, fieldIndex.get(documentId) - 1);
+		if (this._index.get(term).size === 0) this._index.delete(term);
+	}
+	/**
+	* @ignore
+	*/
+	warnDocumentChanged(shortDocumentId, fieldId, term) {
+		for (const fieldName of Object.keys(this._fieldIds)) if (this._fieldIds[fieldName] === fieldId) {
+			this._options.logger("warn", `MiniSearch: document with ID ${this._documentIds.get(shortDocumentId)} has changed before removal: term "${term}" was not present in field "${fieldName}". Removing a document after it has changed can corrupt the index!`, "version_conflict");
+			return;
+		}
+	}
+	/**
+	* @ignore
+	*/
+	addDocumentId(documentId) {
+		const shortDocumentId = this._nextId;
+		this._idToShortId.set(documentId, shortDocumentId);
+		this._documentIds.set(shortDocumentId, documentId);
+		this._documentCount += 1;
+		this._nextId += 1;
+		return shortDocumentId;
+	}
+	/**
+	* @ignore
+	*/
+	addFields(fields) {
+		for (let i$2 = 0; i$2 < fields.length; i$2++) this._fieldIds[fields[i$2]] = i$2;
+	}
+	/**
+	* @ignore
+	*/
+	addFieldLength(documentId, fieldId, count, length) {
+		let fieldLengths = this._fieldLength.get(documentId);
+		if (fieldLengths == null) this._fieldLength.set(documentId, fieldLengths = []);
+		fieldLengths[fieldId] = length;
+		const averageFieldLength = this._avgFieldLength[fieldId] || 0;
+		const totalFieldLength = averageFieldLength * count + length;
+		this._avgFieldLength[fieldId] = totalFieldLength / (count + 1);
+	}
+	/**
+	* @ignore
+	*/
+	removeFieldLength(documentId, fieldId, count, length) {
+		if (count === 1) {
+			this._avgFieldLength[fieldId] = 0;
+			return;
+		}
+		const totalFieldLength = this._avgFieldLength[fieldId] * count - length;
+		this._avgFieldLength[fieldId] = totalFieldLength / (count - 1);
+	}
+	/**
+	* @ignore
+	*/
+	saveStoredFields(documentId, doc) {
+		const { storeFields, extractField } = this._options;
+		if (storeFields == null || storeFields.length === 0) return;
+		let documentFields = this._storedFields.get(documentId);
+		if (documentFields == null) this._storedFields.set(documentId, documentFields = {});
+		for (const fieldName of storeFields) {
+			const fieldValue = extractField(doc, fieldName);
+			if (fieldValue !== void 0) documentFields[fieldName] = fieldValue;
+		}
 	}
 };
-Fuse.version = "7.1.0";
-Fuse.createIndex = createIndex;
-Fuse.parseIndex = parseIndex;
-Fuse.config = Config;
-Fuse.parseQuery = parse$1;
-register(ExtendedSearch);
+/**
+* The special wildcard symbol that can be passed to {@link MiniSearch#search}
+* to match all documents
+*/
+MiniSearch.wildcard = Symbol("*");
+const getOwnProperty = (object, property) => Object.prototype.hasOwnProperty.call(object, property) ? object[property] : void 0;
+const combinators = {
+	[OR]: (a, b) => {
+		for (const docId of b.keys()) {
+			const existing = a.get(docId);
+			if (existing == null) a.set(docId, b.get(docId));
+			else {
+				const { score, terms, match } = b.get(docId);
+				existing.score = existing.score + score;
+				existing.match = Object.assign(existing.match, match);
+				assignUniqueTerms(existing.terms, terms);
+			}
+		}
+		return a;
+	},
+	[AND]: (a, b) => {
+		const combined = new Map();
+		for (const docId of b.keys()) {
+			const existing = a.get(docId);
+			if (existing == null) continue;
+			const { score, terms, match } = b.get(docId);
+			assignUniqueTerms(existing.terms, terms);
+			combined.set(docId, {
+				score: existing.score + score,
+				terms: existing.terms,
+				match: Object.assign(existing.match, match)
+			});
+		}
+		return combined;
+	},
+	[AND_NOT]: (a, b) => {
+		for (const docId of b.keys()) a.delete(docId);
+		return a;
+	}
+};
+const defaultBM25params = {
+	k: 1.2,
+	b: .7,
+	d: .5
+};
+const calcBM25Score = (termFreq, matchingCount, totalCount, fieldLength, avgFieldLength, bm25params) => {
+	const { k, b, d } = bm25params;
+	const invDocFreq = Math.log(1 + (totalCount - matchingCount + .5) / (matchingCount + .5));
+	return invDocFreq * (d + termFreq * (k + 1) / (termFreq + k * (1 - b + b * fieldLength / avgFieldLength)));
+};
+const termToQuerySpec = (options) => (term, i$2, terms) => {
+	const fuzzy = typeof options.fuzzy === "function" ? options.fuzzy(term, i$2, terms) : options.fuzzy || false;
+	const prefix = typeof options.prefix === "function" ? options.prefix(term, i$2, terms) : options.prefix === true;
+	const termBoost = typeof options.boostTerm === "function" ? options.boostTerm(term, i$2, terms) : 1;
+	return {
+		term,
+		fuzzy,
+		prefix,
+		termBoost
+	};
+};
+const defaultOptions$2 = {
+	idField: "id",
+	extractField: (document, fieldName) => document[fieldName],
+	stringifyField: (fieldValue, fieldName) => fieldValue.toString(),
+	tokenize: (text) => text.split(SPACE_OR_PUNCTUATION),
+	processTerm: (term) => term.toLowerCase(),
+	fields: void 0,
+	searchOptions: void 0,
+	storeFields: [],
+	logger: (level, message) => {
+		if (typeof (console === null || console === void 0 ? void 0 : console[level]) === "function") console[level](message);
+	},
+	autoVacuum: true
+};
+const defaultSearchOptions = {
+	combineWith: OR,
+	prefix: false,
+	fuzzy: false,
+	maxFuzzy: 6,
+	boost: {},
+	weights: {
+		fuzzy: .45,
+		prefix: .375
+	},
+	bm25: defaultBM25params
+};
+const defaultAutoSuggestOptions = {
+	combineWith: AND,
+	prefix: (term, i$2, terms) => i$2 === terms.length - 1
+};
+const defaultVacuumOptions = {
+	batchSize: 1e3,
+	batchWait: 10
+};
+const defaultVacuumConditions = {
+	minDirtFactor: .1,
+	minDirtCount: 20
+};
+const defaultAutoVacuumOptions = {
+	...defaultVacuumOptions,
+	...defaultVacuumConditions
+};
+const assignUniqueTerm = (target, term) => {
+	if (!target.includes(term)) target.push(term);
+};
+const assignUniqueTerms = (target, source) => {
+	for (const term of source) if (!target.includes(term)) target.push(term);
+};
+const byScore = ({ score: a }, { score: b }) => b - a;
+const createMap = () => new Map();
+const objectToNumericMap = (object) => {
+	const map$1 = new Map();
+	for (const key of Object.keys(object)) map$1.set(parseInt(key, 10), object[key]);
+	return map$1;
+};
+const objectToNumericMapAsync = async (object) => {
+	const map$1 = new Map();
+	let count = 0;
+	for (const key of Object.keys(object)) {
+		map$1.set(parseInt(key, 10), object[key]);
+		if (++count % 1e3 === 0) await wait(0);
+	}
+	return map$1;
+};
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const SPACE_OR_PUNCTUATION = /[\n\r\p{Z}\p{P}]+/u;
 
 //#endregion
 //#region src/cli/computers/search.computer.ts
 /**
-* Create a search computer.
+* Normalize BM25 scores to 0-1 range by dividing by max score.
 *
-* @returns A SearchComputer instance.
+* Preserves relative ranking. Returns empty array for empty input.
+* Guards against division by zero when max score is 0.
+*
+* @param results - Raw scored results from MiniSearch.
+* @returns Results with scores in 0-1 range.
+*/
+function normalizeScores(results) {
+	if (results.length === 0) return [];
+	const maxScore = results.reduce((max, r) => r.score > max ? r.score : max, 0);
+	if (maxScore <= 0) return results;
+	return results.map((r) => ({
+		item: r.item,
+		score: r.score / maxScore
+	}));
+}
+/**
+* Create a search computer using MiniSearch BM25+ scoring.
+*
+* @returns A SearchComputer instance with BM25+ indexing and normalized scoring.
 */
 function createSearchComputer() {
-	function createIndex$1(items, config) {
-		const fuse = new Fuse(items, {
-			keys: config.keys.map((k) => ({
-				name: k.name,
-				weight: k.weight
-			})),
-			threshold: config.threshold ?? .4,
-			includeScore: true,
-			ignoreLocation: config.ignoreLocation ?? true,
-			findAllMatches: true
-		});
-		return { search: (term) => {
-			const results = fuse.search(term);
-			return results.map((r) => ({
-				item: r.item,
-				score: 1 - (r.score ?? 0)
-			}));
-		} };
-	}
-	function searchOrStyle(terms, index) {
-		const docScores = new Map();
-		for (const term of terms) {
-			const termResults = index.search(term);
-			for (const result of termResults) {
-				const docId = result.item.id;
-				if (!docScores.has(docId)) docScores.set(docId, {
-					item: result.item,
-					scores: [],
-					bestScore: 0
-				});
-				const entry = docScores.get(docId);
-				entry.scores.push(result.score);
-				entry.bestScore = Math.max(entry.bestScore, result.score);
+	function createIndex(items, config) {
+		const itemsById = new Map(items.map((item) => [item.id, item]));
+		const miniSearch = new MiniSearch({
+			fields: [...config.fields],
+			idField: "id",
+			extractField: (document, fieldName) => {
+				const value = document[fieldName];
+				if (Array.isArray(value)) return value.join(" ");
+				return typeof value === "string" ? value : "";
 			}
-		}
-		return Array.from(docScores.values()).map((entry) => {
-			const avgScore = entry.scores.reduce((a, b) => a + b, 0) / terms.length;
-			const matchBonus = 1 + .1 * entry.scores.length;
-			const combinedScore = Math.min(1, avgScore * matchBonus);
-			return {
-				item: entry.item,
-				score: combinedScore
-			};
 		});
+		for (const item of items) try {
+			miniSearch.add(item);
+		} catch {
+			console.warn(`Skipping malformed doc during indexing: ${item.id}`);
+		}
+		return { search: (terms) => {
+			const query = terms.join(" ");
+			if (!query.trim()) return [];
+			const results = miniSearch.search(query, {
+				boost: { ...config.boosts },
+				combineWith: "OR",
+				prefix: true,
+				fuzzy: .2
+			});
+			const scored = results.map((r) => {
+				const item = itemsById.get(String(r.id));
+				return item ? {
+					item,
+					score: r.score
+				} : void 0;
+			}).filter((r) => r !== void 0);
+			return normalizeScores(scored);
+		} };
 	}
 	function checkBoundaryMatch(boundary, terms) {
 		if (!boundary) return false;
 		const boundaryLower = boundary.toLowerCase();
-		for (const term of terms) if (boundaryLower.includes(term.toLowerCase())) return true;
-		return false;
+		return terms.some((term) => boundaryLower.includes(term.toLowerCase()));
 	}
 	return {
-		createIndex: createIndex$1,
-		searchOrStyle,
+		createIndex,
 		checkBoundaryMatch
 	};
 }
@@ -6057,7 +6755,7 @@ const BOUNDARY_PENALTY = .15;
 * @returns A SearchHandler instance.
 */
 function createSearchHandler(deps) {
-	const { fs: fs$3, yamlParser, search: search$1 } = deps;
+	const { fs: fs$3, yamlParser, search, graph } = deps;
 	/**
 	* Derive ID and domain from product file path.
 	*/
@@ -6154,42 +6852,26 @@ function createSearchHandler(deps) {
 	*/
 	function getProductSearchConfig() {
 		return {
-			keys: [
-				{
-					name: "keywords",
-					weight: .35
-				},
-				{
-					name: "aliases",
-					weight: .35
-				},
-				{
-					name: "title",
-					weight: .25
-				},
-				{
-					name: "tldr",
-					weight: .25
-				},
-				{
-					name: "id",
-					weight: .2
-				},
-				{
-					name: "summary",
-					weight: .15
-				},
-				{
-					name: "domain",
-					weight: .1
-				},
-				{
-					name: "body",
-					weight: .05
-				}
+			fields: [
+				"keywords",
+				"aliases",
+				"title",
+				"tldr",
+				"id",
+				"summary",
+				"domain",
+				"body"
 			],
-			threshold: .4,
-			ignoreLocation: true
+			boosts: {
+				keywords: 7,
+				aliases: 7,
+				title: 5,
+				tldr: 5,
+				id: 4,
+				summary: 3,
+				domain: 2,
+				body: 1
+			}
 		};
 	}
 	/**
@@ -6197,47 +6879,77 @@ function createSearchHandler(deps) {
 	*/
 	function getEngineeringSearchConfig() {
 		return {
-			keys: [
-				{
-					name: "keywords",
-					weight: .35
-				},
-				{
-					name: "aliases",
-					weight: .35
-				},
-				{
-					name: "title",
-					weight: .25
-				},
-				{
-					name: "tldr",
-					weight: .25
-				},
-				{
-					name: "id",
-					weight: .2
-				},
-				{
-					name: "summary",
-					weight: .15
-				},
-				{
-					name: "system",
-					weight: .1
-				},
-				{
-					name: "paths",
-					weight: .1
-				},
-				{
-					name: "body",
-					weight: .05
-				}
+			fields: [
+				"keywords",
+				"aliases",
+				"title",
+				"tldr",
+				"id",
+				"summary",
+				"system",
+				"paths",
+				"body"
 			],
-			threshold: .4,
-			ignoreLocation: true
+			boosts: {
+				keywords: 7,
+				aliases: 7,
+				title: 5,
+				tldr: 5,
+				id: 4,
+				summary: 3,
+				system: 2,
+				paths: 2,
+				body: 1
+			}
 		};
+	}
+	/**
+	* Get unified search config for hybrid search (all fields).
+	*/
+	function getHybridSearchConfig() {
+		return {
+			fields: [
+				"keywords",
+				"aliases",
+				"title",
+				"tldr",
+				"id",
+				"summary",
+				"domain",
+				"system",
+				"paths",
+				"body"
+			],
+			boosts: {
+				keywords: 7,
+				aliases: 7,
+				title: 5,
+				tldr: 5,
+				id: 4,
+				summary: 3,
+				domain: 2,
+				system: 2,
+				paths: 2,
+				body: 1
+			}
+		};
+	}
+	/**
+	* Build graph-expanded related docs from search results.
+	*/
+	function buildRelatedDocs(docs, resultIds) {
+		const adjacency = graph.buildGraph(docs);
+		const excludeIds = new Set(resultIds);
+		const edges = adjacency.expand(resultIds, excludeIds);
+		const docsById = new Map(docs.map((d) => [d.id, d]));
+		return edges.map((edge) => {
+			const doc = docsById.get(edge.id);
+			return doc ? {
+				id: edge.id,
+				tldr: doc.tldr,
+				via: edge.via
+			} : void 0;
+		}).filter((r) => r !== void 0);
 	}
 	/**
 	* Execute search on docs.
@@ -6247,12 +6959,12 @@ function createSearchHandler(deps) {
 			results: [],
 			relatedDocs: []
 		};
-		const index = search$1.createIndex(docs, config);
-		const searchResults = search$1.searchOrStyle(searchTerms, index);
+		const index = search.createIndex(docs, config);
+		const searchResults = index.search(searchTerms);
 		const results = searchResults.map((result) => {
 			const doc = result.item;
 			const baseScore = result.score;
-			const hasBoundaryMatch = search$1.checkBoundaryMatch(doc.boundary, searchTerms);
+			const hasBoundaryMatch = search.checkBoundaryMatch(doc.boundary, searchTerms);
 			const adjustedScore = hasBoundaryMatch ? Math.max(0, baseScore - BOUNDARY_PENALTY) : baseScore;
 			return {
 				id: doc.id,
@@ -6266,27 +6978,7 @@ function createSearchHandler(deps) {
 				uses: doc.uses
 			};
 		}).filter((result) => result.score >= minScore).sort((a, b) => b.score - a.score);
-		const relatedIds = new Set();
-		const relatedVia = new Map();
-		for (const result of results) {
-			for (const refId of result.references) if (!results.some((r) => r.id === refId)) {
-				relatedIds.add(refId);
-				relatedVia.set(refId, `${result.id}.references`);
-			}
-			for (const useId of result.uses) if (!results.some((r) => r.id === useId)) {
-				relatedIds.add(useId);
-				relatedVia.set(useId, `${result.id}.uses`);
-			}
-		}
-		const relatedDocs = [];
-		for (const relId of relatedIds) {
-			const doc = docs.find((d) => d.id === relId);
-			if (doc) relatedDocs.push({
-				id: relId,
-				tldr: doc.tldr,
-				via: relatedVia.get(relId) || ""
-			});
-		}
+		const relatedDocs = buildRelatedDocs(docs, results.map((r) => r.id));
 		return {
 			results,
 			relatedDocs
@@ -6329,35 +7021,7 @@ function createSearchHandler(deps) {
 		});
 	}
 	/**
-	* Check exact match in terms.
-	*/
-	function checkExactMatch(terms, searchTerms) {
-		const lowerSearchTerms = searchTerms.map((t) => t.toLowerCase());
-		for (const term of terms) if (lowerSearchTerms.includes(term.toLowerCase())) return true;
-		return false;
-	}
-	/**
-	* Run fuzzy search on specific fields.
-	*/
-	function runFieldFuzzySearch(docs, searchTerms, field, threshold) {
-		const results = new Map();
-		for (const doc of docs) results.set(doc.id, 0);
-		const config = {
-			keys: [{
-				name: field,
-				weight: 1
-			}],
-			threshold,
-			ignoreLocation: true
-		};
-		const index = search$1.createIndex(docs, config);
-		const query = searchTerms.join(" ");
-		const searchResults = index.search(query);
-		for (const result of searchResults) results.set(result.item.id, result.score);
-		return results;
-	}
-	/**
-	* Search hybrid command.
+	* Search hybrid command - unified search across product and engineering docs.
 	*/
 	function searchHybrid(args) {
 		const parsed = parseArgs(args);
@@ -6374,48 +7038,16 @@ function createSearchHandler(deps) {
 		}
 		if (docs.length === 0) return success({
 			query: searchTerms,
-			results: []
+			count: 0,
+			docs: [],
+			relatedDocs: []
 		});
-		const titleScores = runFieldFuzzySearch(docs, searchTerms, "title", .4);
-		const tldrScores = runFieldFuzzySearch(docs, searchTerms, "tldr", .4);
-		const bodyScores = runFieldFuzzySearch(docs, searchTerms, "body", .5);
-		const results = [];
-		for (const doc of docs) {
-			const exactKeyword = checkExactMatch(doc.keywords, searchTerms);
-			const exactAlias = checkExactMatch(doc.aliases, searchTerms);
-			const fuzzyTitle = titleScores.get(doc.id) ?? 0;
-			const fuzzyTldr = tldrScores.get(doc.id) ?? 0;
-			const fuzzyBody = bodyScores.get(doc.id) ?? 0;
-			const boundaryPenalty = search$1.checkBoundaryMatch(doc.boundary, searchTerms) ? BOUNDARY_PENALTY : 0;
-			let score = 0;
-			if (exactKeyword) score += .3;
-			if (exactAlias) score += .25;
-			score += fuzzyTitle * .2;
-			score += fuzzyTldr * .15;
-			score += fuzzyBody * .1;
-			score = Math.max(0, score - boundaryPenalty);
-			if (score >= minScore || exactKeyword || exactAlias) results.push({
-				id: doc.id,
-				title: doc.title,
-				score: Math.round(score * 100) / 100,
-				matchSources: {
-					exactKeyword,
-					exactAlias,
-					fuzzyTitle: Math.round(fuzzyTitle * 100) / 100,
-					fuzzyTldr: Math.round(fuzzyTldr * 100) / 100,
-					fuzzyBody: Math.round(fuzzyBody * 100) / 100
-				},
-				boundaryPenalty: Math.round(boundaryPenalty * 100) / 100,
-				path: doc.path,
-				docType: doc.docType,
-				tldr: doc.tldr,
-				summary: doc.summary
-			});
-		}
-		results.sort((a, b) => b.score - a.score);
+		const { results, relatedDocs } = executeSearch(docs, searchTerms, getHybridSearchConfig(), minScore);
 		return success({
 			query: searchTerms,
-			results
+			count: results.length,
+			docs: results,
+			relatedDocs
 		});
 	}
 	/**
@@ -6455,7 +7087,7 @@ function createSearchHandler(deps) {
 		return [
 			defineCommand("search-product", "Search product docs by keywords", "search-product keyword1 keyword2 ... [--min-score=0.3]", searchProduct),
 			defineCommand("search-engineering", "Search engineering docs by keywords", "search-engineering keyword1 keyword2 ... [--min-score=0.3]", searchEngineering),
-			defineCommand("search-hybrid", "Hybrid search combining exact and fuzzy matching", "search-hybrid keyword1 keyword2 ... [--type=product|engineering] [--min-score=0.3]", searchHybrid),
+			defineCommand("search-hybrid", "Hybrid search combining BM25+ scoring across all doc types", "search-hybrid keyword1 keyword2 ... [--type=product|engineering] [--min-score=0.3]", searchHybrid),
 			defineCommand("reverse-lookup", "Find docs that reference a given doc ID", "reverse-lookup <doc-id>", reverseLookup)
 		];
 	}
@@ -8032,7 +8664,7 @@ function compress(arr, options, jPath) {
 		else if (property === void 0) continue;
 		else if (tagObj[property]) {
 			let val = compress(tagObj[property], options, newJpath);
-			const isLeaf$1 = isLeafTag(val, options);
+			const isLeaf = isLeafTag(val, options);
 			if (tagObj[METADATA_SYMBOL] !== void 0) val[METADATA_SYMBOL] = tagObj[METADATA_SYMBOL];
 			if (tagObj[":@"]) assignAttributes(val, tagObj[":@"], newJpath, options);
 			else if (Object.keys(val).length === 1 && val[options.textNodeName] !== void 0 && !options.alwaysCreateTextNode) val = val[options.textNodeName];
@@ -8041,7 +8673,7 @@ function compress(arr, options, jPath) {
 			if (compressedObj[property] !== void 0 && compressedObj.hasOwnProperty(property)) {
 				if (!Array.isArray(compressedObj[property])) compressedObj[property] = [compressedObj[property]];
 				compressedObj[property].push(val);
-			} else if (options.isArray(property, newJpath, isLeaf$1)) compressedObj[property] = [val];
+			} else if (options.isArray(property, newJpath, isLeaf)) compressedObj[property] = [val];
 			else compressedObj[property] = val;
 		}
 	}
@@ -9152,7 +9784,7 @@ function YAMLException$1$1(reason, mark) {
 }
 YAMLException$1$1.prototype = Object.create(Error.prototype);
 YAMLException$1$1.prototype.constructor = YAMLException$1$1;
-YAMLException$1$1.prototype.toString = function toString$2(compact) {
+YAMLException$1$1.prototype.toString = function toString$1(compact) {
 	return this.name + ": " + formatError(this, compact);
 };
 var exception = YAMLException$1$1;
@@ -11401,7 +12033,7 @@ var require_exception = __commonJS({ "../../node_modules/.pnpm/js-yaml@3.14.2/no
 	}
 	YAMLException$4.prototype = Object.create(Error.prototype);
 	YAMLException$4.prototype.constructor = YAMLException$4;
-	YAMLException$4.prototype.toString = function toString$2(compact) {
+	YAMLException$4.prototype.toString = function toString$1(compact) {
 		var result = this.name + ": ";
 		result += this.reason || "(unknown reason)";
 		if (!compact && this.mark) result += " " + this.mark.toString();
@@ -11449,7 +12081,7 @@ var require_mark = __commonJS({ "../../node_modules/.pnpm/js-yaml@3.14.2/node_mo
 		snippet$1 = this.buffer.slice(start, end);
 		return common$5.repeat(" ", indent) + head + snippet$1 + tail + "\n" + common$5.repeat(" ", indent + this.position - start + head.length) + "^";
 	};
-	Mark$1.prototype.toString = function toString$2(compact) {
+	Mark$1.prototype.toString = function toString$1(compact) {
 		var snippet$1, where = "";
 		if (this.name) where += "in \"" + this.name + "\" ";
 		where += "at line " + (this.line + 1) + ", column " + (this.column + 1);
@@ -13634,12 +14266,12 @@ var require_engines = __commonJS({ "../../node_modules/.pnpm/gray-matter@4.0.3/n
 	* JavaScript
 	*/
 	engines$2.javascript = {
-		parse: function parse$2(str$1, options, wrap) {
+		parse: function parse$1(str$1, options, wrap) {
 			try {
 				if (wrap !== false) str$1 = "(function() {\nreturn " + str$1.trim() + ";\n}());";
 				return eval(str$1) || {};
 			} catch (err$1) {
-				if (wrap !== false && /(unexpected|identifier)/i.test(err$1.message)) return parse$2(str$1, options, false);
+				if (wrap !== false && /(unexpected|identifier)/i.test(err$1.message)) return parse$1(str$1, options, false);
 				throw new SyntaxError(err$1);
 			}
 		},
@@ -14059,7 +14691,8 @@ function createCliOrchestrator() {
 	const fs$3 = createFileSystemCapability();
 	const xmlParser = createXmlParserComputer();
 	const yamlParser = createYamlParserComputer();
-	const search$1 = createSearchComputer();
+	const search = createSearchComputer();
+	const graphComputer = createGraphComputer();
 	const taskResolver = createTaskResolverComputer();
 	const validation = createValidationComputer();
 	const taskHandler = createTaskHandler({
@@ -14079,7 +14712,8 @@ function createCliOrchestrator() {
 	const searchHandler = createSearchHandler({
 		fs: fs$3,
 		yamlParser,
-		search: search$1
+		search,
+		graph: graphComputer
 	});
 	const docsHandler = createDocsHandler({
 		fs: fs$3,

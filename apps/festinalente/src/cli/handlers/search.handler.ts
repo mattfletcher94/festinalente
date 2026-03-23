@@ -5,7 +5,8 @@
  */
 
 import type { CliCommand, CliResult } from '../types';
-import type { SearchComputer, SearchConfig, SearchIndex } from '../computers/search.computer';
+import type { SearchComputer, SearchConfig } from '../computers/search.computer';
+import type { GraphComputer } from '../computers/graph.computer';
 import { error, getNumberFlag, getStringFlag, parseArgs, success } from '../types';
 import type { FileSystemCapability } from '../capabilities/file-system.capability';
 import type { YamlParserComputer } from '../computers/yaml-parser.computer';
@@ -77,40 +78,6 @@ export interface SearchOutput {
 }
 
 /**
- * Match sources for hybrid search.
- */
-export interface MatchSources {
-  readonly exactKeyword: boolean;
-  readonly exactAlias: boolean;
-  readonly fuzzyTitle: number;
-  readonly fuzzyTldr: number;
-  readonly fuzzyBody: number;
-}
-
-/**
- * Hybrid search result.
- */
-export interface HybridSearchResult {
-  readonly id: string;
-  readonly title: string;
-  readonly score: number;
-  readonly matchSources: MatchSources;
-  readonly boundaryPenalty: number;
-  readonly path: string;
-  readonly docType: 'product' | 'engineering';
-  readonly tldr: string;
-  readonly summary: string;
-}
-
-/**
- * Hybrid search output.
- */
-export interface HybridSearchOutput {
-  readonly query: readonly string[];
-  readonly results: readonly HybridSearchResult[];
-}
-
-/**
  * Reverse lookup output.
  */
 export interface ReverseLookupOutput {
@@ -126,6 +93,7 @@ export interface SearchHandlerDeps {
   readonly fs: FileSystemCapability;
   readonly yamlParser: YamlParserComputer;
   readonly search: SearchComputer;
+  readonly graph: GraphComputer;
 }
 
 /**
@@ -134,7 +102,7 @@ export interface SearchHandlerDeps {
 export interface SearchHandler {
   readonly searchProduct: (args: string[]) => CliResult<SearchOutput>;
   readonly searchEngineering: (args: string[]) => CliResult<SearchOutput>;
-  readonly searchHybrid: (args: string[]) => CliResult<HybridSearchOutput>;
+  readonly searchHybrid: (args: string[]) => CliResult<SearchOutput>;
   readonly reverseLookup: (args: string[]) => CliResult<ReverseLookupOutput>;
   readonly getCommands: () => readonly CliCommand[];
 }
@@ -146,7 +114,7 @@ export interface SearchHandler {
  * @returns A SearchHandler instance.
  */
 export function createSearchHandler(deps: SearchHandlerDeps): SearchHandler {
-  const { fs, yamlParser, search } = deps;
+  const { fs, yamlParser, search, graph } = deps;
 
   /**
    * Derive ID and domain from product file path.
@@ -245,18 +213,8 @@ export function createSearchHandler(deps: SearchHandlerDeps): SearchHandler {
    */
   function getProductSearchConfig(): SearchConfig {
     return {
-      keys: [
-        { name: 'keywords', weight: 0.35 },
-        { name: 'aliases', weight: 0.35 },
-        { name: 'title', weight: 0.25 },
-        { name: 'tldr', weight: 0.25 },
-        { name: 'id', weight: 0.2 },
-        { name: 'summary', weight: 0.15 },
-        { name: 'domain', weight: 0.1 },
-        { name: 'body', weight: 0.05 }
-      ],
-      threshold: 0.4,
-      ignoreLocation: true
+      fields: ['keywords', 'aliases', 'title', 'tldr', 'id', 'summary', 'domain', 'body'],
+      boosts: { keywords: 7, aliases: 7, title: 5, tldr: 5, id: 4, summary: 3, domain: 2, body: 1 }
     };
   }
 
@@ -265,20 +223,39 @@ export function createSearchHandler(deps: SearchHandlerDeps): SearchHandler {
    */
   function getEngineeringSearchConfig(): SearchConfig {
     return {
-      keys: [
-        { name: 'keywords', weight: 0.35 },
-        { name: 'aliases', weight: 0.35 },
-        { name: 'title', weight: 0.25 },
-        { name: 'tldr', weight: 0.25 },
-        { name: 'id', weight: 0.2 },
-        { name: 'summary', weight: 0.15 },
-        { name: 'system', weight: 0.1 },
-        { name: 'paths', weight: 0.1 },
-        { name: 'body', weight: 0.05 }
-      ],
-      threshold: 0.4,
-      ignoreLocation: true
+      fields: ['keywords', 'aliases', 'title', 'tldr', 'id', 'summary', 'system', 'paths', 'body'],
+      boosts: { keywords: 7, aliases: 7, title: 5, tldr: 5, id: 4, summary: 3, system: 2, paths: 2, body: 1 }
     };
+  }
+
+  /**
+   * Get unified search config for hybrid search (all fields).
+   */
+  function getHybridSearchConfig(): SearchConfig {
+    return {
+      fields: ['keywords', 'aliases', 'title', 'tldr', 'id', 'summary', 'domain', 'system', 'paths', 'body'],
+      boosts: { keywords: 7, aliases: 7, title: 5, tldr: 5, id: 4, summary: 3, domain: 2, system: 2, paths: 2, body: 1 }
+    };
+  }
+
+  /**
+   * Build graph-expanded related docs from search results.
+   */
+  function buildRelatedDocs(
+    docs: readonly InternalDoc[],
+    resultIds: readonly string[]
+  ): readonly RelatedDocPreview[] {
+    const adjacency = graph.buildGraph(docs);
+    const excludeIds = new Set(resultIds);
+    const edges = adjacency.expand(resultIds, excludeIds);
+    const docsById = new Map(docs.map((d) => [d.id, d]));
+
+    return edges
+      .map((edge) => {
+        const doc = docsById.get(edge.id);
+        return doc ? { id: edge.id, tldr: doc.tldr, via: edge.via } : undefined;
+      })
+      .filter((r): r is RelatedDocPreview => r !== undefined);
   }
 
   /**
@@ -293,7 +270,7 @@ export function createSearchHandler(deps: SearchHandlerDeps): SearchHandler {
     if (docs.length === 0) return { results: [], relatedDocs: [] };
 
     const index = search.createIndex(docs, config);
-    const searchResults = search.searchOrStyle(searchTerms, index as SearchIndex<InternalDoc & { id: string }>);
+    const searchResults = index.search(searchTerms);
 
     const results = searchResults
       .map((result) => {
@@ -317,37 +294,7 @@ export function createSearchHandler(deps: SearchHandlerDeps): SearchHandler {
       .filter((result) => result.score >= minScore)
       .sort((a, b) => b.score - a.score);
 
-    // Collect related docs (1-hop only)
-    const relatedIds = new Set<string>();
-    const relatedVia = new Map<string, string>();
-
-    for (const result of results) {
-      for (const refId of result.references) {
-        if (!results.some((r) => r.id === refId)) {
-          relatedIds.add(refId);
-          relatedVia.set(refId, `${result.id}.references`);
-        }
-      }
-      for (const useId of result.uses) {
-        if (!results.some((r) => r.id === useId)) {
-          relatedIds.add(useId);
-          relatedVia.set(useId, `${result.id}.uses`);
-        }
-      }
-    }
-
-    // Look up tldr for related docs
-    const relatedDocs: RelatedDocPreview[] = [];
-    for (const relId of relatedIds) {
-      const doc = docs.find((d) => d.id === relId);
-      if (doc) {
-        relatedDocs.push({
-          id: relId,
-          tldr: doc.tldr,
-          via: relatedVia.get(relId) || ''
-        });
-      }
-    }
+    const relatedDocs = buildRelatedDocs(docs, results.map((r) => r.id));
 
     return { results, relatedDocs };
   }
@@ -407,53 +354,9 @@ export function createSearchHandler(deps: SearchHandlerDeps): SearchHandler {
   }
 
   /**
-   * Check exact match in terms.
+   * Search hybrid command - unified search across product and engineering docs.
    */
-  function checkExactMatch(terms: readonly string[], searchTerms: readonly string[]): boolean {
-    const lowerSearchTerms = searchTerms.map((t) => t.toLowerCase());
-    for (const term of terms) {
-      if (lowerSearchTerms.includes(term.toLowerCase())) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Run fuzzy search on specific fields.
-   */
-  function runFieldFuzzySearch(
-    docs: readonly InternalDoc[],
-    searchTerms: readonly string[],
-    field: 'title' | 'tldr' | 'body',
-    threshold: number
-  ): Map<string, number> {
-    const results = new Map<string, number>();
-    for (const doc of docs) {
-      results.set(doc.id, 0);
-    }
-
-    const config: SearchConfig = {
-      keys: [{ name: field, weight: 1 }],
-      threshold,
-      ignoreLocation: true
-    };
-
-    const index = search.createIndex(docs, config);
-    const query = searchTerms.join(' ');
-    const searchResults = index.search(query);
-
-    for (const result of searchResults) {
-      results.set(result.item.id, result.score);
-    }
-
-    return results;
-  }
-
-  /**
-   * Search hybrid command.
-   */
-  function searchHybrid(args: string[]): CliResult<HybridSearchOutput> {
+  function searchHybrid(args: string[]): CliResult<SearchOutput> {
     const parsed = parseArgs(args);
     const searchTerms = parsed.positional;
     const minScore = getNumberFlag(parsed.flags, 'min-score') ?? DEFAULT_MIN_SCORE;
@@ -481,65 +384,19 @@ export function createSearchHandler(deps: SearchHandlerDeps): SearchHandler {
     if (docs.length === 0) {
       return success({
         query: searchTerms,
-        results: []
+        count: 0,
+        docs: [],
+        relatedDocs: []
       });
     }
 
-    // Run fuzzy search on each field
-    const titleScores = runFieldFuzzySearch(docs, searchTerms, 'title', 0.4);
-    const tldrScores = runFieldFuzzySearch(docs, searchTerms, 'tldr', 0.4);
-    const bodyScores = runFieldFuzzySearch(docs, searchTerms, 'body', 0.5);
-
-    // Calculate combined scores
-    const results: HybridSearchResult[] = [];
-
-    for (const doc of docs) {
-      const exactKeyword = checkExactMatch(doc.keywords, searchTerms);
-      const exactAlias = checkExactMatch(doc.aliases, searchTerms);
-      const fuzzyTitle = titleScores.get(doc.id) ?? 0;
-      const fuzzyTldr = tldrScores.get(doc.id) ?? 0;
-      const fuzzyBody = bodyScores.get(doc.id) ?? 0;
-      const boundaryPenalty = search.checkBoundaryMatch(doc.boundary, searchTerms) ? BOUNDARY_PENALTY : 0;
-
-      // Calculate combined score
-      let score = 0;
-      if (exactKeyword) score += 0.3;
-      if (exactAlias) score += 0.25;
-      score += fuzzyTitle * 0.2;
-      score += fuzzyTldr * 0.15;
-      score += fuzzyBody * 0.1;
-
-      // Apply boundary penalty
-      score = Math.max(0, score - boundaryPenalty);
-
-      // Only include if score meets threshold or has exact matches
-      if (score >= minScore || exactKeyword || exactAlias) {
-        results.push({
-          id: doc.id,
-          title: doc.title,
-          score: Math.round(score * 100) / 100,
-          matchSources: {
-            exactKeyword,
-            exactAlias,
-            fuzzyTitle: Math.round(fuzzyTitle * 100) / 100,
-            fuzzyTldr: Math.round(fuzzyTldr * 100) / 100,
-            fuzzyBody: Math.round(fuzzyBody * 100) / 100
-          },
-          boundaryPenalty: Math.round(boundaryPenalty * 100) / 100,
-          path: doc.path,
-          docType: doc.docType,
-          tldr: doc.tldr,
-          summary: doc.summary
-        });
-      }
-    }
-
-    // Sort by score descending
-    results.sort((a, b) => b.score - a.score);
+    const { results, relatedDocs } = executeSearch(docs, searchTerms, getHybridSearchConfig(), minScore);
 
     return success({
       query: searchTerms,
-      results
+      count: results.length,
+      docs: results,
+      relatedDocs
     });
   }
 
@@ -594,7 +451,7 @@ export function createSearchHandler(deps: SearchHandlerDeps): SearchHandler {
       ),
       defineCommand(
         'search-hybrid',
-        'Hybrid search combining exact and fuzzy matching',
+        'Hybrid search combining BM25+ scoring across all doc types',
         'search-hybrid keyword1 keyword2 ... [--type=product|engineering] [--min-score=0.3]',
         searchHybrid
       ),

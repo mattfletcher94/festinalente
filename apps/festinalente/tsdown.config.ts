@@ -12,7 +12,7 @@ export default defineConfig([
     sourcemap: false,
     // Bundle all dependencies so scripts are self-contained
     // These packages must be inlined since scripts run in user projects without node_modules
-    noExternal: ['gray-matter', 'fuse.js', 'js-yaml', 'fast-xml-parser', 'zod', 'slugify']
+    noExternal: ['gray-matter', 'minisearch', 'js-yaml', 'fast-xml-parser', 'zod', 'slugify']
   },
   // Build tools
   {
