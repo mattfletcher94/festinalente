@@ -356,7 +356,10 @@ export function createXmlParserComputer(): XmlParserComputer {
     if (!criterion) return extractText(section);
 
     if (Array.isArray(criterion)) {
-      return criterion.map((c) => extractText(c)).filter(Boolean).join('\n');
+      return criterion
+        .map((c) => extractText(c))
+        .filter(Boolean)
+        .join('\n');
     }
 
     return extractText(criterion);
@@ -434,9 +437,7 @@ export function createXmlParserComputer(): XmlParserComputer {
     const result = parser.parse(content);
     const task = result.task;
     const projectId = task['project-id'] ? String(task['project-id']).trim() : undefined;
-    const projectRequirements = task['project-requirements']
-      ? parseReqRefs(task['project-requirements'])
-      : undefined;
+    const projectRequirements = task['project-requirements'] ? parseReqRefs(task['project-requirements']) : undefined;
     return {
       id: task.id || '',
       status: task.status || '',

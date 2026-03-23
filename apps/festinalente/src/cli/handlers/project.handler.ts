@@ -428,7 +428,9 @@ export function createProjectHandler(deps: ProjectHandlerDeps): ProjectHandler {
       return error(`Failed to read tasks directory: ${dirsResult.error.message}`);
     }
 
-    const taskFolder = dirsResult.value.find((f) => f === taskId || f.startsWith(taskId + '-') || f.match(/^(\d+)/) && f.match(/^(\d+)/)?.[1] === taskId);
+    const taskFolder = dirsResult.value.find(
+      (f) => f === taskId || f.startsWith(taskId + '-') || (f.match(/^(\d+)/) && f.match(/^(\d+)/)?.[1] === taskId)
+    );
     if (!taskFolder) {
       return error(`Task ${taskId} not found in ${TASKS_DIR}/`);
     }
@@ -469,9 +471,7 @@ export function createProjectHandler(deps: ProjectHandlerDeps): ProjectHandler {
         // Read description for compact sibling info
         const siblingPath = fs.joinPath(TASKS_DIR, t.id, 'task.xml').replace(/\\/g, '/');
         const siblingRead = fs.readFile(siblingPath);
-        const description = siblingRead.ok
-          ? xmlParser.parseTaskXml(siblingRead.value).description
-          : '';
+        const description = siblingRead.ok ? xmlParser.parseTaskXml(siblingRead.value).description : '';
 
         return {
           id: t.id,
@@ -501,12 +501,7 @@ export function createProjectHandler(deps: ProjectHandlerDeps): ProjectHandler {
         'next-project-id --title="Project title"',
         nextProjectId
       ),
-      defineCommand(
-        'find-project',
-        'Find a project by ID',
-        'find-project <id>',
-        findProject
-      ),
+      defineCommand('find-project', 'Find a project by ID', 'find-project <id>', findProject),
       defineCommand(
         'list-projects',
         'List all projects with optional filtering',

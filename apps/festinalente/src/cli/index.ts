@@ -116,11 +116,7 @@ export type {
 } from './handlers/config.handler';
 export { createConfigHandler } from './handlers/config.handler';
 
-export type {
-  QueryHandler,
-  DocContent,
-  SelectContextOutput
-} from './handlers/query.handler';
+export type { QueryHandler, DocContent, SelectContextOutput } from './handlers/query.handler';
 export { createQueryHandler } from './handlers/query.handler';
 
 // Orchestrator

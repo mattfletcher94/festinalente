@@ -87,10 +87,7 @@ export function createDirectivesOrchestrator(deps: DirectivesOrchestratorDeps): 
     }
 
     // Must be exactly .festinalente/directives/<file>.xml
-    if (
-      segments.length !== festinalenteIdx + 3 ||
-      segments[festinalenteIdx + 1] !== 'directives'
-    ) {
+    if (segments.length !== festinalenteIdx + 3 || segments[festinalenteIdx + 1] !== 'directives') {
       return false;
     }
 
@@ -150,7 +147,12 @@ export function createDirectivesOrchestrator(deps: DirectivesOrchestratorDeps): 
     openSubscription,
     changeSubscription,
     closeSubscription,
-    { dispose: () => { for (const timer of debounceTimers.values()) clearTimeout(timer); debounceTimers.clear(); } }
+    {
+      dispose: () => {
+        for (const timer of debounceTimers.values()) clearTimeout(timer);
+        debounceTimers.clear();
+      }
+    }
   );
 
   /**

@@ -128,12 +128,7 @@ export function createDirectiveValidatorComputer(): CreateDirectiveValidatorComp
     if (!name) {
       addError('Missing required attribute: name', 'error', 'directive', undefined);
     } else if (name !== expectedName) {
-      addError(
-        `Directive name "${name}" doesn't match filename "${expectedName}"`,
-        'error',
-        'directive',
-        undefined
-      );
+      addError(`Directive name "${name}" doesn't match filename "${expectedName}"`, 'error', 'directive', undefined);
     }
 
     if (!version) {
@@ -143,23 +138,13 @@ export function createDirectiveValidatorComputer(): CreateDirectiveValidatorComp
     if (!created) {
       addError('Missing required attribute: created', 'error', 'directive', undefined);
     } else if (!/^\d{4}-\d{2}-\d{2}$/.test(created)) {
-      addError(
-        `Invalid created date format: "${created}" (expected YYYY-MM-DD)`,
-        'error',
-        'directive',
-        undefined
-      );
+      addError(`Invalid created date format: "${created}" (expected YYYY-MM-DD)`, 'error', 'directive', undefined);
     }
 
     if (!updated) {
       addError('Missing required attribute: updated', 'error', 'directive', undefined);
     } else if (!/^\d{4}-\d{2}-\d{2}$/.test(updated)) {
-      addError(
-        `Invalid updated date format: "${updated}" (expected YYYY-MM-DD)`,
-        'error',
-        'directive',
-        undefined
-      );
+      addError(`Invalid updated date format: "${updated}" (expected YYYY-MM-DD)`, 'error', 'directive', undefined);
     }
 
     // Collect all IDs for uniqueness check
@@ -168,13 +153,7 @@ export function createDirectiveValidatorComputer(): CreateDirectiveValidatorComp
 
     function checkId(id: string | undefined, elementTag: string, elementIndex: number): void {
       if (!id) {
-        addError(
-          `Missing required id attribute in <${elementTag}>`,
-          'error',
-          elementTag,
-          undefined,
-          elementIndex
-        );
+        addError(`Missing required id attribute in <${elementTag}>`, 'error', elementTag, undefined, elementIndex);
         return;
       }
       if (allIds.has(id)) {
@@ -206,12 +185,7 @@ export function createDirectiveValidatorComputer(): CreateDirectiveValidatorComp
 
           const phase = rule['phase'] as string | undefined;
           if (!phase) {
-            addError(
-              `Missing required phase attribute in <rule id="${ruleId ?? ''}">`,
-              'error',
-              'rule',
-              ruleId
-            );
+            addError(`Missing required phase attribute in <rule id="${ruleId ?? ''}">`, 'error', 'rule', ruleId);
           } else {
             const phases = phase.split(',').map((p) => p.trim());
             for (const p of phases) {
@@ -241,12 +215,7 @@ export function createDirectiveValidatorComputer(): CreateDirectiveValidatorComp
 
           const type = check['type'] as string | undefined;
           if (!type) {
-            addError(
-              `Missing required type attribute in <check id="${checkId_ ?? ''}">`,
-              'error',
-              'check',
-              checkId_
-            );
+            addError(`Missing required type attribute in <check id="${checkId_ ?? ''}">`, 'error', 'check', checkId_);
           } else if (!(VALID_CHECK_TYPES as readonly string[]).includes(type)) {
             addError(
               `Invalid check type "${type}" in <check id="${checkId_ ?? ''}">. Valid: ${VALID_CHECK_TYPES.join(', ')}`,

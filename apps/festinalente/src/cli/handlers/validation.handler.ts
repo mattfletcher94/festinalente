@@ -158,9 +158,7 @@ export function createValidationHandler(deps: ValidationHandlerDeps): Validation
     }
 
     const dirsResult = fs.listDirectories(TASKS_DIR);
-    const resolvedId = dirsResult.ok
-      ? taskResolver.resolveTaskFolder(dirsResult.value, taskId) ?? taskId
-      : taskId;
+    const resolvedId = dirsResult.ok ? (taskResolver.resolveTaskFolder(dirsResult.value, taskId) ?? taskId) : taskId;
     const taskDir = fs.joinPath(TASKS_DIR, resolvedId);
     if (!fs.exists(taskDir) || !fs.isDirectory(taskDir)) {
       return null;

@@ -337,7 +337,9 @@ export function createTasksViewCapability(deps: TasksViewCapabilityDeps): Create
     const tasks = deps.loadTasks();
     const items = tasks
       .filter((t) => t.status === status)
-      .map((t) => new TaskItem(t, deps.checkTaskFiles(t.taskPath), deps.getAllActions(t), deps.getPlanProgress(t.taskPath)));
+      .map(
+        (t) => new TaskItem(t, deps.checkTaskFiles(t.taskPath), deps.getAllActions(t), deps.getPlanProgress(t.taskPath))
+      );
 
     // Update cache and track parent
     items.forEach((item) => {
@@ -406,7 +408,15 @@ export function createTasksViewCapability(deps: TasksViewCapabilityDeps): Create
     const tasks = deps.loadTasks();
     for (const task of tasks) {
       if (!cachedTaskItems.has(task.id)) {
-        cachedTaskItems.set(task.id, new TaskItem(task, deps.checkTaskFiles(task.taskPath), deps.getAllActions(task), deps.getPlanProgress(task.taskPath)));
+        cachedTaskItems.set(
+          task.id,
+          new TaskItem(
+            task,
+            deps.checkTaskFiles(task.taskPath),
+            deps.getAllActions(task),
+            deps.getPlanProgress(task.taskPath)
+          )
+        );
       }
     }
 

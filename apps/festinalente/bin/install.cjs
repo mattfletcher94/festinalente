@@ -386,7 +386,16 @@ async function main() {
   logStep('2/4', 'Installing scripts, templates, and workflow to .festinalente/...');
 
   // Ensure .festinalente directory structure exists
-  const festinalenteSubDirs = ['tasks', 'quick', 'product', 'engineering', 'directives', 'scripts', 'templates' ,'projects'];
+  const festinalenteSubDirs = [
+    'tasks',
+    'quick',
+    'product',
+    'engineering',
+    'directives',
+    'scripts',
+    'templates',
+    'projects'
+  ];
   for (const dir of festinalenteSubDirs) {
     const dirPath = path.join(festinalenteDir, dir);
     if (!fs.existsSync(dirPath)) {

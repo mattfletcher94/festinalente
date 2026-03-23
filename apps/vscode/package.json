@@ -11,6 +11,13 @@
     "url": "https://github.com/mattfletcher94/festinalente"
   },
   "publisher": "festinalente",
+  "bin": {
+    "festinalente-vscode": "bin/install.cjs"
+  },
+  "files": [
+    "bin",
+    "festinalente-vscode.vsix"
+  ],
   "main": "./dist/extension.js",
   "publishConfig": {
     "access": "public",
@@ -231,12 +238,5 @@
   ],
   "engines": {
     "vscode": "^1.85.0"
-  },
-  "files": [
-    "bin",
-    "festinalente-vscode.vsix"
-  ],
-  "bin": {
-    "festinalente-vscode": "bin/install.cjs"
   }
 }

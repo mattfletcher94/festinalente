@@ -64,7 +64,7 @@ export function createProjectParserComputer(): CreateProjectParserComputerReturn
     return {
       id: project.id || '',
       status: project.status || 'open',
-      title: typeof project.title === 'object' ? (project.title._text || '') : String(project.title || ''),
+      title: typeof project.title === 'object' ? project.title._text || '' : String(project.title || ''),
       created: project.created || '',
       updated: project.updated || ''
     };

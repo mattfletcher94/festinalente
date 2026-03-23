@@ -14,9 +14,7 @@ type TreeItem = ProjectItem | ProjectTaskItem;
  * Project tree item showing title, status icon, and progress fraction.
  */
 export class ProjectItem extends vscode.TreeItem {
-  constructor(
-    public readonly project: Project
-  ) {
+  constructor(public readonly project: Project) {
     super(project.title, vscode.TreeItemCollapsibleState.Collapsed);
 
     this.description = `${project.completedCount}/${project.taskCount} tasks done`;
