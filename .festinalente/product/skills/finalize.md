@@ -9,7 +9,7 @@ aliases: [festina-finalize, finish]
 boundary: "Does not implement code or close tasks - only validates, documents, and transitions to awaiting-completion. Task closure is handled by /festina-complete."
 references: [skills/implement, skills/complete, docs/product, docs/engineering]
 uses: [systems/cli, systems/data-model]
-updated: 2026-03-21
+updated: 2026-03-23
 ---
 
 # Finalize Task
@@ -108,7 +108,64 @@ Task 001 moved to Awaiting Completion!
 Next: /festina-complete 001
 ```
 
-**Summary:** Each phase shows clear progress and outputs.
+### Directive Check Failure with Auto-Fix
+
+```
+/festina-finalize 002
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 1: VALIDATE AND COMMIT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Running check: TypeScript...
+PASS: TypeScript
+
+Running check: Oxlint...
+FAIL: Oxlint
+  src/handlers/auth.ts:23 — no-unused-vars: 'tempResult' is assigned but never used
+
+Auto-fixing...
+Removed unused variable 'tempResult'
+Logged iteration: "auto-fix: removed unused variable"
+
+Re-running check: Oxlint...
+PASS: Oxlint
+
+All checks passed!
+```
+
+### Goal Verification Failure
+
+```
+/festina-finalize 003
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 1: VALIDATE AND COMMIT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+All directive checks passed!
+
+Goal-backward verification:
+AC1: "Given valid credentials, When user submits login, Then session is created"
+  Observable: POST /login returns 200 with session cookie
+  Verified? > YES ✓
+
+AC2: "Given expired session, When user makes request, Then 401 is returned"
+  Observable: Request with expired token returns 401
+  Verified? > DIFFERENT — currently returns 403
+
+Spawning diagnostic agent for AC2...
+Found: src/middleware/auth.ts:67 returns 403 for expired tokens
+Suggested fix: Change status code from 403 to 401
+
+Apply fix? > Yes
+
+Re-verifying AC2... > YES ✓
+
+All acceptance criteria verified.
+```
+
+**Summary:** Each phase shows clear progress and outputs. Failures are auto-fixed or resolved interactively.
 
 ## Boundaries
 

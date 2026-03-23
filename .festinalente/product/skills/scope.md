@@ -9,7 +9,7 @@ aliases: [festina-scope, specification, research]
 boundary: "Does not create implementation plans - only produces functional specification"
 references: [skills/create, skills/plan, docs/product, docs/engineering]
 uses: [systems/cli, systems/data-model]
-updated: 2026-03-07
+updated: 2026-03-23
 ---
 
 # Scope Task
@@ -197,6 +197,68 @@ All agents complete. Synthesizing...
 
 Decisions needed:
 - Race conditions: How should we handle concurrent edits?
+```
+
+### Gap Validation Finds Issues
+
+```
+/festina-scope 003
+
+...research and Q&A complete...
+
+Running gap validation...
+CRITICAL: FR3 conflicts with FR1 — FR1 says "allow empty input"
+         but FR3 says "reject empty input with error"
+MODERATE: FR5 references `src/utils/legacy.ts` which does not exist
+
+Address FR1/FR3 conflict?
+> FR3 is correct, update FR1 to require non-empty input
+
+Address missing file reference?
+> Defer to open-questions — we'll create it during implementation
+
+Running self-critique...
+MODERATE: FR2 uses vague language "should be fast" — suggest
+          "response time under 200ms at p95"
+> Accept suggested rewording
+
+Running leakage check...
+FR4 prescribes implementation: "Use a Map data structure"
+Rephrase as outcome: "Lookups complete in O(1) time"
+> Accept
+
+Spec validated. Creating spec.xml...
+```
+
+### Contract Derivation
+
+```
+/festina-scope 004
+
+...research and Q&A complete...
+
+Requirements describe behavioral concerns (processing inputs,
+managing state). Recommending contract derivation.
+Derive contracts? > Yes
+
+Grouping FRs by behavioral boundary...
+
+Contract C1 (Input Processing) — covers FR1, FR2:
+  precondition: Input must be valid JSON with required fields
+  postcondition: Processed output contains all transformed fields
+  invariant: Original input is never mutated
+  property: Idempotent — processing same input twice yields same output
+Accept? > Yes
+
+Contract C2 (State Management) — covers FR3, FR4:
+  precondition: State store is initialized before operations
+  postcondition: State changes are persisted before returning
+  invariant: No concurrent writes to same key
+  property: State is always consistent after any operation sequence
+Accept? > Modify postcondition to: "State changes are persisted
+          atomically before returning"
+
+Contracts saved to spec.xml
 ```
 
 **Summary:** Reconnaissance always runs first, then recommends Quick or Deep based on signals found. Deep research provides comprehensive coverage for complex tasks.

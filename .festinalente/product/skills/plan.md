@@ -9,7 +9,7 @@ aliases: [festina-plan, planning, implementation-plan]
 boundary: "Does not execute implementation - only creates the plan document"
 references: [skills/scope, skills/implement, docs/product, docs/engineering]
 uses: [systems/cli, systems/data-model]
-updated: 2026-03-01
+updated: 2026-03-23
 ---
 
 # Plan Task
@@ -116,7 +116,40 @@ Task 001 moved to Planned
 Next: /festina-implement 001
 ```
 
-**Summary:** Plans include all context needed for implementation.
+### Plan with Contract-Tests
+
+```
+/festina-plan 004
+
+Reading spec: .festinalente/tasks/004/spec.xml
+- 5 functional requirements
+- 4 files affected
+- 2 contracts (C1: Input Processing, C2: State Management)
+- Complexity: medium
+
+Creating implementation plan...
+
+Deriving contract-tests from contracts:
+  C1 (Input Processing):
+    - Positive: Valid JSON input produces all transformed fields
+    - Negative: Invalid JSON input throws ValidationError
+    - Property: Same input processed twice yields identical output
+  C2 (State Management):
+    - Positive: State change persists before function returns
+    - Negative: Uninitialized store throws InitError
+    - Property: Concurrent reads during write see consistent state
+
+Plan created: .festinalente/tasks/004/plan.xml
+- 5 implementation steps
+- 6 contract-tests linked to C1, C2
+- Tasks 2,3 include C1 contract context
+- Tasks 4,5 include C2 contract context
+
+Task 004 moved to Planned
+Next: /festina-implement 004
+```
+
+**Summary:** Plans include all context needed for implementation, with contract-tests derived from spec contracts when present.
 
 ## Boundaries
 

@@ -10,7 +10,7 @@ boundary: "Does not include CLI utilities (see cli domain) or VSCode extension f
 contains: [skills/create, skills/scope, skills/plan, skills/implement, skills/finalize, skills/complete, skills/quick, skills/discover, skills/overview, skills/save, skills/rework, skills/delete, skills/define-product, skills/map-product, skills/map-engineering, skills/directive, skills/create-project, skills/complete-project]
 references: [cli/_index, docs/_index, directives/_index]
 uses: [systems/cli, systems/content-build]
-updated: 2026-03-21
+updated: 2026-03-23
 ---
 
 # Skills
@@ -95,6 +95,40 @@ This domain does NOT cover CLI helper commands (use `node .festinalente/scripts/
 | [complete-project](./complete-project.md) | Verify all tasks done, evaluate project acceptance criteria | stable |
 
 **Summary:** This domain contains 18 skills: 6 core workflow, 2 project workflow, 3 support, and 7 discovery/documentation.
+
+## Skill Handoff & Context Flow
+
+Data flows between skills through XML artifacts. Each skill reads from the previous skill's output and writes its own artifact for the next skill.
+
+```mermaid
+flowchart LR
+    D[discover] -->|opportunity| C[create]
+    C -->|task.xml| S[scope]
+    S -->|spec.xml| P[plan]
+    P -->|plan.xml| I[implement]
+    I -->|plan.xml updated| F[finalize]
+    F -->|status transition| CO[complete]
+```
+
+| From → To | Artifact | Key Data Carried Forward |
+|-----------|----------|--------------------------|
+| discover → create | Conversation context | Opportunity title, problem, value, evidence |
+| create → scope | `task.xml` | Problem, value, acceptance criteria, affects, engineering doc refs |
+| scope → plan | `spec.xml` | Functional requirements (FRs), affected files, patterns, risks, contracts (optional), boundaries (optional) |
+| plan → implement | `plan.xml` | Ordered tasks with context files, verification commands, contract-tests, done criteria |
+| implement → finalize | `plan.xml` (updated) | All tasks marked `completed="true"`, contract-verification results |
+| finalize → complete | `task.xml` (status updated) | Status = `awaiting-completion`, PR reference (directive-set) |
+
+### Key XML Elements
+
+| Element | Created By | Read By | Purpose |
+|---------|-----------|---------|---------|
+| `<acceptance-criteria>` | create | scope, finalize | Gherkin-format done criteria |
+| `<affects>` / `<engineering>` | create/scope | finalize | Doc IDs to update |
+| `<contracts>` | scope | plan, implement | Behavioral specifications (precondition, postcondition, invariant, property) |
+| `<contract-verification>` | implement | finalize | Pass/fail results with evidence |
+| `<boundaries>` | scope | implement | Always/ask-first/never rules for the implementation agent |
+| `project-id` / `project-requirements` | create | scope, finalize | Project context and requirement traceability |
 
 ## Key Concepts
 

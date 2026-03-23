@@ -10,7 +10,7 @@ boundary: "Does not include skill logic itself (see skills domain) or CLI utilit
 contains: [directives/system, directives/creation, directives/diagnostics]
 references: [skills/_index, cli/_index, vscode/_index]
 uses: []
-updated: 2026-03-17
+updated: 2026-03-23
 ---
 
 # Directives
@@ -65,6 +65,41 @@ This domain does NOT include the skill workflow logic. For that, see [skills](..
 - **Validation Checks**: Automated checks (commands, patterns, checklists) run per-task during implementation and during final directive compliance
 - **Overrides**: Directives can skip and replace skill steps entirely
 - **Skill Mapping**: Directives are linked to skills via `.festinalente/config.yaml`
+
+## Phase → Skill Reference
+
+When creating directive `<rule>` or `<override>` elements, use the `phase` attribute to target specific skills. The 18 valid phase names are:
+
+| Phase Name | Skill | Description |
+|------------|-------|-------------|
+| `create` | /festina-create | Task creation |
+| `scope` | /festina-scope | Spec research and creation |
+| `plan` | /festina-plan | Implementation planning |
+| `implement` | /festina-implement | Plan execution |
+| `save` | /festina-save | Progress persistence |
+| `finalize` | /festina-finalize | Validation and documentation |
+| `complete` | /festina-complete | Task closure |
+| `rework` | /festina-rework | Return to in-progress |
+| `delete` | /festina-delete | Task deletion |
+| `quick` | /festina-quick | Quick implementation |
+| `create-project` | /festina-create-project | Project creation |
+| `complete-project` | /festina-complete-project | Project closure |
+| `define-product` | /festina-define | Greenfield product definition |
+| `map-product` | /festina-map-product | Product doc discovery |
+| `map-engineering` | /festina-map-engineering | Engineering doc discovery |
+| `directive` | /festina-directive | Directive creation |
+| `check` | (validation only) | Used in validation check contexts |
+| `docs` | (documentation only) | Used in doc update contexts |
+
+A single rule can target multiple phases with a comma-separated list: `phase="plan,implement"`.
+
+**Example:**
+
+```xml
+<rule id="MY-RULE" phase="scope,plan">
+  Verify on feature branch before proceeding.
+</rule>
+```
 
 ## Relationships
 

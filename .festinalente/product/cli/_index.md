@@ -7,10 +7,10 @@ summary: "The CLI domain provides the festinalente.cjs script with commands for 
 keywords: [cli, commands, scripts, festinalente, node, utilities]
 aliases: [commands, scripts, festinalente-cli]
 boundary: "Does not include AI workflows (see skills domain) or GUI features (see vscode domain)"
-contains: [cli/tasks, cli/search, cli/validation, cli/context]
+contains: [cli/tasks, cli/search, cli/validation, cli/context, cli/projects, cli/docs]
 references: [skills/_index, vscode/_index]
 uses: [systems/cli, patterns/command-registry]
-updated: 2026-03-06
+updated: 2026-03-23
 ---
 
 # CLI
@@ -31,7 +31,9 @@ The CLI domain provides `node .festinalente/scripts/festinalente.cjs` - the core
 flowchart TB
     subgraph CLI
         tasks[Task Commands]
+        projects[Project Commands]
         search[Search Commands]
+        docs[Documentation Commands]
         validation[Validation Commands]
         context[Context Commands]
         utils[Utilities]
@@ -54,14 +56,16 @@ This domain does NOT include AI-assisted workflows. For that, see [skills](../sk
 | Group | Commands | Purpose |
 |-------|----------|---------|
 | Tasks | list-tasks, find-task, next-id, delete-task | Task CRUD operations |
+| Projects | next-project-id, find-project, list-projects, get-project-tasks, get-project-progress, get-project-siblings | Project CRUD and progress tracking |
 | Specs/Plans | find-spec, find-plan, get-plan-task | Spec and plan retrieval |
 | Quicks | find-quick, next-quick-id | Quick task operations |
-| Search | search-product, search-engineering, search-hybrid | Documentation discovery |
+| Docs | list-product, list-engineering, check-product, check-engineering | Documentation listing and existence checks |
+| Search | search-product, search-engineering, search-hybrid, reverse-lookup | Documentation discovery |
 | Validation | validate-xml, validate-yaml, validate-directive, validate-docs | Quality checks |
 | Context | select-context, expand-query | Smart context selection |
 | Config | get-skill-config, get-date-time | Configuration access |
 
-**Summary:** CLI provides ~20 commands across 7 functional groups.
+**Summary:** CLI provides ~30 commands across 9 functional groups.
 
 ## Key Concepts
 

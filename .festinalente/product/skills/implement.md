@@ -9,7 +9,7 @@ aliases: [festina-implement, execute, run]
 boundary: "Does not update documentation - that happens in finalize. Git operations are directive-driven."
 references: [skills/plan, skills/finalize, cli/context]
 uses: [systems/cli, systems/data-model]
-updated: 2026-03-22
+updated: 2026-03-23
 ---
 
 # Implement Task
@@ -148,7 +148,56 @@ Found 5 tasks, 2 completed, order: 3, 4, 5
 Resuming from task 3...
 ```
 
-**Summary:** Implementation can be resumed at any point.
+### Verification Failure
+
+```
+/festina-implement 003
+
+[2/4] Add input validation
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ Action complete
+✗ Verify: npm run build — FAILED
+  error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'
+
+How would you like to proceed?
+[Fix manually and continue] Pause for manual fix
+[Skip this task] Mark incomplete, move to next
+[Stop implementation] Halt entirely
+> Fix manually and continue
+
+Fixing type error in src/validators/input.ts...
+✓ Verify: npm run build — PASSED
+✓ Task 2 completed
+```
+
+### Contract Verification Failure
+
+```
+/festina-implement 004
+
+[3/5] Add session expiry logic
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ Action complete
+✓ Verify: npm run build — PASSED
+
+Contract verification:
+  C1 (Session Lifecycle):
+    ✓ precondition: Token must exist before refresh
+    ✗ postcondition: Expired sessions must return 401
+      Evidence: src/auth/session.ts:45 — returns 403 instead of 401
+    ✓ invariant: Active session count never exceeds max
+
+Contract C1 postcondition FAILED.
+[Fix now] Address the contract violation
+[Continue anyway] Accept and move on
+> Fix now
+
+Updating status code in src/auth/session.ts:45...
+✓ Contract C1: all elements PASS
+✓ Task 3 completed
+```
+
+**Summary:** Implementation can be resumed at any point. Failures offer fix/skip/stop options.
 
 ## Boundaries
 
