@@ -17,6 +17,10 @@ updated: 2026-03-23
 
 > **TL;DR:** Required frontmatter fields, quality thresholds, and relationship semantics for all docs
 
+## Overview
+
+Standardized YAML frontmatter schemas and quality validation for all product and engineering documentation.
+
 ## Rule
 
 Every product and engineering documentation file must include valid YAML frontmatter with required fields for its type. Documentation is validated at runtime by the [validation system](../systems/validation/_index.md) against 8 quality checks.

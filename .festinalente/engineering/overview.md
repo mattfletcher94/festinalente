@@ -17,6 +17,10 @@ updated: 2026-03-23
 
 > **TL;DR:** Spec-driven AI development framework with DAG architecture (orchestrators → capabilities → computers)
 
+## Overview
+
+TypeScript monorepo providing a spec-driven AI development framework with a CLI tool and VSCode extension, using file-based persistence and DAG architecture.
+
 ## Tech Stack
 
 | Category | Technology |

@@ -17,6 +17,10 @@ updated: 2026-03-05
 
 > **TL;DR:** All code is linted by oxlint using a shared root config; correctness rules are errors, imports must be sorted, unused vars prefixed with underscore.
 
+## Overview
+
+Oxlint provides fast, zero-config linting across the monorepo with correctness as errors and import ordering as warnings.
+
 ## Rule
 
 The repository uses **oxlint** as its sole linter, configured via a single `.oxlintrc.json` at the repository root. The following rules apply:

@@ -17,6 +17,10 @@ updated: 2026-03-23
 
 > **TL;DR:** Dependencies injected through create*() factory functions with Deps interface
 
+## Overview
+
+Factory functions accept a Deps interface for composition and testability without DI containers.
+
 ## Problem
 
 How do you compose layers in the DAG architecture while maintaining testability? Classes with `new` create tight coupling. Global imports make mocking difficult.

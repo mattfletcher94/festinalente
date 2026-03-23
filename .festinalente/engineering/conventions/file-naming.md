@@ -17,6 +17,10 @@ updated: 2026-03-01
 
 > **TL;DR:** kebab-case with functional suffix: name.capability.ts, name.computer.ts
 
+## Overview
+
+File naming convention using kebab-case with layer-indicating suffixes for predictable discovery.
+
 ## Rule
 
 All TypeScript files use **kebab-case** with a **functional suffix** indicating their architectural layer:

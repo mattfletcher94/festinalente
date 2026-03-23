@@ -17,6 +17,10 @@ updated: 2026-03-01
 
 > **TL;DR:** Return Result<T,E> from capabilities, CliResult<T> from handlers, never throw
 
+## Overview
+
+Consistent error handling using tagged union Result types across all CLI layers.
+
 ## Rule
 
 | Layer | Return Type | Error Helper |

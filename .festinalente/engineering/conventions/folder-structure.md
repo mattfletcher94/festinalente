@@ -17,6 +17,10 @@ updated: 2026-03-16
 
 > **TL;DR:** Domain-driven folders: capabilities/, computers/, handlers/, orchestrators/
 
+## Overview
+
+Folder organization by architectural layer to enforce DAG dependencies and enable discovery.
+
 ## Rule
 
 Organize source code by **architectural layer**, not by feature:

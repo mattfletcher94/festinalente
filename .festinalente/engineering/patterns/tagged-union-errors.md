@@ -17,6 +17,10 @@ updated: 2026-03-23
 
 > **TL;DR:** Result<T,E> discriminated unions with ok/error tags for type-safe error handling
 
+## Overview
+
+All operations return tagged unions instead of throwing, making failure modes visible in the type system.
+
 ## Problem
 
 Exceptions are invisible in TypeScript types. A function signature `parseTask(id: string): Task` doesn't indicate it can fail. Callers forget to handle errors, leading to runtime crashes.

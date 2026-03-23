@@ -17,6 +17,10 @@ updated: 2026-03-23
 
 > **TL;DR:** Central registry mapping command names to handler functions
 
+## Overview
+
+Commands self-register via `getCommands()`, enabling dynamic dispatch and auto-generated help.
+
 ## Problem
 
 CLI tools need to dispatch commands to appropriate handlers. Hard-coded switch statements become unwieldy. Adding new commands requires modifying the dispatcher.

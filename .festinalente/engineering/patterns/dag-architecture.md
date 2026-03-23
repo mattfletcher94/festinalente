@@ -17,6 +17,10 @@ updated: 2026-03-23
 
 > **TL;DR:** Acyclic dependency graph: orchestrators → capabilities → computers
 
+## Overview
+
+Organize code into a Directed Acyclic Graph with strict downward-only dependencies across 5 layers.
+
 ## Problem
 
 Complex applications tend to develop circular dependencies over time, making code hard to test, maintain, and reason about. When I/O operations are mixed with business logic, testing requires mocking entire subsystems.
