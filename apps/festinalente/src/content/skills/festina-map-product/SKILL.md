@@ -173,25 +173,11 @@ For each gap, provide:
 
   <step name="create_product_overview">
     <note>Based on synthesis, draft overview content:</note>
-    <action>Use AskUserQuestion tool with:
-      - header: "Product"
-      - question: "What is this product called?"
-      - options:
-        - label: "Use detected name", description: "Use name found in codebase analysis"
-        - label: "Skip for now", description: "I'll provide the name later"
-      - multiSelect: false
-    </action>
-    <note>User can select "Other" to type a custom product name</note>
+    <output>Detected product name: {detected name from codebase analysis}.</output>
+    <action>Use detected name. User can correct during Q&amp;A if needed.</action>
 
-    <action>Use AskUserQuestion tool with:
-      - header: "Purpose"
-      - question: "In one sentence, what does this product do?"
-      - options:
-        - label: "Generate", description: "Auto-generate based on codebase analysis"
-        - label: "Skip for now", description: "I'll provide this later"
-      - multiSelect: false
-    </action>
-    <note>User can select "Other" to type a custom description</note>
+    <output>Detected product purpose: {detected description from codebase analysis}.</output>
+    <action>Use detected description. User can correct during Q&amp;A if needed.</action>
 
     <action>Confirm target users based on what you found</action>
     <warning>IMMEDIATELY create overview.md:</warning>

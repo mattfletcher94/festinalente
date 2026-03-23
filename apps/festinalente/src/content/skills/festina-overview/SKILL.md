@@ -22,7 +22,7 @@ Show the current state of the board or specific tasks. Starts by asking what the
 </context>
 
 <prohibited>
-- Do not show data before asking what the user wants
+- Do not show data before determining the view
 - Do not suggest commands inappropriate for a task's current status
 - Do not make up information not found in task files
 </prohibited>
@@ -60,24 +60,21 @@ No tasks found.
     </branch>
   </step>
 
-  <step name="ask_what_to_show">
-    <action>Use AskUserQuestion tool with:
-      - header: "View"
-      - question: "What would you like to see?"
-      - options:
-        - label: "Current status", description: "In-progress tasks and what to do next"
-        - label: "Board overview", description: "All tasks grouped by column"
-        - label: "Visual board", description: "ASCII box view of the board"
-      - multiSelect: false
-    </action>
-    <note>User can select "Other" to type anything: a task ID, a query like "show bugs", etc.</note>
+  <step name="determine_view">
+    <branch condition="$ARGUMENTS provided">
+      <action>Parse $ARGUMENTS to determine view (e.g., "board", "visual", task ID, query)</action>
+    </branch>
+    <branch condition="$ARGUMENTS not provided">
+      <action>Set view = "current-status"</action>
+      <output>Showing current status (use arguments for other views: "board", "visual", or a task ID).</output>
+    </branch>
   </step>
 
   <!-- ============================================ -->
   <!-- CURRENT STATUS                              -->
   <!-- ============================================ -->
 
-  <step name="show_current_status" when="user selected 'Current status'">
+  <step name="show_current_status" when="view is 'current-status'">
     <action>Find tasks in active states: in-progress, finalize</action>
     <action>For in-progress tasks, read plan.xml and count progress</action>
 
@@ -126,7 +123,7 @@ No tasks in progress.
   <!-- BOARD OVERVIEW                              -->
   <!-- ============================================ -->
 
-  <step name="show_board_overview" when="user selected 'Board overview'">
+  <step name="show_board_overview" when="view is 'board-overview'">
     <action>Group tasks by status</action>
     <action>For in-progress tasks, read plan and count progress</action>
     <note>Order columns by workflow: in-progress, finalize, planned, scoped, backlog, done</note>
@@ -179,7 +176,7 @@ No tasks in progress.
   <!-- VISUAL BOARD                                -->
   <!-- ============================================ -->
 
-  <step name="show_visual_board" when="user selected 'Visual board'">
+  <step name="show_visual_board" when="view is 'visual-board'">
     <action>Group tasks by status</action>
 
     <note>Column order (workflow order):
@@ -231,7 +228,7 @@ Done ({count} tasks)
   <!-- OTHER (free text input)                     -->
   <!-- ============================================ -->
 
-  <step name="handle_other_input" when="user selected 'Other'">
+  <step name="handle_other_input" when="view is 'other'">
     <action>Parse user input to determine intent</action>
 
     <branch condition="input looks like a task ID (e.g. '007', '12', 'task 5')">
@@ -359,16 +356,15 @@ I didn't understand "{input}". You can:
 </process>
 
 <success_criteria>
-- User is asked what they want to see first
-- Only the requested view is shown
+- Defaults to current status when no arguments provided
+- Only the determined view is shown
 - Task details include next command suggestion
 - Free text input is handled flexibly
 - Appropriate next commands suggested based on board state
 </success_criteria>
 
-<example label="Current Status">
+<example label="Current Status (default)">
 User: `/festina-overview`
-> Current status
 
 ```
 ## Current Status
@@ -385,8 +381,7 @@ User: `/festina-overview`
 </example>
 
 <example label="Board Overview">
-User: `/festina-overview`
-> Board overview
+User: `/festina-overview board`
 
 ```
 ## Board Overview
@@ -413,8 +408,7 @@ User: `/festina-overview`
 </example>
 
 <example label="Visual Board">
-User: `/festina-overview`
-> Visual board
+User: `/festina-overview visual`
 
 ```
 ┌─ IN PROGRESS (1) ─────────────────────┐
@@ -438,8 +432,7 @@ Done (2 tasks)
 </example>
 
 <example label="Other - Task ID">
-User: `/festina-overview`
-> Other: 007
+User: `/festina-overview 007`
 
 ```
 ## Task 007: Add user authentication
@@ -461,8 +454,7 @@ User: `/festina-overview`
 </example>
 
 <example label="Other - Label Query">
-User: `/festina-overview`
-> Other: show bugs
+User: `/festina-overview show bugs`
 
 ```
 ## Tasks labeled "bug"
