@@ -14,6 +14,7 @@ import { createDocsHandler } from './handlers/docs.handler';
 import { createFileSystemCapability } from './capabilities/file-system.capability';
 import { createQueryHandler } from './handlers/query.handler';
 import { createQuickHandler } from './handlers/quick.handler';
+import { createGraphComputer } from './computers/graph.computer';
 import { createSearchComputer } from './computers/search.computer';
 import { createSearchHandler } from './handlers/search.handler';
 import { createSpecHandler } from './handlers/spec.handler';
@@ -44,6 +45,7 @@ export function createCliOrchestrator(): CliOrchestrator {
   const xmlParser = createXmlParserComputer();
   const yamlParser = createYamlParserComputer();
   const search = createSearchComputer();
+  const graphComputer = createGraphComputer();
   const taskResolver = createTaskResolverComputer();
   const validation = createValidationComputer();
 
@@ -51,7 +53,7 @@ export function createCliOrchestrator(): CliOrchestrator {
   const taskHandler = createTaskHandler({ fs, xmlParser, taskResolver });
   const specHandler = createSpecHandler({ fs, xmlParser, taskResolver });
   const quickHandler = createQuickHandler({ fs, xmlParser });
-  const searchHandler = createSearchHandler({ fs, yamlParser, search });
+  const searchHandler = createSearchHandler({ fs, yamlParser, search, graph: graphComputer });
   const docsHandler = createDocsHandler({ fs, yamlParser });
   const validationHandler = createValidationHandler({ fs, yamlParser, validation, taskResolver });
   const configHandler = createConfigHandler({ fs, yamlParser });

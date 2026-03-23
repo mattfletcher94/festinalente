@@ -105,6 +105,25 @@ For docs that already exist and need updating:
    - Re-verify with user
 ```
 
+### Relationship Maintenance
+
+When creating or updating any product doc, maintain bidirectional references/uses:
+
+```
+1. Review the doc's `references` and `uses` frontmatter fields
+2. For NEW docs: populate references/uses based on what the doc describes
+   - references: docs this one "builds upon" or depends on conceptually
+   - uses: systems/patterns this doc's feature is "implemented by"
+3. For UPDATED docs: review references/uses for accuracy
+   - If the doc now describes a new relationship, add it
+   - If a referenced doc no longer exists or is irrelevant, remove it
+4. Bidirectional check: for each reference A→B added:
+   - Read doc B's frontmatter
+   - If B doesn't already reference A and the relationship is semantically bidirectional, add A to B's references
+   - Write updated B back to disk
+5. Log all relationship changes: "Updated references: {doc} added {refs}"
+```
+
 ### Diagram Updates
 
 Update diagrams when:

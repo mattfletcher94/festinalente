@@ -75,12 +75,16 @@ export { createQuickHandler } from './handlers/quick.handler';
 
 export type {
   SearchHandler,
+  SearchHandlerDeps,
   DocSearchResult,
   SearchOutput,
-  HybridSearchResult,
-  HybridSearchOutput
+  RelatedDocPreview,
+  ReverseLookupOutput
 } from './handlers/search.handler';
 export { createSearchHandler } from './handlers/search.handler';
+
+export type { GraphComputer, GraphDoc, AdjacencyGraph, RelatedEdge } from './computers/graph.computer';
+export { createGraphComputer } from './computers/graph.computer';
 
 export type {
   DocsHandler,
