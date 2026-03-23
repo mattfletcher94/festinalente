@@ -44,29 +44,40 @@ All engineering docs share a base schema with type-specific values:
 
 ### Product Docs
 
-Product docs use a simpler schema:
+Product docs share most fields with engineering but have type-specific differences:
+
+**Feature docs** (`type: feature`):
 
 | Field | Required | Type | Description |
 |-------|:--------:|------|-------------|
 | `id` | Yes | string | Unique identifier: `{domain}/{slug}` |
 | `title` | Yes | string | Human-readable title |
-| `type` | Yes | enum | `feature`, `concept`, or `domain` |
+| `type` | Yes | enum | `feature` |
+| `tldr` | Yes | string | One-sentence summary (>10 chars, max ~100) |
 | `summary` | Yes | string | One sentence for LLM discovery (>50 chars) |
 | `keywords` | Recommended | string[] | Search terms (≥2) |
-| `related` | Optional | string[] | Related features |
+| `aliases` | Optional | string[] | Alternative names |
+| `boundary` | Recommended | string | What this feature does NOT cover |
+| `references` | Recommended | string[] | Other docs this relates to |
+| `uses` | Recommended | string[] | Systems/features that use this |
 | `updated` | Yes | date | `YYYY-MM-DD` format |
+
+**Domain docs** (`type: domain`):
+
+| Field | Required | Type | Description |
+|-------|:--------:|------|-------------|
+| `id` | Yes | string | `{domain}/_index` |
+| `type` | Yes | enum | `domain` |
+| `contains` | Recommended | string[] | Feature docs within this domain |
+| *(plus shared fields above)* | | | |
 
 ### Schema Differences
 
 | Field | Engineering | Product | Notes |
 |-------|:-----------:|:-------:|-------|
-| `tldr` | Yes | No | Engineering needs quick reference |
-| `boundary` | Yes | No | Engineering explicitly scopes |
-| `references` | Yes | No | Engineering cross-references |
-| `uses` | Yes | No | Engineering maps to implementations |
-| `paths` | Yes | No | Engineering maps to code |
-| `aliases` | Yes | No | Engineering has more synonyms |
-| `related` | No | Yes | Product links to sibling features |
+| `paths` | Yes | No | Engineering maps to code directories |
+| `contains` | No | Domain only | Domain docs list child features |
+| `type` values | system, pattern, convention, overview | feature, domain, concept, overview | Different taxonomies |
 
 ## Quality Check Thresholds
 

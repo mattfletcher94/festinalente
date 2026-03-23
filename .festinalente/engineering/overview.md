@@ -7,7 +7,7 @@ summary: "High-level technical overview of Festina Lente architecture, tech stac
 keywords: [architecture, tech-stack, overview, monorepo, typescript, vscode, dag, orchestrator]
 aliases: [engineering-overview, architecture-overview]
 boundary: "Does not cover implementation details - see systems/ and patterns/"
-references: [patterns/dag-architecture, patterns/factory-di, patterns/tagged-union-errors, patterns/command-registry, systems/cli, systems/vscode-extension, systems/content-build, systems/data-model, systems/distribution, systems/validation, conventions/file-naming, conventions/folder-structure, conventions/error-handling, conventions/documentation-format]
+references: [patterns/dag-architecture, patterns/factory-di, patterns/tagged-union-errors, patterns/command-registry, systems/cli, systems/vscode-extension, systems/content-build, systems/data-model, systems/distribution, systems/validation, conventions/file-naming, conventions/folder-structure, conventions/error-handling, conventions/documentation-format, conventions/oxlint]
 uses: []
 paths: [apps/festinalente, apps/vscode]
 updated: 2026-03-23
@@ -21,10 +21,10 @@ updated: 2026-03-23
 
 | Category | Technology |
 |----------|------------|
-| Language | TypeScript 5.7, Node.js 18+ |
+| Language | TypeScript 5.3+ (CLI) / 5.7+ (VSCode), Node.js 18+ |
 | Framework | VSCode Extension API 1.85+ |
 | Templating | Handlebars 4.7.8 |
-| Parsing | fast-xml-parser 5.3.6, js-yaml 4.1.1, zod 3.24 |
+| Parsing | fast-xml-parser 5.3.6 (CLI) / 4.5.1 (VSCode), js-yaml 4.1.1, zod 3.24 |
 | Search | fuse.js 7.1.0 (fuzzy search) |
 | Build | pnpm 9.15+, Turbo, esbuild, tsdown |
 | Database | None (file-based: XML, YAML, Markdown) |
@@ -174,3 +174,4 @@ What this overview does NOT cover:
 - [folder-structure](conventions/folder-structure.md) - Domain-driven capability/computer/handler folders
 - [error-handling](conventions/error-handling.md) - Tagged union Result types
 - [documentation-format](conventions/documentation-format.md) - Frontmatter schemas and quality thresholds
+- [oxlint](conventions/oxlint.md) - Fast linting with correctness errors and import ordering

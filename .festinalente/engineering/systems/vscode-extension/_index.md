@@ -3,14 +3,14 @@ id: "systems/vscode-extension"
 title: "VSCode Extension"
 type: system
 tldr: "IDE integration with tree views, file watchers, diagnostics, and terminal execution"
-summary: "Visual interface for task management with 6 domain orchestrators, TreeDataProviders, and directive diagnostics"
+summary: "Visual interface for task management with 7 domain orchestrators, TreeDataProviders, and directive diagnostics"
 keywords: [vscode, extension, treeview, orchestrator, terminal, codelens, diagnostics]
 aliases: [extension, ide-integration]
 boundary: "Does not execute commands directly - spawns CLI via terminal"
 references: [patterns/dag-architecture, patterns/factory-di, systems/cli, systems/data-model, systems/content-build]
 uses: []
 paths: [apps/vscode/src]
-updated: 2026-03-06
+updated: 2026-03-23
 ---
 
 # VSCode Extension
@@ -19,7 +19,7 @@ updated: 2026-03-06
 
 ## Overview
 
-The VSCode extension provides a visual interface for Festina Lente task management. It uses 6 domain orchestrators (tasks, quicks, docs, config, directives, terminal) that compose capabilities and computers following the DAG architecture.
+The VSCode extension provides a visual interface for Festina Lente task management. It uses 7 domain orchestrators (tasks, quicks, projects, docs, config, directives, terminal) that compose capabilities and computers following the DAG architecture.
 
 **Why it exists:** Developers need visual task management within their IDE. The extension provides tree views, CodeLens, directive diagnostics, and one-click command execution without leaving VSCode.
 
@@ -36,11 +36,13 @@ The VSCode extension provides a visual interface for Festina Lente task manageme
 | DocsOrchestrator | Product/engineering docs view | `orchestrators/docs.orchestrator.ts` |
 | ConfigOrchestrator | Config panel | `orchestrators/config.orchestrator.ts` |
 | DirectivesOrchestrator | Directives view + diagnostics | `orchestrators/directives.orchestrator.ts` |
+| ProjectsOrchestrator | Projects view | `orchestrators/projects.orchestrator.ts` |
 | TasksViewCapability | TreeDataProvider for tasks | `capabilities/tasks-view.capability.ts` |
 | QuicksViewCapability | TreeDataProvider for quick tasks | `capabilities/quicks-view.capability.ts` |
 | DocsViewCapability | TreeDataProvider for docs | `capabilities/docs-view.capability.ts` |
 | ConfigViewCapability | TreeDataProvider for config | `capabilities/config-view.capability.ts` |
 | DirectivesViewCapability | TreeDataProvider for directives | `capabilities/directives-view.capability.ts` |
+| ProjectsViewCapability | TreeDataProvider for projects | `capabilities/projects-view.capability.ts` |
 | FileSystemCapability | File I/O (VSCode API) | `capabilities/file-system.capability.ts` |
 | TerminalCapability | Terminal execution | `capabilities/terminal.capability.ts` |
 | CodeLensCapability | CodeLens for task.xml | `capabilities/codelens.capability.ts` |
@@ -55,8 +57,9 @@ The VSCode extension provides a visual interface for Festina Lente task manageme
 | DirectiveValidatorComputer | Validate directive XML, return errors with element context | `computers/directive-validator.computer.ts` |
 | DirectivesConfigComputer | Parse directives configuration | `computers/directives-config.computer.ts` |
 | ClaudeSettingsComputer | Parse Claude settings files | `computers/claude-settings.computer.ts` |
+| ProjectParserComputer | Parse project.xml files | `computers/project-parser.computer.ts` |
 
-**Summary:** 6 orchestrators, 11 capabilities, 8 computers.
+**Summary:** 7 orchestrators, 12 capabilities, 9 computers.
 
 ## Key Patterns
 
@@ -77,6 +80,7 @@ flowchart TB
         TERM["TerminalOrch"]
         TASKS["TasksOrch"]
         QUICKS["QuicksOrch"]
+        PROJS["ProjectsOrch"]
         DOCS["DocsOrch"]
         CONFIG["ConfigOrch"]
         DIRS["DirectivesOrch"]
@@ -86,6 +90,7 @@ flowchart TB
         FS["FileSystem"]
         TV["TasksView"]
         QV["QuicksView"]
+        PV["ProjectsView"]
         DOV["DocsView"]
         COV["ConfigView"]
         DIV["DirectivesView"]
@@ -101,6 +106,7 @@ flowchart TB
         TA["TaskActions"]
         TG["TaskGrouping"]
         QP["QuickParser"]
+        PRP["ProjectParser"]
         PP["PlanParser"]
         DV["DirectiveValidator"]
         DC["DirectivesConfig"]
@@ -116,6 +122,8 @@ flowchart TB
     TASKS --> PS
     QUICKS --> QV
     QUICKS --> QP
+    PROJS --> PV
+    PROJS --> PRP
     DOCS --> DOV
     CONFIG --> COV
     CONFIG --> CS

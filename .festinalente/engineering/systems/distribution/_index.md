@@ -29,8 +29,8 @@ Festina Lente distributes two packages via GitHub Package Registry: the CLI tool
 
 | Package | Type | Registry | Version |
 |---------|------|----------|---------|
-| `@mattfletcher94/festinalente` | CLI | npm.pkg.github.com | 1.0.1 |
-| `@mattfletcher94/festinalente-vscode` | VSCode Extension | npm.pkg.github.com | 0.1.1 |
+| `@mattfletcher94/festinalente` | CLI | npm.pkg.github.com | 1.0.2 |
+| `@mattfletcher94/festinalente-vscode` | VSCode Extension | npm.pkg.github.com | 1.0.2 |
 
 ## Build & Publish Flow
 
@@ -96,7 +96,7 @@ npx @mattfletcher94/festinalente init
 
 ```bash
 # Install from VSIX
-code --install-extension festinalente-vscode-0.1.1.vsix
+code --install-extension festinalente-vscode-1.0.2.vsix
 ```
 
 Or install from Marketplace (if published there).

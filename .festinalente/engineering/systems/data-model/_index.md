@@ -157,69 +157,117 @@ stateDiagram-v2
 ### spec.xml
 
 ```xml
-<spec id="001" status="draft" updated="2026-03-01">
+<spec task="{id}" created="YYYY-MM-DD" updated="YYYY-MM-DD">
+  <title>Task title</title>
+  <context>Problem and value context</context>
   <scope>
-    <in-scope>What's included</in-scope>
-    <out-of-scope>What's excluded</out-of-scope>
+    <in-scope><item>Scope item</item></in-scope>
+    <out-of-scope><item>Exclusion</item></out-of-scope>
   </scope>
-  <delta>What changes from current state</delta>
-  <boundaries>Hard constraints</boundaries>
-  <contracts>
-    <contract name="contract-name">
+  <delta>                           <!-- Optional: brownfield tasks -->
+    <current>What exists today</current>
+    <changing>What this task modifies</changing>
+    <unchanged>What stays the same</unchanged>
+  </delta>
+  <boundaries>                      <!-- Optional: autonomy boundaries -->
+    <always>Proceed without asking</always>
+    <ask-first>Needs user approval</ask-first>
+    <never>Hard stop</never>
+  </boundaries>
+  <contracts>                       <!-- Optional: behavioral contracts -->
+    <contract id="C1" requirement="FR1">
+      <name>Contract name</name>
       <precondition>What must be true before</precondition>
       <postcondition>What must be true after</postcondition>
-      <invariant>What must always remain true</invariant>
-      <property>Verifiable property</property>
+      <invariant>What must always be true</invariant>
+      <property>General verifiable property</property>
     </contract>
   </contracts>
   <requirements>
-    <functional>...</functional>
-    <non-functional>...</non-functional>
+    <requirement id="FR1">Requirement text</requirement>
   </requirements>
   <files>
-    <file path="src/foo.ts" action="create">Description</file>
+    <file action="create|modify|delete" path="src/foo.ts" reason="Why"/>
   </files>
-  <patterns>Patterns to use</patterns>
-  <research>Research findings</research>
-  <constraints>Technical constraints</constraints>
-  <dependencies>External dependencies</dependencies>
-  <risks>Risk assessment</risks>
-  <open-questions>Unresolved questions</open-questions>
+  <patterns>
+    <pattern name="name">
+      <description>Description</description>
+      <reference>file:line</reference>
+    </pattern>
+  </patterns>
+  <research>
+    <product><finding doc="doc-id">Insight</finding></product>
+    <engineering><finding doc="doc-id">Pattern reference</finding></engineering>
+    <codebase><finding component="name" path="path">Analysis</finding></codebase>
+    <pitfalls><pitfall issue="issue" mitigation="mitigation"/></pitfalls>
+  </research>
+  <constraints><constraint>Constraint</constraint></constraints>
+  <dependencies>
+    <dependency type="external|internal">Description</dependency>
+  </dependencies>
+  <risks>
+    <risk impact="high|medium|low" mitigation="mitigation">Description</risk>
+  </risks>
+  <open-questions><question>Unresolved item</question></open-questions>
 </spec>
 ```
 
-> **Contracts** (added in task 007): Define preconditions, postconditions, invariants, and verifiable properties for the implementation. These flow into plan.xml as contract verification tests.
+> **Contracts** (added in task 007): Define preconditions, postconditions, invariants, and verifiable properties for the implementation. Contract IDs link to requirement IDs and flow into plan.xml as contract verification tests.
 
 ### plan.xml
 
 ```xml
-<plan id="001" status="draft" updated="2026-03-01">
-  <files>
-    <file path="src/foo.ts" action="create">Description</file>
-    <file path="src/bar.ts" action="modify">Description</file>
-  </files>
+<plan task="{id}" spec="tasks/{id}/spec.xml" status="draft"
+      complexity="{complexity}" created="YYYY-MM-DD" updated="YYYY-MM-DD"
+      generated-by="claude" model="{model}" version="1" iteration="1">
+  <title>Task title</title>
+  <overview>High-level approach summary</overview>
+  <approach>
+    <rationale>Why this approach</rationale>
+    <breaking-changes>Any breaking changes</breaking-changes>
+  </approach>
+  <inventory>Files and components involved</inventory>
   <tasks>
-    <task id="1" title="Task title">
-      <steps>
-        <step>Step 1 description</step>
-        <step>Step 2 description</step>
-      </steps>
-      <contract-verification>
-        <result contract="contract-name" status="pass|fail">Verification notes</result>
+    <task id="1" type="auto" depends="optional-task-ids">
+      <name>Short descriptive name</name>
+      <files>path/to/file.ts (create|modify)</files>
+      <requirements>FR1, FR2</requirements>
+      <pattern>Pattern to follow or file path reference</pattern>
+      <context>
+        <file>path/to/existing/file.ts</file>
+      </context>
+      <action>Detailed implementation instructions</action>
+      <verify>Verification command</verify>
+      <done>Completion criteria</done>
+      <!-- Optional: added by /festina-implement when contracts exist -->
+      <contract-verification verified-at="ISO-timestamp">
+        <result contract="C1" status="pass|fail">
+          <evidence>file:line reference</evidence>
+          <details>
+            <precondition status="pass|fail">Explanation</precondition>
+            <postcondition status="pass|fail">Explanation</postcondition>
+            <invariant status="pass|fail">Explanation</invariant>
+          </details>
+        </result>
       </contract-verification>
     </task>
   </tasks>
   <testing>
-    <contract-test contract="contract-name">
-      <test type="precondition">Test description</test>
-      <test type="postcondition">Test description</test>
-      <test type="invariant">Test description</test>
+    <automated>Automated test plan</automated>
+    <manual>Manual test steps</manual>
+    <regression>Regression considerations</regression>
+    <!-- Optional: derived from behavioral contracts -->
+    <contract-test contract="C1">
+      <positive>Input → expected output for valid case</positive>
+      <negative>Input → expected behavior for invalid case</negative>
+      <property>Property-based test description</property>
     </contract-test>
   </testing>
-  <verify>
-    <check>Verification step 1</check>
-    <check>Verification step 2</check>
-  </verify>
+  <edge-cases>Edge cases to handle</edge-cases>
+  <pitfalls>Implementation pitfalls</pitfalls>
+  <iterations>Iteration tracking</iterations>
+  <wip>Work in progress notes</wip>
+  <completeness>Completeness tracking</completeness>
 </plan>
 ```
 
@@ -229,18 +277,27 @@ stateDiagram-v2
 
 ```yaml
 directives:
-  festina-create: [git, design]
-  festina-scope: [git, coding, design]
-  festina-plan: [git, planning, coding]
-  festina-implement: [git, coding]
-  festina-save: [git]
-  festina-finalize: [git, coding]
-  festina-quick: [git, design, coding]
+  festina-create: [github, design]
+  festina-scope: [github, coding, design]
+  festina-plan: [github, coding]
+  festina-implement: [github, coding]
+  festina-save: [github]
+  festina-finalize: [github, coding]
+  festina-complete: [github, coding]
+  festina-rework: [github, coding]
+  festina-delete: [github]
+  festina-quick: [github, design, coding]
   festina-explore: []
   festina-overview: []
+  festina-directive: [github]
+  festina-map-product: [github]
+  festina-map-engineering: [github]
+  festina-create-project: [github]
+  festina-complete-project: [github]
+  festina-define: [github]
 ```
 
-> **Note:** The `git` directive is auto-bundled but user-configurable. Skills are git-agnostic — all git operations (branching, committing, merging) are handled by the `git.xml` directive. Users can remove `git` from any skill's directive list to disable git operations, or replace with `github` for full GitHub integration (Issues, PRs, team review workflow).
+> **Note:** Directives are user-configurable per skill. Skills are git-agnostic — all git operations (branching, committing, merging) are handled by the configured directive (e.g., `github.xml` for full GitHub integration with Issues, PRs, and team review workflow). The `git` directive is available as a simpler alternative.
 
 ### workflow.yaml (Immutable)
 
