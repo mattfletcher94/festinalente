@@ -9,7 +9,8 @@ aliases: [validate, validation-commands]
 boundary: "Does not auto-fix issues - only reports them"
 references: []
 uses: [systems/cli, systems/vscode-extension]
-updated: 2026-03-06
+intent: reference
+prerequisites: []
 ---
 
 # Validation Commands
@@ -42,6 +43,7 @@ Validation commands verify file structure and quality. They report issues but do
 - Required frontmatter fields
 - Summary sections present
 - Boundary field populated
+- Intent field validation (9 checks total, including `has-intent` warning)
 
 ## VSCode Directive Diagnostics
 

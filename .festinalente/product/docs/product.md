@@ -3,13 +3,14 @@ id: docs/product
 title: "Product Documentation"
 type: feature
 tldr: "User-facing feature documentation with YAML frontmatter and quality validation"
-summary: "Product docs describe features from the user perspective, organized by domain with consistent frontmatter for search discovery, relationship tracking, and context selection. Quality is enforced by 8 automated checks."
+summary: "Product docs describe features from the user perspective, organized by domain with consistent frontmatter for search discovery, relationship tracking, and context selection. Quality is enforced by 9 automated checks."
 keywords: [product, features, domains, frontmatter, user-facing, quality, validation, references, uses]
 aliases: [product-docs, feature-docs]
 boundary: "Does not cover technical implementation - see engineering docs"
 references: [docs/engineering, cli/validation, cli/docs]
 uses: [systems/data-model]
-updated: 2026-03-23
+intent: reference
+prerequisites: []
 ---
 
 # Product Documentation
@@ -50,7 +51,6 @@ All doc types share the same validation — there are no type-specific required 
 | `tldr` | string | **has-tldr** (ERROR) | Must be >10 characters |
 | `summary` | string | **has-summary** (ERROR) | Must be >50 characters |
 | `keywords` | string[] | **has-keywords** (WARN) | Must have ≥2 items |
-| `updated` | string | — | Date in YYYY-MM-DD format |
 
 ### Optional Fields
 
@@ -62,6 +62,8 @@ All doc types share the same validation — there are no type-specific required 
 | `uses` | string[] | Doc IDs this doc depends on or consumes data from |
 | `contains` | string[] | Doc IDs contained within this domain (domain type only) |
 | `domain` | string | Auto-derived from folder path, not set manually |
+| `intent` | enum | Doc purpose: `reference` (schemas, APIs, lookups), `procedural` (workflows, how-tos), `conceptual` (explanations, rationale) |
+| `prerequisites` | string[] | Doc IDs that must be read first for this doc to make sense (subset of references) |
 
 ### Relationship Fields: `references` vs `uses`
 
@@ -78,7 +80,7 @@ Both are validated by `validate-docs` — broken references (pointing to non-exi
 
 ## Quality Checks
 
-The `validate-docs` command runs 8 quality checks on every product doc. Checks with ERROR severity block validation; WARN severity is advisory.
+The `validate-docs` command runs 9 quality checks on every product doc. Checks with ERROR severity block validation; WARN severity is advisory.
 
 | Check ID | Severity | What It Checks | Threshold |
 |----------|----------|----------------|-----------|
@@ -90,6 +92,7 @@ The `validate-docs` command runs 8 quality checks on every product doc. Checks w
 | **has-boundaries** | WARN | `boundary` frontmatter exists, OR body has `## Boundaries`, OR body contains "Does NOT" | Any one of three |
 | **not-too-short** | WARN | Body has sufficient detail | >300 characters |
 | **not-too-long** | WARN | Body is focused enough to be useful | <5000 characters |
+| **has-intent** | WARN | `intent` frontmatter is a valid enum value | `reference`, `procedural`, or `conceptual` |
 
 ### Running Validation
 
@@ -120,7 +123,8 @@ keywords: [auth, login, jwt, authentication]
 boundary: "Does not cover registration or password reset"
 references: [auth/registration]
 uses: [systems/auth]
-updated: 2026-03-23
+intent: procedural
+prerequisites: []
 ---
 ```
 
@@ -136,7 +140,8 @@ summary: "The auth domain handles user registration, login, session management, 
 keywords: [auth, login, sessions, access-control]
 boundary: "Does not cover authorization roles (see permissions domain)"
 contains: [auth/login, auth/registration, auth/sessions]
-updated: 2026-03-23
+intent: reference
+prerequisites: []
 ---
 ```
 

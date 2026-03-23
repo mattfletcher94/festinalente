@@ -10,7 +10,8 @@ boundary: "Does not include task files (see tasks in skills) or glossary managem
 contains: [docs/product, docs/engineering, docs/search, docs/context-selection]
 references: [cli/_index, skills/_index]
 uses: [systems/data-model]
-updated: 2026-03-01
+intent: reference
+prerequisites: []
 ---
 
 # Documentation System
@@ -65,7 +66,7 @@ This domain does NOT include task management. For that, see [skills](../skills/_
 - **Frontmatter**: YAML header with id, title, tldr, summary, keywords, boundary, related
 - **Boundary Field**: Documents what a doc does NOT cover to reduce false search matches
 - **Hybrid Search**: Exact keyword (0.3 weight) + fuzzy title/body (configurable) - boundary penalty (0.15)
-- **Context Tiers**: minimal (~50 tokens), standard (~200 tokens), full (~500-1000 tokens)
+- **Context Tiers**: Three progressive disclosure levels — minimal (frontmatter only), standard (frontmatter + TL;DR + Overview), full (complete document). See [documentation-format convention](../../engineering/conventions/documentation-format.md) for formal definitions.
 
 ## Frontmatter Example
 
@@ -80,7 +81,8 @@ keywords: [auth, login, jwt, authentication]
 boundary: "Does not cover registration or password reset"
 references: []
 uses: []
-updated: 2026-03-01
+intent: procedural
+prerequisites: []
 ---
 ```
 
