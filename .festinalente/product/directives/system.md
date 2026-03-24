@@ -54,6 +54,8 @@ flowchart LR
 
 ### Directive XML Structure
 
+The directive XML has five optional sections: `<context>`, `<process>`, `<verification>`, `<validation>`, and `<examples>`. The `<verification>` section provides commands for task step verification during planning and implementation — distinct from `<validation>` compliance checks. The `<validation>` section supports three check types: command (run a shell command), pattern (enforce absence of forbidden patterns in source files), and checklist (manual self-assessment items).
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <directive name="coding" version="1"
@@ -72,6 +74,10 @@ flowchart LR
     </rule>
   </process>
 
+  <verification>
+    <command id="build" description="Build the project">npm run build</command>
+  </verification>
+
   <validation>
     <check id="V1" type="command" severity="error">
       <run>pnpm build</run>
@@ -80,6 +86,9 @@ flowchart LR
     <check id="V2" type="pattern" severity="error" files="**/*.ts">
       <forbidden>: any\b</forbidden>
       <reason>Use unknown and narrow</reason>
+    </check>
+    <check id="V3" type="checklist" severity="warning">
+      <item>Verify item description</item>
     </check>
   </validation>
 
@@ -134,6 +143,13 @@ What this feature does NOT do:
 - **Does NOT:** Define the skill process (only modifies it)
 - **Does NOT:** Run automatically without being mapped in config.yaml
 - **Does NOT:** Override other directives (they compose additively)
+
+### Composition Semantics
+
+- Directives compose additively — all rules from all loaded directives apply, none override each other
+- Directives are loaded in `config.yaml` array order
+- Multiple directives can define rules for the same phase (all apply)
+- Avoid mapping two directives that both use `<override>` for the same phase (conflicting step replacements)
 
 ## Configuration
 

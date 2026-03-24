@@ -68,28 +68,27 @@ This domain does NOT include the skill workflow logic. For that, see [skills](..
 
 ## Phase → Skill Reference
 
-When creating directive `<rule>` or `<override>` elements, use the `phase` attribute to target specific skills. The 18 valid phase names are:
+When creating directive `<rule>` or `<override>` elements, use the `phase` attribute to target specific skills. The 17 valid phase names are:
 
 | Phase Name | Skill | Description |
 |------------|-------|-------------|
-| `create` | /festina-create | Task creation |
-| `scope` | /festina-scope | Spec research and creation |
-| `plan` | /festina-plan | Implementation planning |
-| `implement` | /festina-implement | Plan execution |
-| `save` | /festina-save | Progress persistence |
-| `finalize` | /festina-finalize | Validation and documentation |
-| `complete` | /festina-complete | Task closure |
-| `rework` | /festina-rework | Return to in-progress |
-| `delete` | /festina-delete | Task deletion |
-| `quick` | /festina-quick | Quick implementation |
-| `create-project` | /festina-create-project | Project creation |
-| `complete-project` | /festina-complete-project | Project closure |
-| `define-product` | /festina-define | Greenfield product definition |
-| `map-product` | /festina-map-product | Product doc discovery |
-| `map-engineering` | /festina-map-engineering | Engineering doc discovery |
-| `directive` | /festina-directive | Directive creation |
 | `check` | (validation only) | Used in validation check contexts |
-| `docs` | (documentation only) | Used in doc update contexts |
+| `complete` | /festina-complete | Task closure |
+| `complete-project` | /festina-complete-project | Project closure |
+| `create` | /festina-create | Task creation |
+| `create-project` | /festina-create-project | Project creation |
+| `define` | /festina-define | Greenfield product definition |
+| `delete` | /festina-delete | Task deletion |
+| `directive` | /festina-directive | Directive creation |
+| `finalize` | /festina-finalize | Validation and documentation |
+| `implement` | /festina-implement | Plan execution |
+| `map-engineering` | /festina-map-engineering | Engineering doc discovery |
+| `map-product` | /festina-map-product | Product doc discovery |
+| `plan` | /festina-plan | Implementation planning |
+| `quick` | /festina-quick | Quick implementation |
+| `rework` | /festina-rework | Return to in-progress |
+| `save` | /festina-save | Progress persistence |
+| `scope` | /festina-scope | Spec research and creation |
 
 A single rule can target multiple phases with a comma-separated list: `phase="plan,implement"`.
 

@@ -50,7 +50,7 @@ This system follows these patterns from `patterns/`:
 ```mermaid
 flowchart TB
     subgraph ValidationComputer["validation.computer.ts (548 lines)"]
-        PHASES["VALID_PHASES<br/>18 phase tags"]
+        PHASES["VALID_PHASES<br/>17 phase tags"]
         QUALITY["DOC_QUALITY_CHECKS<br/>9 checks with thresholds"]
         DSCHEMA["Directive Schema<br/>context/process/validation"]
         PSCHEMA["Project Schema<br/>requirements/tasks/scope"]
@@ -81,28 +81,27 @@ flowchart TB
 
 ## Valid Phases
 
-18 directive phases defined in `validation.computer.ts:21–40`:
+17 directive phases defined in `validation.computer.ts:22–40`:
 
 | Phase | Category | Purpose |
 |-------|----------|---------|
-| `scope` | Planning | Define problem boundaries |
-| `plan` | Planning | Create technical plan |
-| `implement` | Execution | Write code/changes |
 | `check` | Validation | Verify implementation |
-| `rework` | Iteration | Refine based on check results |
-| `docs` | Documentation | Write documentation |
-| `create` | Artifact | Create files/resources |
-| `merge` | VCS | Merge changes |
-| `save` | Persistence | Persist state |
-| `finalize` | Completion | Final cleanup/verification |
-| `delete` | Cleanup | Remove artifacts |
-| `quick` | Quick Tasks | Quick task execution |
-| `define-product` | Product Ops | Product definition |
-| `map-product` | Product Ops | Product mapping |
-| `map-engineering` | Engineering | Engineering mapping |
-| `directive` | Meta | Directive-specific logic |
-| `create-project` | Project Ops | Project creation |
+| `complete` | Completion | Complete a task (merge PR) |
 | `complete-project` | Project Ops | Project completion |
+| `create` | Artifact | Create files/resources |
+| `create-project` | Project Ops | Project creation |
+| `define` | Product Ops | Product/engineering definition |
+| `delete` | Cleanup | Remove artifacts |
+| `directive` | Meta | Directive-specific logic |
+| `finalize` | Completion | Final cleanup/verification |
+| `implement` | Execution | Write code/changes |
+| `map-engineering` | Engineering | Engineering mapping |
+| `map-product` | Product Ops | Product mapping |
+| `plan` | Planning | Create technical plan |
+| `quick` | Quick Tasks | Quick task execution |
+| `rework` | Iteration | Refine based on check results |
+| `save` | Persistence | Persist state |
+| `scope` | Planning | Define problem boundaries |
 
 Phases are **tags, not a state machine**. Directive rules can reference multiple phases via comma separation (e.g., `phase="plan,implement"`).
 
@@ -178,7 +177,7 @@ Phases are **tags, not a state machine**. Directive rules can reference multiple
 | Check Type | Required Children | Notes |
 |------------|-------------------|-------|
 | `command` | `<run>`, `<expect>` | Command to execute + expected result |
-| `pattern` | `<forbidden>` or `<required>`, `<reason>` | Regex pattern matching; `files` attribute recommended |
+| `pattern` | `<forbidden>`, `<reason>` | Regex pattern matching for forbidden patterns; `files` attribute recommended |
 | `checklist` | `<item>` (1+) | Self-assessment items |
 
 ### Cross-Cutting Rules
@@ -326,5 +325,6 @@ What this system does NOT handle:
 ### Adding a new Phase
 
 **Checklist:**
-- [ ] Add phase string to `VALID_PHASES` array in `validation.computer.ts:21–40`
+- [ ] Add phase string to `VALID_PHASES` array in `validation.computer.ts:22–40`
+- [ ] Add the same phase to `VALID_PHASES` in `apps/vscode/src/computers/directive-validator.computer.ts` (keep in sync)
 - [ ] Existing directives can immediately reference the new phase in `<rule phase="...">`

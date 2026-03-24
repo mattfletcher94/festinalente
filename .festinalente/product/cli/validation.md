@@ -57,7 +57,7 @@ The VSCode extension validates directive XML files in real-time as you edit, sur
 - **Name/filename mismatch** — The `name` attribute must match the filename
 - **Date format** — `created` and `updated` must use `YYYY-MM-DD` format
 - **Rule elements** — Each `<rule>` requires `id` and `phase` attributes
-- **Phase values** — Unknown phase names produce warnings (valid: scope, plan, implement, check, rework, docs, create, merge, save, finalize, delete, quick, define-product, map-product, map-engineering, directive)
+- **Phase values** — Unknown phase names produce warnings (valid: check, complete, complete-project, create, create-project, define, delete, directive, finalize, implement, map-engineering, map-product, plan, quick, rework, save, scope)
 - **Check elements** — Each `<check>` requires `id`, `type`, and `severity` attributes, plus type-specific child elements
 - **Duplicate IDs** — All `id` attributes across principles, rules, and checks must be unique
 
