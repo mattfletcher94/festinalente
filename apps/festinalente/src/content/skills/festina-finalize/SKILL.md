@@ -163,7 +163,7 @@ for each directive in checkDirectives:
             issues = command error output
 
     else if directive contains type="pattern":
-        Scan files matching glob for forbidden/required patterns
+        Scan files matching glob for forbidden patterns
         if no violations:
             Print "PASS: {directive name}"
             continue to next directive

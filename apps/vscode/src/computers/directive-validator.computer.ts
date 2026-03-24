@@ -7,24 +7,26 @@ import { XMLParser } from 'fast-xml-parser';
 
 /**
  * Valid phases for directive rules.
+ * Keep in sync with apps/festinalente/src/cli/computers/validation.computer.ts
  */
 const VALID_PHASES = [
-  'scope',
-  'plan',
-  'implement',
   'check',
-  'rework',
-  'docs',
+  'complete',
+  'complete-project',
   'create',
-  'merge',
-  'save',
-  'finalize',
+  'create-project',
+  'define',
   'delete',
-  'quick',
-  'define-product',
-  'map-product',
+  'directive',
+  'finalize',
+  'implement',
   'map-engineering',
-  'directive'
+  'map-product',
+  'plan',
+  'quick',
+  'rework',
+  'save',
+  'scope'
 ] as const;
 
 /**
@@ -261,9 +263,17 @@ export function createDirectiveValidatorComputer(): CreateDirectiveValidatorComp
               );
             }
           } else if (type === 'pattern') {
-            if (!check['forbidden'] && !check['required']) {
+            if (check['required']) {
               addError(
-                `Pattern check <check id="${checkId_ ?? ''}"> needs <forbidden> or <required> element`,
+                `Pattern check <check id="${checkId_ ?? ''}"> contains <required> element — pattern checks only support <forbidden>`,
+                'error',
+                'check',
+                checkId_
+              );
+            }
+            if (!check['forbidden']) {
+              addError(
+                `Pattern check <check id="${checkId_ ?? ''}"> missing <forbidden> element`,
                 'error',
                 'check',
                 checkId_

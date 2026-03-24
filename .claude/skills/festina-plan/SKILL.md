@@ -253,9 +253,10 @@ Run: /festina-scope {taskId}
       <action>Read the directive XML file at `path`</action>
       <action>Parse and apply:</action>
       <action>- `<context>` principles: Maintain as ongoing mindset</action>
-      <action>- `<process>` rules where phase contains "plan" (phase may be comma-separated, e.g. phase="plan,implement" applies to both): Follow as requirements</action>
-      <action>- `<override>` sections where phase="plan": Apply step replacements</action>
-      <action>- `<verification>` commands: Note for use in task `<verify>` elements</action>
+      <note>The `keywords` attribute on context principles is metadata for LLM relevance — use keywords to recognize when a principle applies to the current work.</note>
+      <action>- `<process>` rules where the phase attribute, split on comma and trimmed, includes "plan" as an exact element (e.g. phase="plan,implement" matches "plan" and "implement" but NOT "plan-review"): Follow as requirements</action>
+      <action>- `<override>` sections where the phase attribute, split on comma and trimmed, includes "plan" as an exact element: Apply step replacements</action>
+      <action>- `<verification>` commands: Used by festina-plan to populate task &lt;verify&gt; elements and festina-implement to run step checks. Other skills can ignore this section.</action>
     
       <branch condition="directive has <override> section for phase=plan">
         <output>
@@ -276,6 +277,7 @@ Run: /festina-scope {taskId}
       </branch>
       <note>`<validation>` checks will run in directive_compliance step</note>
       <note>`<examples>` will be shown if violations are found</note>
+      <note>Directives are loaded in config.yaml array order. All matching phase rules from all loaded directives apply additively. Avoid mapping two directives that both override the same phase.</note>
     </branch>
     
     <example_code lang="json">
@@ -617,7 +619,7 @@ Run: /festina-scope {taskId}
       <note>Assess plan content against loaded directive principles and process rules (phase="plan")</note>
       <branch condition="directives were loaded in load_directives step">
         <action>For each loaded directive:</action>
-        <action>Extract context principles and process rules where phase contains "plan"</action>
+        <action>Extract context principles and process rules where the phase attribute, split on comma and trimmed, includes "plan" as an exact element</action>
         <action>For each principle/rule, self-assess whether the plan's approach rationale, task actions, and pattern references account for it:</action>
         <action>- Does the plan's approach acknowledge this principle where relevant?</action>
         <action>- Do task actions avoid contradicting this principle?</action>
@@ -669,7 +671,7 @@ Run: /festina-scope {taskId}
   
     <branch condition="check type=pattern">
       <action>For each file matching `files` glob that was modified:</action>
-      <action>Check content against `<forbidden>` or `<required>` regex</action>
+      <action>Check content against `<forbidden>` regex</action>
     </branch>
   
     <branch condition="check type=checklist">

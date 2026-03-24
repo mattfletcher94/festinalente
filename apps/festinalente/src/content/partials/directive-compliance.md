@@ -13,7 +13,7 @@
 
   <branch condition="check type=pattern">
     <action>For each file matching `files` glob that was modified:</action>
-    <action>Check content against `<forbidden>` or `<required>` regex</action>
+    <action>Check content against `<forbidden>` regex</action>
   </branch>
 
   <branch condition="check type=checklist">

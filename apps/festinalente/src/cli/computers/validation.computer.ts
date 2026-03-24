@@ -17,26 +17,26 @@ export interface ValidationResult {
 
 /**
  * Directive validation phases.
+ * Keep in sync with apps/vscode/src/computers/directive-validator.computer.ts
  */
 const VALID_PHASES = [
-  'scope',
-  'plan',
-  'implement',
   'check',
-  'rework',
-  'docs',
+  'complete',
+  'complete-project',
   'create',
-  'merge',
-  'save',
-  'finalize',
-  'delete',
-  'quick',
-  'define-product',
-  'map-product',
-  'map-engineering',
-  'directive',
   'create-project',
-  'complete-project'
+  'define',
+  'delete',
+  'directive',
+  'finalize',
+  'implement',
+  'map-engineering',
+  'map-product',
+  'plan',
+  'quick',
+  'rework',
+  'save',
+  'scope'
 ];
 
 /**
@@ -350,8 +350,11 @@ export function createValidationComputer(): ValidationComputer {
             if (!check.run) errors.push(`Command check <check id="${check.id}"> missing <run> element`);
             if (!check.expect) errors.push(`Command check <check id="${check.id}"> missing <expect> element`);
           } else if (type === 'pattern') {
-            if (!check.forbidden && !check.required) {
-              errors.push(`Pattern check <check id="${check.id}"> needs <forbidden> or <required> element`);
+            if (check.required) {
+              errors.push(`Pattern check <check id="${check.id}"> contains <required> element — pattern checks only support <forbidden>`);
+            }
+            if (!check.forbidden) {
+              errors.push(`Pattern check <check id="${check.id}"> missing <forbidden> element`);
             }
             if (!check.reason) errors.push(`Pattern check <check id="${check.id}"> missing <reason> element`);
             if (!check.files) {

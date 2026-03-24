@@ -253,7 +253,7 @@ Create a new directive through conversational Q&A. Captures context principles, 
     <branch condition="type is Pattern">
       <action>Use AskUserQuestion tool with:
         - header: "Pattern"
-        - question: "What pattern should be forbidden or required?"
+        - question: "What pattern should be forbidden?"
         - options:
           - label: "Skip", description: "Move to next question"
         - multiSelect: false
@@ -273,7 +273,7 @@ Create a new directive through conversational Q&A. Captures context principles, 
 
       <action>Use AskUserQuestion tool with:
         - header: "Reason"
-        - question: "Why is this pattern forbidden/required?"
+        - question: "Why is this pattern forbidden?"
         - options:
           - label: "Skip", description: "Move to next question"
         - multiSelect: false

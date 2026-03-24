@@ -256,7 +256,7 @@ Move task from Planned to In Progress and execute the plan.
 
         <branch condition="check type=pattern">
           <action>For each file in THIS TASK's files list that matches the check's files glob:</action>
-          <action>Check content against forbidden or required regex</action>
+          <action>Check content against forbidden regex</action>
         </branch>
 
         <branch condition="check type=checklist">

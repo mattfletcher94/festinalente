@@ -43,10 +43,9 @@ Example directive:
 
 ```
 1. Extract <glob> pattern to match files
-2. Extract <forbidden> and/or <required> patterns
+2. Extract <forbidden> pattern
 3. Scan matching files:
    - For <forbidden>: Fail if pattern found
-   - For <required>: Fail if pattern NOT found
 4. If no violations: PASS
 5. If violations: FAIL (list file:line for each violation)
 ```

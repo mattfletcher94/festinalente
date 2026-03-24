@@ -24,7 +24,7 @@
   </context>
 
   <!-- PROCESS: Phase-specific rules -->
-  <!-- Valid phases: scope, plan, implement, check, rework, docs -->
+  <!-- Valid phases: check, complete, complete-project, create, create-project, define, delete, directive, finalize, implement, map-engineering, map-product, plan, quick, rework, save, scope -->
   <process>
     <rule id="P1" phase="implement">
       Rule text - what to do during this phase

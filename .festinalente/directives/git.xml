@@ -150,7 +150,7 @@
          Rules kept for documentation and future compatibility.
          ═══════════════════════════════════════════════════════════ -->
 
-    <rule id="G-DEFPROD" phase="define-product">
+    <rule id="G-DEFPROD" phase="define">
       After creating product documentation files, stage and commit:
       - git add .festinalente/product/
       - git commit -m "docs: define-product - {brief product description}"

@@ -510,7 +510,7 @@ Run: /festina-scope {taskId}
       <note>Assess plan content against loaded directive principles and process rules (phase="plan")</note>
       <branch condition="directives were loaded in load_directives step">
         <action>For each loaded directive:</action>
-        <action>Extract context principles and process rules where phase contains "plan"</action>
+        <action>Extract context principles and process rules where the phase attribute, split on comma and trimmed, includes "plan" as an exact element</action>
         <action>For each principle/rule, self-assess whether the plan's approach rationale, task actions, and pattern references account for it:</action>
         <action>- Does the plan's approach acknowledge this principle where relevant?</action>
         <action>- Do task actions avoid contradicting this principle?</action>
