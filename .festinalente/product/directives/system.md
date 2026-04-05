@@ -110,12 +110,23 @@ Directives are linked to skills in `.festinalente/config.yaml`:
 
 ```yaml
 directives:
-  festina-scope: [coding]
-  festina-plan: [coding]
-  festina-implement: [coding, git]
-  festina-finalize: [coding, git, github]
-  festina-map-product: [github]
-  festina-map-engineering: [github]
+  festina-create: [git, design]
+  festina-scope: [git, coding, design]
+  festina-plan: [git, coding]
+  festina-implement: [git, coding]
+  festina-save: [git]
+  festina-finalize: [git, coding]
+  festina-complete: [git, coding]
+  festina-rework: [git, coding]
+  festina-delete: [git]
+  festina-quick: [git, design, coding]
+  festina-discover: []
+  festina-overview: []
+  festina-directive: [git]
+  festina-map-product: [git]
+  festina-map-engineering: [git]
+  festina-create-project: [git]
+  festina-complete-project: [git]
 ```
 
 ### Phase Matching

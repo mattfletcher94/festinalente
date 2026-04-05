@@ -207,11 +207,10 @@ Product Docs: Will UPDATE auth/login
 ✓ Product Docs Agent completed
 
 PHASE 3: TRANSITION
-Committed: feat(#42): improve login error messages
-PR #43 created
+Committed: feat(#005): Improve login error messages
 Task 005 moved to Awaiting Completion
 
-Next: /festina-complete 005 (after PR approval)
+Next: /festina-complete 005
 ```
 
 ### 7. Complete the task
@@ -219,12 +218,12 @@ Next: /festina-complete 005 (after PR approval)
 ```
 /festina-complete 005
 
-PR #43: approved, mergeable
-Merge now? > Yes
+Task: 005 - Improve login error messages
+Status: awaiting-completion
 
-Squash merged via GitHub
-Issue #42 auto-closed
-Local branch cleaned up
+Updating task status...
+- status: awaiting-completion -> done
+- completed: 2026-04-05
 
 Task 005 done! ✓
 ```
@@ -240,7 +239,7 @@ What's the problem? > "Conifguration" should be "Configuration"
 What does done look like? > The word is spelled correctly
 
 Fixing... ✓
-PR #44 created and merged
+Committed: fix(#006): Fix typo in README header
 
 Done! ✓
 ```

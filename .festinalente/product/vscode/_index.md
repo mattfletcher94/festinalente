@@ -7,7 +7,7 @@ summary: "The VSCode domain provides a sidebar kanban board TreeView, CodeLens a
 keywords: [vscode, extension, kanban, codelens, terminal, treeview, sidebar]
 aliases: [extension, ide, visual]
 boundary: "Does not include CLI commands (see cli domain) or AI workflows (see skills domain)"
-contains: [vscode/kanban-view, vscode/codelens, vscode/terminal, vscode/plan-outline]
+contains: [vscode/kanban-view, vscode/codelens, vscode/terminal, vscode/plan-outline, directives/diagnostics]
 references: [skills/_index, cli/_index, directives/_index]
 uses: [systems/vscode-extension]
 intent: reference
