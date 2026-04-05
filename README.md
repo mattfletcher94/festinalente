@@ -8,8 +8,6 @@ Spec-driven development for [Claude Code](https://docs.anthropic.com/en/docs/cla
 
 We want to go faster with LLMs — that's the *haste*. But speed without structure just produces mess faster. The *slowly* part is where you take control: define the problem before solving it, spec the work before writing code, verify the result before calling it done.
 
-The spec lives on disk, survives context windows, and travels between sessions. Close the terminal, come back in a week, everything is still there. The file is the source of truth.
-
 Festina Lente is a set of Claude Code skills that enforce this — structured files on disk, where each phase reads what the last one wrote:
 
 ```
