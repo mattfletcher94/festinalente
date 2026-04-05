@@ -2,97 +2,98 @@
 id: "patterns/tagged-union-errors"
 title: "Tagged Union Error Handling"
 type: pattern
-tldr: "Result<T,E> discriminated unions with ok/error tags for type-safe error handling"
-summary: "All operations return tagged unions instead of throwing, enabling exhaustive error handling"
-keywords: [error-handling, discriminated-union, result, tagged-union, typescript]
-aliases: [result-type, either-pattern]
-boundary: "Does not apply to unexpected errors - use try-catch for those"
+tldr: "All operations return tagged unions instead of throwing — check before accessing"
+summary: "Discriminated union result types eliminate uncaught exceptions and enable exhaustive error handling"
+keywords: [error-handling, discriminated-union, result, tagged-union, typescript, cli-result]
+aliases: [result-type, tagged-union, error-handling-pattern]
+boundary: "VSCode extension uses try-catch in some places — this pattern is fully applied only in the CLI"
 references: []
-uses: [systems/cli]
+uses: []
 paths: [apps/festinalente/src/cli]
 intent: conceptual
 prerequisites: []
+updated: "2026-04-05"
 ---
 
 # Tagged Union Error Handling
 
-> **TL;DR:** Result<T,E> discriminated unions with ok/error tags for type-safe error handling
-
-## Overview
-
-<!-- Each section must be self-contained: open with a context sentence, no back-references -->
-
-All operations return tagged unions instead of throwing, making failure modes visible in the type system.
+> **TL;DR:** All operations return tagged unions instead of throwing — check before accessing
 
 ## Problem
 
-<!-- Tier 2 boundary: content above this line is loaded at standard tier -->
-
-Exceptions are invisible in TypeScript types. A function signature `parseTask(id: string): Task` doesn't indicate it can fail. Callers forget to handle errors, leading to runtime crashes.
+Thrown exceptions are invisible in function signatures. Callers don't know what can fail, and uncaught exceptions crash the process. AI-generated code frequently forgets try-catch blocks.
 
 ## Solution
 
-Return **discriminated unions** (tagged unions) where success and error are explicit variants:
+All operations return a discriminated union type: `CliResult<T> = SuccessResult<T> | ErrorResult`. Callers must check the discriminant (`success` or `error`) before accessing data. Guard functions (`isError()`) enable safe narrowing.
 
-```typescript
-type Result<T, E = Error> =
-  | { readonly ok: true; readonly value: T }
-  | { readonly ok: false; readonly error: E };
-```
+**Summary:** Return errors as values, not exceptions. The type system forces callers to handle both paths.
 
-The `ok` property serves as the discriminant tag, enabling TypeScript to narrow types.
-
-**Summary:** Return Result<T,E> instead of throwing. Compiler enforces handling.
+<!-- Tier 2 boundary: content above this line is loaded at standard tier -->
 
 ## Structure
 
 ```mermaid
 classDiagram
-    class Result~T, E~ {
+    class CliResult~T~ {
         <<union>>
     }
-
-    class Success~T~ {
-        +ok: true
-        +value: T
+    class SuccessResult~T~ {
+        +success: true
+        +data: T
     }
-
-    class Failure~E~ {
-        +ok: false
-        +error: E
+    class ErrorResult {
+        +error: true
+        +message: string
     }
-
-    Result <|-- Success
-    Result <|-- Failure
+    CliResult <|-- SuccessResult
+    CliResult <|-- ErrorResult
 ```
 
-## Two Result Types
+## When to Use
 
-### 1. Result<T, E> - For Capabilities
+- Every handler function in the CLI system
+- Every capability function that can fail (file reads, parsing)
+- Any function where the caller needs to know about failure
 
-Used in capabilities for low-level I/O operations:
+## When NOT to Use
+
+- Pure computer functions that cannot fail (always return a value)
+- Internal helper functions within a handler where the error is handled locally
+
+## Quick Reference
+
+| Type | Discriminant | Fields |
+|------|-------------|--------|
+| `SuccessResult<T>` | `success: true` | `data: T` |
+| `ErrorResult` | `error: true` | `message: string` |
+| `Result<T, E>` | `ok: true/false` | `value: T` or `error: E` |
+
+| Helper | Purpose |
+|--------|---------|
+| `isError(result)` | Type guard for ErrorResult |
+| `success(data)` | Create SuccessResult |
+| `error(message)` | Create ErrorResult |
+| `ok(value)` | Create Result success |
+| `err(error)` | Create Result failure |
+
+## Validation Checklist
+
+- [ ] Handler functions return `CliResult<T>`, never throw
+- [ ] Callers check `isError()` before accessing `.data`
+- [ ] Error messages are descriptive (include file path, what was expected)
+- [ ] Capability functions return `Result<T, E>` for I/O operations
+
+**Summary:** Return, don't throw. Check, then access.
+
+## Examples
+
+### Correct Example
 
 ```typescript
-// file-system.capability.ts
-export type Result<T, E = Error> =
-  | { readonly ok: true; readonly value: T }
-  | { readonly ok: false; readonly error: E };
+// apps/festinalente/src/cli/types.ts
+export type CliResult<T> = SuccessResult<T> | ErrorResult;
 
-export function ok<T>(value: T): Result<T, never> {
-  return { ok: true, value };
-}
-
-export function err<E>(error: E): Result<never, E> {
-  return { ok: false, error };
-}
-```
-
-### 2. CliResult<T> - For Handlers
-
-Used in handlers for command results (JSON output):
-
-```typescript
-// types.ts
 export interface SuccessResult<T> {
   readonly success: true;
   readonly data: T;
@@ -103,206 +104,50 @@ export interface ErrorResult {
   readonly message: string;
 }
 
-export type CliResult<T> = SuccessResult<T> | ErrorResult;
-
-export function success<T>(data: T): CliResult<T> {
-  return { success: true, data };
+// Handler returning result
+function findTask(id: string): CliResult<TaskInfo> {
+  const readResult = fs.readFile(filePath);
+  if (!readResult.ok) {
+    return error(`Failed to read task: ${readResult.error.message}`);
+  }
+  return success(parsed);
 }
 
-export function error(message: string): CliResult<never> {
-  return { error: true, message };
-}
-```
-
-## When to Use
-
-- File system operations that may fail
-- Parsing that may encounter invalid input
-- Any operation with expected failure modes
-- CLI commands returning JSON to stdout
-
-## When NOT to Use
-
-- Truly unexpected errors (bugs) → Let them crash
-- Performance-critical loops → Check overhead
-- Simple scripts with no error recovery needs
-
-## Quick Reference
-
-### Type Guards
-
-```typescript
-export function isError<T>(result: CliResult<T>): result is ErrorResult {
-  return 'error' in result && result.error === true;
-}
-```
-
-### Pattern Matching
-
-```typescript
-const result = handler.findTask(['001']);
-
+// Caller checking result
+const result = findTask('023');
 if (isError(result)) {
   console.error(result.message);
-  process.exit(1);
+  return;
 }
-
-// TypeScript knows result.success === true here
-console.log(result.data);
-```
-
-### Early Return Pattern
-
-```typescript
-function processTask(id: string): CliResult<ProcessedTask> {
-  const readResult = fs.readFile(`tasks/${id}/task.xml`);
-  if (!readResult.ok) {
-    return error(`Failed to read task: ${readResult.error.message}`);
-  }
-
-  const parseResult = parser.parseTaskXml(readResult.value);
-  if (!parseResult.ok) {
-    return error(`Failed to parse task: ${parseResult.error.message}`);
-  }
-
-  // TypeScript knows both succeeded here
-  return success(transform(parseResult.value));
-}
-```
-
-## Validation Checklist
-
-- [ ] All capabilities return `Result<T, E>`
-- [ ] All handlers return `CliResult<T>`
-- [ ] Helper functions `ok`, `err`, `success`, `error` used consistently
-- [ ] Type guards used for narrowing
-- [ ] No unchecked `.value` or `.data` access
-
-**Summary:** Use helper functions, check before accessing value.
-
-## Examples
-
-### Correct Example
-
-```typescript
-// apps/festinalente/src/cli/capabilities/file-system.capability.ts
-function readFile(filePath: string): Result<string, Error> {
-  try {
-    const content = fs.readFileSync(filePath, 'utf8');
-    return ok(content);
-  } catch (e) {
-    return err(e instanceof Error ? e : new Error(String(e)));
-  }
-}
-
-// Usage in handler
-function findTask(args: string[]): CliResult<TaskInfo> {
-  const readResult = fs.readFile(taskPath);
-  if (!readResult.ok) {
-    return error(`Failed to read task: ${readResult.error.message}`);
-  }
-
-  // Safe to use .value - TypeScript knows it's Success
-  const task = parser.parseTaskXml(readResult.value);
-  return success(task);
-}
+const task = result.data; // TypeScript knows this is TaskInfo
 ```
 
 ### Incorrect Example
 
 ```typescript
 // DON'T do this
-function readFile(filePath: string): string {
-  return fs.readFileSync(filePath, 'utf8'); // ❌ Throws on error!
+function findTask(id: string): TaskInfo {
+  const content = fs.readFileSync(filePath); // Throws on missing file
+  return parseTask(content); // Throws on bad XML
+  // Because: Callers have no type-level indication that this can fail
 }
-
-function findTask(args: string[]): TaskInfo {
-  const content = readFile(taskPath); // ❌ Might throw, caller doesn't know
-  return parser.parseTaskXml(content);
-}
-// Because: Caller has no indication this can fail. Errors are hidden.
 ```
 
-**Summary:** Wrap potential failures in Result types.
+**Summary:** Tagged unions make failure visible in the type system.
 
 ## Boundaries
 
 What this pattern does NOT apply to:
 
-- **Does NOT:** Handle unexpected bugs → Those should crash
-- **Does NOT:** Replace all try-catch → Use at layer boundaries
-- **Does NOT:** Apply to async errors → Consider similar async patterns
+- **Does NOT:** apply to VSCode extension computers (they use simpler return types)
+- **Does NOT:** replace validation — validation checks content, this handles operation failure
 
 ## Systems Using This Pattern
 
-- [cli](../systems/cli/_index.md) - All handlers return CliResult<T>
-- Capabilities use Result<T, Error>
-
-## How to Add Error Handling to a New Capability
-
-### Step 1: Wrap I/O in Result
-
-```typescript
-// BEFORE: Throws on failure
-function readConfig(path: string): string {
-  return fs.readFileSync(path, 'utf8');  // ❌ Throws
-}
-```
-
-```typescript
-// AFTER: Returns Result
-function readConfig(path: string): Result<string, Error> {
-  try {
-    const content = fs.readFileSync(path, 'utf8');
-    return ok(content);
-  } catch (e) {
-    return err(e instanceof Error ? e : new Error(String(e)));
-  }
-}
-```
-
-### Step 2: Propagate in handlers
-
-```typescript
-// Handler converts Result<T,E> → CliResult<T>
-function getConfig(args: string[]): CliResult<Config> {
-  const readResult = fs.readConfig('.festinalente/config.yaml');
-  if (!readResult.ok) {
-    return error(`Config read failed: ${readResult.error.message}`);
-  }
-
-  const parseResult = yamlParser.parseYaml(readResult.value);
-  if (!parseResult.ok) {
-    return error(`Config parse failed: ${parseResult.error.message}`);
-  }
-
-  return success(parseResult.value);
-}
-```
-
-### Error Propagation Across Layers
-
-```
-Capability (Layer 4)     → Result<T, Error>     Raw I/O errors
-    ↓
-Handler (Layer 3)        → CliResult<T>          User-facing messages
-    ↓
-Dispatcher (Layer 1)     → JSON stdout           { success: true, data } or { error: true, message }
-```
-
-### Key Rules
-
-1. **Capabilities** return `Result<T, Error>` — wrap all I/O in try-catch
-2. **Handlers** return `CliResult<T>` — convert capability errors to user messages
-3. **Computers** return plain values (pure functions don't fail with I/O errors)
-4. **Never access `.value` or `.data` without checking `.ok` or `.success` first**
+- [CLI](../systems/cli/_index.md)
 
 ## Common Violations
 
-| Violation | Fix |
-|-----------|-----|
-| Accessing `.value` without check | Check `.ok` first |
-| Throwing in handlers | Return `error()` instead |
-| Inconsistent error types | Standardize on Result or CliResult |
-| Silent swallowing | Always propagate or handle |
-| Missing try-catch in capabilities | Wrap all I/O in try-catch |
+- Throwing exceptions instead of returning error results
+- Accessing `.data` without checking `isError()` first
+- Using `try-catch` around result-returning functions (unnecessary)

@@ -266,13 +266,31 @@ terms:
   - term: 'computer'
     aliases: ['pure-function', 'logic', 'computation']
     domain: engineering
-    definition: 'VSCode extension component with pure functions, no side effects'
+    definition: 'Component with pure functions and no side effects, used in both CLI and VSCode extension'
     auto_generated: true
 
   - term: 'orchestrator'
     aliases: ['coordinator', 'extension-entry', 'policy']
     domain: engineering
-    definition: 'extension.ts that coordinates capabilities and computers'
+    definition: 'Composition root that wires capabilities, computers, and handlers together'
+    auto_generated: true
+
+  - term: 'handler'
+    aliases: ['command-handler', 'request-handler']
+    domain: engineering
+    definition: 'CLI business logic component that processes commands using computers and capabilities'
+    auto_generated: true
+
+  - term: 'dispatcher'
+    aliases: ['cli-dispatcher', 'entry-point']
+    domain: engineering
+    definition: 'CLI entry point that parses args and routes to the command registry'
+    auto_generated: true
+
+  - term: 'registry'
+    aliases: ['command-registry', 'command-map']
+    domain: engineering
+    definition: 'Central map of command names to handler functions for dynamic dispatch'
     auto_generated: true
 
   - term: 'subagent'
@@ -314,10 +332,10 @@ terms:
     definition: 'Build system for monorepo task orchestration and caching'
     auto_generated: true
 
-  - term: 'fuse'
-    aliases: ['fuse.js', 'fuzzy-match', 'fuzzy-library']
+  - term: 'minisearch'
+    aliases: ['mini-search', 'bm25', 'full-text-search']
     domain: engineering
-    definition: 'JavaScript library for fuzzy searching'
+    definition: 'Lightweight BM25+ full-text search library used for document indexing and querying'
     auto_generated: true
 
   # Distribution terms

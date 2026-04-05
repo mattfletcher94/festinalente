@@ -2,52 +2,47 @@
 id: "conventions/folder-structure"
 title: "Folder Structure Convention"
 type: convention
-tldr: "Domain-driven folders: capabilities/, computers/, handlers/, orchestrators/"
-summary: "Organize code by architectural layer to enforce DAG and enable discovery"
-keywords: [folders, structure, organization, layers, domain]
-aliases: [directory-structure, project-layout]
-boundary: "Does not apply to build output (dist/) or external configs"
-references: [patterns/dag-architecture]
-uses: [systems/cli, systems/vscode-extension]
+tldr: "Organize code by architectural layer: handlers/, computers/, capabilities/, orchestrators/"
+summary: "Code is organized by architectural layer to enforce the DAG pattern and enable discovery"
+keywords: [folders, structure, organization, layers, domain, architecture]
+aliases: [folder-structure, directory-convention]
+boundary: "Does not apply to .festinalente/ project data or build output directories"
+references: []
+uses: [patterns/dag-architecture]
 paths: [apps/festinalente/src/cli, apps/vscode/src]
 intent: reference
 prerequisites: []
+updated: "2026-04-05"
 ---
 
 # Folder Structure Convention
 
-> **TL;DR:** Domain-driven folders: capabilities/, computers/, handlers/, orchestrators/
-
-## Overview
-
-<!-- Each section must be self-contained: open with a context sentence, no back-references -->
-
-Folder organization by architectural layer to enforce DAG dependencies and enable discovery.
-
-<!-- Tier 2 boundary: content above this line is loaded at standard tier -->
+> **TL;DR:** Organize code by architectural layer: handlers/, computers/, capabilities/, orchestrators/
 
 ## Rule
 
-Organize source code by **architectural layer**, not by feature:
+Source code is organized into folders matching the DAG architecture layers. Each folder contains only files of that architectural type.
 
 ```
 src/
-├── capabilities/      # I/O and side effects
-├── computers/         # Pure functions
-├── handlers/          # Command implementations (CLI)
-├── orchestrators/     # Composition and coordination (VSCode)
-├── types/             # Type definitions (if many)
-└── entry-point.ts     # Main entry
+├── capabilities/     # I/O operations (file system, terminal, UI)
+├── computers/        # Pure functions (parsers, validators, search)
+├── handlers/         # Business logic (CLI: command handlers)
+├── orchestrators/    # Composition roots (VSCode: domain orchestrators)
+├── types/            # Type definitions (if separate from types.ts)
+├── orchestrator.ts   # Single orchestrator (CLI)
+├── dispatcher.ts     # Entry point (CLI)
+├── extension.ts      # Entry point (VSCode)
+└── index.ts          # Barrel exports
 ```
+
+<!-- Tier 2 boundary: content above this line is loaded at standard tier -->
 
 ## Rationale
 
-1. **DAG Enforcement**: Layer folders make import violations obvious
-2. **Discoverability**: "Where are capabilities?" → `capabilities/`
-3. **Consistency**: Same structure across CLI and VSCode packages
-4. **Testing**: Easy to mock entire folders
+Grouping by layer makes the DAG visible in the file system. When you open `handlers/`, you know every file contains business logic. When you open `computers/`, you know every file is pure. This physical separation reinforces the architectural constraint.
 
-**Summary:** Layer folders > feature folders for this architecture.
+**Summary:** Folder names = DAG layers. The file system mirrors the architecture.
 
 ## Examples
 
@@ -55,107 +50,49 @@ src/
 
 ```
 apps/festinalente/src/cli/
-├── capabilities/                 ✅ All I/O in one folder
+├── capabilities/
 │   └── file-system.capability.ts
-├── computers/                    ✅ All pure logic in one folder
+├── computers/
 │   ├── xml-parser.computer.ts
 │   ├── yaml-parser.computer.ts
 │   ├── search.computer.ts
+│   ├── graph.computer.ts
+│   ├── task-resolver.computer.ts
 │   └── validation.computer.ts
-├── handlers/                     ✅ All command handlers
+├── handlers/
 │   ├── task.handler.ts
-│   ├── project.handler.ts
 │   ├── spec.handler.ts
-│   ├── config.handler.ts
-│   └── search.handler.ts
-├── types.ts                      ✅ Shared types at root
-├── registry.ts                   ✅ Standalone modules at root
-├── orchestrator.ts               ✅ Main orchestrator at root
-├── dispatcher.ts                 ✅ Entry point at root
-└── index.ts                      ✅ Barrel exports
-```
-
-```
-apps/vscode/src/
-├── capabilities/                 ✅ VSCode I/O
-│   ├── file-system.capability.ts
-│   ├── terminal.capability.ts
-│   ├── tasks-view.capability.ts
-│   ├── projects-view.capability.ts
-│   └── codelens.capability.ts
-├── computers/                    ✅ Parsing and logic
-│   ├── task-parser.computer.ts
-│   ├── task-actions.computer.ts
-│   ├── project-parser.computer.ts
-│   └── plan-parser.computer.ts
-├── orchestrators/                ✅ Domain coordinators
-│   ├── terminal.orchestrator.ts
-│   ├── tasks.orchestrator.ts
-│   ├── projects.orchestrator.ts
-│   └── docs.orchestrator.ts
-├── types/                        ✅ Type folder when many types
-│   ├── task-types.ts
-│   ├── project-types.ts
-│   └── directives-types.ts
-└── extension.ts                  ✅ Entry point
+│   ├── search.handler.ts
+│   └── ...
+├── orchestrator.ts
+├── dispatcher.ts
+└── types.ts
 ```
 
 ### Incorrect
 
 ```
-src/
-├── tasks/                        ❌ Feature-based (mixes layers)
-│   ├── task.capability.ts
-│   ├── task.computer.ts
-│   └── task.handler.ts
-├── search/                       ❌ Feature-based
-│   ├── search.capability.ts
+apps/festinalente/src/cli/
+├── task/
+│   ├── task.handler.ts
+│   ├── task-resolver.computer.ts
+│   └── task.types.ts
+├── search/
+│   ├── search.handler.ts
 │   └── search.computer.ts
-└── utils/                        ❌ Ambiguous "utils" folder
-    └── file-helpers.ts
+// Violates: organized by domain instead of by architectural layer
 ```
 
-```
-src/
-├── services/                     ❌ Non-descriptive layer name
-├── helpers/                      ❌ Ambiguous
-├── lib/                          ❌ Ambiguous
-└── core/                         ❌ Ambiguous
-```
-
-**Summary:** Use layer names (capability, computer, handler), not feature names.
-
-## Monorepo Structure
-
-```
-festinalente/
-├── apps/
-│   ├── festinalente/             # CLI package
-│   │   ├── src/
-│   │   │   ├── cli/              # CLI source (layer folders inside)
-│   │   │   └── content/          # Skill content (not layer-based)
-│   │   ├── tools/                # Build scripts
-│   │   └── package.json
-│   └── vscode/                   # Extension package
-│       ├── src/                  # Extension source (layer folders inside)
-│       └── package.json
-├── .festinalente/                # Project data (not source code)
-├── .claude/                      # Claude runtime config
-├── .opencode/                    # OpenCode runtime config
-└── package.json                  # Root workspace
-```
+**Summary:** Group by layer (handlers/, computers/), not by domain (task/, search/).
 
 ## Boundaries
 
 When this convention does NOT apply:
 
-- **Build output**: `dist/` follows build tool conventions
-- **Content folders**: `src/content/` uses content-type folders (skills, templates)
-- **Config directories**: `.festinalente/`, `.claude/` use domain folders
-- **External packages**: `node_modules/` is external
+- `.festinalente/` project data — organized by content type (tasks, product, engineering)
+- `dist/` build output — follows npm packaging conventions
+- `tools/` and `bin/` — standalone scripts without layer structure
 
 ## Enforcement
 
-- **Code review**: Reviewers check new files are in correct folder
-- **IDE snippets**: Create file snippets that prompt for layer
-- **New file workflow**: "Creating a capability? Put in capabilities/"
+Caught by CI. The folder names and file suffixes create a self-documenting structure that makes violations obvious during code review.

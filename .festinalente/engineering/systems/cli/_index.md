@@ -2,31 +2,30 @@
 id: "systems/cli"
 title: "CLI System"
 type: system
-tldr: "Command dispatcher routing to handlers via registry pattern"
-summary: "Single-entry-point CLI providing task lifecycle, search, and validation capabilities via command dispatch"
-keywords: [cli, dispatcher, registry, handlers, node, commands]
-aliases: [festinalente-cli, command-line]
-boundary: "Does not handle UI - see vscode-extension"
-references: [patterns/dag-architecture, patterns/factory-di, patterns/command-registry, patterns/tagged-union-errors, systems/vscode-extension, systems/data-model, systems/content-build]
-uses: []
+tldr: "Single-entry-point CLI dispatching commands to handlers via registry for all task lifecycle operations"
+summary: "Core engine providing task CRUD, search, validation, and documentation commands through a layered handler/computer/capability architecture"
+keywords: [cli, dispatcher, registry, handlers, computers, capabilities, commands, node]
+aliases: [cli-system, command-line]
+boundary: "Does not handle UI rendering, user interaction, or git operations — outputs JSON only"
+references: [systems/vscode-extension, systems/data-model, systems/validation, systems/search]
+uses: [patterns/dag-architecture, patterns/factory-di, patterns/tagged-union-errors, patterns/command-registry]
 paths: [apps/festinalente/src/cli]
 intent: reference
 prerequisites: []
+updated: "2026-04-05"
 ---
 
 # CLI System
 
-> **TL;DR:** Command dispatcher routing to handlers via registry pattern
+> **TL;DR:** Single-entry-point CLI dispatching commands to handlers via registry for all task lifecycle operations
 
 ## Overview
 
-<!-- Each section must be self-contained: open with a context sentence, no back-references -->
+The CLI system is the core engine of Festina Lente. It provides a Node.js command-line interface that accepts commands, dispatches them through a registry to typed handlers, and returns JSON results. All business logic lives here — the VSCode extension delegates to it via terminal execution.
 
-The CLI system provides a single entry point (`dispatcher.ts`) that routes commands through a registry to domain-specific handlers. Each handler composes capabilities (I/O) and computers (pure logic) following the DAG architecture.
+**Why it exists:** Skills running in Claude Code need a reliable, context-window-safe way to read and write task artifacts. A CLI with JSON output provides a stable interface that survives agent restarts.
 
-**Why it exists:** AI agents (Claude, OpenCode) invoke CLI commands to manage tasks, search docs, and validate files. The registry pattern enables self-documenting commands and consistent JSON output.
-
-**Summary:** Dispatcher → Registry → Handlers → (Capabilities + Computers)
+**Summary:** Stateless CLI that reads/writes `.festinalente/` artifacts and returns structured JSON.
 
 <!-- Tier 2 boundary: content above this line is loaded at standard tier -->
 
@@ -34,144 +33,143 @@ The CLI system provides a single entry point (`dispatcher.ts`) that routes comma
 
 | Component | Purpose | File |
 |-----------|---------|------|
-| Dispatcher | Entry point, parses args, executes command | `dispatcher.ts` |
-| Orchestrator | Wires all components together | `orchestrator.ts` |
-| Registry | Command registration and lookup | `registry.ts` |
-| TaskHandler | Task CRUD operations | `handlers/task.handler.ts` |
-| SpecHandler | Spec/plan operations | `handlers/spec.handler.ts` |
-| QuickHandler | Quick task operations | `handlers/quick.handler.ts` |
-| SearchHandler | Hybrid search across docs | `handlers/search.handler.ts` |
-| DocsHandler | Documentation operations | `handlers/docs.handler.ts` |
-| ConfigHandler | Configuration utilities | `handlers/config.handler.ts` |
-| ValidationHandler | XML/YAML validation | `handlers/validation.handler.ts` |
-| QueryHandler | Query operations | `handlers/query.handler.ts` |
-| ProjectHandler | Project CRUD and progress | `handlers/project.handler.ts` |
-| FileSystemCapability | File I/O operations | `capabilities/file-system.capability.ts` |
-| XmlParserComputer | XML parsing | `computers/xml-parser.computer.ts` |
-| YamlParserComputer | YAML parsing | `computers/yaml-parser.computer.ts` |
-| SearchComputer | BM25+ search with MiniSearch | `computers/search.computer.ts` |
-| GraphComputer | Graph adjacency and expansion | `computers/graph.computer.ts` |
-| ValidationComputer | Schema validation | `computers/validation.computer.ts` |
-| TaskResolverComputer | Prefix-based task ID resolution | `computers/task-resolver.computer.ts` |
+| Dispatcher | Parses CLI args, routes to registry | `dispatcher.ts` |
+| Orchestrator | Wires all dependencies (handlers, computers, capabilities) | `orchestrator.ts` |
+| Registry | Maps command names to handler functions | `registry.ts` |
+| Task Handler | Task CRUD, status, plan extraction | `handlers/task.handler.ts` |
+| Spec Handler | Spec reading and requirement extraction | `handlers/spec.handler.ts` |
+| Quick Handler | Quick task management | `handlers/quick.handler.ts` |
+| Search Handler | Full-text search with graph expansion | `handlers/search.handler.ts` |
+| Config Handler | Skill config, date/time, glossary expansion | `handlers/config.handler.ts` |
+| Docs Handler | Documentation inventory and existence checks | `handlers/docs.handler.ts` |
+| Validation Handler | XML/YAML validation, quality checks, broken refs | `handlers/validation.handler.ts` |
+| Query Handler | Raw file content retrieval | `handlers/query.handler.ts` |
+| Project Handler | Multi-task project grouping | `handlers/project.handler.ts` |
+| XML Parser Computer | Parse task/spec/plan/project/directive XML | `computers/xml-parser.computer.ts` |
+| YAML Parser Computer | Parse config, frontmatter, directives | `computers/yaml-parser.computer.ts` |
+| Search Computer | BM25+ index creation and querying | `computers/search.computer.ts` |
+| Task Resolver Computer | 3-tier task ID resolution (exact -> prefix -> null) | `computers/task-resolver.computer.ts` |
+| Validation Computer | Schema validation and quality checks | `computers/validation.computer.ts` |
+| Graph Computer | Adjacency list from doc relationships | `computers/graph.computer.ts` |
+| File System Capability | File I/O abstraction | `capabilities/file-system.capability.ts` |
 
-**Summary:** 9 handlers, 1 capability, 6 computers wired by orchestrator.
+**Summary:** 1 dispatcher, 1 orchestrator, 1 registry, 9 handlers, 6 computers, 1 capability.
 
 ## Key Patterns
 
 This system follows these patterns from `patterns/`:
 
-- [dag-architecture](../patterns/dag-architecture.md) - Orchestrator wires capabilities/computers with no cycles
-- [factory-di](../patterns/factory-di.md) - Each component uses `create*()` factory with deps injection
-- [command-registry](../patterns/command-registry.md) - Commands self-register via `getCommands()`
-- [tagged-union-errors](../patterns/tagged-union-errors.md) - All handlers return `CliResult<T>`
+- [DAG Architecture](../patterns/dag-architecture.md) - Strict layering: dispatcher -> orchestrator -> handlers -> computers/capabilities
+- [Factory DI](../patterns/factory-di.md) - Each component created via `create*()` with explicit `*Deps` interface
+- [Tagged Union Errors](../patterns/tagged-union-errors.md) - All operations return `CliResult<T>` (success/error discriminated union)
+- [Command Registry](../patterns/command-registry.md) - Handlers export `getCommands()` for self-registration
 
 ## Architecture
 
 ```mermaid
 flowchart TB
-    subgraph Entry["Entry Point"]
-        DISP["dispatcher.ts<br/>(shebang node)"]
+    subgraph CLI["CLI System"]
+        DISP["Dispatcher<br/>parse args, route"]
+        ORCH["Orchestrator<br/>wire dependencies"]
+        REG["Registry<br/>command lookup"]
+
+        subgraph Handlers["Handlers (Business Logic)"]
+            TH["Task"]
+            SH["Spec"]
+            QH["Quick"]
+            SEH["Search"]
+            CH["Config"]
+            DH["Docs"]
+            VH["Validation"]
+            QUH["Query"]
+            PH["Project"]
+        end
+
+        subgraph Computers["Computers (Pure Logic)"]
+            XP["XML Parser"]
+            YP["YAML Parser"]
+            SC["Search"]
+            TR["Task Resolver"]
+            VC["Validation"]
+            GC["Graph"]
+        end
+
+        subgraph Capabilities["Capabilities (I/O)"]
+            FS["File System"]
+        end
     end
 
-    subgraph Composition["Composition"]
-        ORCH["orchestrator.ts<br/>(wires deps)"]
-        REG["registry.ts<br/>(command lookup)"]
-    end
-
-    subgraph Handlers["Handlers"]
-        TASK["TaskHandler"]
-        SPEC["SpecHandler"]
-        QUICK["QuickHandler"]
-        SEARCH["SearchHandler"]
-        DOCS["DocsHandler"]
-        CONFIG["ConfigHandler"]
-        VALID["ValidationHandler"]
-        QUERY["QueryHandler"]
-        PROJECT["ProjectHandler"]
-    end
-
-    subgraph Capabilities["Capabilities (I/O)"]
-        FS["FileSystem"]
-    end
-
-    subgraph Computers["Computers (Pure)"]
-        XML["XmlParser"]
-        YAML["YamlParser"]
-        SRCH["Search (BM25+)"]
-        GRAPH["Graph"]
-        VAL["Validation"]
-        TRES["TaskResolver"]
-    end
-
-    DISP -->|"createCliOrchestrator()"| ORCH
-    ORCH -->|"register commands"| REG
-    ORCH -->|"inject deps"| Handlers
-
-    Handlers --> Capabilities
+    DISP --> ORCH
+    ORCH --> REG
+    REG --> Handlers
     Handlers --> Computers
-
-    FS -->|"read/write"| DB[(Files)]
+    Handlers --> Capabilities
+    Capabilities --> DB[(".festinalente/")]
 ```
 
-The orchestrator creates all capabilities and computers, then injects them into handlers. Each handler registers its commands with the registry. The dispatcher looks up commands and executes them.
+The orchestrator creates all components once at startup and passes them as dependencies to handlers via their `*Deps` interfaces.
 
 ## Data Flow
 
 ```mermaid
 flowchart LR
-    A["npx festinalente<br/>find-task 001"] --> B["dispatcher.ts<br/>parseArgs()"]
-    B --> C["registry.get()<br/>TaskHandler.findTask"]
-    C --> D["FileSystemCapability<br/>readFile()"]
-    D --> E["XmlParserComputer<br/>parseTaskXml()"]
-    E --> F["CliResult&lt;Task&gt;<br/>JSON to stdout"]
+    A["CLI args<br/>festinalente find-task 023"] --> B["Dispatcher<br/>parse command + flags"]
+    B --> C["Registry<br/>lookup handler"]
+    C --> D["Handler<br/>execute business logic"]
+    D --> E["Computer<br/>parse/validate/search"]
+    D --> F["Capability<br/>read/write files"]
+    E --> G["JSON Result<br/>{success: true, data: {...}}"]
+    F --> G
 ```
 
-1. User/AI invokes CLI command
-2. Dispatcher parses args, looks up command in registry
-3. Handler executes using capabilities (file I/O) and computers (parsing)
-4. Result returned as JSON to stdout
+All commands follow the same flow: parse args -> lookup handler -> execute -> return JSON. Handlers compose computers for logic and capabilities for I/O.
 
 ## Interactions
 
 | System | Relationship | Notes |
 |--------|--------------|-------|
-| [vscode-extension](../vscode-extension/_index.md) | Terminal spawns CLI | VSCode executes via `claude` or `opencode` runtime |
-| [data-model](../data-model/_index.md) | Reads/writes files | Tasks, specs, plans, config stored as XML/YAML |
+| [VSCode Extension](../systems/vscode-extension/_index.md) | VSCode executes CLI commands via terminal | JSON output parsed by extension |
+| [Data Model](../systems/data-model/_index.md) | Reads/writes all task artifacts | XML, YAML, Markdown files |
+| [Validation](../systems/validation/_index.md) | Validation handler delegates to validation computer | Quality checks, schema validation |
+| [Search](../systems/search/_index.md) | Search handler delegates to search + graph computers | BM25+ indexing, graph expansion |
 
-**Summary:** CLI is invoked by VSCode extension, operates on data-model files.
+**Summary:** CLI is the core engine; VSCode extension and skills consume it via terminal execution.
 
 ## Boundaries
 
 What this system does NOT handle:
 
-- **Does NOT:** Provide UI → See [vscode-extension](../vscode-extension/_index.md)
-- **Does NOT:** Define file schemas → See [data-model](../data-model/_index.md)
-- **Does NOT:** Handle templating → See [content-build](../content-build/_index.md)
-
-## Configuration
-
-| Setting | Description | Default |
-|---------|-------------|---------|
-| `--help` | Show command help | N/A |
-| `--type` | Filter by type (list commands) | all |
-| `--status` | Filter by status | all |
+- **Does NOT:** render UI or interact with users → See [VSCode Extension](../systems/vscode-extension/_index.md)
+- **Does NOT:** perform git operations → handled by directives in skills
+- **Does NOT:** compile or distribute packages → See [Distribution](../systems/distribution/_index.md)
+- **Does NOT:** compile skill templates → See [Content Build](../systems/content-build/_index.md)
 
 ## Extension Points
 
-How to extend this system with new commands:
-
 ### Adding a new Handler
 
-**Template:** Copy `handlers/config.handler.ts` as starting point.
+**Template:** Copy any existing handler (e.g., `task.handler.ts`) as starting point.
 
 **Checklist:**
-- [ ] Create `handlers/{name}.handler.ts` with `create{Name}Handler(deps)`
-- [ ] Define `{Name}HandlerDeps` interface with required capabilities/computers
-- [ ] Implement handler methods returning `CliResult<T>`
+- [ ] Create `handlers/{name}.handler.ts` with `*Deps` interface and `create*Handler()` factory
 - [ ] Export `getCommands()` returning `CliCommand[]`
-- [ ] Register in `orchestrator.ts`: add to handler creation and command registration loop
+- [ ] Wire in `orchestrator.ts` — create instance, pass to registry
+- [ ] Add barrel exports to `index.ts`
 
 **Pitfalls:**
-- Forgetting to register commands in orchestrator
-- Not returning JSON-serializable results
-- Missing error handling (always return `error()` not throw)
+- Handlers must not import from other handlers (DAG violation)
+- All return types must be `CliResult<T>`, never throw
+
+### Adding a new Computer
+
+**Checklist:**
+- [ ] Create `computers/{name}.computer.ts` with pure functions only
+- [ ] No file I/O — accept data as arguments, return results
+- [ ] Wire in `orchestrator.ts` and inject into handlers that need it
+
+### Adding a new Command
+
+**Checklist:**
+- [ ] Add to the appropriate handler's `getCommands()` array
+- [ ] Define command metadata (name, description, usage)
+- [ ] Implement handler function accepting `string[]` args

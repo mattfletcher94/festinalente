@@ -2,151 +2,83 @@
 id: "conventions/error-handling"
 title: "Error Handling Convention"
 type: convention
-tldr: "Return Result<T,E> from capabilities, CliResult<T> from handlers, never throw"
-summary: "Consistent error handling with tagged unions enables predictable failure modes"
-keywords: [errors, result, cli-result, tagged-union, convention]
-aliases: [error-convention, result-types]
-boundary: "Unexpected bugs (invariant violations) may still throw"
-references: [patterns/tagged-union-errors]
-uses: [systems/cli]
+tldr: "Return CliResult<T> tagged unions from handlers — never throw in the CLI system"
+summary: "Consistent error handling with tagged unions enables predictable failure modes across the CLI"
+keywords: [errors, result, cli-result, tagged-union, convention, no-throw]
+aliases: [error-convention, error-handling]
+boundary: "VSCode extension uses try-catch in some orchestrators — this convention is strictly enforced in CLI only"
+references: []
+uses: [patterns/tagged-union-errors]
 paths: [apps/festinalente/src/cli]
 intent: reference
 prerequisites: []
+updated: "2026-04-05"
 ---
 
 # Error Handling Convention
 
-> **TL;DR:** Return Result<T,E> from capabilities, CliResult<T> from handlers, never throw
-
-## Overview
-
-<!-- Each section must be self-contained: open with a context sentence, no back-references -->
-
-Consistent error handling using tagged union Result types across all CLI layers.
-
-<!-- Tier 2 boundary: content above this line is loaded at standard tier -->
+> **TL;DR:** Return CliResult<T> tagged unions from handlers — never throw in the CLI system
 
 ## Rule
 
-| Layer | Return Type | Error Helper |
-|-------|-------------|--------------|
-| Capability | `Result<T, Error>` | `err(error)` |
-| Computer | Pure output or `Result<T, E>` | `err(error)` |
-| Handler | `CliResult<T>` | `error(message)` |
+All CLI handler functions must return `CliResult<T>`. All capability functions must return `Result<T, E>`. No function in the CLI system may throw an exception. Errors are values, checked via guard functions before accessing data.
 
-**Never throw expected errors.** Return them as values.
+| Layer | Return Type | Error Approach |
+|-------|------------|----------------|
+| Handler | `CliResult<T>` | `error("message")` |
+| Capability | `Result<T, E>` | `err(new Error("..."))` |
+| Computer | Direct return | Cannot fail (pure) |
+
+<!-- Tier 2 boundary: content above this line is loaded at standard tier -->
 
 ## Rationale
 
-1. **Type Safety**: TypeScript enforces error handling
-2. **Predictability**: Callers know functions can fail
-3. **JSON Output**: CliResult serializes cleanly to stdout
-4. **No Silent Failures**: Must check before using value
+Thrown exceptions are invisible in TypeScript's type system. A function signature `findTask(id: string): TaskInfo` gives no indication it can fail. By returning `CliResult<TaskInfo>`, callers are forced by the type system to handle both success and error paths.
 
-**Summary:** Errors are values, not exceptions.
+**Summary:** Type-safe error handling eliminates uncaught exception classes.
 
 ## Examples
 
 ### Correct
 
 ```typescript
-// Capability: Returns Result<T, Error>
-function readFile(filePath: string): Result<string, Error> {
-  try {
-    const content = fs.readFileSync(filePath, 'utf8');
-    return ok(content);
-  } catch (e) {
-    return err(e instanceof Error ? e : new Error(String(e)));
-  }
-}
-
-// Handler: Returns CliResult<T>, converts Result errors
-function findTask(args: string[]): CliResult<TaskInfo> {
-  const { positional } = parseArgs(args);
-  const id = positional[0];
-
-  if (!id) {
-    return error('Task ID required');  // ✅ Return error, don't throw
-  }
-
-  const readResult = fs.readFile(`tasks/${id}/task.xml`);
+// Handler
+function findTask(id: string): CliResult<TaskInfo> {
+  const readResult = fs.readFile(filePath);
   if (!readResult.ok) {
-    return error(`Failed to read task: ${readResult.error.message}`);  // ✅ Convert
+    return error(`Failed to read task: ${readResult.error.message}`);
   }
-
-  const task = parser.parseTaskXml(readResult.value);
-  return success(task);  // ✅ Return success
+  return success(parsed);
 }
 
-// Dispatcher: Handles CliResult
-const result = handler.findTask(args);
+// Caller
+const result = findTask('023');
 if (isError(result)) {
-  console.log(JSON.stringify(result));  // { "error": true, "message": "..." }
-  process.exit(1);
+  return error(result.message); // propagate
 }
-console.log(JSON.stringify(result.data));  // Clean JSON output
+const task = result.data; // safe access
 ```
 
 ### Incorrect
 
 ```typescript
-// ❌ Throwing in handler
-function findTask(args: string[]): TaskInfo {
-  const id = args[0];
-  if (!id) {
-    throw new Error('Task ID required');  // ❌ Caller doesn't know this throws
-  }
-  const content = fs.readFileSync(`tasks/${id}/task.xml`);  // ❌ Throws on failure
-  return parser.parseTaskXml(content);
-}
-
-// ❌ Inconsistent return types
-function findTask(args: string[]): TaskInfo | null {  // ❌ null is not descriptive
-  // ...
-  return null;  // What went wrong?
-}
-
-// ❌ Swallowing errors
-function findTask(args: string[]): CliResult<TaskInfo> {
-  try {
-    const content = fs.readFile(path);
-    return success(parser.parse(content));
-  } catch (e) {
-    console.error(e);  // ❌ Logs but doesn't inform caller
-    return success(defaultTask);  // ❌ Pretends success
-  }
+function findTask(id: string): TaskInfo {
+  const content = fs.readFileSync(filePath); // throws
+  return parseTask(content); // throws
+  // Violates: no-throw rule, no CliResult return type
 }
 ```
 
-**Summary:** Return typed errors, don't throw or swallow.
-
-## Error Flow
-
-```mermaid
-flowchart LR
-    CAP["Capability<br/>Result&lt;T, Error&gt;"] --> HAND["Handler<br/>CliResult&lt;T&gt;"]
-    HAND --> DISP["Dispatcher<br/>JSON stdout"]
-
-    subgraph Conversion["Error Conversion"]
-        R1["!result.ok"] --> R2["error(result.error.message)"]
-    end
-```
+**Summary:** Return errors as values. Check before access.
 
 ## Boundaries
 
 When this convention does NOT apply:
 
-- **Invariant violations**: Bugs that should never happen can throw
-- **Startup errors**: Extension activation failures may throw
-- **Type assertions**: Invalid runtime types can throw
+- VSCode extension orchestrators (may use try-catch for VSCode API calls)
+- Build scripts and tooling
+- Zod schema validation (throws by design, caught at handler boundary)
 
 ## Enforcement
 
-- **Code review**: Check all handlers return CliResult
-- **TypeScript**: Return types enforce Result/CliResult usage
-- **grep**: Search for `throw new Error` in handlers (should be rare)
-
-```bash
-# Find potential violations
-grep -r "throw new Error" apps/*/src/cli/handlers/
-```
+Caught by CI and TypeScript type checking. Handler return types are explicitly typed as `CliResult<T>`, so the compiler catches missing error handling.

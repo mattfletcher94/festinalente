@@ -2,54 +2,43 @@
 id: "conventions/file-naming"
 title: "File Naming Convention"
 type: convention
-tldr: "kebab-case with functional suffix: name.capability.ts, name.computer.ts"
-summary: "Consistent naming makes files predictable and indicates architectural layer"
-keywords: [naming, kebab-case, suffix, files, convention]
-aliases: [naming-convention, file-names]
-boundary: "Does not apply to config files (package.json, tsconfig.json)"
-references: [patterns/dag-architecture]
-uses: [systems/cli, systems/vscode-extension]
+tldr: "kebab-case with architectural suffix: .handler.ts, .computer.ts, .capability.ts, .orchestrator.ts"
+summary: "Consistent naming with architectural suffixes makes files predictable and indicates their layer in the DAG"
+keywords: [naming, kebab-case, suffix, files, convention, handler, computer, capability, orchestrator]
+aliases: [file-naming, naming-convention]
+boundary: "Does not apply to config files, scripts, or non-TypeScript files"
+references: []
+uses: [patterns/dag-architecture]
 paths: [apps/festinalente/src/cli, apps/vscode/src]
 intent: reference
 prerequisites: []
+updated: "2026-04-05"
 ---
 
 # File Naming Convention
 
-> **TL;DR:** kebab-case with functional suffix: name.capability.ts, name.computer.ts
-
-## Overview
-
-<!-- Each section must be self-contained: open with a context sentence, no back-references -->
-
-File naming convention using kebab-case with layer-indicating suffixes for predictable discovery.
-
-<!-- Tier 2 boundary: content above this line is loaded at standard tier -->
+> **TL;DR:** kebab-case with architectural suffix: .handler.ts, .computer.ts, .capability.ts, .orchestrator.ts
 
 ## Rule
 
-All TypeScript files use **kebab-case** with a **functional suffix** indicating their architectural layer:
+All TypeScript source files use **kebab-case** naming with an **architectural suffix** that indicates which DAG layer the file belongs to.
 
-```
-{name}.{layer}.ts
-```
+| Suffix | Layer | Example |
+|--------|-------|---------|
+| `.handler.ts` | Handler (business logic) | `task.handler.ts` |
+| `.computer.ts` | Computer (pure logic) | `xml-parser.computer.ts` |
+| `.capability.ts` | Capability (I/O) | `file-system.capability.ts` |
+| `.orchestrator.ts` | Orchestrator (composition) | `tasks.orchestrator.ts` |
 
-| Layer | Suffix | Example |
-|-------|--------|---------|
-| Capability | `.capability.ts` | `file-system.capability.ts` |
-| Computer | `.computer.ts` | `xml-parser.computer.ts` |
-| Handler | `.handler.ts` | `task.handler.ts` |
-| Orchestrator | `.orchestrator.ts` | `terminal.orchestrator.ts` |
-| Types | `.types.ts` or `-types.ts` | `task-types.ts` |
+Entry points (`dispatcher.ts`, `extension.ts`, `registry.ts`, `types.ts`) and barrel files (`index.ts`) have no suffix.
+
+<!-- Tier 2 boundary: content above this line is loaded at standard tier -->
 
 ## Rationale
 
-1. **Predictability**: Knowing the layer tells you what to expect (I/O vs pure logic)
-2. **Searchability**: Glob patterns like `*.capability.ts` find all capabilities
-3. **DAG Enforcement**: Suffix reveals import violations (computer importing capability)
-4. **Onboarding**: New developers understand architecture from filenames
+Suffixes tell you the file's architectural role at a glance. You know a `.computer.ts` contains pure functions and a `.capability.ts` contains I/O without opening the file. This makes code review faster and prevents accidental layer violations.
 
-**Summary:** Suffix indicates layer, kebab-case for readability.
+**Summary:** The suffix is a contract — it declares what kind of code the file contains.
 
 ## Examples
 
@@ -57,66 +46,43 @@ All TypeScript files use **kebab-case** with a **functional suffix** indicating 
 
 ```
 apps/festinalente/src/cli/
-├── capabilities/
-│   └── file-system.capability.ts    ✅ kebab-case + .capability
-├── computers/
-│   ├── xml-parser.computer.ts       ✅ kebab-case + .computer
-│   ├── yaml-parser.computer.ts      ✅
-│   └── search.computer.ts           ✅
 ├── handlers/
-│   ├── task.handler.ts              ✅ kebab-case + .handler
-│   ├── config.handler.ts            ✅
-│   └── validation.handler.ts        ✅
-├── orchestrators/
-│   └── terminal.orchestrator.ts     ✅ (if present)
-├── types.ts                         ✅ shared types (no suffix needed)
-├── registry.ts                      ✅ standalone module (no suffix needed)
-├── orchestrator.ts                  ✅ main orchestrator (no suffix needed)
-└── dispatcher.ts                    ✅ entry point (no suffix needed)
-```
-
-```typescript
-// Correct imports show layer relationships
-import { createFileSystemCapability } from '../capabilities/file-system.capability';
-import { createXmlParserComputer } from '../computers/xml-parser.computer';
+│   ├── task.handler.ts
+│   ├── search.handler.ts
+│   └── validation.handler.ts
+├── computers/
+│   ├── xml-parser.computer.ts
+│   ├── search.computer.ts
+│   └── task-resolver.computer.ts
+├── capabilities/
+│   └── file-system.capability.ts
+├── orchestrator.ts
+├── dispatcher.ts
+├── registry.ts
+└── types.ts
 ```
 
 ### Incorrect
 
 ```
-├── FileSystemCapability.ts          ❌ PascalCase
-├── file_system_capability.ts        ❌ snake_case
-├── filesystem.ts                    ❌ missing suffix
-├── file-system.cap.ts               ❌ abbreviated suffix
-├── FileSystem.capability.ts         ❌ mixed case
-└── file-system-capability.ts        ❌ suffix in name, not separated by dot
+apps/festinalente/src/cli/
+├── handlers/
+│   ├── TaskHandler.ts          # PascalCase, missing suffix
+│   ├── search.ts               # Missing suffix
+│   └── validation_handler.ts   # snake_case
+// Violates: kebab-case and suffix requirements
 ```
 
-```typescript
-// Incorrect: no suffix makes layer unclear
-import { readFile } from '../utils/file-system';  // ❌ Is this a capability?
-```
-
-**Summary:** Always use kebab-case with proper dot-separated suffix.
+**Summary:** kebab-case + suffix for typed files, no suffix for entry points.
 
 ## Boundaries
 
 When this convention does NOT apply:
 
-- **Config files**: `package.json`, `tsconfig.json` (external conventions)
-- **Entry points**: `extension.ts`, `dispatcher.ts` (no layer suffix needed)
-- **Index files**: `index.ts` for barrel exports
-- **Shared types**: `types.ts` for module-wide types
+- Config files (`.oxlintrc.json`, `tsconfig.json`, `package.json`)
+- Build scripts in `tools/` and `bin/`
+- Template and content files (`.md`)
 
 ## Enforcement
 
-- **Code review**: Reviewers check file naming
-- **No automated linting**: TypeScript doesn't enforce filenames
-- **Pattern matching**: CI could check with glob patterns
-
-### Potential Lint Rule
-
-```bash
-# Check for files missing layer suffix in capability folder
-find apps/*/src/cli/capabilities -name "*.ts" ! -name "*.capability.ts" -type f
-```
+Caught by CI linting and code review. Oxlint does not enforce file naming directly, but the pattern is consistent enough that violations are obvious in review.
