@@ -214,6 +214,20 @@ You define the problem, scope, and numbered requirements. The skill decomposes i
 
 ---
 
+## Discovery
+
+Before you know what to build, you need to know what's missing. `/festina-discover` analyzes your project from four perspectives — user journeys, product coverage, engineering health, and backlog patterns — then synthesizes what it finds into prioritized opportunities.
+
+```
+/festina-discover                                        # Broad scan across everything
+/festina-discover "opportunities in the CLI"             # Focused on a specific area
+/festina-discover "is adding a plugin system worth it?"  # Evaluate a specific idea
+```
+
+It reads what's already in the system — your docs, your tasks, your codebase, your git history — and surfaces gaps you might not have noticed. When something looks worth pursuing, it feeds straight into `/festina-create`.
+
+---
+
 ## All Commands
 
 ### Core Workflow
