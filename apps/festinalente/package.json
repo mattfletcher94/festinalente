@@ -1,6 +1,6 @@
 {
-  "name": "@mattfletcher94/festinalente",
-  "version": "1.0.2",
+  "name": "festinalente",
+  "version": "1.0.3",
   "description": "Festina Lente - Make haste slowly. Spec-driven development for AI coding agents.",
   "keywords": [
     "ai-workflow",
@@ -26,7 +26,7 @@
   "type": "module",
   "publishConfig": {
     "access": "public",
-    "registry": "https://npm.pkg.github.com"
+    "registry": "https://registry.npmjs.org"
   },
   "scripts": {
     "build": "pnpm build:tools && pnpm build:cli && pnpm build:content",
