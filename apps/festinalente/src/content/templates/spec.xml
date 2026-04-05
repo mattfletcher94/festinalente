@@ -1,0 +1,86 @@
+<spec task="{id}" created="{created}" updated="{updated}">
+  <title>{title}</title>
+
+  <context>{problem and value context}</context>
+
+  <scope>
+    <in-scope>
+      <item>{scope item}</item>
+    </in-scope>
+    <out-of-scope>
+      <item>{exclusion}</item>
+    </out-of-scope>
+  </scope>
+
+  <!-- Optional: only for brownfield tasks -->
+  <delta>
+    <current>{what exists today, from product docs}</current>
+    <changing>{what this task modifies}</changing>
+    <unchanged>{what explicitly stays the same}</unchanged>
+  </delta>
+
+  <!-- Optional: autonomy boundaries for implementation agent -->
+  <boundaries>
+    <always>{proceed without asking}</always>
+    <ask-first>{needs user approval}</ask-first>
+    <never>{hard stop}</never>
+  </boundaries>
+
+  <!-- Optional: behavioral contracts derived from requirements -->
+  <contracts>
+    <contract id="C1" requirement="FR1">
+      <name>{contract name}</name>
+      <precondition>{what must be true before}</precondition>
+      <postcondition>{what must be true after}</postcondition>
+      <invariant>{what must always be true}</invariant>
+      <property>{general property that should hold}</property>
+    </contract>
+  </contracts>
+
+  <requirements>
+    <requirement id="FR1">{requirement}</requirement>
+  </requirements>
+
+  <files>
+    <file action="{create|modify|delete}" path="{path}" reason="{reason}"/>
+  </files>
+
+  <patterns>
+    <pattern name="{name}">
+      <description>{description}</description>
+      <reference>{file:line}</reference>
+    </pattern>
+  </patterns>
+
+  <research>
+    <product>
+      <finding doc="{doc-id}">{insight}</finding>
+    </product>
+    <engineering>
+      <finding doc="{doc-id}">{pattern reference}</finding>
+    </engineering>
+    <codebase>
+      <finding component="{name}" path="{path}">{analysis}</finding>
+    </codebase>
+    <pitfalls>
+      <pitfall issue="{issue}" mitigation="{mitigation}"/>
+    </pitfalls>
+  </research>
+
+  <constraints>
+    <constraint>{constraint}</constraint>
+  </constraints>
+
+  <dependencies>
+    <dependency type="external">{library/API}</dependency>
+    <dependency type="internal">{task/feature}</dependency>
+  </dependencies>
+
+  <risks>
+    <risk impact="{high|medium|low}" mitigation="{mitigation}">{description}</risk>
+  </risks>
+
+  <open-questions>
+    <question>{unresolved item}</question>
+  </open-questions>
+</spec>

@@ -1,0 +1,66 @@
+<task id="022-remove-rubber-stamp-qanda-questions-from-festina-s" status="done" priority="high" created="2026-03-24" updated="2026-03-24" completed="2026-03-24">
+  <title>Remove rubber-stamp Q&amp;A questions from festina-scope and festina-create</title>
+
+  <labels>
+    <label>refactor</label>
+  </labels>
+
+  <refs spec="tasks/022-remove-rubber-stamp-qanda-questions-from-festina-s/spec.xml" plan="tasks/022-remove-rubber-stamp-qanda-questions-from-festina-s/plan.xml"/>
+
+  <affects>
+    <doc id="skills/scope"/>
+    <doc id="skills/create"/>
+  </affects>
+
+  <engineering>
+    <doc id="systems/content-build"/>
+  </engineering>
+
+  <description>Remove ~6 rubber-stamp AskUserQuestion calls from festina-scope (dependencies, patterns, constraints) and festina-create (priority, label confirmation, engineering doc type). Replace with auto-inferred decisions that are stated as output, not asked as questions. Users can still volunteer overrides during Q&amp;A. Continues the "propose, don't interrogate" principle established in task #016.</description>
+
+  <problem>festina-scope asks 3 questions during technical Q&amp;A that users always answer with the default: "Are there any libraries or dependencies?" (always "None"), "Should we follow these patterns?" (always "Yes"), "Are there any technical constraints?" (always "None"). festina-create asks for priority confirmation (always "Medium"), label confirmation when auto-detected (always "Yes"), and engineering doc type when no docs match (always "None needed"). These violate the "propose, don't interrogate" principle already stated in the scope skill source (lines 582-585) and partially applied in task #016 which removed 14 similar confirmations.</problem>
+
+  <value>Fewer interruptions per skill invocation (~6 questions removed), faster workflow through the two most-used skills, and consistent application of the "propose, don't interrogate" principle. The same treatment that task #016 applied to boundaries, research depth, and synthesis approval now extends to the remaining rubber-stamp questions.</value>
+
+  <acceptance-criteria>
+Given festina-scope reaches the technical Q&amp;A phase (conduct_qa_dialogue step)
+Then the dependencies question (line 620-628) is removed — dependencies are inferred from research findings and stated as decisions
+And the patterns question (line 630-639) is removed — found patterns are auto-included with a statement, not a confirmation
+And the constraints question (line 641-649) is removed — constraints from pitfalls/research are stated as decisions
+And users can still volunteer dependencies/patterns/constraints at any point during Q&amp;A
+
+Given festina-create detects a label from keywords
+Then the label is auto-applied without confirmation — output the decision as a statement
+And only ask when label detection fails (no keywords match)
+
+Given festina-create reaches priority selection
+Then priority defaults to "medium" without asking — output the decision as a statement
+
+Given festina-create finds no matching engineering docs (score &lt; 0.3)
+Then engineering doc type is set to "none" without asking — stub creation deferred to festina-finalize if needed
+
+Given a user wants to override any auto-decision
+Then they can volunteer corrections during Q&amp;A (e.g., "actually use high priority", "we need library X", "don't follow that pattern")
+And the skill incorporates the override into the final output
+  </acceptance-criteria>
+
+  <project-requirements></project-requirements>
+
+  <notes>
+**Research references:**
+- Research: Full inventory of ~150-180 AskUserQuestion calls across all skills performed during discovery
+- Research: Task #016 removed 14 confirmations using "show work, don't ask permission" principle — this task extends that work
+- Research: festina-scope lines 582-585 state "Propose, don't interrogate" but only 2 of 5 Q&amp;A questions follow it (approach and files propose; dependencies, patterns, constraints don't)
+- Research: Boundaries question was already made voluntary in #016 (line 651) — dependencies and constraints should get the same treatment
+
+**Integration points:**
+- Continues work started in task #016 (remove unnecessary user confirmations)
+- Skills affected: festina-scope (SKILL.md lines 620-649), festina-create (SKILL.md priority/label/eng-type steps)
+- Both skills are Handlebars templates in apps/festinalente/src/content/skills/
+
+**Design principles:**
+- User: "I literally ALWAYS just spam yes on" these questions — they add friction without value
+- Inferred: Auto-decisions should be stated as output (e.g., "Priority: medium. Label: refactor.") so the user sees what was decided and can object
+- Inferred: The "volunteer during Q&amp;A" escape hatch preserves user agency without forcing confirmation on every decision
+  </notes>
+</task>

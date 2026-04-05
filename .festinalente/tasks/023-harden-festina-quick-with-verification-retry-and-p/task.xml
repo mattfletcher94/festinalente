@@ -1,0 +1,58 @@
+<task id="023-harden-festina-quick-with-verification-retry-and-p" status="done" priority="medium" created="2026-03-25" updated="2026-03-25" completed="2026-03-25">
+  <title>Harden festina-quick with verification, retry, and parity fixes</title>
+
+  <labels>
+    <label>refactor</label>
+  </labels>
+
+  <refs spec="tasks/023-harden-festina-quick-with-verification-retry-and-p/spec.xml" plan="tasks/023-harden-festina-quick-with-verification-retry-and-p/plan.xml"/>
+
+  <affects>
+    <doc id="skills/quick"/>
+    <doc id="skills/implement"/>
+  </affects>
+
+  <engineering>
+    <doc id="systems/content-build"/>
+  </engineering>
+
+  <description>festina-quick has fallen behind other skills in quality patterns established during tasks 012-022. This task brings quick up to parity by adding a lightweight verification gate, directive compliance retry loop, research override option, skill-complete partial usage, missing doc command variants, and approach confirmation pause.</description>
+
+  <problem>festina-quick lacks quality gates that other skills already have: no verification of done criteria after implementation, one-shot directive compliance with no retry loop, auto-decided research with no user override, manual [FESTINA_COMPLETE] instead of skill-complete partial, missing doc list/check command variants (flagged in task 013), and no approach confirmation before implementation begins.</problem>
+
+  <value>Reduces risk of incomplete or incorrect quick task implementations by adding lightweight quality gates that other skills already have, without sacrificing quick's speed advantage.</value>
+
+  <acceptance-criteria>
+Given the quick skill source, when built, then it uses {{> skill-complete}} partial instead of inline [FESTINA_COMPLETE]
+
+Given the quick skill context section, when rendered, then it includes show_list_product=true and show_list_engineering=true alongside existing search variants
+
+Given a quick task completes implementation, when directive compliance runs and fails, then user can fix and the check re-runs (retry loop)
+
+Given implementation is complete, when proceeding to finalization, then modified files are scanned for TODO/FIXME/HACK markers and user is warned if found
+
+Given auto_decide_research determines "simple", when displaying the decision, then user is offered an override option to research anyway
+
+Given determine_approach outputs the approach, when displayed to user, then user can confirm or adjust before implementation begins
+
+Given a quick task with no directives loaded, when directive compliance runs, then it passes silently (no retry needed)
+
+Given anti-pattern scan finds markers in files NOT modified by this task, then they are excluded from the warning
+  </acceptance-criteria>
+
+  <project-requirements></project-requirements>
+
+  <notes>
+Integration points:
+- The skill-complete partial is at apps/festinalente/src/content/partials/skill-complete.md — single line output
+- The directive-compliance partial is shared across all skills — retry loop should be added to the partial itself or wrapped in quick's process
+- Anti-pattern scan pattern exists in festina-implement's verify_implementation_quality step — can be adapted as lightweight version
+- Task 013 explicitly flagged missing doc list/check variants for quick but only added success_criteria, not the partial flags
+- Content-build system compiles source from apps/festinalente/src/content/skills/festina-quick/SKILL.md
+
+Design principles:
+- Keep quick lightweight — verification should be a quick scan, not interactive behavior-by-behavior testing
+- Approach confirmation should be a simple "proceed?" not a full spec review
+- Research override should be a single option, not a multi-step flow
+  </notes>
+</task>

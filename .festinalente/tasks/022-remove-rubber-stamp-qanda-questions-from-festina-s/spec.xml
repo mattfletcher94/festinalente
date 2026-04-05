@@ -1,0 +1,98 @@
+<spec task="022-remove-rubber-stamp-qanda-questions-from-festina-s" created="2026-03-24" updated="2026-03-24">
+  <title>Remove rubber-stamp Q&amp;A questions from festina-scope and festina-create</title>
+
+  <context>
+    festina-scope asks 3 questions during technical Q&amp;A that users always answer with the default (dependencies: "None", patterns: "Yes", constraints: "None"). festina-create asks for priority confirmation (always "Medium"), label confirmation when auto-detected (always "Yes"), and engineering doc type when no docs match (always "None needed"). These violate the "propose, don't interrogate" principle and add friction without value. Task #016 already removed 14 similar confirmations — this extends that treatment to the remaining ~6 rubber-stamp questions.
+  </context>
+
+  <scope>
+    <in-scope>
+      <item>Remove 3 AskUserQuestion calls from festina-scope conduct_qa_dialogue step (dependencies, patterns, constraints)</item>
+      <item>Remove priority AskUserQuestion from festina-create get_priority step — default to "medium"</item>
+      <item>Remove label confirmation AskUserQuestion from festina-create determine_label step when auto-detected</item>
+      <item>Remove engineering doc type AskUserQuestion from festina-create search_engineering_docs step when no match — default to "none"</item>
+      <item>Replace each removed question with an output statement declaring the auto-decision</item>
+      <item>Preserve the ability for users to volunteer overrides during Q&amp;A</item>
+    </in-scope>
+    <out-of-scope>
+      <item>Other AskUserQuestion calls in festina-scope (approach, files, pitfalls, synthesis — these involve genuine decisions)</item>
+      <item>The festina-create Q&amp;A dialogue itself (product validation questions remain)</item>
+      <item>Other skills beyond festina-scope and festina-create</item>
+      <item>Product or engineering documentation updates (handled by /festina-finalize)</item>
+    </out-of-scope>
+  </scope>
+
+  <delta>
+    <current>
+      festina-scope conduct_qa_dialogue (lines 620-649) asks 3 sequential questions: "Are there any libraries or dependencies?" with options None/Skip, "Should we follow these patterns?" with options Yes/Modify/Skip, "Are there any technical constraints?" with options None/Skip. Each uses AskUserQuestion and waits for user response.
+
+      festina-create get_priority (lines 285-295) asks "What priority should this task have?" with options High/Medium (Recommended)/Low. determine_label (lines 299-307) asks "Auto-detected label: {label}. Is this correct?" with Yes/No when label is auto-detected. search_engineering_docs (lines 168-191) asks "What type of engineering doc should be created?" with System/Pattern/Convention/None needed when no docs match.
+    </current>
+    <changing>
+      festina-scope: Replace the 3 AskUserQuestion calls with output statements that declare auto-decisions. Dependencies are inferred from research findings and stated. Patterns found during research are auto-included and stated. Constraints from pitfalls/research are stated as decisions.
+
+      festina-create: Priority defaults to "medium" with an output statement. Auto-detected label is applied directly with an output statement (only ask when detection fails). Engineering doc type defaults to "none" when no docs match, with stub creation deferred to festina-finalize.
+    </changing>
+    <unchanged>
+      festina-scope: Approach question, files question, pitfall resolution, synthesis approval, web research findings question, boundaries volunteer mechanism, and all other Q&amp;A flow remain unchanged. The "propose, don't interrogate" note stays. Users can still volunteer dependencies/patterns/constraints at any point.
+
+      festina-create: Product validation Q&amp;A dialogue, acceptance criteria category probing, doc search and linking, project attachment, stub doc creation, and the label fallback question when detection fails all remain unchanged.
+    </unchanged>
+  </delta>
+
+  <requirements>
+    <requirement id="FR1">The festina-scope conduct_qa_dialogue step shall not ask about dependencies — instead it shall infer dependencies from research findings and state them as an output decision (e.g., "Dependencies: none identified" or "Dependencies: {inferred list}")</requirement>
+    <requirement id="FR2">The festina-scope conduct_qa_dialogue step shall not ask about patterns — instead it shall auto-include patterns found during research and state them as an output decision (e.g., "Patterns: following {pattern list} from research")</requirement>
+    <requirement id="FR3">The festina-scope conduct_qa_dialogue step shall not ask about constraints — instead it shall state constraints from pitfalls and research as an output decision (e.g., "Constraints: {list from research}" or "Constraints: none identified")</requirement>
+    <requirement id="FR4">The festina-create get_priority step shall default to "medium" priority without asking — it shall output the decision as a statement (e.g., "Priority: medium")</requirement>
+    <requirement id="FR5">The festina-create determine_label step shall auto-apply the detected label without confirmation when keyword detection succeeds — it shall output the decision as a statement (e.g., "Label: refactor (auto-detected)"). The fallback question when detection fails shall remain.</requirement>
+    <requirement id="FR6">The festina-create search_engineering_docs step shall set engineering to empty/none without asking when no docs match (score &lt; 0.3) — it shall output the decision as a statement. Stub creation is deferred to festina-finalize if needed.</requirement>
+    <requirement id="FR7">Users shall be able to override any auto-decision by volunteering corrections during Q&amp;A (e.g., "actually use high priority", "we need library X", "don't follow that pattern"), and the skill shall incorporate the override into the final output</requirement>
+  </requirements>
+
+  <files>
+    <file action="modify" path="apps/festinalente/src/content/skills/festina-scope/SKILL.md" reason="Remove 3 rubber-stamp AskUserQuestion calls (dependencies, patterns, constraints) from conduct_qa_dialogue step and replace with output statements"/>
+    <file action="modify" path="apps/festinalente/src/content/skills/festina-create/SKILL.md" reason="Remove priority question (default to medium), label confirmation (auto-apply), and engineering doc type question (default to none) and replace with output statements"/>
+  </files>
+
+  <patterns>
+    <pattern name="Auto-decision output pattern">
+      <description>Replace AskUserQuestion with an output statement that declares the auto-decision. The user sees what was decided and can object during Q&amp;A. Established by task #016 which removed 14 similar confirmations.</description>
+      <reference>apps/festinalente/src/content/skills/festina-scope/SKILL.md:582</reference>
+    </pattern>
+  </patterns>
+
+  <research>
+    <product>
+      <finding doc="skills/scope">Scope skill states "propose, don't interrogate" at lines 582-585 but 3 of 5 Q&amp;A questions (dependencies, patterns, constraints) still interrogate instead of proposing</finding>
+      <finding doc="skills/create">Create skill asks for priority, label confirmation, and engineering doc type — all consistently answered with defaults</finding>
+    </product>
+    <engineering>
+      <finding doc="systems/content-build">Skills are Handlebars templates in apps/festinalente/src/content/skills/. Changes go in source, not .claude/ built output. Build with pnpm festinalente:build.</finding>
+    </engineering>
+    <codebase>
+      <finding component="festina-scope conduct_qa_dialogue" path="apps/festinalente/src/content/skills/festina-scope/SKILL.md">Lines 620-649: Three AskUserQuestion blocks for dependencies, patterns, constraints — each with default-confirming options</finding>
+      <finding component="festina-create get_priority" path="apps/festinalente/src/content/skills/festina-create/SKILL.md">Lines 285-295: Priority selection with Medium (Recommended) always chosen</finding>
+      <finding component="festina-create determine_label" path="apps/festinalente/src/content/skills/festina-create/SKILL.md">Lines 299-307: Label confirmation when auto-detected — always confirmed "Yes"</finding>
+      <finding component="festina-create search_engineering_docs" path="apps/festinalente/src/content/skills/festina-create/SKILL.md">Lines 168-191: Engineering doc type question when no match — always "None needed"</finding>
+    </codebase>
+    <pitfalls>
+      <pitfall issue="Built output sync" mitigation="Run pnpm festinalente:build after editing source to update .claude/ output (handled during finalize per coding directive P-B2)"/>
+    </pitfalls>
+  </research>
+
+  <constraints>
+    <constraint>Edit source in apps/festinalente/src/content/ not .claude/ built output (coding directive F1)</constraint>
+    <constraint>Skills are Handlebars templates — changes are in inline XML steps, not partials</constraint>
+  </constraints>
+
+  <dependencies>
+    <dependency type="internal">Task #016 established the auto-decision pattern being extended here</dependency>
+  </dependencies>
+
+  <risks>
+    <risk impact="low" mitigation="The volunteer override mechanism preserves user agency — users who need non-default values can still provide them during Q&amp;A">Users may occasionally want non-default priority or label but miss the output statement</risk>
+  </risks>
+
+  <open-questions/>
+</spec>

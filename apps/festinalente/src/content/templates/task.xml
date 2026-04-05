@@ -1,0 +1,27 @@
+<task id="{id}" project-id="" status="{status}" priority="{priority}" created="{created}" updated="{updated}">
+  <title>{title}</title>
+
+  <labels>
+  </labels>
+
+  <refs spec="tasks/{id}/spec.xml" plan="tasks/{id}/plan.xml"/>
+
+  <affects>
+  </affects>
+
+  <engineering>
+  </engineering>
+
+  <description>{description}</description>
+
+  <problem></problem>
+
+  <value></value>
+
+  <acceptance-criteria>
+  </acceptance-criteria>
+
+  <project-requirements></project-requirements>
+
+  <notes></notes>
+</task>

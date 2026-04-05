@@ -1,0 +1,58 @@
+{
+  "name": "@mattfletcher94/festinalente",
+  "version": "1.0.2",
+  "description": "Festina Lente - Make haste slowly. Spec-driven development for AI coding agents.",
+  "keywords": [
+    "ai-workflow",
+    "claude",
+    "claude-code",
+    "festinalente",
+    "llm-agents",
+    "spec-driven-development"
+  ],
+  "license": "MIT",
+  "author": "Matt Fletcher",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mattfletcher94/festinalente"
+  },
+  "bin": {
+    "festinalente": "bin/install.cjs"
+  },
+  "files": [
+    "bin",
+    "dist"
+  ],
+  "type": "module",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://npm.pkg.github.com"
+  },
+  "scripts": {
+    "build": "pnpm build:tools && pnpm build:cli && pnpm build:content",
+    "build:tools": "tsdown -c tsdown.config.ts tools/build.ts --format esm --out-dir dist/tools",
+    "build:cli": "tsdown -c tsdown.config.ts src/cli/dispatcher.ts --format cjs --out-dir dist/cli",
+    "build:content": "node dist/tools/build.js",
+    "clean": "node -e \"fs=require('fs');fs.rmSync('dist',{recursive:true,force:true})\"",
+    "prepublishOnly": "pnpm build"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.3.6",
+    "gray-matter": "^4.0.3",
+    "js-yaml": "^4.1.1",
+    "minisearch": "^7.2.0",
+    "slugify": "^1.6.6",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20.11.0",
+    "glob": "^10.3.10",
+    "handlebars": "^4.7.8",
+    "tsdown": "^0.11.4",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

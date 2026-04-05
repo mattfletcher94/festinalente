@@ -1,0 +1,104 @@
+<spec task="023-harden-festina-quick-with-verification-retry-and-p" created="2026-03-25" updated="2026-03-25">
+  <title>Harden festina-quick with verification, retry, and parity fixes</title>
+
+  <context>
+    festina-quick lacks quality gates that other skills already have: no verification of done criteria after implementation, one-shot directive compliance with no retry loop, auto-decided research with no user override, manual [FESTINA_COMPLETE] instead of skill-complete partial, missing doc list/check command variants, and no approach confirmation before implementation. This creates risk of incomplete or incorrect quick task implementations.
+  </context>
+
+  <scope>
+    <in-scope>
+      <item>Add lightweight anti-pattern scan (TODO/FIXME/HACK) to quick skill after implementation</item>
+      <item>Add retry loop to the shared directive-compliance partial</item>
+      <item>Add research override option to quick's auto_decide_research step</item>
+      <item>Add approach confirmation pause before implementation begins</item>
+      <item>Replace inline [FESTINA_COMPLETE] with skill-complete partial</item>
+      <item>Add show_list_product and show_list_engineering flags to quick's context</item>
+    </in-scope>
+    <out-of-scope>
+      <item>Full requirement trace or wiring verification (festina-implement scope)</item>
+      <item>Changes to other skills beyond the shared directive-compliance partial</item>
+      <item>Adding column-transition partial to quick (not needed for quick workflow)</item>
+    </out-of-scope>
+  </scope>
+
+  <delta>
+    <current>
+      Quick skill (SKILL.md, 322 lines) has: auto_decide_research that silently decides without override, determine_approach that outputs approach without confirmation pause, directive-compliance partial that offers fix/continue with no retry, inline [FESTINA_COMPLETE] output, and product/engineering doc scripts with only search variants (no list).
+    </current>
+    <changing>
+      auto_decide_research gains an override option when deciding "simple". determine_approach gains a confirmation step. A new verify_implementation step scans modified files for anti-patterns. directive-compliance partial gains a retry loop. Output uses skill-complete partial. Doc script partials gain list flags.
+    </changing>
+    <unchanged>
+      Quick's core Q&A flow (problem + done), quick.xml structure, optional_research step, detect_docs step, validate_xml step. Other skills' usage of directive-compliance partial (they gain the retry loop automatically but behavior is backward-compatible — the retry only activates when user selects "Fix now").
+    </unchanged>
+  </delta>
+
+  <requirements>
+    <requirement id="FR1">Quick skill output_result step uses the skill-complete partial instead of inline [FESTINA_COMPLETE] text</requirement>
+    <requirement id="FR2">Quick skill context section includes show_list_product=true and show_list_engineering=true flags on the respective doc script partials</requirement>
+    <requirement id="FR3">The shared directive-compliance partial includes a retry loop: when a check fails and user selects "Fix now", the fix is applied and failed checks re-run; if still failing after remediation, the result is reported to user and execution continues</requirement>
+    <requirement id="FR4">After implementation completes and before directive compliance, modified files from quick.xml files section are scanned for TODO/FIXME/HACK/XXX markers and user is warned with file:line references if any are found</requirement>
+    <requirement id="FR5">The anti-pattern scan only greps files listed in quick.xml files section, excluding markers in unmodified files</requirement>
+    <requirement id="FR6">When auto_decide_research determines the task is simple, the user is shown the decision with a single override option to research anyway</requirement>
+    <requirement id="FR7">After determine_approach displays the approach, user is presented a confirmation prompt to proceed or adjust before implementation begins</requirement>
+    <requirement id="FR8">When no directives are loaded, directive compliance passes silently without presenting any retry or fix prompts</requirement>
+  </requirements>
+
+  <files>
+    <file action="modify" path="apps/festinalente/src/content/skills/festina-quick/SKILL.md" reason="Add verification step, research override, approach confirmation, skill-complete partial usage, doc list flags"/>
+    <file action="modify" path="apps/festinalente/src/content/partials/directive-compliance.md" reason="Add retry loop (fix → re-run failed checks → report if still failing)"/>
+  </files>
+
+  <patterns>
+    <pattern name="Anti-pattern scan">
+      <description>Grep modified files for TODO/FIXME/HACK/XXX markers, present findings with file:line, offer fix/proceed choice</description>
+      <reference>apps/festinalente/src/content/skills/festina-implement/SKILL.md:368</reference>
+    </pattern>
+    <pattern name="Handlebars partial flags">
+      <description>Conditional sections in partials controlled by show_* boolean flags passed from skill context</description>
+      <reference>apps/festinalente/src/content/partials/product-docs-scripts.md:3</reference>
+    </pattern>
+    <pattern name="Directive compliance with retry">
+      <description>festina-implement's inline pattern: fix violation → re-run failed checks → report if still failing</description>
+      <reference>apps/festinalente/src/content/skills/festina-implement/SKILL.md:279</reference>
+    </pattern>
+  </patterns>
+
+  <research>
+    <product>
+      <finding doc="skills/quick">Fast path for simple fixes. Currently uses 8 of 10 partials — missing skill-complete and column-transition. Only has search doc commands, not list.</finding>
+      <finding doc="skills/implement">Full implementation skill with verify_implementation_quality step including anti-pattern scan at line 368 — reference pattern for quick's lightweight verification.</finding>
+    </product>
+    <engineering>
+      <finding doc="systems/content-build">Handlebars compilation from src/content/ to dist/. Partials auto-register by filename. skill-complete partial is a single-line drop-in replacement.</finding>
+    </engineering>
+    <codebase>
+      <finding component="SKILL.md" path="apps/festinalente/src/content/skills/festina-quick/SKILL.md">322-line skill source. Lines 93-107: auto_decide_research (no override). Lines 163-174: determine_approach (no confirmation). Line 235: inline [FESTINA_COMPLETE].</finding>
+      <finding component="directive-compliance.md" path="apps/festinalente/src/content/partials/directive-compliance.md">37-line shared partial. Has fix/continue but no retry loop after fix. Used by 16 of 17 skills.</finding>
+      <finding component="skill-complete.md" path="apps/festinalente/src/content/partials/skill-complete.md">Single line: outputs [FESTINA_COMPLETE]. Drop-in replacement for quick's inline version.</finding>
+    </codebase>
+    <pitfalls>
+      <pitfall issue="Retry loop in shared partial affects all 16 skills" mitigation="Behavior is backward-compatible — retry only activates when user selects Fix now, which is already the existing flow. The change adds re-run after fix instead of just continuing."/>
+      <pitfall issue="Anti-pattern scan must exclude unmodified files" mitigation="Only grep files listed in quick.xml files section"/>
+      <pitfall issue="Build required after content changes" mitigation="Directive V-B2 handles build verification"/>
+    </pitfalls>
+  </research>
+
+  <constraints>
+    <constraint>Keep quick lightweight — verification is a quick scan, not interactive behavior-by-behavior testing</constraint>
+    <constraint>Approach confirmation is a simple proceed/adjust prompt, not a full spec review</constraint>
+    <constraint>Research override is a single option, not a multi-step flow</constraint>
+    <constraint>Edit source in apps/festinalente/src/content/ (not .claude/ or .opencode/ built output)</constraint>
+  </constraints>
+
+  <dependencies>
+    <dependency type="internal">skill-complete partial (apps/festinalente/src/content/partials/skill-complete.md) — already exists</dependency>
+    <dependency type="internal">directive-compliance partial (apps/festinalente/src/content/partials/directive-compliance.md) — modifying shared resource</dependency>
+  </dependencies>
+
+  <risks>
+    <risk impact="low" mitigation="Retry only activates on user-initiated fix, preserving existing flow">Shared partial change affects 16 skills</risk>
+  </risks>
+
+  <open-questions/>
+</spec>

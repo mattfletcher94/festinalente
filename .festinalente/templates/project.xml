@@ -1,0 +1,45 @@
+<project id="{id}" status="{status}" created="{created}" updated="{updated}">
+  <title>{title}</title>
+
+  <description>{description}</description>
+
+  <problem></problem>
+
+  <value></value>
+
+  <scope>
+    <in-scope>
+      <item></item>
+    </in-scope>
+    <out-of-scope>
+      <item></item>
+    </out-of-scope>
+  </scope>
+
+  <requirements>
+    <requirement id="R1"></requirement>
+  </requirements>
+
+  <acceptance-criteria>
+    <criterion>Given ... When ... Then ...</criterion>
+  </acceptance-criteria>
+
+  <tasks>
+  </tasks>
+
+  <notes>
+  </notes>
+
+  <research>
+    <stack></stack>
+    <features></features>
+    <architecture></architecture>
+    <pitfalls></pitfalls>
+  </research>
+
+  <affects>
+  </affects>
+
+  <engineering>
+  </engineering>
+</project>

@@ -1,0 +1,32 @@
+<quick id="{id}" status="{status}" created="{created}" updated="{updated}">
+  <title>{title}</title>
+
+  <problem>{problem}</problem>
+  <done>{done}</done>
+
+  <context>
+    <finding file="{path}" reason="{reason}"/>
+  </context>
+
+  <approach>{approach}</approach>
+
+  <constraints>
+    <constraint>{constraint}</constraint>
+  </constraints>
+
+  <files>
+    <file path="{path}" action="{found|modified|created}"/>
+  </files>
+
+  <verify>
+    <step>{step}</step>
+  </verify>
+
+  <commit hash="{hash}" message="{message}" date="{date}"/>
+
+  <summary>{summary}</summary>
+
+  <docs>
+    <doc id="{id}" type="{product|engineering}"/>
+  </docs>
+</quick>

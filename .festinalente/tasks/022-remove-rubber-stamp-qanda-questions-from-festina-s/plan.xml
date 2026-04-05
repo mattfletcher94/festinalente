@@ -1,0 +1,263 @@
+<plan task="022-remove-rubber-stamp-qanda-questions-from-festina-s" spec="tasks/022-remove-rubber-stamp-qanda-questions-from-festina-s/spec.xml" status="approved"
+      complexity="complex" created="2026-03-24" updated="2026-03-24"
+      generated-by="claude" model="claude-opus-4-6" version="1" iteration="1">
+  <title>Remove rubber-stamp Q&amp;A questions from festina-scope and festina-create</title>
+
+  <overview>
+    Remove ~6 AskUserQuestion calls that users always answer with defaults from festina-scope
+    (dependencies, patterns, constraints) and festina-create (priority, label confirmation,
+    engineering doc type). Replace each with an output statement declaring the auto-decision.
+    Follows the "propose, don't interrogate" pattern established in task #016.
+  </overview>
+
+  <approach>
+    <rationale>
+      Task #016 already established the pattern: replace rubber-stamp confirmations with
+      output statements that declare auto-decisions. The festina-scope skill even states
+      "Propose, don't interrogate" at lines 582-585, but 3 of 5 Q&amp;A questions still
+      interrogate. This task applies the same treatment to the remaining questions.
+
+      The existing "volunteer during Q&amp;A" mechanism (users can type free-text at any
+      AskUserQuestion prompt) already serves as the override escape hatch — no new mechanism
+      needed. The notes at lines 590-593 in festina-scope and 343-344 in festina-create
+      already document this.
+
+      Both files are Handlebars templates in apps/festinalente/src/content/skills/ — edits
+      go in source, not .claude/ built output (per coding directive F1).
+    </rationale>
+    <breaking-changes>None</breaking-changes>
+  </approach>
+
+  <inventory>
+    <set name="scope-questions-to-remove" count="3">
+      <item>Dependencies question: apps/festinalente/src/content/skills/festina-scope/SKILL.md lines 620-628</item>
+      <item>Patterns question: apps/festinalente/src/content/skills/festina-scope/SKILL.md lines 630-639</item>
+      <item>Constraints question: apps/festinalente/src/content/skills/festina-scope/SKILL.md lines 641-649</item>
+    </set>
+    <set name="create-questions-to-remove" count="3">
+      <item>Priority question: apps/festinalente/src/content/skills/festina-create/SKILL.md lines 285-295</item>
+      <item>Label confirmation: apps/festinalente/src/content/skills/festina-create/SKILL.md lines 299-307</item>
+      <item>Engineering doc type question: apps/festinalente/src/content/skills/festina-create/SKILL.md lines 168-191</item>
+    </set>
+  </inventory>
+
+  <tasks>
+    <task id="1" type="auto" completed="true" completed_at="2026-03-24T00:00:00Z">
+      <name>Remove 3 rubber-stamp questions from festina-scope conduct_qa_dialogue</name>
+      <files>apps/festinalente/src/content/skills/festina-scope/SKILL.md (modify)</files>
+      <requirements>FR1, FR2, FR3, FR7</requirements>
+      <pattern>Auto-decision output pattern at apps/festinalente/src/content/skills/festina-scope/SKILL.md:582</pattern>
+      <context>
+        <file>apps/festinalente/src/content/skills/festina-scope/SKILL.md</file>
+      </context>
+      <action>
+        - Read the full conduct_qa_dialogue step (around lines 568-700+) to understand the Q&amp;A flow
+        - Locate the 3 AskUserQuestion blocks to remove:
+          1. Dependencies (lines 620-628): header "Dependencies", question about libraries
+          2. Patterns (lines 630-639): header "Patterns", question about following patterns
+          3. Constraints (lines 641-649): header "Constraints", question about technical constraints
+
+        - Replace the Dependencies AskUserQuestion block (lines 620-628 and its note on 628) with an output action:
+        ```
+        &lt;action&gt;Infer dependencies from research findings. State as output decision:
+          - If dependencies found: "Dependencies: {inferred list from research}"
+          - If none found: "Dependencies: none identified"&lt;/action&gt;
+        ```
+
+        - Replace the Patterns AskUserQuestion block (lines 630-639) with an output action:
+        ```
+        &lt;action&gt;Auto-include patterns found during research. State as output decision:
+          - "Patterns: following {pattern list} from research"
+          - If no patterns found: "Patterns: none found in codebase"&lt;/action&gt;
+        ```
+
+        - Replace the Constraints AskUserQuestion block (lines 641-649) with an output action:
+        ```
+        &lt;action&gt;Infer constraints from pitfalls and research findings. State as output decision:
+          - If constraints found: "Constraints: {list from research/pitfalls}"
+          - If none found: "Constraints: none identified"&lt;/action&gt;
+        ```
+
+        - Keep the existing volunteer mechanism note at line 651 (boundaries) and lines 590-593 (user can volunteer at any time) unchanged — these already handle FR7 (user overrides)
+        - Keep the Approach and Files questions unchanged (lines 596-618) — these involve genuine decisions
+      </action>
+      <verify>pnpm festinalente:build</verify>
+      <done>Dependencies, patterns, and constraints questions are replaced with auto-decision output statements. Approach and files questions remain. Build succeeds.</done>
+    </task>
+
+    <task id="2" type="auto" completed="true" completed_at="2026-03-24T00:00:00Z">
+      <name>Remove priority question from festina-create — default to medium</name>
+      <files>apps/festinalente/src/content/skills/festina-create/SKILL.md (modify)</files>
+      <requirements>FR4, FR7</requirements>
+      <pattern>Auto-decision output pattern at apps/festinalente/src/content/skills/festina-scope/SKILL.md:582</pattern>
+      <context>
+        <file>apps/festinalente/src/content/skills/festina-create/SKILL.md</file>
+      </context>
+      <action>
+        - Locate the get_priority step (lines 285-295)
+
+        Current code (approximate):
+        ```
+        &lt;step name="get_priority" outputs="priority"&gt;
+          &lt;action&gt;Use AskUserQuestion tool with:
+            - header: "Priority"
+            - question: "What priority should this task have?"
+            - options:
+              - label: "High", description: "Urgent or blocking other work"
+              - label: "Medium (Recommended)", description: "Normal priority, will be done in order"
+              - label: "Low", description: "Nice to have, can wait"
+            - multiSelect: false
+          &lt;/action&gt;
+        &lt;/step&gt;
+        ```
+
+        Change to:
+        ```
+        &lt;step name="get_priority" outputs="priority"&gt;
+          &lt;action&gt;Set priority to "medium" (default)&lt;/action&gt;
+          &lt;output&gt;Priority: medium&lt;/output&gt;
+          &lt;note&gt;User can override during Q&amp;A (e.g., "actually use high priority")&lt;/note&gt;
+        &lt;/step&gt;
+        ```
+      </action>
+      <verify>pnpm festinalente:build</verify>
+      <done>Priority defaults to "medium" without asking. Output statement declares the decision. Build succeeds.</done>
+    </task>
+
+    <task id="3" type="auto" depends="2" completed="true" completed_at="2026-03-24T00:00:00Z">
+      <name>Remove label confirmation from festina-create — auto-apply when detected</name>
+      <files>apps/festinalente/src/content/skills/festina-create/SKILL.md (modify)</files>
+      <requirements>FR5, FR7</requirements>
+      <pattern>Auto-decision output pattern at apps/festinalente/src/content/skills/festina-scope/SKILL.md:582</pattern>
+      <context>
+        <file>apps/festinalente/src/content/skills/festina-create/SKILL.md</file>
+      </context>
+      <action>
+        - Locate the determine_label step (lines 297-327)
+
+        Current code (approximate):
+        ```
+        &lt;step name="determine_label"&gt;
+          &lt;action&gt;Use `labels[].detect-keywords` from festina-workflow.yaml to auto-detect label&lt;/action&gt;
+          &lt;branch condition="label auto-detected"&gt;
+            &lt;action&gt;Use AskUserQuestion tool with:
+              - header: "Label"
+              - question: "Auto-detected label: {detected-label}. Is this correct?"
+              ...
+            &lt;/action&gt;
+            &lt;branch condition="user selects No"&gt;
+              &lt;action&gt;Ask for label selection&lt;/action&gt;
+            &lt;/branch&gt;
+          &lt;/branch&gt;
+          &lt;branch condition="label unclear"&gt;
+            &lt;action&gt;Ask for label selection (keep this)&lt;/action&gt;
+          &lt;/branch&gt;
+        &lt;/step&gt;
+        ```
+
+        Change to:
+        ```
+        &lt;step name="determine_label"&gt;
+          &lt;action&gt;Use `labels[].detect-keywords` from festina-workflow.yaml to auto-detect label&lt;/action&gt;
+          &lt;branch condition="label auto-detected"&gt;
+            &lt;action&gt;Apply the detected label directly&lt;/action&gt;
+            &lt;output&gt;Label: {detected-label} (auto-detected)&lt;/output&gt;
+            &lt;note&gt;User can override during Q&amp;A (e.g., "change label to feature")&lt;/note&gt;
+          &lt;/branch&gt;
+          &lt;branch condition="label unclear"&gt;
+            &lt;action&gt;Use AskUserQuestion tool with:
+              - header: "Label"
+              - question: "Which label should this task have?"
+              - options: Build from labels in workflow.yaml
+              - multiSelect: false
+            &lt;/action&gt;
+          &lt;/branch&gt;
+        &lt;/step&gt;
+        ```
+
+        - Keep the fallback question when detection fails (label unclear branch) — per FR5
+      </action>
+      <verify>pnpm festinalente:build</verify>
+      <done>Auto-detected label is applied directly with output statement. Fallback question when detection fails remains. Build succeeds.</done>
+    </task>
+
+    <task id="4" type="auto" depends="3" completed="true" completed_at="2026-03-24T00:00:00Z">
+      <name>Remove engineering doc type question from festina-create — default to none</name>
+      <files>apps/festinalente/src/content/skills/festina-create/SKILL.md (modify)</files>
+      <requirements>FR6, FR7</requirements>
+      <pattern>Auto-decision output pattern at apps/festinalente/src/content/skills/festina-scope/SKILL.md:582</pattern>
+      <context>
+        <file>apps/festinalente/src/content/skills/festina-create/SKILL.md</file>
+      </context>
+      <action>
+        - Locate the search_engineering_docs step (lines 158-197)
+        - Find the branch for "no docs with score ≥ 0.3 found" (lines 168-191)
+
+        Current code (approximate):
+        ```
+        &lt;branch condition="no docs with score ≥ 0.3 found"&gt;
+          &lt;note&gt;This may involve new patterns/systems not yet documented&lt;/note&gt;
+          &lt;action&gt;If existing type folders are known, use AskUserQuestion tool with:
+            - header: "Eng type"
+            - question: "What type of engineering doc should be created?"
+            - options: System, Pattern, Convention, None needed
+          &lt;/action&gt;
+          &lt;branch condition="user selects type"&gt;
+            &lt;action&gt;Set engDocType, create stub...&lt;/action&gt;
+          &lt;/branch&gt;
+          &lt;branch condition="user selects None needed"&gt;
+            &lt;action&gt;Leave engineering empty&lt;/action&gt;
+          &lt;/branch&gt;
+        &lt;/branch&gt;
+        ```
+
+        Change to:
+        ```
+        &lt;branch condition="no docs with score ≥ 0.3 found"&gt;
+          &lt;action&gt;Leave `engineering` empty — no matching docs found&lt;/action&gt;
+          &lt;output&gt;Engineering docs: none matched (stub creation deferred to /festina-finalize if needed)&lt;/output&gt;
+          &lt;note&gt;User can override during Q&amp;A (e.g., "create a pattern doc for this")&lt;/note&gt;
+        &lt;/branch&gt;
+        ```
+
+        - Remove the AskUserQuestion and its sub-branches for type selection and stub creation
+        - Keep the branch for docs with score ≥ 0.5 found (lines 162-166) unchanged
+        - Keep the branch for empty/missing engineering dir (lines 193-196) unchanged
+      </action>
+      <verify>pnpm festinalente:build</verify>
+      <done>Engineering doc type defaults to "none" when no docs match. Output statement declares the decision. Stub creation deferred. Build succeeds.</done>
+    </task>
+  </tasks>
+
+  <testing>
+    <automated>None — these are Handlebars template changes, verified by build</automated>
+    <manual>
+      - Run /festina-create with a task whose title contains "refactor" keyword — label should auto-apply without confirmation
+      - Run /festina-create — priority should default to "medium" without asking
+      - Run /festina-scope — dependencies, patterns, constraints should be stated as decisions, not asked
+      - Run /festina-create with a task that has no engineering doc matches — should default to "none" without asking
+    </manual>
+    <regression>
+      - Verify /festina-scope still asks approach and files questions (genuine decisions)
+      - Verify /festina-create still asks for label when detection fails (no keywords match)
+      - Verify /festina-create Q&amp;A dialogue for product validation still works
+      - Verify users can still volunteer overrides during Q&amp;A
+    </regression>
+  </testing>
+
+  <edge-cases>
+    <case scenario="User wants non-default priority but missed output statement">The volunteer override mechanism handles this — user can type "actually use high priority" at any Q&amp;A prompt and the skill incorporates the override</case>
+    <case scenario="Label detection picks wrong label">The fallback question when detection fails remains. For misdetection, user can volunteer "change label to feature" during Q&amp;A</case>
+    <case scenario="Engineering doc is genuinely needed but auto-defaulted to none">Stub creation is deferred to /festina-finalize per FR6. User can also override during Q&amp;A.</case>
+  </edge-cases>
+
+  <pitfalls>
+    <pitfall issue="Editing built output instead of source">Edit apps/festinalente/src/content/skills/ not .claude/ — built output is overwritten by pnpm festinalente:build (per coding directive F1)</pitfall>
+    <pitfall issue="Removing the stub creation logic entirely">The create_engineering_stub_doc step (lines 242-283) should remain — it's only triggered when newEngDocId is set. We're only removing the question that sets newEngDocId when no docs match.</pitfall>
+    <pitfall issue="Breaking Handlebars template syntax">These files use Handlebars partials ({{> partial-name}}). Ensure edits don't break partial references or XML nesting.</pitfall>
+  </pitfalls>
+
+  <iterations></iterations>
+  <wip></wip>
+  <completeness></completeness>
+</plan>

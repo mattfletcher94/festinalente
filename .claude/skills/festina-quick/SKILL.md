@@ -1,0 +1,521 @@
+---
+name: festina-quick
+description: Fast implementation for simple fixes, config changes, and small features. Minimal Q&A, optional research.
+allowed-tools: Read, Write, Edit, Bash(node *, git add *, git commit *, git status, git branch *, git checkout *, git diff *, git merge *), Grep, Glob
+argument-hint: "[task description]"
+disable-model-invocation: true
+---
+
+# Quick Implementation
+
+<purpose>
+Fast implementation for simple tasks. Minimal Q&A (problem + done), optional research,
+implementation, optional review, optional doc updates.
+</purpose>
+
+<context>
+<note>
+- **`.claude/skills/festina-*/`** — Installed festina skills — READ ONLY
+- **`.festinalente/`** — Project data and config — READ/WRITE
+- **`.festinalente/tasks/{id}/`** — Task folder containing `task.xml`, `spec.xml`, `plan.xml`
+- **`.festinalente/quick/{id}/`** — Quick task folder containing `quick.xml` (for /festina-quick)
+- **`.festinalente/scripts/`** — Helper scripts for festina operations
+- **`.festinalente/templates/`** — Document templates
+- **`.festinalente/workflow.yaml`** — Workflow config (columns, labels, transitions)
+- **`.festinalente/directives/`** — User-defined directives (custom instructions for skills)
+</note>
+
+<note>Use these scripts to reliably find files:</note>
+
+
+
+
+
+
+<command description="Get current date/time (returns JSON with iso and date formats)">node .festinalente/scripts/festinalente.cjs get-date-time</command>
+
+
+<command description="Get next quick ID (returns JSON with nextId, currentHighest, padding)">node .festinalente/scripts/festinalente.cjs next-quick-id</command>
+
+<command description="Find quick task by ID (returns JSON with path and metadata)">node .festinalente/scripts/festinalente.cjs find-quick {id}</command>
+
+
+
+
+
+
+
+<note>Quick tasks are stored in `.festinalente/quick/{id}/` — separate from the full workflow.</note>
+
+<note>Use these scripts to work with product documentation:</note>
+
+<command description="List all product docs (returns JSON with count and docs array)">node .festinalente/scripts/festinalente.cjs list-product</command>
+<command description="Filter by type">node .festinalente/scripts/festinalente.cjs list-product --type=feature</command>
+<command description="Filter by domain">node .festinalente/scripts/festinalente.cjs list-product --domain=auth</command>
+
+<command description="Search product docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/festinalente.cjs search-product keyword1 keyword2 ...</command>
+<command description="With minimum score threshold">node .festinalente/scripts/festinalente.cjs search-product password reset --min-score=0.3</command>
+<note>Score interpretation: ≥0.5 = strong match | 0.3-0.5 = possible match | &lt;0.3 = weak match | No results = likely new feature</note>
+
+
+<note>Path rule: ID `auth/login` → Path `.festinalente/product/auth/login.md`</note>
+<note>Use these scripts to work with engineering documentation:</note>
+
+<command description="List all engineering docs (returns JSON with count and docs array)">node .festinalente/scripts/festinalente.cjs list-engineering</command>
+<command description="Filter by type">node .festinalente/scripts/festinalente.cjs list-engineering --type=pattern</command>
+<command description="Filter components by system">node .festinalente/scripts/festinalente.cjs list-engineering --system=auth</command>
+
+<command description="Search engineering docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/festinalente.cjs search-engineering keyword1 keyword2 ...</command>
+<command description="With minimum score threshold">node .festinalente/scripts/festinalente.cjs search-engineering middleware pattern --min-score=0.3</command>
+<note>Score interpretation: ≥0.5 = strong match | 0.3-0.5 = possible match | &lt;0.3 = weak match | No results = likely new pattern/system</note>
+
+
+<note>Path rules:
+- `overview` → `.festinalente/engineering/overview.md`
+- `systems/auth` → `.festinalente/engineering/systems/auth/_index.md`
+- `systems/auth/validator` → `.festinalente/engineering/systems/auth/validator.md`
+- `patterns/acyclic-arch` → `.festinalente/engineering/patterns/acyclic-arch.md`
+- `conventions/file-naming` → `.festinalente/engineering/conventions/file-naming.md`
+</note>
+</context>
+
+<prohibited>
+- Do not create full task.xml/spec.xml/plan.xml (use quick.xml only)
+- Do not use this for complex multi-file changes (use full workflow instead)
+- Do not ask about "value" - keep Q&A minimal
+</prohibited>
+
+<process>
+  <step name="load_workflow">
+    <action>Read `.festinalente/workflow.yaml` for column definitions, labels, priorities, and transitions</action>
+    <note>Use these values throughout this skill</note>
+  </step>
+
+  <step name="verify_festina_exists">
+    <validate>Check that `.festinalente/` directory exists</validate>
+    <branch condition="directory doesn't exist">
+      <output>Error: Festina Lente not initialized. Run `npx festinalente init` first.</output>
+      <action>Exit</action>
+    </branch>
+  </step>
+
+  <step name="load_directives">
+    <command>node .festinalente/scripts/festinalente.cjs get-skill-config festina-quick</command>
+    <action>Parse the JSON output</action>
+    
+    <branch condition="directives.length > 0">
+      <warning>Directives are MANDATORY. You MUST follow them.</warning>
+      <action>For EACH directive where `exists` is `true`:</action>
+      <action>Read the directive XML file at `path`</action>
+      <action>Parse and apply:</action>
+      <action>- `<context>` principles: Maintain as ongoing mindset</action>
+      <note>The `keywords` attribute on context principles is metadata for LLM relevance — use keywords to recognize when a principle applies to the current work.</note>
+      <action>- `<process>` rules where the phase attribute, split on comma and trimmed, includes "quick" as an exact element (e.g. phase="plan,implement" matches "plan" and "implement" but NOT "plan-review"): Follow as requirements</action>
+      <action>- `<override>` sections where the phase attribute, split on comma and trimmed, includes "quick" as an exact element: Apply step replacements</action>
+      <action>- `<verification>` commands: Used by festina-plan to populate task &lt;verify&gt; elements and festina-implement to run step checks. Other skills can ignore this section.</action>
+    
+      <branch condition="directive has <override> section for phase=quick">
+        <output>
+    **DIRECTIVE OVERRIDE ACTIVE: {directive.name}**
+    
+    The following skill steps are REPLACED by this directive:
+    
+    {For each &lt;skip&gt; element:}
+    **SKIP STEP: `{step}`** - Do NOT execute this step when you reach it in the skill process.
+    
+    **REPLACEMENT:** Execute directive rules {override.instead.rules} instead.
+    
+    **Reason:** {override.reason}
+    
+    **CRITICAL:** When you encounter any skipped step in the skill's &lt;process&gt;,
+    you MUST skip it entirely and follow the directive's replacement rules instead.
+        </output>
+      </branch>
+      <note>`<validation>` checks will run in directive_compliance step</note>
+      <note>`<examples>` will be shown if violations are found</note>
+      <note>Directives are loaded in config.yaml array order. All matching phase rules from all loaded directives apply additively. Avoid mapping two directives that both override the same phase.</note>
+    </branch>
+    
+    <example_code lang="json">
+    {
+      "skill": "festina-quick",
+      "directives": [
+        { "name": "architecture", "path": ".festinalente/directives/architecture.xml", "exists": true }
+      ]
+    }
+    </example_code>
+  </step>
+
+  <step name="get_next_quick_id" outputs="quickId">
+    <command>node .festinalente/scripts/festinalente.cjs next-quick-id</command>
+    <action>Use `nextId` from JSON output</action>
+  </step>
+
+  <step name="get_title" outputs="title">
+    <branch condition="$ARGUMENTS provided">
+      <action>Use $ARGUMENTS as title</action>
+    </branch>
+    <branch condition="$ARGUMENTS not provided">
+      <action>Use AskUserQuestion tool with:
+        - header: "Title"
+        - question: "What is the task title?"
+        - options:
+          - label: "Skip", description: "I'll provide the title"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to type the task title</note>
+    </branch>
+  </step>
+
+  <step name="ask_problem" outputs="problem">
+    <action>Use AskUserQuestion tool with:
+      - header: "Problem"
+      - question: "What problem are you solving?"
+      - options:
+        - label: "Skip", description: "I'll describe the problem"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to describe the problem</note>
+  </step>
+
+  <step name="ask_done" outputs="done">
+    <action>Use AskUserQuestion tool with:
+      - header: "Done"
+      - question: "What does done look like?"
+      - options:
+        - label: "Skip", description: "I'll describe what done looks like"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to describe done criteria</note>
+  </step>
+
+  <step name="auto_decide_research" outputs="doResearch">
+    <note>Auto-decide whether codebase research is needed based on task complexity.</note>
+    <action>Assess task complexity from problem description and done criteria:
+      - Simple (typo, config change, single-file edit): skip research
+      - Complex (multi-file, unfamiliar area, integration): do research
+    </action>
+    <branch condition="simple task">
+      <action>Use AskUserQuestion tool with:
+        - header: "Research"
+        - question: "Simple task detected — skipping codebase research. Override?"
+        - options:
+          - label: "Skip research", description: "Proceed without codebase research (recommended)"
+          - label: "Research anyway", description: "Explore the codebase before implementing"
+        - multiSelect: false
+      </action>
+      <branch condition="user selects Skip research">
+        <action>Set doResearch = false</action>
+      </branch>
+      <branch condition="user selects Research anyway">
+        <action>Set doResearch = true</action>
+      </branch>
+    </branch>
+    <branch condition="complex task">
+      <action>Set doResearch = true</action>
+      <output>Task involves {reason} — researching codebase first.</output>
+    </branch>
+  </step>
+
+  <step name="optional_research" when="doResearch is true" outputs="findings">
+    <action>Use Glob/Grep to find affected files based on problem and title</action>
+    <action>Read relevant files to understand context</action>
+    <action>Store findings for later inclusion in quick.xml</action>
+    <output>Found {n} potentially affected files:</output>
+    <output>- {file1}: {reason}</output>
+    <output>- {file2}: {reason}</output>
+    <note>Findings will be stored in quick.xml context section for LLM resume</note>
+  </step>
+
+  <step name="create_quick_xml">
+    <action>Create directory `.festinalente/quick/{quickId}/`</action>
+    <action>Get current date/time from get-date-time.cjs</action>
+    <action>Create file at `.festinalente/quick/{quickId}/quick.xml` with content:</action>
+    <example_code lang="xml">
+<quick id="{quickId}" status="in-progress" created="{date}" updated="{date}">
+  <title>{title}</title>
+
+  <problem>{problem from ask_problem step}</problem>
+  <done>{done from ask_done step}</done>
+
+  <!-- Research findings (populated if research was requested) -->
+  <context>
+    <finding file="{path}" reason="{why this file is relevant}"/>
+    <!-- Include each finding from optional_research step, or leave empty if no research -->
+  </context>
+
+  <!-- Will be populated after determine_approach step -->
+  <approach></approach>
+
+  <!-- Will be populated after determine_approach step -->
+  <constraints>
+  </constraints>
+
+  <files>
+    <!-- Will be populated after implementation -->
+  </files>
+
+  <!-- Will be populated after determine_approach step -->
+  <verify>
+  </verify>
+
+  <commit hash="" message="" date=""/>
+
+  <summary></summary>
+
+  <docs>
+    <!-- Will be populated if docs are updated -->
+  </docs>
+</quick>
+    </example_code>
+    <output>Created quick task: .festinalente/quick/{quickId}/quick.xml</output>
+  </step>
+
+  <step name="determine_approach" outputs="approach, constraints, verifySteps">
+    <note>Based on problem, done criteria, and any research findings, determine implementation approach</note>
+    <action>Analyze the problem and context to decide on implementation strategy</action>
+    <action>Identify constraints (things to avoid, existing patterns to follow)</action>
+    <action>Define verification steps to confirm implementation is correct</action>
+    <action>Update quick.xml with approach, constraints, and verify sections</action>
+    <output>
+**Approach:** {brief description of implementation strategy}
+**Constraints:** {things to avoid or patterns to follow}
+**Verification:** {how to confirm it works}
+    </output>
+  </step>
+
+  <step name="confirm_approach">
+    <action>Use AskUserQuestion tool with:
+      - header: "Confirm"
+      - question: "Proceed with this approach?"
+      - options:
+        - label: "Proceed", description: "Start implementation with the approach above"
+        - label: "Adjust", description: "I'd like to change the approach"
+      - multiSelect: false
+    </action>
+    <branch condition="user selects Adjust">
+      <action>Ask user what to change about the approach</action>
+      <action>Update approach, constraints, and/or verify sections in quick.xml</action>
+      <action>Re-display updated approach</action>
+    </branch>
+  </step>
+
+  <step name="implement">
+    <action>Make the code changes to solve the problem</action>
+    <action>Track which files were modified, created, or read</action>
+    <note>Follow any loaded directive rules</note>
+  </step>
+
+  <step name="proceed_to_finalization">
+    <output>Implementation complete. Proceeding to finalization.</output>
+  </step>
+
+  <step name="verify_implementation">
+    <note>Lightweight quality scan — check modified files for incomplete work markers</note>
+    <action>Read quick.xml files section to get list of modified/created files</action>
+    <action>Grep ONLY those files for: TODO, FIXME, HACK, XXX</action>
+    <branch condition="markers found">
+      <output>
+WARNING: Found incomplete work markers in modified files:
+      </output>
+      <action>List each finding with file:line reference</action>
+      <action>Use AskUserQuestion tool with:
+        - header: "Anti-patterns"
+        - question: "Found {n} incomplete markers (TODO, FIXME, etc) in modified files. How to proceed?"
+        - options:
+          - label: "Fix now", description: "Address these markers before continuing"
+          - label: "Proceed anyway", description: "These are intentional or will be addressed later"
+        - multiSelect: false
+      </action>
+      <branch condition="user selects Fix now">
+        <action>Fix the markers</action>
+        <action>Re-run the scan to confirm</action>
+      </branch>
+    </branch>
+    <branch condition="no markers found">
+      <note>Silent pass — no output needed</note>
+    </branch>
+  </step>
+
+  <step name="directive_compliance">
+    <note>Verify compliance with all loaded directives</note>
+  
+    <action>For each directive loaded in load_directives step:</action>
+    <action>Re-read the directive XML file</action>
+  
+    <action>Run each `<validation>` check:</action>
+  
+    <branch condition="check type=command">
+      <command>{content of <run> element}</command>
+      <validate>{content of <expect> element}</validate>
+    </branch>
+  
+    <branch condition="check type=pattern">
+      <action>For each file matching `files` glob that was modified:</action>
+      <action>Check content against `<forbidden>` regex</action>
+    </branch>
+  
+    <branch condition="check type=checklist">
+      <action>Self-assess each `<item>` as Y/N</action>
+    </branch>
+  
+    <branch condition="any check fails">
+      <output>Directive violation: {check id} - {reason}</output>
+      <action>Find `<example>` elements where ref matches failed check</action>
+      <action>Show violation examples to illustrate the problem</action>
+      <action>Show correct examples to illustrate the fix</action>
+      <action>Use AskUserQuestion tool with:
+        - header: "Violation"
+        - question: "Directive check failed. How would you like to proceed?"
+        - options:
+          - label: "Fix now", description: "Address the violation before continuing"
+          - label: "Continue anyway", description: "Acknowledge and proceed despite violation"
+        - multiSelect: false
+      </action>
+      <branch condition="user selects Fix now">
+        <action>Attempt remediation for the violation</action>
+        <action>Re-run the failed validation checks (only the ones that failed, not all checks)</action>
+        <branch condition="checks now pass">
+          <output>Violation resolved.</output>
+        </branch>
+        <branch condition="still failing after remediation">
+          <output>Violation persists after fix attempt: {check id} - {reason}. Continuing.</output>
+        </branch>
+      </branch>
+    </branch>
+  </step>
+
+  <step name="update_quick_xml">
+    <action>Get current date/time from get-date-time.cjs</action>
+    <action>Update `.festinalente/quick/{quickId}/quick.xml`:</action>
+    <action>- Change `status` attribute from "in-progress" to "completed"</action>
+    <action>- Update `updated` attribute on root element</action>
+    <action>- Update `<files>` section with files modified/created during implementation</action>
+    <action>- Update `<commit>` element with hash, message, and date</action>
+    <action>- Update `<summary>` element with brief description of what was done</action>
+  </step>
+
+  <step name="detect_docs">
+    <note>Auto-detect whether relevant docs exist for the changes made.
+    If code introduces new features with no matching doc, create a stub.</note>
+    <action>Analyze the code changes to detect which docs might be affected</action>
+    <command>node .festinalente/scripts/festinalente.cjs search-product {keywords from changes}</command>
+    <command>node .festinalente/scripts/festinalente.cjs search-engineering {keywords from changes}</command>
+    <branch condition="relevant docs found">
+      <action>Read and update the relevant docs</action>
+      <action>Update `<docs>` section in quick.xml</action>
+      <output>Updated docs: {doc ids}</output>
+    </branch>
+    <branch condition="no relevant docs found AND code introduces new exports/handlers/features">
+      <note>New feature detected with no matching product doc — create stub</note>
+      <action>Determine appropriate doc ID based on the new feature (e.g., cli/new-command, skills/new-skill)</action>
+      <action>Create stub product doc at .festinalente/product/{doc-id}.md with frontmatter:
+        stub: true, title, tldr, summary, keywords, updated: {current date}</action>
+      <action>Add stub doc ID to quick.xml affects field</action>
+      <output>Quick created stub doc: {path}</output>
+    </branch>
+    <branch condition="no relevant docs found AND no new features detected">
+      <output>No existing docs to update for this change.</output>
+    </branch>
+  </step>
+
+  <step name="validate_xml">
+    <command description="Validate quick.xml">node .festinalente/scripts/festinalente.cjs validate-xml quick/{quickId}</command>
+    <branch condition="validation fails">
+      <output>Warning: XML validation failed. Fix errors before completing.</output>
+    </branch>
+  </step>
+
+  <step name="output_result">
+    <output>
+**Quick task {quickId} complete!**
+
+- Files: {list of modified files}
+    </output>
+    <output>[FESTINA_COMPLETE]</output>
+  </step>
+</process>
+
+<success_criteria>
+- Quick folder exists at `.festinalente/quick/{quickId}/`
+- Quick file exists at `.festinalente/quick/{quickId}/quick.xml`
+- Quick XML is valid (passes validate-xml.cjs)
+- Code changes implemented and verified
+- Directive compliance checks passed (if directives exist)
+- Next steps shown to user
+</success_criteria>
+
+<example>
+**Simple fix:**
+
+User: `/festina-quick Fix typo in login button`
+
+```
+Starting quick implementation...
+
+Title: Fix typo in login button
+
+What problem are you solving?
+> The login button says "Sing In" instead of "Sign In"
+
+What does done look like?
+> The button text is spelled correctly
+
+Simple task — skipping codebase research.
+
+Created quick task: .festinalente/quick/000/quick.xml
+
+**Approach:** Find the LoginButton component and fix the text string
+**Constraints:** Only change the string, no refactoring
+**Verification:** Button displays "Sign In" correctly
+
+Fixing the typo in src/components/LoginButton.tsx...
+
+Implementation complete. Proceeding to finalization.
+
+No related docs to update.
+
+**Quick task 000 complete!**
+
+- Files: src/components/LoginButton.tsx
+
+[FESTINA_COMPLETE]
+```
+
+**With research:**
+
+User: `/festina-quick Add loading spinner to API calls`
+
+```
+Starting quick implementation...
+
+Title: Add loading spinner to API calls
+
+What problem are you solving?
+> Users don't know when API calls are in progress
+
+What does done look like?
+> A spinner shows during API requests
+
+Want me to research the codebase first?
+> Yes
+
+Found 3 potentially affected files:
+- src/api/client.ts: Main API client
+- src/components/Spinner.tsx: Existing spinner component
+- src/hooks/useApi.ts: API hook used throughout the app
+
+Created quick task: .festinalente/quick/001/quick.xml
+(with context section populated from research findings)
+
+**Approach:** Add loading state to useApi hook, show Spinner component when loading
+**Constraints:** Use existing Spinner component, don't modify API client directly
+**Verification:** API calls show spinner while pending
+
+...
+```
+</example>
+
+<next_steps>
+Run `/festina-overview` to view the board.
+</next_steps>

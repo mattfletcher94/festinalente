@@ -1,0 +1,330 @@
+<plan task="023-harden-festina-quick-with-verification-retry-and-p" spec="tasks/023-harden-festina-quick-with-verification-retry-and-p/spec.xml" status="approved"
+      complexity="medium" created="2026-03-25" updated="2026-03-25"
+      generated-by="claude" model="claude-opus-4-6" version="1" iteration="1">
+  <title>Harden festina-quick with verification, retry, and parity fixes</title>
+
+  <overview>
+    Add lightweight quality gates to festina-quick that other skills already have: anti-pattern scan
+    after implementation, retry loop in the shared directive-compliance partial, research override
+    option, approach confirmation pause, skill-complete partial usage, and doc list command flags.
+    All changes target two Handlebars-templated Markdown files in src/content/.
+  </overview>
+
+  <approach>
+    <rationale>
+      Two files need modification:
+      1. SKILL.md (the quick skill source) — gains 4 new process steps/modifications and 2 context flags.
+         Follows existing step patterns already in SKILL.md (e.g., auto_decide_research at lines 93-107,
+         determine_approach at lines 163-174).
+      2. directive-compliance.md (shared partial) — gains a retry loop after "Fix now" selection.
+         Follows the inline retry pattern already in festina-implement's SKILL.md at lines 279-285.
+
+      The skill-complete partial (apps/festinalente/src/content/partials/skill-complete.md) already
+      exists as a single-line drop-in — quick just needs to reference it via Handlebars.
+
+      The product-docs-scripts and engineering-docs-scripts partials already support show_list_* flags
+      (product-docs-scripts.md:3, engineering-docs-scripts.md:3) — quick's context section just needs
+      to pass them.
+
+      Edit order: shared partial first (task 1), then quick skill changes (tasks 2-6), so the retry
+      loop is available when quick's directive-compliance step runs.
+    </rationale>
+    <breaking-changes>
+      <change type="api">
+        <old>Directive compliance: user selects "Fix now" → fix applied → execution continues (no re-check)</old>
+        <new>Directive compliance: user selects "Fix now" → fix applied → failed checks re-run → if still failing, report and continue</new>
+        <affects>apps/festinalente/src/content/partials/directive-compliance.md (used by 16 skills)</affects>
+      </change>
+    </breaking-changes>
+  </approach>
+
+  <inventory>
+    <set name="modified-files" count="2">
+      <item>apps/festinalente/src/content/skills/festina-quick/SKILL.md</item>
+      <item>apps/festinalente/src/content/partials/directive-compliance.md</item>
+    </set>
+  </inventory>
+
+  <tasks>
+    <task id="1" type="auto" completed="true" completed_at="2026-03-25T09:02:52.724Z">
+      <name>Add retry loop to shared directive-compliance partial</name>
+      <files>apps/festinalente/src/content/partials/directive-compliance.md (modify)</files>
+      <requirements>FR3, FR8</requirements>
+      <pattern>Retry pattern at apps/festinalente/src/content/skills/festina-implement/SKILL.md:279-285</pattern>
+      <context>
+        <file>apps/festinalente/src/content/partials/directive-compliance.md</file>
+        <file>apps/festinalente/src/content/skills/festina-implement/SKILL.md</file>
+      </context>
+      <action>
+        - Read the current directive-compliance.md partial (37 lines)
+        - After the existing "Fix now" branch (where user selects "Fix now" and the fix is applied),
+          add a retry sub-branch:
+          1. After fix is applied, re-run ONLY the failed validation checks (not all checks)
+          2. If checks now pass, continue normally
+          3. If still failing after remediation, output the remaining failures and continue execution
+        - The "Continue anyway" branch remains unchanged
+        - When no directives are loaded (empty directive list), the step already exits early —
+          verify this behavior is preserved (FR8)
+
+        Current code (directive-compliance.md lines 23-36, approximate):
+        ```markdown
+        &lt;branch condition="any check fails"&gt;
+          &lt;output&gt;Directive violation: {check id} - {reason}&lt;/output&gt;
+          &lt;action&gt;Find example elements where ref matches failed check&lt;/action&gt;
+          &lt;action&gt;Show violation examples to illustrate the problem&lt;/action&gt;
+          &lt;action&gt;Show correct examples to illustrate the fix&lt;/action&gt;
+          &lt;action&gt;Use AskUserQuestion tool with:
+            - header: "Violation"
+            - question: "Directive check failed. How would you like to proceed?"
+            - options:
+              - label: "Fix now", description: "Address the violation before continuing"
+              - label: "Continue anyway", description: "Acknowledge and proceed despite violation"
+            - multiSelect: false
+          &lt;/action&gt;
+        &lt;/branch&gt;
+        ```
+
+        Change to (add after AskUserQuestion):
+        ```markdown
+          &lt;branch condition="user selects Fix now"&gt;
+            &lt;action&gt;Attempt remediation for the violation&lt;/action&gt;
+            &lt;action&gt;Re-run the failed validation checks (only the ones that failed, not all checks)&lt;/action&gt;
+            &lt;branch condition="checks now pass"&gt;
+              &lt;output&gt;Violation resolved.&lt;/output&gt;
+            &lt;/branch&gt;
+            &lt;branch condition="still failing after remediation"&gt;
+              &lt;output&gt;Violation persists after fix attempt: {check id} - {reason}. Continuing.&lt;/output&gt;
+            &lt;/branch&gt;
+          &lt;/branch&gt;
+        ```
+      </action>
+      <verify>pnpm festinalente:build</verify>
+      <done>Directive-compliance partial has retry loop: fix → re-run failed checks → report if still failing. Existing "Continue anyway" path unchanged. No-directive case still passes silently.</done>
+    </task>
+
+    <task id="2" type="auto" depends="1" completed="true" completed_at="2026-03-25T09:03:10.000Z">
+      <name>Add doc list flags to quick skill context</name>
+      <files>apps/festinalente/src/content/skills/festina-quick/SKILL.md (modify)</files>
+      <requirements>FR2</requirements>
+      <pattern>Partial flag pattern at apps/festinalente/src/content/partials/product-docs-scripts.md:3</pattern>
+      <context>
+        <file>apps/festinalente/src/content/skills/festina-quick/SKILL.md</file>
+        <file>apps/festinalente/src/content/partials/product-docs-scripts.md</file>
+        <file>apps/festinalente/src/content/partials/engineering-docs-scripts.md</file>
+      </context>
+      <action>
+        - In SKILL.md context section (around lines 23-24), add show_list flags to the existing partial invocations
+
+        Current code (SKILL.md lines 23-24):
+        ```markdown
+        {{&gt; product-docs-scripts show_search_product=true}}
+        {{&gt; engineering-docs-scripts show_search_engineering=true}}
+        ```
+
+        Change to:
+        ```markdown
+        {{&gt; product-docs-scripts show_search_product=true show_list_product=true}}
+        {{&gt; engineering-docs-scripts show_search_engineering=true show_list_engineering=true}}
+        ```
+      </action>
+      <verify>pnpm festinalente:build</verify>
+      <done>Quick skill context section includes both search and list command variants for product and engineering docs</done>
+    </task>
+
+    <task id="3" type="auto" depends="2" completed="true" completed_at="2026-03-25T09:03:30.000Z">
+      <name>Add research override option to auto_decide_research</name>
+      <files>apps/festinalente/src/content/skills/festina-quick/SKILL.md (modify)</files>
+      <requirements>FR6</requirements>
+      <pattern>AskUserQuestion pattern used elsewhere in SKILL.md (e.g., ask_problem at line 72)</pattern>
+      <context>
+        <file>apps/festinalente/src/content/skills/festina-quick/SKILL.md</file>
+      </context>
+      <action>
+        - In the auto_decide_research step (lines 93-107), modify the "simple task" branch
+        - Instead of silently setting doResearch = false, show the decision and offer an override
+
+        Current code (SKILL.md lines 99-102):
+        ```markdown
+        &lt;branch condition="simple task"&gt;
+          &lt;action&gt;Set doResearch = false&lt;/action&gt;
+          &lt;output&gt;Simple task — skipping codebase research.&lt;/output&gt;
+        &lt;/branch&gt;
+        ```
+
+        Change to:
+        ```markdown
+        &lt;branch condition="simple task"&gt;
+          &lt;action&gt;Use AskUserQuestion tool with:
+            - header: "Research"
+            - question: "Simple task detected — skipping codebase research. Override?"
+            - options:
+              - label: "Skip research", description: "Proceed without codebase research (recommended)"
+              - label: "Research anyway", description: "Explore the codebase before implementing"
+            - multiSelect: false
+          &lt;/action&gt;
+          &lt;branch condition="user selects Skip research"&gt;
+            &lt;action&gt;Set doResearch = false&lt;/action&gt;
+          &lt;/branch&gt;
+          &lt;branch condition="user selects Research anyway"&gt;
+            &lt;action&gt;Set doResearch = true&lt;/action&gt;
+          &lt;/branch&gt;
+        &lt;/branch&gt;
+        ```
+
+        - The "complex task" branch remains unchanged (always researches)
+      </action>
+      <verify>pnpm festinalente:build</verify>
+      <done>When auto_decide_research determines "simple", user sees the decision and can override to research anyway</done>
+    </task>
+
+    <task id="4" type="auto" depends="3" completed="true" completed_at="2026-03-25T09:04:00.000Z">
+      <name>Add approach confirmation pause before implementation</name>
+      <files>apps/festinalente/src/content/skills/festina-quick/SKILL.md (modify)</files>
+      <requirements>FR7</requirements>
+      <pattern>AskUserQuestion pattern used in SKILL.md ask_problem step (line 72)</pattern>
+      <context>
+        <file>apps/festinalente/src/content/skills/festina-quick/SKILL.md</file>
+      </context>
+      <action>
+        - After the determine_approach step (lines 163-174) and before the implement step (line 176),
+          add a confirmation prompt
+        - Insert after the approach output and before the implement step
+
+        After the determine_approach step's output block (after line 174), add:
+        ```markdown
+        &lt;step name="confirm_approach"&gt;
+          &lt;action&gt;Use AskUserQuestion tool with:
+            - header: "Confirm"
+            - question: "Proceed with this approach?"
+            - options:
+              - label: "Proceed", description: "Start implementation with the approach above"
+              - label: "Adjust", description: "I'd like to change the approach"
+            - multiSelect: false
+          &lt;/action&gt;
+          &lt;branch condition="user selects Adjust"&gt;
+            &lt;action&gt;Ask user what to change about the approach&lt;/action&gt;
+            &lt;action&gt;Update approach, constraints, and/or verify sections in quick.xml&lt;/action&gt;
+            &lt;action&gt;Re-display updated approach&lt;/action&gt;
+          &lt;/branch&gt;
+        &lt;/step&gt;
+        ```
+      </action>
+      <verify>pnpm festinalente:build</verify>
+      <done>After determine_approach displays the approach, user can confirm or adjust before implementation begins</done>
+    </task>
+
+    <task id="5" type="auto" depends="4" completed="true" completed_at="2026-03-25T09:04:30.000Z">
+      <name>Add anti-pattern scan after implementation</name>
+      <files>apps/festinalente/src/content/skills/festina-quick/SKILL.md (modify)</files>
+      <requirements>FR4, FR5</requirements>
+      <pattern>Anti-pattern scan at apps/festinalente/src/content/skills/festina-implement/SKILL.md:368-400</pattern>
+      <context>
+        <file>apps/festinalente/src/content/skills/festina-quick/SKILL.md</file>
+        <file>apps/festinalente/src/content/skills/festina-implement/SKILL.md</file>
+      </context>
+      <action>
+        - After the proceed_to_finalization step (lines 182-184) and before the directive-compliance
+          partial (line 186), insert a new verify_implementation step
+        - This is a lightweight version of festina-implement's anti_pattern_scan (lines 368-400)
+        - Only scan files listed in quick.xml's files section (FR5 — exclude unmodified files)
+
+        Insert between proceed_to_finalization and directive-compliance:
+        ```markdown
+        &lt;step name="verify_implementation"&gt;
+          &lt;note&gt;Lightweight quality scan — check modified files for incomplete work markers&lt;/note&gt;
+          &lt;action&gt;Read quick.xml files section to get list of modified/created files&lt;/action&gt;
+          &lt;action&gt;Grep ONLY those files for: TODO, FIXME, HACK, XXX&lt;/action&gt;
+          &lt;branch condition="markers found"&gt;
+            &lt;output&gt;
+        WARNING: Found incomplete work markers in modified files:
+            &lt;/output&gt;
+            &lt;action&gt;List each finding with file:line reference&lt;/action&gt;
+            &lt;action&gt;Use AskUserQuestion tool with:
+              - header: "Anti-patterns"
+              - question: "Found {n} incomplete markers (TODO, FIXME, etc) in modified files. How to proceed?"
+              - options:
+                - label: "Fix now", description: "Address these markers before continuing"
+                - label: "Proceed anyway", description: "These are intentional or will be addressed later"
+              - multiSelect: false
+            &lt;/action&gt;
+            &lt;branch condition="user selects Fix now"&gt;
+              &lt;action&gt;Fix the markers&lt;/action&gt;
+              &lt;action&gt;Re-run the scan to confirm&lt;/action&gt;
+            &lt;/branch&gt;
+          &lt;/branch&gt;
+          &lt;branch condition="no markers found"&gt;
+            &lt;note&gt;Silent pass — no output needed&lt;/note&gt;
+          &lt;/branch&gt;
+        &lt;/step&gt;
+        ```
+      </action>
+      <verify>pnpm festinalente:build</verify>
+      <done>After implementation, modified files are scanned for TODO/FIXME/HACK/XXX. Only files from quick.xml files section are scanned. User warned with file:line references if markers found.</done>
+    </task>
+
+    <task id="6" type="auto" depends="5" completed="true" completed_at="2026-03-25T09:05:00.000Z">
+      <name>Replace inline [FESTINA_COMPLETE] with skill-complete partial</name>
+      <files>apps/festinalente/src/content/skills/festina-quick/SKILL.md (modify)</files>
+      <requirements>FR1</requirements>
+      <pattern>skill-complete partial at apps/festinalente/src/content/partials/skill-complete.md</pattern>
+      <context>
+        <file>apps/festinalente/src/content/skills/festina-quick/SKILL.md</file>
+        <file>apps/festinalente/src/content/partials/skill-complete.md</file>
+      </context>
+      <action>
+        - In the output_result step (lines 229-236), replace the inline [FESTINA_COMPLETE] with
+          the Handlebars partial reference
+
+        Current code (SKILL.md line 235):
+        ```markdown
+          &lt;output&gt;[FESTINA_COMPLETE]&lt;/output&gt;
+        ```
+
+        Change to:
+        ```markdown
+          {{&gt; skill-complete}}
+        ```
+
+        - This makes quick consistent with the other 15 skills that use the partial
+      </action>
+      <verify>pnpm festinalente:build</verify>
+      <done>Quick skill output uses skill-complete partial instead of inline [FESTINA_COMPLETE] text</done>
+    </task>
+  </tasks>
+
+  <testing>
+    <automated>None — these are Markdown/Handlebars template changes verified by build</automated>
+    <manual>
+      - Run /festina-quick on a simple task — verify research override prompt appears
+      - Verify approach confirmation prompt appears before implementation
+      - Verify anti-pattern scan runs after implementation (add a TODO to test)
+      - Verify [FESTINA_COMPLETE] still appears in output (now via partial)
+      - Verify list-product and list-engineering commands appear in compiled skill
+      - Load a directive with a failing check — verify retry loop: fix → re-check → report
+    </manual>
+    <regression>
+      - Verify all 16 skills using directive-compliance partial still build
+      - Verify "Continue anyway" path in directive compliance still works (no retry)
+      - Verify complex tasks in auto_decide_research still auto-research without prompt
+      - Verify no-directive case passes silently
+    </regression>
+  </testing>
+
+  <edge-cases>
+    <case scenario="No directives loaded for quick task">Directive compliance step exits early — no retry loop or prompts shown (FR8). Verified by existing early-exit in load_directives.</case>
+    <case scenario="Anti-pattern markers in unmodified files">Only files from quick.xml files section are scanned — pre-existing markers in other files are ignored (FR5).</case>
+    <case scenario="User selects Adjust on approach confirmation">Approach is re-collected and re-displayed; loop until user confirms or runs out of adjustments.</case>
+    <case scenario="Retry loop fix succeeds on second attempt">Failed checks re-run after fix, pass, and execution continues normally with success message.</case>
+    <case scenario="Retry loop fix fails after remediation">Remaining failures reported to user, execution continues (does not block indefinitely).</case>
+  </edge-cases>
+
+  <pitfalls>
+    <pitfall issue="Shared partial change affects 16 skills">Retry only activates when user selects "Fix now" — existing flow for "Continue anyway" is unchanged. Backward compatible because the new branch is additive.</pitfall>
+    <pitfall issue="Editing built output instead of source">Directive F1: all edits must be in apps/festinalente/src/content/, not .claude/ or .opencode/. Build with pnpm festinalente:build to verify.</pitfall>
+    <pitfall issue="Handlebars syntax in Markdown">Ensure partial invocations use correct syntax: {{&gt; partial-name flag=true}}. Build will fail silently on bad syntax (copies raw source instead).</pitfall>
+  </pitfalls>
+
+  <iterations></iterations>
+  <wip></wip>
+  <completeness></completeness>
+</plan>

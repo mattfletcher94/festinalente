@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm *)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(node *)",
+      "Bash(git *)",
+      "Bash(gh *)",
+      "Bash(code *)",
+      "WebFetch",
+      "WebSearch",
+      "mcp__github__get_file_contents",
+      "Skill(festina-create)",
+      "Skill(festina-create:*)"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(**/secrets/*)",
+      "Read(**/*credential*)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)"
+    ],
+    "defaultMode": "bypassPermissions"
+  },
+  "outputStyle": "concise"
+}

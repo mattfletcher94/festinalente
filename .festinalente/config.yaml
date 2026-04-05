@@ -1,0 +1,48 @@
+# Festina Lente Config
+#
+# Directives: each skill can load directives from .festinalente/directives/{name}.xml
+# Directives are mandatory instructions that the LLM must follow.
+
+directives:
+  festina-create:
+    - git
+    - design
+  festina-scope:
+    - git
+    - coding
+    - design
+  festina-plan:
+    - git
+    - coding
+  festina-implement:
+    - git
+    - coding
+  festina-save:
+    - git
+  festina-finalize:
+    - git
+    - coding
+  festina-complete:
+    - git
+    - coding
+  festina-rework:
+    - git
+    - coding
+  festina-delete:
+    - git
+  festina-quick:
+    - git
+    - design
+    - coding
+  festina-discover: []
+  festina-overview: []
+  festina-directive:
+    - git
+  festina-map-product:
+    - git
+  festina-map-engineering:
+    - git
+  festina-create-project:
+    - git
+  festina-complete-project:
+    - git

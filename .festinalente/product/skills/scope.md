@@ -1,0 +1,297 @@
+---
+id: skills/scope
+title: "Scope Task"
+type: feature
+tldr: "Research codebase and create functional specification through parallel exploration"
+summary: "The /festina-scope skill researches the codebase using parallel agents, detects brownfield changes, resolves pitfalls through structured Q&A with autonomy boundaries, validates specs for gaps and implementation leakage, and creates a spec.xml with affected files, patterns, and requirements."
+keywords: [scope, spec, research, parallel-agents, pitfalls, functional-requirements, brownfield, boundaries, validation, contracts]
+aliases: [festina-scope, specification, research]
+boundary: "Does not create implementation plans - only produces functional specification"
+references: [skills/create, skills/plan, docs/product, docs/engineering]
+uses: [systems/cli, systems/data-model]
+intent: procedural
+prerequisites: []
+---
+
+# Scope Task
+
+> **TL;DR:** Research codebase and create functional specification through parallel exploration
+
+## Overview
+
+The `/festina-scope` skill transforms a backlog task into a scoped task with a functional specification. It detects brownfield changes against existing product docs, researches the codebase using parallel exploration agents, identifies pitfalls, captures technical decisions and autonomy boundaries through Q&A, and validates the resulting spec for gaps and implementation leakage.
+
+**Why it exists:** To ensure implementation is informed by actual codebase patterns rather than assumptions, and to produce specs that are precise, conflict-free, and outcome-focused.
+
+**Summary:** Scope produces the technical blueprint that planning and implementation will follow, including delta context for brownfield changes and autonomy boundaries for the implementation agent.
+
+<!-- Tier 2 boundary: content above this line is loaded at standard tier -->
+
+## How It Works
+
+```mermaid
+flowchart LR
+    subgraph "Research Phase"
+        Recon[Reconnaissance]
+        Delta[Delta Detection]
+        Recommend{Recommend Depth}
+        Quick[Quick Path]
+        Deep[Deep Path]
+        Synthesis[Synthesize]
+    end
+
+    subgraph "Decision Phase"
+        Pitfalls[Resolve Pitfalls]
+        QA[Technical Q&A]
+        GapVal[Gap Validation]
+        Leakage[Leakage Check]
+    end
+
+    Recon --> Delta
+    Delta --> Recommend
+    Recommend --> Quick
+    Recommend --> Deep
+    Quick --> Synthesis
+    Deep --> Synthesis
+    Synthesis --> DocLinks[Update Doc Links]
+    DocLinks --> Pitfalls
+    Pitfalls --> QA
+    QA --> Contracts[Derive Contracts]
+    Contracts --> GapVal
+    GapVal --> SelfCritique[Self-Critique]
+    SelfCritique --> Leakage
+    Leakage --> Spec[spec.xml]
+```
+
+### Research Depth Options
+
+Reconnaissance always runs first: it reads the affected product and engineering docs referenced by the task, identifies focus areas, and assesses observable signals (file count, module count, pattern clarity, cross-cutting concerns). After recon, the skill auto-selects Quick or Deep research based on those signals, stating the decision and rationale.
+
+| Depth | When Recommended | Agents Spawned |
+|-------|------------------|----------------|
+| Quick | Few files (1-3), single module, clear patterns, no cross-cutting concerns | Sequential research |
+| Deep | Many files (4+), multiple modules, unclear patterns, or cross-cutting concerns | 4 parallel agents |
+
+### Parallel Research Agents
+
+When using Deep research (after reconnaissance has already run):
+
+1. **Product Context Researcher** - Finds related product docs and constraints
+2. **Pattern Finder** - Identifies engineering patterns to follow
+3. **Codebase Analyzer** - Maps affected files and similar implementations
+4. **Pitfall Detector** - Finds known issues and constraints
+
+**Summary:** Agents run concurrently for faster, more thorough exploration.
+
+### Pitfall Resolution
+
+Pitfalls are categorized as:
+- **Decision**: Multiple valid approaches - user chooses
+- **FYI**: Standard mitigation - user is informed
+
+```
+Race conditions — Concurrent edits need conflict resolution.
+How should we handle this?
+[Use CRDTs] Automatic merge
+[Last-write-wins] Simple, may lose edits
+[Operational transform] Complex but preserves intent
+> Use CRDTs
+```
+
+### Brownfield Detection
+
+When a task has an `affects` field referencing existing product docs, the scope skill detects this as a brownfield change and auto-selects the **delta spec format** (auto-selecting full format when docs are stubs or missing).
+
+The delta spec format documents three aspects of the change:
+- **Current**: What exists today, drawn from the referenced product docs
+- **Changing**: What this task modifies or adds
+- **Unchanged**: What explicitly stays the same, providing clear boundaries for the implementation agent
+
+This distinction prevents the implementation agent from accidentally rewriting or breaking functionality that should remain untouched.
+
+### Autonomy Boundaries
+
+During the Q&A phase, dependencies, patterns, and constraints are auto-inferred from research rather than asked as questions. The remaining Q&A questions focus on genuine decisions (approach and affected files). Users can also volunteer implementation boundaries, which are captured in three tiers of autonomy:
+
+| Tier | Meaning | Example |
+|------|---------|---------|
+| **Always** | Agent should do this without asking | "Preserve existing Handlebars partials" |
+| **Ask-first** | Agent should ask before proceeding | "Changes to step ordering" |
+| **Never** | Agent must not do this under any circumstances | "Delete existing steps" |
+
+Boundaries are recorded in the `spec.xml` and injected into implementation subagent prompts, where ask-first items instruct subagents to report FAILURE with details rather than proceeding on their own.
+
+### Contracts
+
+After Q&A and before gap validation, the scope skill optionally derives behavioral contracts from the gathered requirements. Each contract captures preconditions, postconditions, invariants, and general properties for a group of related functional requirements.
+
+The skill assesses whether contracts would add value based on the nature of the requirements:
+- **Auto-skip**: When requirements describe content/config/text changes only (e.g., editing a prompt template, updating a YAML setting), contracts are skipped entirely with no question asked.
+- **Recommend**: When requirements describe behavioral concerns (e.g., processing inputs, managing state, coordinating parallel work, validating data), the skill recommends deriving contracts and explains why.
+- **Ask**: When signals are mixed or unclear, the skill asks without a recommendation.
+- **Mandatory**: When a `contracts` directive is loaded, contract derivation is required and the prompt is skipped.
+
+When deriving contracts, the skill groups related FRs that share behavioral constraints into a single contract rather than asking per-FR. For each group, the LLM proposes contract elements (precondition, postcondition, invariant, property) and the user can accept, modify, or provide custom elements.
+
+Contracts are included in the `spec.xml` as an optional `<contracts>` element containing `<contract>` sub-elements. When contracts are not derived, the element is simply absent from the spec.
+
+### Spec Validation
+
+After Q&A confirmation and before final spec creation, three validation passes run:
+
+**Gap Validation** checks the assembled requirements for:
+- Conflicting requirements that contradict each other
+- Missing error handling for failure cases
+- Dangling references to files or docs that do not exist
+- Uncovered acceptance criteria with no backing requirement
+
+**Self-Critique** reviews each requirement for quality defects:
+- Vague language (quantifiers, modal weakenings, passive voice)
+- Untestable criteria (subjective adjectives without measures)
+- Missing edge cases (conditional logic without error handling)
+- Internal consistency (contradicting requirements)
+- Project requirement coverage (when task belongs to a project)
+
+Findings are categorized as CRITICAL (must address) or MODERATE (advisory). Users can address, defer to open-questions, or dismiss each finding. Project-specific quality rules can be added via a spec-quality directive.
+
+**Leakage Check** reviews each requirement to flag any that prescribe **how** something should be implemented rather than **what** outcome is expected. Requirements that leak implementation details are surfaced for the user to rephrase as outcome-focused statements.
+
+## Examples
+
+### Quick Research Path
+
+```
+/festina-scope 001
+
+Running reconnaissance...
+Read: product/ui/buttons.md, engineering/patterns/responsive.md
+Focus areas: Button component, mobile styles
+
+Based on recon, using Quick research.
+Rationale: Single file change in a well-understood module with clear patterns to follow.
+
+Researching (sequential, skipping already-read docs)...
+Found: src/components/Button.tsx, src/styles/mobile.css
+
+Research Synthesis:
+- Product Context: ui/buttons
+- Engineering Patterns: responsive-pattern at breakpoints.ts:12
+- Pitfalls (FYI): z-index stacking → Use lower value
+```
+
+### Deep Research Path
+
+```
+/festina-scope 002
+
+Running reconnaissance...
+Read: product/data/sync.md, engineering/systems/api.md
+Focus areas: Sync engine, API layer, auth middleware, state management
+
+Based on recon, using Deep research.
+Rationale: Multiple systems affected (sync, API, auth) with unclear interaction patterns.
+
+Launching parallel research agents (recon context forwarded)...
+[Product Context Researcher] Finding additional docs...
+[Pattern Finder] Finding patterns...
+[Codebase Analyzer] Analyzing structure...
+[Pitfall Detector] Finding issues...
+
+All agents complete. Synthesizing...
+
+Decisions needed:
+- Race conditions: How should we handle concurrent edits?
+```
+
+### Gap Validation Finds Issues
+
+```
+/festina-scope 003
+
+...research and Q&A complete...
+
+Running gap validation...
+CRITICAL: FR3 conflicts with FR1 — FR1 says "allow empty input"
+         but FR3 says "reject empty input with error"
+MODERATE: FR5 references `src/utils/legacy.ts` which does not exist
+
+Address FR1/FR3 conflict?
+> FR3 is correct, update FR1 to require non-empty input
+
+Address missing file reference?
+> Defer to open-questions — we'll create it during implementation
+
+Running self-critique...
+MODERATE: FR2 uses vague language "should be fast" — suggest
+          "response time under 200ms at p95"
+> Accept suggested rewording
+
+Running leakage check...
+FR4 prescribes implementation: "Use a Map data structure"
+Rephrase as outcome: "Lookups complete in O(1) time"
+> Accept
+
+Spec validated. Creating spec.xml...
+```
+
+### Contract Derivation
+
+```
+/festina-scope 004
+
+...research and Q&A complete...
+
+Requirements describe behavioral concerns (processing inputs,
+managing state). Recommending contract derivation.
+Derive contracts? > Yes
+
+Grouping FRs by behavioral boundary...
+
+Contract C1 (Input Processing) — covers FR1, FR2:
+  precondition: Input must be valid JSON with required fields
+  postcondition: Processed output contains all transformed fields
+  invariant: Original input is never mutated
+  property: Idempotent — processing same input twice yields same output
+Accept? > Yes
+
+Contract C2 (State Management) — covers FR3, FR4:
+  precondition: State store is initialized before operations
+  postcondition: State changes are persisted before returning
+  invariant: No concurrent writes to same key
+  property: State is always consistent after any operation sequence
+Accept? > Modify postcondition to: "State changes are persisted
+          atomically before returning"
+
+Contracts saved to spec.xml
+```
+
+**Summary:** Reconnaissance always runs first, then recommends Quick or Deep based on signals found. Deep research provides comprehensive coverage for complex tasks.
+
+## Boundaries
+
+What this skill does NOT do:
+
+- **Does NOT:** Create task.xml → See [create](./create.md)
+- **Does NOT:** Create implementation steps → See [plan](./plan.md)
+- **Does NOT:** Modify code
+
+## Configuration
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| Research depth | Quick or Deep | Auto-selected based on recon signals |
+| Agent count | Number of parallel agents | 4 (Deep mode) |
+
+## Interactions
+
+- **Product Docs**: Reads docs listed in task's `affects` field (also used for brownfield detection). After synthesis, auto-adds newly discovered docs (relevance score >= 0.5) to task.xml `affects`/`engineering` fields
+- **Engineering Docs**: Reads docs listed in task's `engineering` field
+- **Project Context**: When a task has a `project-id` attribute, loads the parent project's goal, requirements, and scope, plus sibling task summaries for cross-task awareness. Spec requirements trace back to project requirement IDs (e.g., FR1 traces-to R2)
+- **Directives**: Applies any `phase="scope"` rules
+- **Self-Critique Findings**: Deferred self-critique findings feed into the open-questions element of spec.xml; boundary suggestions feed into the boundaries element
+- **Implement Skill**: Autonomy boundaries from spec.xml are injected into implementation subagent prompts
+
+## Limitations
+
+- Task must be in `backlog` status
+- Branch requirements (e.g., must be on main/master, creating task branch) are enforced by the `git.xml` directive, not the skill

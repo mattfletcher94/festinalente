@@ -1,0 +1,154 @@
+<spec task="021-add-greenfield-support-to-festina-create-project" created="2026-03-24" updated="2026-03-24">
+  <title>Add greenfield support to festina-create-project</title>
+
+  <context>
+    festina-create-project assumes an existing codebase with product and engineering docs. For greenfield projects (no code, no docs, no tasks), users have no viable path. festina-define exists but is too tedious — it asks 30-50 granular questions and produces temporary docs that get rewritten during finalize. Users end up not using festinalente for new projects at all.
+
+    This task makes festinalente a complete tool for both greenfield and brownfield projects by enhancing /festina-create-project with AI-driven research that fills the knowledge gap an existing codebase would normally provide.
+  </context>
+
+  <scope>
+    <in-scope>
+      <item>Greenfield detection in festina-create-project (empty product/engineering dirs)</item>
+      <item>Adaptive vision capture with 2-4 broad questions for greenfield flow</item>
+      <item>4 parallel research agents (stack, features, architecture, pitfalls) for greenfield</item>
+      <item>AI-proposed versioned requirements (v1 MVP / v2 future / out-of-scope)</item>
+      <item>Decomposition from v1 requirements only</item>
+      <item>Research findings stored in project.xml &lt;research&gt; section</item>
+      <item>Complete removal of festina-define skill (source, installed, product doc, config, directive rule)</item>
+      <item>Graceful cancellation and agent failure handling</item>
+    </in-scope>
+    <out-of-scope>
+      <item>Changes to festina-scope or festina-plan (they passively read project.xml already)</item>
+      <item>Changes to the VSCode extension</item>
+      <item>Generating product/engineering docs during create-project (that's what downstream skills do)</item>
+    </out-of-scope>
+  </scope>
+
+  <delta>
+    <current>
+      festina-create-project follows a linear flow: title capture, Socratic Q&amp;A (problem, value, scope, requirements, acceptance criteria), product/engineering doc search, requirement validation, decomposition into 2-5 tasks, user confirmation, file creation. It searches for existing product/engineering docs but has no alternative flow when none exist.
+
+      festina-define is a separate skill for greenfield projects that asks 30-50 granular questions across product vision, features (depth-first), engineering stack, systems, patterns, conventions, then generates product/engineering docs and a glossary. It is referenced in config.yaml, git.xml (G-DEFPROD rule), install.cjs, README.md, and has a product doc at skills/define-product.
+    </current>
+    <changing>
+      festina-create-project gains a greenfield detection step after title capture. When greenfield is detected, the flow diverges to: (1) adaptive vision capture with 2-4 broad questions, (2) 4 parallel research agents, (3) AI-proposed versioned requirements, (4) decomposition from v1 only. The brownfield path remains identical. Research findings are stored in a new &lt;research&gt; section in project.xml.
+
+      festina-define is removed entirely — source, installed skill, product doc, config entry, directive rule, and all references.
+    </changing>
+    <unchanged>
+      The brownfield flow (existing product/engineering docs) remains exactly as-is. Socratic Q&amp;A pattern for brownfield. Task decomposition logic (2-5 vertical slices, requirement coverage). project.xml structure (aside from new &lt;research&gt; section). All Handlebars partials. Downstream skills (scope, plan, implement).
+    </unchanged>
+  </delta>
+
+  <contracts>
+    <contract id="C1" requirement="FR1,FR2,FR8">
+      <name>Greenfield detection and vision capture</name>
+      <precondition>User invoked /festina-create-project; .festinalente/ directory exists</precondition>
+      <postcondition>If greenfield detected, vision capture completes with 2-4 questions; if brownfield, existing flow runs unchanged</postcondition>
+      <invariant>Greenfield detection is deterministic based on product/engineering dir contents</invariant>
+      <property>No regression — brownfield projects always follow the existing flow</property>
+    </contract>
+    <contract id="C2" requirement="FR3,FR4,FR5">
+      <name>Parallel research agents and tech validation</name>
+      <precondition>Vision capture completed with user's input (title, optional tech prefs, MVP scope)</precondition>
+      <postcondition>4 research agents complete (or gracefully degrade on failure); findings stored in project.xml research section</postcondition>
+      <invariant>All 4 agents always launch regardless of user input</invariant>
+      <property>When user said "unsure" about tech, stack agent proposes options; when user specified tech, stack agent validates/augments</property>
+    </contract>
+    <contract id="C3" requirement="FR6,FR7">
+      <name>Versioned requirements and decomposition</name>
+      <precondition>Research findings available from all successful agents</precondition>
+      <postcondition>Requirements proposed as v1 (MVP) / v2 (future) / out-of-scope; decomposition uses only v1 requirements</postcondition>
+      <invariant>v2 and out-of-scope requirements are stored but never decomposed into tasks</invariant>
+      <property>Every v1 requirement maps to at least one task; task count is 2-5 (or user-approved if 6+)</property>
+    </contract>
+    <contract id="C4" requirement="FR9,FR10,FR11">
+      <name>Cancellation and agent failure resilience</name>
+      <precondition>User is in any step of the greenfield flow</precondition>
+      <postcondition>On cancellation, no project or task files created; on agent failure, flow continues with remaining results</postcondition>
+      <invariant>No partial state (orphan files) left on cancellation</invariant>
+      <property>At least one agent failing does not block the flow; user is informed which research was unavailable</property>
+    </contract>
+  </contracts>
+
+  <requirements>
+    <requirement id="FR1">The system shall detect greenfield projects by checking whether .festinalente/product/ and .festinalente/engineering/ directories contain no substantive docs (only overview.md or empty counts as greenfield)</requirement>
+    <requirement id="FR2">When greenfield is detected, the system shall present an adaptive vision capture with 2-4 broad questions: what are you building, what tech (or "unsure"), what's MVP vs out-of-scope, and an optional free-form question (skippable)</requirement>
+    <requirement id="FR3">After vision capture, the system shall launch 4 parallel research agents (stack, features, architecture, pitfalls) using the Explore subagent pattern with WebSearch capability</requirement>
+    <requirement id="FR4">When the user said "unsure" about tech choices, the stack research agent shall propose options with pros/cons for user validation; when the user specified tech preferences, the agent shall validate and augment rather than replace</requirement>
+    <requirement id="FR5">Research findings from all successful agents shall be stored in a nested &lt;research&gt; section in project.xml with subsections for stack, features, architecture, and pitfalls</requirement>
+    <requirement id="FR6">After research completes, the system shall propose requirements versioned as v1 (MVP), v2 (future), and out-of-scope, with user validation before proceeding</requirement>
+    <requirement id="FR7">Task decomposition shall use only v1 (MVP) requirements; v2 and out-of-scope requirements are stored in project.xml but not decomposed into tasks</requirement>
+    <requirement id="FR8">When existing product and engineering docs are found (brownfield), the existing create-project flow shall run unchanged with no regression</requirement>
+    <requirement id="FR9">When the user cancels during vision capture Q&amp;A, no project or task files shall be created and no partial state shall remain</requirement>
+    <requirement id="FR10">When a research agent fails or returns no results, the flow shall continue with remaining agent results and inform the user which research was unavailable</requirement>
+    <requirement id="FR11">When the user provides very minimal input (just a title, skips all questions), the system shall use AI judgment to propose requirements based on the title alone and mark all requirements as inferred</requirement>
+    <requirement id="FR12">The festina-define skill shall be removed entirely: source (apps/festinalente/src/content/skills/festina-define/), product doc (skills/define-product), config.yaml mapping, G-DEFPROD rule in git.xml, and all references in install script and README</requirement>
+  </requirements>
+
+  <files>
+    <file action="modify" path="apps/festinalente/src/content/skills/festina-create-project/SKILL.md" reason="Add greenfield detection, vision capture, parallel research agents, versioned requirements, and decomposition from v1 only"/>
+    <file action="modify" path="apps/festinalente/src/content/templates/project.xml" reason="Add research section to project template"/>
+    <file action="modify" path="apps/festinalente/src/content/templates/config.yaml" reason="Remove festina-define directive mapping"/>
+    <file action="modify" path=".festinalente/directives/git.xml" reason="Remove G-DEFPROD rule"/>
+    <file action="modify" path="apps/festinalente/bin/install.cjs" reason="Update post-install instructions to reference create-project instead of define"/>
+    <file action="modify" path="README.md" reason="Remove festina-define from skill reference table"/>
+    <file action="delete" path="apps/festinalente/src/content/skills/festina-define/SKILL.md" reason="Skill is replaced by greenfield flow in create-project"/>
+    <file action="delete" path=".festinalente/product/skills/define-product.md" reason="Product doc for removed skill"/>
+  </files>
+
+  <patterns>
+    <pattern name="Parallel Research Agents">
+      <description>Launch 4 Explore subagents in parallel via Task tool, synthesize results. Established pattern in festina-scope for deep research.</description>
+      <reference>apps/festinalente/src/content/skills/festina-scope/SKILL.md:284</reference>
+    </pattern>
+    <pattern name="AskUserQuestion Dialogue">
+      <description>One question at a time via AskUserQuestion tool with header, options (2-4), and "Other" for free input. Used across all festina skills.</description>
+      <reference>apps/festinalente/src/content/skills/festina-create-project/SKILL.md:62</reference>
+    </pattern>
+    <pattern name="Handlebars Skill Compilation">
+      <description>Skills use {{> partial-name}} syntax compiled by tools/build.ts. Partials provide shared content blocks.</description>
+      <reference>apps/festinalente/src/content/skills/festina-create-project/SKILL.md:16</reference>
+    </pattern>
+  </patterns>
+
+  <research>
+    <product>
+      <finding doc="skills/create-project">Current skill assumes brownfield — Socratic Q&amp;A for problem/value/scope/requirements, doc search, auto-decomposition into 2-5 tasks. No greenfield path.</finding>
+      <finding doc="skills/define-product">Separate greenfield skill asking 30-50 granular questions. Too tedious — users avoid it. To be removed entirely.</finding>
+    </product>
+    <engineering>
+      <finding doc="systems/content-build">Skills compiled via Handlebars from apps/festinalente/src/content/skills/ to dist/. festina-define appears in skill-to-partial dependency table — must be removed.</finding>
+      <finding doc="systems/data-model">project.xml has no &lt;research&gt; section currently. Template at apps/festinalente/src/content/templates/project.xml needs update.</finding>
+    </engineering>
+    <codebase>
+      <finding component="festina-scope parallel agents" path="apps/festinalente/src/content/skills/festina-scope/SKILL.md">Uses 4 parallel Explore subagents (Product Context, Pattern Finder, Codebase Analyzer, Pitfall Detector) launched via Task tool. Established pattern to follow.</finding>
+      <finding component="festina-define references" path="multiple">15 files reference festina-define: config.yaml, config template, git.xml, install.cjs, README, product docs, engineering docs, finalize docs.</finding>
+    </codebase>
+    <pitfalls>
+      <pitfall issue="festina-define references widespread" mitigation="Identified all 15 files; only source files in apps/festinalente/ and .festinalente/directives/ need editing — installed copies update on build/install"/>
+      <pitfall issue="project.xml template missing research section" mitigation="Add nested research section (stack/features/architecture/pitfalls) to template"/>
+      <pitfall issue="Engineering docs reference festina-define in dependency tables" mitigation="Update content-build and data-model docs during festina-finalize, not during implementation"/>
+    </pitfalls>
+  </research>
+
+  <constraints>
+    <constraint>Must edit source in apps/festinalente/src/content/ — not installed output in .festinalente/ or .claude/ (principle F1)</constraint>
+    <constraint>Greenfield detection must be deterministic and not require user confirmation to classify</constraint>
+    <constraint>Existing brownfield flow must remain byte-for-byte identical when greenfield is not detected</constraint>
+  </constraints>
+
+  <dependencies>
+    <dependency type="internal">Handlebars build system (apps/festinalente/tools/build.ts) — compiles skill source to distributable format</dependency>
+    <dependency type="internal">festinalente.cjs helper scripts — next-project-id, next-id, get-date-time, search-product, search-engineering</dependency>
+  </dependencies>
+
+  <risks>
+    <risk impact="medium" mitigation="Keep brownfield path as an untouched else-branch; test with existing project that has product/engineering docs">Regression in brownfield flow due to structural changes to the skill</risk>
+    <risk impact="low" mitigation="Comprehensive grep for 'festina-define' across entire repo before marking complete">Missed festina-define reference in an obscure location</risk>
+    <risk impact="medium" mitigation="Each agent uses WebSearch with fallback to LLM knowledge; graceful degradation on failure">Research agents may return low-quality results for niche/novel project types</risk>
+  </risks>
+
+  <open-questions/>
+</spec>

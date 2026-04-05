@@ -1,0 +1,404 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<directive name="coding" version="4"
+           created="2026-02-25" updated="2026-03-06">
+  <description>
+    Code quality standards: architecture, type safety, error handling, declarative style, and documentation
+  </description>
+
+  <context>
+    <principle id="A1" keywords="policy,decision,when,should">
+      Policy belongs in orchestrators, mechanism in capabilities
+    </principle>
+    <principle id="A2" keywords="imports,dependencies,direction,dag,circular">
+      Dependencies must form a DAG. Flow: Computer &lt;- Capability &lt;- Orchestrator
+    </principle>
+    <principle id="A3" keywords="naming,suffix,categorization">
+      Every module must be categorized with suffix: .computer.ts, .capability.ts, .orchestrator.ts
+    </principle>
+    <principle id="A4" keywords="orchestrator,decomposition,domain,split">
+      Actively decompose orchestrators. At ~500 lines or when 2+ unrelated concerns share a file, split into domain orchestrators immediately. Don't let orchestrators grow — when you notice complexity accumulating, that's the signal to split now, not later.
+    </principle>
+    <principle id="A5" keywords="composition,root,entry,wiring">
+      Entry points should be thin composition roots that wire domain orchestrators together
+    </principle>
+    <principle id="A6" keywords="inject,dependency,di,factory,constructor,import,new">
+      Explicit dependency injection via factory function parameters. Never import and construct a dependency internally — receive it from the caller. The composition root is the only place that wires concrete implementations together.
+    </principle>
+    <principle id="A7" keywords="side,effect,io,capability,pure,read,write,fetch,fs">
+      Side effects (I/O, network, file system, randomness, time) live exclusively in capabilities. Computers are pure. Orchestrators coordinate but delegate all side effects to capabilities.
+    </principle>
+    <principle id="A8" keywords="single,export,module,one,focused">
+      One public factory per module. Each .computer.ts, .capability.ts, .orchestrator.ts file exports a single create* function and its associated types. Keeps modules focused and the DAG easy to trace.
+    </principle>
+
+    <principle id="T1" keywords="any,unknown,type,safety,guard,narrow,is">
+      Never use any — use unknown and narrow with type guard functions (isX returning value is Type).
+    </principle>
+    <principle id="T2" keywords="export,return,type">
+      All exported functions must have explicit return types
+    </principle>
+    <principle id="T3" keywords="id,identifier,brand">
+      Use branded types for domain identifiers (TaskId, ProjectId, etc.)
+    </principle>
+    <principle id="T4" keywords="state,boolean,union,illegal,impossible,unrepresentable">
+      Make illegal states unrepresentable. Design types so invalid combinations cannot be constructed — not validated at runtime. Use discriminated unions for states, not boolean flags. If a completedAt date only makes sense when status is 'done', the type must enforce that structurally.
+    </principle>
+
+    <principle id="E1" keywords="error,result,throw,catch,failure,parse,validate,boundary">
+      Parse, don't validate. At system boundaries (user input, file reads, API responses), transform untyped data into typed domain objects once using Result&lt;T, E&gt;, then trust the types everywhere downstream. Capabilities own parsing and return Result for expected failures. Only throw for bugs. Never re-check what the type system already guarantees.
+    </principle>
+    <principle id="E2" keywords="exhaustive,switch,never,unhandled,total,partial,undefined">
+      Total functions — every function handles every possible input and always returns a value. No functions that silently return undefined for unexpected input. Switch on discriminated unions must be exhaustive using default with never. Combined with Result types, this eliminates partial functions entirely.
+    </principle>
+
+    <principle id="T5" keywords="enum,union,literal,string,const">
+      No enums. Use string literal unions or const objects with as const. Enums generate runtime code, don't compose, and fight against declarative style.
+    </principle>
+
+    <principle id="S1" keywords="declarative,imperative,expression,transform,pipeline,guard,early,return,flat,nested">
+      Prefer declarative over imperative. Express WHAT not HOW. Use map/filter/reduce over mutation loops, ternaries over if/else assignments, data pipelines over step-by-step procedures. Use early returns and guard clauses to keep code flat — never nest more than 2 levels deep.
+    </principle>
+    <principle id="S2" keywords="function,size,length,responsibility,small,compose,pipeline,chain">
+      Compose small functions, don't configure large ones. Build complex behavior by piping simple transformations — not by adding parameters, flags, and options to one function. Under 20 lines ideal, over 40 is a smell. If a section needs a comment, extract it.
+    </principle>
+    <principle id="S3" keywords="immutable,mutate,const,readonly,pure,array,tuple">
+      Readonly by default. All arrays, tuples, and interface properties should be readonly. Never mutate function arguments. Mutability is the exception that must be justified. Computers must be pure.
+    </principle>
+    <principle id="S4" keywords="async,await,promise,floating,unhandled">
+      No floating promises. Use Promise.all for independent concurrent work.
+    </principle>
+    <principle id="S5" keywords="map,lookup,object,record,if,else,chain,switch,mapping">
+      Use Record/object lookups instead of if/else chains or switch for value mapping. When mapping one set of values to another, a const Record is declarative, exhaustive (with satisfies), and eliminates branching logic entirely.
+    </principle>
+    <principle id="S6" keywords="class,this,new,factory,closure,function,data,behavior,separate">
+      Data and behavior are separate. Data is plain readonly objects and types. Behavior is functions that accept and return data. No classes — classes bundle state and behavior, hide mutation behind this, and resist composition. Use factory functions that return plain objects with explicit interfaces.
+    </principle>
+    <principle id="N1" keywords="naming,create,factory,boolean,is,has">
+      Naming: create* for factories, is*/has*/should* for booleans, handle*/on* for event handlers.
+    </principle>
+
+    <principle id="D1" keywords="export,public,documentation">
+      All exported symbols must have multi-line TSDoc. @param tags use hyphen: @param name - description
+    </principle>
+
+    <principle id="R1" keywords="backwards,compatibility,legacy,deprecated,deprecation,rename,refactor,old,wrapper,shim,alias">
+      When renaming or refactoring: delete the old thing, update every caller, done. No re-exports under old names, no wrapper functions that translate old args to new, no "keep both" transition periods, no deprecated markers. If something changes, it changes everywhere in the same commit. Callers that break get fixed immediately — not "later."
+    </principle>
+
+    <principle id="B1" keywords="build,compile,bundle">
+      All code changes must pass build verification before completion
+    </principle>
+
+    <principle id="F1" keywords="festina,skills,claude,source,built,dogfooding,opencode">
+      This project builds festinalente. .claude/ and .opencode/ contain built output — edit source in apps/festinalente/src/content/.
+    </principle>
+  </context>
+
+  <process>
+    <rule id="P-A1" phase="plan,implement">Identify architectural layers of affected files and verify DAG</rule>
+    <rule id="P-A2" phase="plan,implement">Plan orchestrator structure — identify domains, decide single vs multiple orchestrators</rule>
+    <rule id="P-A3" phase="plan,implement">Identify side effects and confine them to capabilities. Computers and orchestrators must remain free of I/O.</rule>
+    <rule id="P-A4" phase="implement">Categorize every new module with correct suffix, wrap pure functions in computer factories</rule>
+    <rule id="P-A5" phase="implement">Inject all dependencies via factory parameters. Never import and construct internally.</rule>
+    <rule id="P-T1" phase="plan,implement">Design types that make illegal states unrepresentable: branded IDs, discriminated unions where data only exists in valid states, options objects for >2 params. If a combination shouldn't exist, the type must prevent it structurally.</rule>
+    <rule id="P-E1" phase="plan,implement">Design error handling: identify which operations can fail, use Result types with specific error variants</rule>
+    <rule id="P-S1" phase="plan,implement">Design data transformations as declarative pipelines. Plan function decomposition: small, single-purpose functions.</rule>
+    <rule id="P-R1" phase="plan,implement">For renames, moves, and signature changes: delete the old thing, update every caller, in the same step. No re-exports, no overloads, no transition periods.</rule>
+    <rule id="P-B1" phase="implement">Verify each task step with appropriate build command</rule>
+    <rule id="P-B2" phase="finalize">Run all relevant build commands for modified packages</rule>
+    <rule id="P-F1" phase="implement">Edit skills/templates/partials in apps/festinalente/src/content/ (not .claude/ or .opencode/)</rule>
+    <rule id="P-R2" phase="finalize">Scan for forbidden patterns before review</rule>
+    <rule id="P-R3" phase="finalize">Verify orchestrator sizes. Any orchestrator approaching ~500 lines or mixing unrelated concerns must be decomposed into domain orchestrators before the task is complete. This is not optional — do not defer decomposition to a future task.</rule>
+  </process>
+
+  <validation>
+    <check id="V-B1" type="command" severity="error">
+      <run>pnpm --filter @mattfletcher94/festinalente-vscode build</run>
+      <expect>VSCode extension builds successfully (exit code 0)</expect>
+    </check>
+    <check id="V-B2" type="command" severity="error">
+      <run>pnpm festinalente:build</run>
+      <expect>Festina Lente package builds successfully (exit code 0)</expect>
+    </check>
+    <check id="V-A1" type="command" severity="error">
+      <run>pnpm check:dpdm</run>
+      <expect>No circular dependencies (exit code 0)</expect>
+    </check>
+
+    <check id="V-A2" type="pattern" severity="error" files="*.capability.ts">
+      <forbidden>import.*\.capability\.</forbidden>
+      <reason>Capabilities cannot import other capabilities</reason>
+    </check>
+    <check id="V-A3" type="pattern" severity="error" files="*.capability.ts">
+      <forbidden>(ensure|getOrCreate|maybe)[A-Z]</forbidden>
+      <reason>Policy logic belongs in orchestrators</reason>
+    </check>
+    <check id="V-A4" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>(Manager|Service|Helper|Utils)(&lt;|$)</forbidden>
+      <reason>Use computer/capability/orchestrator suffix</reason>
+    </check>
+    <check id="V-A5" type="pattern" severity="error" files="*.orchestrator.ts">
+      <forbidden>import.*\.orchestrator\.</forbidden>
+      <reason>Orchestrators cannot import each other</reason>
+    </check>
+
+    <check id="V-T1" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>:\s*any\b</forbidden>
+      <reason>Use unknown and narrow</reason>
+    </check>
+    <check id="V-T2" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>as\s+any\b</forbidden>
+      <reason>Fix the underlying type issue</reason>
+    </check>
+    <check id="V-T3" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>@ts-ignore</forbidden>
+      <reason>Fix the type issue</reason>
+    </check>
+
+    <check id="V-T4" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>\benum\s+[A-Z]</forbidden>
+      <reason>No enums — use string literal unions or const objects with as const</reason>
+    </check>
+
+    <check id="V-A7" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>\bclass\s+[A-Z]</forbidden>
+      <reason>No classes — use factory functions with closures</reason>
+    </check>
+    <check id="V-A8" type="pattern" severity="error" files="*.computer.ts">
+      <forbidden>\bfs\.\b|fetch\(|\.readFile|\.writeFile|Math\.random|Date\.now</forbidden>
+      <reason>Computers must be pure — no I/O, no randomness, no time</reason>
+    </check>
+    <check id="V-A9" type="pattern" severity="warning" files="*.orchestrator.ts">
+      <forbidden>\bfs\.\b|\.readFile|\.writeFile</forbidden>
+      <reason>Orchestrators delegate I/O to capabilities — don't do it directly</reason>
+    </check>
+
+    <check id="V-S1" type="pattern" severity="warning" files="**/*.ts">
+      <forbidden>for\s*\(let\s+\w+\s*=\s*0</forbidden>
+      <reason>Use map/filter/reduce/for...of instead of index loops</reason>
+    </check>
+    <check id="V-S3" type="pattern" severity="warning" files="*.computer.ts">
+      <forbidden>\bthrow\b</forbidden>
+      <reason>Computers are pure — return Result instead</reason>
+    </check>
+
+    <check id="V-D1" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>^\/\*\*\n \* [^@]+\n \*\/\nexport</forbidden>
+      <reason>Single-line TSDoc on exports — use multi-line format</reason>
+    </check>
+    <check id="V-D2" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>^\/\/ [-=]{4,}</forbidden>
+      <reason>Banner/divider comments are noise</reason>
+    </check>
+    <check id="V-D3" type="pattern" severity="warning" files="**/*.ts">
+      <forbidden>@param\s+\w+\s+[^-]</forbidden>
+      <reason>Use @param name - description</reason>
+    </check>
+
+    <check id="V-R1" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>@deprecated</forbidden>
+      <reason>Delete or keep, no deprecation</reason>
+    </check>
+    <check id="V-R2" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>backwards?\s*compat</forbidden>
+      <reason>No compatibility shims</reason>
+    </check>
+    <check id="V-R3" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>export\s*\{[^}]*\bas\b</forbidden>
+      <reason>No re-export aliases — rename at source, update all callers</reason>
+    </check>
+    <check id="V-R4" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>\/\/\s*(legacy|old|removed|previous|formerly|was|used to)</forbidden>
+      <reason>Comments about old code signal a compat shim — delete the old thing entirely</reason>
+    </check>
+    <check id="V-R5" type="pattern" severity="error" files="**/*.ts">
+      <forbidden>\/\/\s*TODO:?\s*(remove|delete|clean\s*up|migrate)</forbidden>
+      <reason>If it needs removing, remove it now — not "later"</reason>
+    </check>
+  </validation>
+
+  <examples>
+    <example ref="A1" type="combined">
+      <code><![CDATA[
+// WRONG — capability decides WHEN (policy)
+function ensureSession(): Session {
+  if (session?.isValid) return session;
+  return createSession();
+}
+
+// CORRECT — capability provides mechanism, orchestrator owns policy
+// capability:
+function createSession(): Session { return api.createSession(); }
+// orchestrator:
+function getSession(): Session {
+  return session?.isValid ? session : createSession();
+}
+      ]]></code>
+    </example>
+
+    <example ref="A4" type="combined">
+      <code><![CDATA[
+// WRONG — monolithic 500+ line entry point
+export function activate(context) {
+  // Task logic... Quick logic... Docs logic... Config logic...
+}
+
+// CORRECT — thin composition root with domain orchestrators
+export function activate(context) {
+  const tasks = createTasksOrchestrator(deps);
+  const quicks = createQuicksOrchestrator(deps);
+}
+      ]]></code>
+    </example>
+
+    <example ref="T4" type="combined">
+      <code><![CDATA[
+// WRONG — boolean flags allow impossible states, completedAt exists when not done
+interface Task {
+  isLoading: boolean; hasError: boolean; isComplete: boolean;
+  completedAt?: Date;  // nothing stops this being set when isComplete is false
+}
+
+// CORRECT — illegal states are unrepresentable
+type Task =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'error'; readonly error: Error }
+  | { status: 'complete'; readonly data: TaskData; readonly completedAt: Date };
+
+// completedAt ONLY exists when status is 'complete' — structurally enforced
+function getIcon(task: Task): string {
+  switch (task.status) {
+    case 'idle': return 'circle';
+    case 'loading': return 'sync';
+    case 'error': return 'alert';
+    case 'complete': return 'check';
+    default: { const _: never = task; return _; }
+  }
+}
+      ]]></code>
+    </example>
+
+    <example ref="E1" type="combined">
+      <code><![CDATA[
+// WRONG — capability throws on expected failure
+function readConfig(path: string): Config {
+  return JSON.parse(fs.readFileSync(path, 'utf-8'));  // throws!
+}
+
+// CORRECT — returns typed Result
+function readConfig(path: string): Result<Config, 'not-found' | 'parse-error'> {
+  if (!fs.existsSync(path)) return err('not-found');
+  try { return ok(JSON.parse(fs.readFileSync(path, 'utf-8'))); }
+  catch { return err('parse-error'); }
+}
+      ]]></code>
+    </example>
+
+    <example ref="S1" type="combined">
+      <code><![CDATA[
+// WRONG — imperative loop with mutation
+const result: string[] = [];
+for (let i = 0; i < tasks.length; i++) {
+  if (tasks[i].status === 'active') result.push(tasks[i].id);
+}
+
+// CORRECT — declarative pipeline
+const result = tasks
+  .filter((t) => t.status === 'active')
+  .map((t) => t.id);
+
+// WRONG — push-based construction
+const args: string[] = [];
+args.push('--format', opts.format);
+if (opts.verbose) args.push('--verbose');
+
+// CORRECT — expression-based construction
+const args = [
+  '--format', opts.format,
+  ...(opts.verbose ? ['--verbose'] : []),
+];
+      ]]></code>
+    </example>
+
+    <example ref="A6" type="combined">
+      <code><![CDATA[
+// WRONG — imports and constructs dependency internally
+import { createXmlParser } from './xml-parser.computer';
+export function createTaskHandler() {
+  const parser = createXmlParser();  // hidden dependency!
+  return { handle: (xml: string) => parser.parse(xml) };
+}
+
+// CORRECT — receives dependency via factory parameter
+export function createTaskHandler(deps: { parser: XmlParser }) {
+  return { handle: (xml: string) => deps.parser.parse(xml) };
+}
+      ]]></code>
+    </example>
+
+    <example ref="S6" type="combined">
+      <code><![CDATA[
+// WRONG — class with this, hidden state, implicit DI
+class TaskService {
+  private tasks: Task[] = [];
+  constructor(private readonly fs: FileSystem) {}
+  addTask(t: Task) { this.tasks.push(t); }
+}
+
+// CORRECT — factory with closure, explicit interface, no this
+interface TaskCapability { readonly addTask: (t: Task) => readonly Task[]; }
+function createTaskCapability(deps: { fs: FileSystem }): TaskCapability {
+  let tasks: readonly Task[] = [];
+  return { addTask: (t) => { tasks = [...tasks, t]; return tasks; } };
+}
+      ]]></code>
+    </example>
+
+    <example ref="S5" type="combined">
+      <code><![CDATA[
+// WRONG — if/else chain for value mapping
+function getIcon(status: string): string {
+  if (status === 'active') return 'play';
+  else if (status === 'done') return 'check';
+  else if (status === 'error') return 'alert';
+  else return 'circle';
+}
+
+// CORRECT — Record lookup, declarative and exhaustive
+const statusIcons = {
+  active: 'play',
+  done: 'check',
+  error: 'alert',
+  idle: 'circle',
+} as const satisfies Record<Status, string>;
+
+function getIcon(status: Status): string {
+  return statusIcons[status];
+}
+      ]]></code>
+    </example>
+
+    <example ref="S3" type="combined">
+      <code><![CDATA[
+// WRONG — mutates caller's object
+function addDefaults(opts: Options): Options {
+  opts.timeout ??= 5000;
+  return opts;
+}
+
+// CORRECT — returns new object
+function addDefaults(opts: Options): Options {
+  return { timeout: 5000, ...opts };
+}
+      ]]></code>
+    </example>
+  </examples>
+
+  <verification>
+    <command id="vscode-build" description="Build the VSCode extension">pnpm --filter @mattfletcher94/festinalente-vscode build</command>
+    <command id="festinalente-build" description="Build the Festina Lente package">pnpm festinalente:build</command>
+    <command id="typecheck" description="Check TypeScript types across all packages">pnpm typecheck</command>
+    <command id="dpdm" description="Check for circular dependencies">pnpm check:dpdm</command>
+  </verification>
+</directive>

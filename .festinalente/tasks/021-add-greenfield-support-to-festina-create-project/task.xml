@@ -1,0 +1,81 @@
+<task id="021-add-greenfield-support-to-festina-create-project" status="done" priority="high" created="2026-03-24" updated="2026-03-24" completed="2026-03-24">
+  <title>Add greenfield support to festina-create-project</title>
+
+  <labels>
+    <label>feature</label>
+  </labels>
+
+  <refs spec="tasks/021-add-greenfield-support-to-festina-create-project/spec.xml" plan="tasks/021-add-greenfield-support-to-festina-create-project/plan.xml"/>
+
+  <affects>
+    <doc id="skills/create-project"/>
+    <doc id="skills/define-product"/>
+  </affects>
+
+  <engineering>
+    <doc id="systems/data-model"/>
+    <doc id="systems/content-build"/>
+  </engineering>
+
+  <description>Enhance /festina-create-project to detect greenfield projects (no product docs, no engineering docs, no/minimal codebase) and activate an enhanced flow: adaptive vision capture with 2-4 broad questions, GSD-style parallel research agents (stack, features, architecture, pitfalls), AI-proposed versioned requirements (v1 MVP / v2 future / out-of-scope), and decomposition from v1 requirements only. Also removes the unused /festina-define skill entirely.</description>
+
+  <problem>festina-create-project assumes an existing codebase with product and engineering docs. For greenfield projects (no code, no docs, no tasks), users have no viable path. festina-define exists but is too tedious — it asks 30-50 granular questions and produces temporary docs (Intent/Requirements/Boundaries) that get rewritten during finalize. Users end up not using festinalente for new projects at all.</problem>
+
+  <value>Users can reliably go from "I have an idea" to structured, scoped tasks using a single /festina-create-project invocation — with AI-driven research (stack, architecture, patterns, pitfalls) filling the knowledge gap that an existing codebase would normally provide. This makes festinalente a complete tool for both greenfield and brownfield projects.</value>
+
+  <acceptance-criteria>
+Given a user runs /festina-create-project with no existing product/engineering docs (greenfield detected)
+When vision capture asks 2-4 broad questions: what are you building, what tech (or "unsure"), what's MVP/out-of-scope, anything else (skippable)
+Then 4 parallel research agents always run: stack, features, architecture, and pitfalls
+And the AI proposes requirements versioned as v1 (MVP) / v2 (future) / out-of-scope
+And the user validates and the project is decomposed into 2-5 tasks from v1 requirements only
+
+Given research agents complete
+When the user said "unsure" about tech choices
+Then the stack agent proposes options with pros/cons and the user validates
+And when the user already specified tech preferences
+Then the stack agent still researches but validates/augments the user's choice rather than replacing it
+
+Given research findings are produced
+Then they are stored in a &lt;research&gt; section in project.xml
+And they carry through to /festina-scope and /festina-plan as context for downstream skills
+
+Given a user runs /festina-create-project with existing product/engineering docs
+Then the existing flow works unchanged (no regression)
+
+Given a user cancels during vision capture Q&amp;A
+Then no project or task files are created
+And no partial state is left behind
+
+Given a research agent fails or returns no results
+Then the flow continues with remaining agent results
+And the user is informed which research was unavailable
+
+Given the user provides very minimal input (just a title, skips all questions)
+Then the AI uses judgment to propose requirements based on the title alone
+And marks all requirements as inferred
+
+Given this task is complete
+Then the festina-define skill is removed from source (apps/festinalente/src/content/skills/festina-define/) and installed (.claude/skills/festina-define/)
+And its product doc (skills/define-product) is removed
+And its directive mapping is removed from .festinalente/config.yaml
+And the G-DEFPROD rule is removed from the git directive (.festinalente/directives/git.xml)
+  </acceptance-criteria>
+
+  <project-requirements></project-requirements>
+
+  <notes>
+**Research references:**
+- Research: GSD (get-shit-done, 40K GitHub stars) — "dream extraction" questioning, 4 parallel researcher agents (stack, features, architecture, pitfalls), phased roadmap, auto mode
+- Research: Taskmaster (claude-task-master, 26K stars) — PRD-first approach, simpler but requires user-written PRD
+- Research: BMAD Method (42K stars) — 12+ agent personas, heavyweight agile framework
+- User: GSD's parallel research phase is the strongest model for greenfield — adopted for this task
+
+**Design principles:**
+- User: "I know what I want to build roughly and know what tech I want to use" — research should augment, not interrogate
+- User: AI proposes everything, user validates — "You decide" as default posture
+- User: No extra files or artifacts — research stored in project.xml, not separate files
+- User: User can cancel Q&amp;A at any time — graceful exit with no partial state
+- User: festina-define should be killed entirely, not preserved as optional
+  </notes>
+</task>

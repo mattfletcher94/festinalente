@@ -1,0 +1,61 @@
+# Festina Lente Workflow Schema
+# This file defines the fixed workflow elements. Not user-configurable.
+# Skills, commands, and templates reference these definitions.
+
+columns:
+  - id: backlog
+    name: Backlog
+    description: Fully refined tasks ready for scoping
+  - id: scoped
+    name: Scoped
+    description: Tasks with functional specification ready for planning
+  - id: planned
+    name: Planned
+    description: Tasks with a plan ready for implementation
+  - id: in-progress
+    name: In Progress
+    description: Tasks currently being implemented (code uncommitted)
+  - id: finalize
+    name: Finalize
+    description: Validation, documentation, and completion
+  - id: awaiting-completion
+    name: Awaiting Completion
+    description: Passed review, awaiting task closure
+  - id: done
+    name: Done
+    description: Task complete, merged to main
+
+labels:
+  - id: bug
+    name: Bug
+    commit-type: fix
+    detect-keywords: [fix, bug, error, crash, broken]
+  - id: feature
+    name: Feature
+    commit-type: feat
+    detect-keywords: [add, implement, feature, new, create]
+  - id: docs
+    name: Docs
+    commit-type: docs
+    detect-keywords: [doc, readme, guide, 'update docs']
+  - id: refactor
+    name: Refactor
+    commit-type: refactor
+    detect-keywords: [refactor, restructure, reorganize, cleanup]
+
+priorities:
+  - id: high
+    name: High
+  - id: medium
+    name: Medium
+  - id: low
+    name: Low
+
+transitions:
+  # Format: source -> [valid destinations]
+  backlog: [scoped]
+  scoped: [planned]
+  planned: [in-progress]
+  in-progress: [finalize]
+  finalize: [awaiting-completion, in-progress] # complete or rework
+  awaiting-completion: [done, in-progress] # close or rework

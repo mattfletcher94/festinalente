@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Directive XML Template
+  =======================
+  Directives are instruction sets that modify LLM behavior during workflow phases.
+  All sections are optional - include only what's needed for this directive.
+
+  Location: .festina/directives/{name}.xml
+  Link to skills in config.yaml under directives.{skill-name}: [{name}]
+-->
+<directive name="" version="1"
+           created="YYYY-MM-DD" updated="YYYY-MM-DD">
+
+  <description>
+    Brief description of what this directive enforces
+  </description>
+
+  <!-- CONTEXT: Principles/mindset to maintain throughout the task -->
+  <!-- Keywords help the LLM recognize when a principle is relevant -->
+  <context>
+    <principle id="C1" keywords="keyword1,keyword2">
+      Principle text - mindset to maintain
+    </principle>
+  </context>
+
+  <!-- PROCESS: Phase-specific rules -->
+  <!-- Valid phases: check, complete, complete-project, create, create-project, define, delete, directive, finalize, implement, map-engineering, map-product, plan, quick, rework, save, scope -->
+  <process>
+    <rule id="P1" phase="implement">
+      Rule text - what to do during this phase
+    </rule>
+  </process>
+
+  <!-- VALIDATION: Compliance checks run after implementation -->
+  <!-- Severity: error (must fix), warning (should fix), info (informational) -->
+  <validation>
+    <!-- Command check: runs a command, expects success -->
+    <check id="V1" type="command" severity="error">
+      <run>command to execute</run>
+      <expect>expected outcome description</expect>
+    </check>
+
+    <!-- Pattern check: regex against file contents -->
+    <check id="V2" type="pattern" severity="warning" files="**/*.ts">
+      <forbidden>regex pattern to forbid</forbidden>
+      <reason>why this pattern is forbidden</reason>
+    </check>
+
+    <!-- Checklist: manual verification items -->
+    <check id="V3" type="checklist" severity="info">
+      <item>First thing to verify</item>
+      <item>Second thing to verify</item>
+    </check>
+  </validation>
+
+  <!-- VERIFICATION: Commands for task step verification during planning/implementation -->
+  <!-- Used by festina-plan to populate <verify> elements and festina-implement to run checks -->
+  <!-- Unlike <validation> (compliance checks), these verify that individual task steps work -->
+  <verification>
+    <!-- Command: executable verification step -->
+    <command id="build" description="Build the project">npm run build</command>
+  </verification>
+
+  <!-- EXAMPLES: Concrete correct/violation illustrations -->
+  <!-- ref links to a rule/check ID, type is correct or violation -->
+  <examples>
+    <example ref="P1" type="correct">
+      <code><![CDATA[
+// Example of correct code/behavior
+      ]]></code>
+      <explanation>Why this is correct</explanation>
+    </example>
+
+    <example ref="P1" type="violation">
+      <code><![CDATA[
+// Example of incorrect code/behavior
+      ]]></code>
+      <explanation>Why this is wrong</explanation>
+    </example>
+  </examples>
+
+</directive>

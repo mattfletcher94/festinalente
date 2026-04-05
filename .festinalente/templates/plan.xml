@@ -1,0 +1,86 @@
+<plan task="{id}" spec="tasks/{id}/spec.xml" status="draft"
+      complexity="{complexity}" created="{created}" updated="{updated}"
+      generated-by="claude" model="{model}" version="1" iteration="1">
+  <title>{title}</title>
+
+  <overview></overview>
+
+  <approach>
+    <rationale></rationale>
+    <breaking-changes></breaking-changes>
+  </approach>
+
+  <inventory></inventory>
+
+  <tasks>
+    <!-- Task template structure:
+    <task id="1" type="auto" depends="optional-task-ids">
+      <name>Short descriptive task name</name>
+      <files>path/to/file.ts (create|modify), path/to/other.ts (modify)</files>
+      <requirements>FR1, FR2</requirements>
+      <pattern>Description of pattern to follow or file path reference</pattern>
+      <context>
+        <!-- Files the subagent should read BEFORE implementing this task.
+             Include:
+             - Existing files being modified (to understand current structure)
+             - Pattern reference files (to see implementation examples)
+             - Files containing imports/types/interfaces needed for the task
+             - Related files that provide context for the change
+
+             Note: Only include file paths here. Subagent will read these fresh.
+             Do NOT include files being created (they don't exist yet). -->
+        <file>path/to/existing/file.ts</file>
+        <file>path/to/pattern/reference.ts</file>
+      </context>
+      <action>
+        Detailed description of what to implement.
+        Include specific changes, code structure, and any important details.
+      </action>
+      <verify>Command or check to verify the task is complete</verify>
+      <done>Clear criteria that defines when this task is complete</done>
+      <!-- Contract verification results (added by /festina-implement when contracts exist):
+      <contract-verification verified-at="{ISO timestamp}">
+        <result contract="C1" status="pass|fail">
+          <evidence>file:line reference or reasoning</evidence>
+          <details>
+            <precondition status="pass|fail">explanation</precondition>
+            <postcondition status="pass|fail">explanation</postcondition>
+            <invariant status="pass|fail">explanation</invariant>
+            <property status="pass|fail">explanation</property>
+          </details>
+        </result>
+      </contract-verification>
+      -->
+    </task>
+    -->
+  </tasks>
+
+  <testing>
+    <automated></automated>
+    <manual></manual>
+    <regression></regression>
+    <!-- Optional: test cases derived from behavioral contracts -->
+    <!--
+    <contract-test contract="C1">
+      <positive>{input} -> {expected output for valid case}</positive>
+      <negative>{input} -> {expected behavior for invalid case}</negative>
+      <property>{property-based test description}</property>
+    </contract-test>
+    -->
+  </testing>
+
+  <edge-cases>
+  </edge-cases>
+
+  <pitfalls>
+  </pitfalls>
+
+  <iterations>
+  </iterations>
+
+  <wip>
+  </wip>
+
+  <completeness>
+  </completeness>
+</plan>

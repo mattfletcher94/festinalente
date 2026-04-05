@@ -1,0 +1,850 @@
+---
+name: festina-map-engineering
+description: Analyze existing codebase and create engineering documentation through parallel exploration and Socratic Q&A
+allowed-tools: Read, Write, Glob, Grep, Bash(node *, git add *, git commit *, git status), Task
+disable-model-invocation: true
+---
+
+# Skill: Map Engineering
+
+<purpose>
+Analyze existing codebase and create engineering documentation through parallel exploration and Socratic Q&A.
+</purpose>
+
+<context>
+<note>
+- **`.claude/skills/festina-*/`** — Installed festina skills — READ ONLY
+- **`.festinalente/`** — Project data and config — READ/WRITE
+- **`.festinalente/tasks/{id}/`** — Task folder containing `task.xml`, `spec.xml`, `plan.xml`
+- **`.festinalente/quick/{id}/`** — Quick task folder containing `quick.xml` (for /festina-quick)
+- **`.festinalente/scripts/`** — Helper scripts for festina operations
+- **`.festinalente/templates/`** — Document templates
+- **`.festinalente/workflow.yaml`** — Workflow config (columns, labels, transitions)
+- **`.festinalente/directives/`** — User-defined directives (custom instructions for skills)
+</note>
+
+<note>Use these scripts to reliably find files:</note>
+
+
+
+
+
+
+<command description="Get current date/time (returns JSON with iso and date formats)">node .festinalente/scripts/festinalente.cjs get-date-time</command>
+
+
+
+
+
+
+
+
+
+
+<note>Use these scripts to work with engineering documentation:</note>
+
+<command description="List all engineering docs (returns JSON with count and docs array)">node .festinalente/scripts/festinalente.cjs list-engineering</command>
+<command description="Filter by type">node .festinalente/scripts/festinalente.cjs list-engineering --type=pattern</command>
+<command description="Filter components by system">node .festinalente/scripts/festinalente.cjs list-engineering --system=auth</command>
+
+<command description="Search engineering docs by keywords (returns JSON sorted by relevance)">node .festinalente/scripts/festinalente.cjs search-engineering keyword1 keyword2 ...</command>
+<command description="With minimum score threshold">node .festinalente/scripts/festinalente.cjs search-engineering middleware pattern --min-score=0.3</command>
+<note>Score interpretation: ≥0.5 = strong match | 0.3-0.5 = possible match | &lt;0.3 = weak match | No results = likely new pattern/system</note>
+
+
+<note>Path rules:
+- `overview` → `.festinalente/engineering/overview.md`
+- `systems/auth` → `.festinalente/engineering/systems/auth/_index.md`
+- `systems/auth/validator` → `.festinalente/engineering/systems/auth/validator.md`
+- `patterns/acyclic-arch` → `.festinalente/engineering/patterns/acyclic-arch.md`
+- `conventions/file-naming` → `.festinalente/engineering/conventions/file-naming.md`
+</note>
+
+<note>**Diagram Guidelines:**</note>
+
+<note>**When to include Mermaid diagrams:**</note>
+- Workflows with 3+ steps or branching logic → `flowchart`
+- User/system interactions → `sequenceDiagram`
+- State transitions → `stateDiagram-v2`
+- System architecture with 3+ components → `flowchart`
+- Pattern relationships → `classDiagram`
+- Database/data models → `erDiagram`
+
+<note>**When to include ASCII mockups:**</note>
+- UI elements (dialogs, forms, panels)
+- Tree structures (file trees, hierarchies)
+- Sidebar/panel layouts
+
+<note>**Mermaid Syntax Quick Reference:**</note>
+
+<example_code lang="markdown">
+## Flowchart
+```mermaid
+flowchart LR
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Action 1]
+    B -->|No| D[Action 2]
+```
+
+## Sequence Diagram
+```mermaid
+sequenceDiagram
+    User->>+System: Request
+    System-->>-User: Response
+```
+
+## State Diagram
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Processing: start
+    Processing --> Done: complete
+```
+
+## Class Diagram
+```mermaid
+classDiagram
+    class Interface {
+        <<interface>>
+        +method()
+    }
+    Interface <|-- Implementation
+```
+
+## Entity Relationship Diagram
+```mermaid
+erDiagram
+    USER ||--o{ ORDER : places
+    ORDER ||--|{ LINE_ITEM : contains
+```
+</example_code>
+
+<note>**ASCII Conventions:**</note>
+
+<example_code lang="text">
+## Window/Dialog
+┌─────────────────────────────────┐
+│  Title                    [X]  │
+├─────────────────────────────────┤
+│  Content                        │
+│      [ Cancel ]  [ OK ]         │
+└─────────────────────────────────┘
+
+## Form Elements
+Label:     [________________]     ← Text input
+Dropdown:  [Option v]             ← Select
+Radio:     (*) Selected  ( ) Not  ← Radio
+Checkbox:  [x] Checked  [ ] Not   ← Checkbox
+Button:    [ Submit ]             ← Button
+
+## Tree View
+├── Parent
+│   ├── Child 1
+│   └── Child 2
+└── Sibling
+
+## Sidebar
+HEADER                    [+] [↻]
+├── ▼ Expanded (2)
+│   ├── Item 1
+│   └── Item 2
+└── ▶ Collapsed (3)
+</example_code>
+
+<note>**Column Transition:** N/A - This is a documentation command, not a task workflow command.</note>
+
+<note>**Glossary:** This skill updates `.festinalente/glossary.yaml` with technical terms and aliases.</note>
+</context>
+
+<arguments>
+  <hint>Arguments provide focus or constraints for the discovery process — they do NOT replace it. Even if arguments describe a narrow update, run the full skill process. The parallel agents and Q&A will be scoped by the arguments, not skipped because of them.</hint>
+</arguments>
+
+<prohibited>
+- Do not skip the parallel discovery phase
+- Do not write docs without validating with user through Q&A
+- Do not skip the validation phase
+- Do not bypass this skill to make direct edits — always run the full process
+</prohibited>
+
+<process>
+  <step name="load_workflow">
+    <action>Read `.festinalente/workflow.yaml` for column definitions, labels, priorities, and transitions</action>
+    <note>Use these values throughout this skill</note>
+  </step>
+
+  <step name="load_directives">
+    <command>node .festinalente/scripts/festinalente.cjs get-skill-config festina-map-engineering</command>
+    <action>Parse the JSON output</action>
+    
+    <branch condition="directives.length > 0">
+      <warning>Directives are MANDATORY. You MUST follow them.</warning>
+      <action>For EACH directive where `exists` is `true`:</action>
+      <action>Read the directive XML file at `path`</action>
+      <action>Parse and apply:</action>
+      <action>- `<context>` principles: Maintain as ongoing mindset</action>
+      <note>The `keywords` attribute on context principles is metadata for LLM relevance — use keywords to recognize when a principle applies to the current work.</note>
+      <action>- `<process>` rules where the phase attribute, split on comma and trimmed, includes "map-engineering" as an exact element (e.g. phase="plan,implement" matches "plan" and "implement" but NOT "plan-review"): Follow as requirements</action>
+      <action>- `<override>` sections where the phase attribute, split on comma and trimmed, includes "map-engineering" as an exact element: Apply step replacements</action>
+      <action>- `<verification>` commands: Used by festina-plan to populate task &lt;verify&gt; elements and festina-implement to run step checks. Other skills can ignore this section.</action>
+    
+      <branch condition="directive has <override> section for phase=map-engineering">
+        <output>
+    **DIRECTIVE OVERRIDE ACTIVE: {directive.name}**
+    
+    The following skill steps are REPLACED by this directive:
+    
+    {For each &lt;skip&gt; element:}
+    **SKIP STEP: `{step}`** - Do NOT execute this step when you reach it in the skill process.
+    
+    **REPLACEMENT:** Execute directive rules {override.instead.rules} instead.
+    
+    **Reason:** {override.reason}
+    
+    **CRITICAL:** When you encounter any skipped step in the skill's &lt;process&gt;,
+    you MUST skip it entirely and follow the directive's replacement rules instead.
+        </output>
+      </branch>
+      <note>`<validation>` checks will run in directive_compliance step</note>
+      <note>`<examples>` will be shown if violations are found</note>
+      <note>Directives are loaded in config.yaml array order. All matching phase rules from all loaded directives apply additively. Avoid mapping two directives that both override the same phase.</note>
+    </branch>
+    
+    <example_code lang="json">
+    {
+      "skill": "festina-map-engineering",
+      "directives": [
+        { "name": "architecture", "path": ".festinalente/directives/architecture.xml", "exists": true }
+      ]
+    }
+    </example_code>
+  </step>
+
+  <step name="preflight_check">
+    <action>Check if `.festinalente/engineering/` has files OTHER than `overview.md`</action>
+    <command>node .festinalente/scripts/festinalente.cjs list-engineering</command>
+    <branch condition="count > 1, OR if count == 1 and the doc is not `overview`">
+      <action>Use AskUserQuestion tool with:
+        - header: "Existing Docs"
+        - question: "I found existing engineering docs. How should I proceed?"
+        - options:
+          - label: "Preserve and extend", description: "Keep existing docs, add new findings"
+          - label: "Merge with findings", description: "Combine existing docs with new discoveries"
+          - label: "Start fresh", description: "Replace existing docs entirely"
+        - multiSelect: false
+      </action>
+    </branch>
+    <branch condition="only `overview.md` exists (or no docs)">
+      <action>Proceed without prompting (this is expected for new installs)</action>
+    </branch>
+  </step>
+
+  <step name="parallel_discovery">
+    <note>**CRITICAL: Spawn 4 agents in parallel using Task tool**</note>
+    <action>Use the Task tool 4 times in a SINGLE message to achieve parallelism</action>
+
+    <parallel>
+      <agent name="Stack Analyzer" subagent_type="Explore">
+        <description>Analyze tech stack and dependencies</description>
+        <prompt>
+Analyze the technology stack of this codebase:
+1. Read package.json, requirements.txt, Cargo.toml, go.mod, etc.
+2. Identify programming languages used
+3. List frameworks and their versions
+4. Note key dependencies and what they're used for
+5. Identify build tools (webpack, vite, cargo, etc.)
+6. Find testing frameworks
+7. Note database technologies
+
+Provide a structured summary:
+- Languages: {list with versions if available}
+- Frameworks: {list with versions}
+- Key Dependencies: {name: purpose}
+- Build Tools: {list}
+- Testing: {frameworks used}
+- Database: {type and driver}
+        </prompt>
+      </agent>
+
+      <agent name="Architecture Mapper" subagent_type="Explore">
+        <description>Map systems and data flow</description>
+        <prompt>
+Map the system architecture of this codebase:
+1. Identify major subsystems (auth, api, database, cache, etc.)
+2. Find entry points for each system
+3. Trace data flow between systems
+4. Identify integration points (APIs, events, queues)
+5. Find configuration and environment handling
+6. Note any microservices or separate deployables
+
+For each system, provide:
+- name: System name
+- purpose: What it does (1 sentence)
+- entry_points: Main files/classes
+- components: Key internal components (for Architecture diagram)
+- interacts_with: Other systems it communicates with
+- data_flow: How data moves through it (for Data Flow diagram)
+
+Provide Mermaid-ready descriptions:
+- System relationships (which systems connect to which)
+- Data flow sequences (input → processing → output)
+- Component hierarchy within each system
+        </prompt>
+      </agent>
+
+      <agent name="Convention Extractor" subagent_type="Explore">
+        <description>Extract coding conventions and patterns</description>
+        <prompt>
+Extract coding conventions and patterns from this codebase:
+1. File naming conventions (PascalCase, kebab-case, etc.)
+2. Folder organization patterns
+3. Import/export patterns (barrels, direct imports)
+4. Error handling approach (exceptions, Result types, error codes)
+5. Dependency injection pattern (if any)
+6. State management approach
+7. API design patterns (REST, GraphQL conventions)
+8. Testing conventions
+
+For each convention/pattern found, provide:
+- name: Convention name
+- type: naming | structure | error-handling | state | api | testing
+- rule: The convention rule (1-2 sentences)
+- example_file: File that demonstrates this
+- evidence: Code snippet showing the pattern
+        </prompt>
+      </agent>
+
+      <agent name="Risk Identifier" subagent_type="Explore">
+        <description>Identify technical debt and risks</description>
+        <prompt>
+Identify technical risks and debt in this codebase:
+1. Look for TODO, FIXME, HACK, XXX comments
+2. Find deprecated code or dependencies
+3. Identify potential security concerns
+4. Look for missing error handling
+5. Find hard-coded values that should be config
+6. Identify code duplication patterns
+7. Note missing tests or test coverage gaps
+8. Find performance concerns (N+1 queries, blocking I/O)
+
+For each issue, provide:
+- type: tech_debt | security | performance | maintainability
+- severity: high | medium | low
+- location: File and line
+- description: What the issue is
+- recommendation: How to address it
+        </prompt>
+      </agent>
+    </parallel>
+
+    <action>Wait for all 4 agents to complete</action>
+    <note>Agents run concurrently - this is faster than sequential exploration</note>
+  </step>
+
+  <step name="synthesize_findings">
+    <action>Combine outputs from all 4 agents</action>
+    <action>Organize systems by dependency order</action>
+    <action>Group patterns by category</action>
+    <action>Prioritize risks by severity</action>
+
+    <note>**Synthesis Rules:**</note>
+    <rule>Stack Analyzer provides the foundation - verify against actual usage</rule>
+    <rule>Architecture Mapper systems become the systems/ docs</rule>
+    <rule>Convention Extractor patterns become patterns/ and conventions/ docs</rule>
+    <rule>Risk Identifier issues can be documented as "Known Issues" in relevant system docs</rule>
+
+    <action>Present summary to user for validation</action>
+  </step>
+
+  <step name="write_relationships_to_frontmatter">
+    <note>Persist Architecture Mapper findings to doc frontmatter</note>
+    <action>For each doc being created, populate relationship fields from Architecture Mapper output:</action>
+    <action>- `interacts_with` relationships → add to `references: []`</action>
+    <action>- `data_flow` dependencies → add to `uses: []`</action>
+    <action>Only include relationships where BOTH docs exist in the documentation set</action>
+  </step>
+
+  <step name="create_engineering_overview">
+    <note>Based on synthesis, draft overview content:</note>
+    <output>Detected stack: {detected stack from Stack Analyzer}.</output>
+    <action>Use detected stack. User can correct during Q&amp;A if needed.</action>
+
+    <output>Detected architecture: {detected architecture from Architecture Mapper}.</output>
+    <action>Use detected architecture. User can correct during Q&amp;A if needed.</action>
+
+    <warning>IMMEDIATELY create overview.md:</warning>
+    <action>Create `.festinalente/engineering/overview.md`</action>
+    <action>Use template from `.festinalente/templates/engineering-overview.md`</action>
+    <action>Fill frontmatter: `id: overview`, `type: overview`, `title`, `tldr`, `summary`, `keywords`, `aliases`, `boundary`</action>
+    <action>Fill body sections: Tech Stack (from Stack Analyzer), Architecture Summary, Directory Structure</action>
+  </step>
+
+  <step name="present_summary">
+    <output>I analyzed the codebase using 4 parallel agents and found the following:</output>
+    <output>**Tech Stack:** {languages, frameworks from Stack Analyzer}</output>
+    <output>**Systems:** {major subsystems from Architecture Mapper}</output>
+    <output>**Patterns:** {key patterns from Convention Extractor}</output>
+    <output>**Risks Identified:** {count} issues ({high} high, {medium} medium, {low} low)</output>
+    <output>Let me ask some questions to validate and expand on this understanding.</output>
+  </step>
+
+  <step name="socratic_qa_dialogue">
+    <note>Use AskUserQuestion tool for **one question at a time**.</note>
+    <warning>CRITICAL: Write docs incrementally to prevent context loss</warning>
+
+    <note>**For each system (depth-first), ask Discovery Questions:**</note>
+    <questions name="system_discovery">
+      <action>Use AskUserQuestion tool with:
+        - header: "Verify"
+        - question: "I found {system} that appears to handle {description}. Is this accurate?"
+        - options:
+          - label: "Yes", description: "Description is accurate"
+          - label: "Partly", description: "Needs some corrections"
+          - label: "No", description: "This is incorrect"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to provide corrections</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Components"
+        - question: "What are the key components within {system}?"
+        - options:
+          - label: "Use detected", description: "Use components found in analysis"
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to list key components</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Design"
+        - question: "Why was this system designed this way? What alternatives were considered?"
+        - options:
+          - label: "Skip", description: "Move to next question"
+          - label: "Unsure", description: "Don't know the history"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to explain design decisions</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Scale"
+        - question: "What are the performance or scalability constraints?"
+        - options:
+          - label: "None", description: "No special constraints"
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe constraints</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Boundaries"
+        - question: "What does this system NOT handle? (boundaries)"
+        - options:
+          - label: "Skip", description: "Move to next question"
+          - label: "None", description: "No specific boundaries"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe boundaries</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Debt"
+        - question: "Are there any known issues or technical debt?"
+        - options:
+          - label: "None known", description: "No known issues"
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe known issues</note>
+    </questions>
+
+    <warning>IMMEDIATELY write the engineering doc:</warning>
+    <action>Create folder if needed: `.festinalente/engineering/systems/{system}/`</action>
+    <command description="Get current date">node .festinalente/scripts/festinalente.cjs get-date-time</command>
+    <action>Create `.festinalente/engineering/systems/{system}/_index.md`</action>
+    <action>Use template from `.festinalente/templates/engineering-system.md`</action>
+    <action>Fill frontmatter: `id`, `type: system`, `title`, `tldr`, `summary`, `keywords`, `aliases`, `boundary`, `paths`</action>
+
+    <note>**Diagram Generation:**</note>
+    <action>For each system doc, generate:</action>
+    <action>- Architecture diagram showing components (Mermaid flowchart TB with subgraph)</action>
+    <action>- Data flow diagram (Mermaid flowchart LR)</action>
+    <action>For pattern docs, generate:</action>
+    <action>- Structure diagram showing relationships (Mermaid classDiagram)</action>
+    <action>For convention docs where structure matters, generate:</action>
+    <action>- ASCII diagrams showing correct vs incorrect structure</action>
+
+    <note>**For patterns discovered:**</note>
+    <questions name="pattern_discovery">
+      <action>Use AskUserQuestion tool with:
+        - header: "Pattern"
+        - question: "I noticed a {pattern} pattern. Can you tell me more about when/how to apply it?"
+        - options:
+          - label: "Skip", description: "Move to next question"
+          - label: "Unsure", description: "Need to investigate"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to explain the pattern</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Problem"
+        - question: "What problem does this pattern solve?"
+        - options:
+          - label: "Skip", description: "Move to next question"
+          - label: "Unsure", description: "Need to investigate"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe the problem</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Anti-use"
+        - question: "When should this pattern NOT be used?"
+        - options:
+          - label: "Always use it", description: "Use pattern everywhere applicable"
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe anti-patterns</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Examples"
+        - question: "Can you show me a good example and a bad example?"
+        - options:
+          - label: "Use detected", description: "Use examples found in codebase"
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to provide examples</note>
+    </questions>
+
+    <action>Create `.festinalente/engineering/patterns/{pattern}.md`</action>
+    <action>Use template from `.festinalente/templates/engineering-pattern.md`</action>
+    <action>Include correct and incorrect examples from the codebase</action>
+
+    <note>**For conventions discovered:**</note>
+    <questions name="convention_discovery">
+      <action>Use AskUserQuestion tool with:
+        - header: "Rules"
+        - question: "I see a convention for {thing}. Are there specific rules to follow?"
+        - options:
+          - label: "Use detected", description: "Use rules found in analysis"
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to specify rules</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Violations"
+        - question: "What happens if someone violates this convention?"
+        - options:
+          - label: "CI fails", description: "Linting/CI catches violations"
+          - label: "Code review", description: "Caught in code review"
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe consequences</note>
+
+      <action>Use AskUserQuestion tool with:
+        - header: "Exceptions"
+        - question: "Are there any exceptions to this convention?"
+        - options:
+          - label: "None", description: "No exceptions, always follow"
+          - label: "Skip", description: "Move to next question"
+        - multiSelect: false
+      </action>
+      <note>User can select "Other" to describe exceptions</note>
+    </questions>
+
+    <action>Create `.festinalente/engineering/conventions/{convention}.md`</action>
+    <action>Use template from `.festinalente/templates/engineering-convention.md`</action>
+
+    <note>**Documentation Review (per doc):**</note>
+    <action>Read the draft back to user</action>
+    <action>Use AskUserQuestion tool with:
+      - header: "Accuracy"
+      - question: "Is this documentation accurate? What's missing?"
+      - options:
+        - label: "Looks good", description: "Documentation is accurate"
+        - label: "Needs changes", description: "Some parts need correction"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to specify what's missing</note>
+
+    <action>Use AskUserQuestion tool with:
+      - header: "Clarity"
+      - question: "Would this help a new developer understand the system?"
+      - options:
+        - label: "Yes", description: "Clear enough for newcomers"
+        - label: "Needs more detail", description: "Add more explanation"
+      - multiSelect: false
+    </action>
+
+    <note>**Exit:**</note>
+    <action>Use AskUserQuestion tool with:
+      - header: "Wrap Up"
+      - question: "Is there anything else about the engineering/architecture you'd like to document?"
+      - options:
+        - label: "No, done", description: "Proceed to glossary update"
+        - label: "Yes, more", description: "I have more to document"
+      - multiSelect: false
+    </action>
+    <note>User can select "Other" to add more details</note>
+    <branch condition="user says no/nothing/that's all">
+      <action>Proceed to glossary update</action>
+    </branch>
+    <branch condition="user has more">
+      <action>Continue Q&A</action>
+    </branch>
+  </step>
+
+  <step name="update_glossary">
+    <note>Update project glossary with technical terms</note>
+    <action>Check if `.festinalente/glossary.yaml` exists</action>
+    <branch condition="exists">
+      <action>Read existing glossary</action>
+      <action>Add new technical terms discovered</action>
+    </branch>
+    <branch condition="does not exist">
+      <action>Create `.festinalente/glossary.yaml` with technical terms</action>
+    </branch>
+
+    <example_code lang="yaml">
+# Project Glossary - Technical terms section
+version: 1
+terms:
+  # ... existing terms ...
+  - term: "{technical-term}"
+    aliases: ["{synonym1}", "{synonym2}"]
+    domain: engineering
+    definition: "{brief definition}"
+    auto_generated: true
+    </example_code>
+
+    <action>Use AskUserQuestion tool with:
+      - header: "Glossary"
+      - question: "Review technical terms - any to add, remove, or rename?"
+      - options:
+        - label: "Looks good", description: "Glossary is complete"
+        - label: "Add terms", description: "I want to add more terms"
+        - label: "Remove terms", description: "Some terms should be removed"
+        - label: "Rename terms", description: "Some terms need renaming"
+      - multiSelect: true
+    </action>
+    <note>User can select "Other" to specify changes</note>
+  </step>
+
+  <step name="validation_phase">
+    <note>Validate documentation quality and completeness</note>
+
+    <action>Check all `references` and `uses` fields resolve to existing docs</action>
+    <action>Check all `paths` fields point to existing files</action>
+    <action>Check for orphan docs (not referenced anywhere)</action>
+    <action>Verify each doc has required fields: tldr, summary, keywords, boundary</action>
+
+    <output>
+Validation Report:
+────────────────────────────────────────
+Total docs created: {count}
+- Systems: {count}
+- Patterns: {count}
+- Conventions: {count}
+
+ISSUES FOUND:
+- Related field issues: {list or "None"}
+- Invalid paths: {list or "None"}
+- Orphan docs: {list or "None"}
+- Missing fields: {list or "None"}
+
+Risks documented: {count} from Risk Identifier
+    </output>
+
+    <branch condition="issues found">
+      <action>Use AskUserQuestion tool with:
+        - header: "Fix Issues"
+        - question: "Would you like to fix these issues now?"
+        - options:
+          - label: "Yes", description: "Fix issues before completing"
+          - label: "No", description: "Skip, I'll fix them later"
+        - multiSelect: false
+      </action>
+      <branch condition="user selects Yes">
+        <action>Fix each issue interactively</action>
+      </branch>
+    </branch>
+  </step>
+
+  <step name="final_review">
+    <action>Read all generated engineering docs</action>
+    <action>Update overview.md with links to created systems/patterns/conventions</action>
+    <action>Verify all `references` and `uses` fields are accurate across docs</action>
+    <action>Add any high-severity risks to relevant system docs</action>
+  </step>
+
+
+  <step name="directive_compliance">
+    <note>Verify compliance with all loaded directives</note>
+  
+    <action>For each directive loaded in load_directives step:</action>
+    <action>Re-read the directive XML file</action>
+  
+    <action>Run each `<validation>` check:</action>
+  
+    <branch condition="check type=command">
+      <command>{content of <run> element}</command>
+      <validate>{content of <expect> element}</validate>
+    </branch>
+  
+    <branch condition="check type=pattern">
+      <action>For each file matching `files` glob that was modified:</action>
+      <action>Check content against `<forbidden>` regex</action>
+    </branch>
+  
+    <branch condition="check type=checklist">
+      <action>Self-assess each `<item>` as Y/N</action>
+    </branch>
+  
+    <branch condition="any check fails">
+      <output>Directive violation: {check id} - {reason}</output>
+      <action>Find `<example>` elements where ref matches failed check</action>
+      <action>Show violation examples to illustrate the problem</action>
+      <action>Show correct examples to illustrate the fix</action>
+      <action>Use AskUserQuestion tool with:
+        - header: "Violation"
+        - question: "Directive check failed. How would you like to proceed?"
+        - options:
+          - label: "Fix now", description: "Address the violation before continuing"
+          - label: "Continue anyway", description: "Acknowledge and proceed despite violation"
+        - multiSelect: false
+      </action>
+      <branch condition="user selects Fix now">
+        <action>Attempt remediation for the violation</action>
+        <action>Re-run the failed validation checks (only the ones that failed, not all checks)</action>
+        <branch condition="checks now pass">
+          <output>Violation resolved.</output>
+        </branch>
+        <branch condition="still failing after remediation">
+          <output>Violation persists after fix attempt: {check id} - {reason}. Continuing.</output>
+        </branch>
+      </branch>
+    </branch>
+  </step>
+
+  <step name="output_result">
+    <output>Engineering documentation mapped!</output>
+    <output>
+**Created:**
+- {system_count} system docs
+- {pattern_count} pattern docs
+- {convention_count} convention docs
+- {risk_count} risks documented
+
+**Next: Start creating tasks**
+```
+/clear
+/festina-create "Your task title"
+```
+    </output>
+    <output>[FESTINA_COMPLETE]</output>
+  </step>
+</process>
+
+<success_criteria>
+- `.festinalente/engineering/` directory exists
+- At least `overview.md` was created
+- Each doc has valid frontmatter (id, type, title, tldr, summary, keywords, boundary, paths, updated)
+- `.festinalente/glossary.yaml` updated with technical terms
+- Validation phase completed without errors
+- Next steps shown to user
+</success_criteria>
+
+<example>
+User: `/festina-map-engineering`
+
+```
+Launching 4 parallel agents to analyze the codebase...
+
+[Stack Analyzer] Reading package.json, analyzing dependencies...
+[Architecture Mapper] Identifying systems and data flow...
+[Convention Extractor] Finding patterns and conventions...
+[Risk Identifier] Looking for technical debt and risks...
+
+All agents complete. Synthesizing findings...
+
+I analyzed the codebase and found the following:
+
+**Tech Stack:**
+- TypeScript 5.3, Node.js 20
+- Express.js 4.18 (API framework)
+- PostgreSQL 15 (database)
+- Jest (testing)
+
+**Systems:**
+- auth: JWT authentication with refresh tokens
+- api: REST API with versioning
+- database: PostgreSQL with Prisma ORM
+- cache: Redis for session storage
+
+**Patterns:**
+- Repository pattern for data access
+- Middleware pattern for request processing
+- Factory pattern for service creation
+
+**Risks Identified:** 12 issues (2 high, 5 medium, 5 low)
+- HIGH: SQL injection risk in search endpoint
+- HIGH: No rate limiting on auth endpoints
+
+Let me ask some questions to validate and expand on this understanding.
+```
+
+**After Q&A completes, creates:**
+```
+.festinalente/engineering/
+├── overview.md
+├── systems/
+│   ├── auth/
+│   │   └── _index.md
+│   ├── api/
+│   │   └── _index.md
+│   └── database/
+│       └── _index.md
+├── patterns/
+│   ├── repository.md
+│   └── middleware.md
+└── conventions/
+    ├── file-naming.md
+    └── error-handling.md
+```
+
+**Validation Report:**
+```
+Total docs created: 8
+- Systems: 3
+- Patterns: 2
+- Conventions: 2
+
+ISSUES FOUND: None
+
+Risks documented: 12 (added to relevant system docs)
+```
+</example>
+
+<note>
+**Parallel Agent Benefits:**
+
+1. **Comprehensive analysis** - Each agent specializes in one aspect
+2. **Risk awareness** - Dedicated agent finds security and performance issues
+3. **Pattern recognition** - Convention Extractor ensures consistency documentation
+4. **Faster mapping** - 4 agents work simultaneously
+
+**Engineering Doc Quality:**
+
+- Always include code examples from the actual codebase
+- Document the "why" not just the "what"
+- Include boundaries (what the system/pattern does NOT do)
+- Link risks to specific systems for traceability
+</note>
+
+<next_steps>
+```
+/clear
+/festina-create "Your task title"
+```
+</next_steps>

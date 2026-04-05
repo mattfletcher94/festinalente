@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Lock files (pnpm)
+pnpm-lock.yaml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+
+.turbo/
+.turbo/cache/
+
+.npmrc
+
+.festinalente/tasks/
+.festinalente/quick/
+.festinalente/projects/
+
+blog-draft.md
+VOICE.md
